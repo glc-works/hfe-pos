@@ -1,0 +1,26 @@
+{
+  "$schema": "https://hfe.togrow.id/schemas/connector-manifest-v1.json",
+  "name": "Hfe POS & Commerce Suite",
+  "slug": "hfe-pos",
+  "version": "1.0.0",
+  "publisher": "GLC Works & Hfe Core Team",
+  "category": "POS & Commerce",
+  "icon": "🛒",
+  "description": "Point of Sale & Retail Cashier Connector integrating cashier transactions, split biller fees, QRIS/VA settlement, and automated stock subledgers into Headless Company Books.",
+  "permissions": [
+    "subledger.post_transaction",
+    "biller.create_split",
+    "tax.calculate_ppn",
+    "inventory.sync_stock"
+  ],
+  "monetization": {
+    "pricing_model": "transaction_fee",
+    "fee_per_transaction_idr": 250,
+    "revenue_share_percentage": 20
+  },
+  "endpoints": {
+    "checkout_settle": "/v1/pos/checkout",
+    "shift_reconcile": "/v1/pos/shifts/reconcile",
+    "catalog_sync": "/v1/pos/products/sync"
+  }
+}
