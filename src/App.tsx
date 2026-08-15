@@ -54,7 +54,9 @@ import {
   Store,
   Compass,
   UserCheck,
-  LogOut
+  LogOut,
+  FolderTree,
+  Database
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -74,6 +76,8 @@ interface MenuItem {
   id: string
   name: string
   category: string
+  hfeCategoryCode: string // Official HFE Core Books Category Code (e.g. CAT-COFFEE-01)
+  hfeGlAccount: string   // Official HFE Subledger Revenue Account (e.g. 4010-Beverage)
   price: number
   image: string
   description: string
@@ -118,12 +122,14 @@ interface OrderTicket {
   waiterCall?: string
 }
 
-// --- MOCK PRODUCT MASTER DATA WITH BOM & PREPARATION SOP ---
+// --- MOCK PRODUCT MASTER DATA WITH OFFICIAL HFE BACKEND CATEGORY CODES ---
 const PRODUCT_CATALOG: MenuItem[] = [
   { 
     id: 'PRD-01', 
     name: 'Espresso Aren Latte', 
     category: 'Coffee', 
+    hfeCategoryCode: 'CAT-COFFEE-01',
+    hfeGlAccount: '4010-Beverage Sales',
     price: 28000, 
     image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=400&q=80', 
     description: 'Double espresso dengan gula aren organik dan susu segar', 
@@ -146,6 +152,8 @@ const PRODUCT_CATALOG: MenuItem[] = [
     id: 'PRD-02', 
     name: 'Spanish Latte', 
     category: 'Coffee', 
+    hfeCategoryCode: 'CAT-COFFEE-01',
+    hfeGlAccount: '4010-Beverage Sales',
     price: 32000, 
     image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80', 
     description: 'Rich espresso blended dengan condensed milk dan velvety foam', 
@@ -166,6 +174,8 @@ const PRODUCT_CATALOG: MenuItem[] = [
     id: 'PRD-03', 
     name: 'Japanese Cold Brew V60', 
     category: 'Coffee', 
+    hfeCategoryCode: 'CAT-COFFEE-01',
+    hfeGlAccount: '4010-Beverage Sales',
     price: 35000, 
     image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80', 
     description: 'Single-origin beans diseduh V60 langsung ke atas es batu', 
@@ -185,6 +195,8 @@ const PRODUCT_CATALOG: MenuItem[] = [
     id: 'PRD-04', 
     name: 'Matcha Oat Latte', 
     category: 'Non-Coffee', 
+    hfeCategoryCode: 'CAT-NONCOFFEE-02',
+    hfeGlAccount: '4010-Beverage Sales',
     price: 34000, 
     image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&q=80', 
     description: 'Uji Matcha Jepang premium dicampur susu gandum Oatside', 
@@ -204,6 +216,8 @@ const PRODUCT_CATALOG: MenuItem[] = [
     id: 'PRD-05', 
     name: 'Croissant Butter Paris', 
     category: 'Pastry', 
+    hfeCategoryCode: 'CAT-PASTRY-03',
+    hfeGlAccount: '4020-Food Sales',
     price: 25000, 
     image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80', 
     description: 'Flaky pastry mentega Prancis panggang hangat',
@@ -220,6 +234,8 @@ const PRODUCT_CATALOG: MenuItem[] = [
     id: 'PRD-06', 
     name: 'Truffle French Fries', 
     category: 'Snack', 
+    hfeCategoryCode: 'CAT-SNACK-04',
+    hfeGlAccount: '4020-Food Sales',
     price: 38000, 
     image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80', 
     description: 'Kentang goreng renyah minyak truffle dan taburan keju parmesan',
@@ -517,7 +533,7 @@ export default function App() {
       setOrders(prev => [newOrder, ...prev])
       setCart([])
       setQrStepView('catalog')
-      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur!`)
+      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur! Terkoneksi dengan Hfe Ledger.`)
     }
   }
 
@@ -542,7 +558,7 @@ export default function App() {
     setCart([])
     setQrStepView('catalog')
     setLoyaltyPoints(prev => prev + Math.floor(grandTotalBill / 10000))
-    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur.`)
+    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur & Terposting ke Hfe Engine.`)
   }
 
   const handlePOSCheckoutTable = () => {
@@ -599,7 +615,7 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">Login Sekali Tersimpan & Etalase Kategori Jelas</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Integrated Hfe Core Books Product Categories</p>
             </div>
           </div>
 
@@ -739,13 +755,13 @@ export default function App() {
                 </div>
               )}
 
-              {/* STICKY CATEGORY JUMP NAVIGATOR BAR */}
+              {/* STICKY CATEGORY JUMP NAVIGATOR BAR WITH HFE CATEGORY CODES */}
               <div className="sticky top-[60px] z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 rounded-2xl flex items-center gap-1.5 overflow-x-auto shadow-xl">
                 {[
-                  { id: 'Coffee', icon: '☕', name: 'Coffee' },
-                  { id: 'Non-Coffee', icon: '🍵', name: 'Non-Coffee' },
-                  { id: 'Pastry', icon: '🥐', name: 'Pastry' },
-                  { id: 'Snack', icon: '🍟', name: 'Snack' }
+                  { id: 'Coffee', icon: '☕', name: 'Coffee', hfeCode: 'CAT-COFFEE-01' },
+                  { id: 'Non-Coffee', icon: '🍵', name: 'Non-Coffee', hfeCode: 'CAT-NONCOFFEE-02' },
+                  { id: 'Pastry', icon: '🥐', name: 'Pastry', hfeCode: 'CAT-PASTRY-03' },
+                  { id: 'Snack', icon: '🍟', name: 'Snack', hfeCode: 'CAT-SNACK-04' }
                 ].map(cat => (
                   <button
                     key={cat.id}
@@ -758,15 +774,18 @@ export default function App() {
                 ))}
               </div>
 
-              {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS WITH HIGH-VISIBILITY CATEGORY SHOWCASE HEADERS */}
+              {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS WITH HFE CATEGORY BADGES */}
               <div className="flex flex-col gap-6 pt-1">
                 
                 {/* SECTION 1: COFFEE SHOWCASE */}
                 <div ref={coffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
                   <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-l-4 border-amber-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                    <h3 className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-                      <Coffee className="w-4 h-4 text-amber-500" /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
-                    </h3>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                        <Coffee className="w-4 h-4 text-amber-500" /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
+                      </h3>
+                      <span className="text-[9px] font-mono text-amber-400/70 font-semibold">HFE Core Category: CAT-COFFEE-01 • GL 4010-Beverage</span>
+                    </div>
                     <span className="text-[10px] font-mono font-bold text-amber-400/80">3 Items</span>
                   </div>
 
@@ -777,7 +796,9 @@ export default function App() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                {item.hfeCategoryCode}
+                              </span>
                               <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
@@ -800,9 +821,12 @@ export default function App() {
                 {/* SECTION 2: NON-COFFEE SHOWCASE */}
                 <div ref={nonCoffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
                   <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border-l-4 border-emerald-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                    <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wider flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-emerald-500" /> 🍵 ETALASE NON-COFFEE & ARTISAN MATCHA
-                    </h3>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-500" /> 🍵 ETALASE NON-COFFEE & ARTISAN MATCHA
+                      </h3>
+                      <span className="text-[9px] font-mono text-emerald-400/70 font-semibold">HFE Core Category: CAT-NONCOFFEE-02 • GL 4010-Beverage</span>
+                    </div>
                     <span className="text-[10px] font-mono font-bold text-emerald-400/80">1 Item</span>
                   </div>
 
@@ -813,7 +837,9 @@ export default function App() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">{item.category}</span>
+                              <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                {item.hfeCategoryCode}
+                              </span>
                               <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
@@ -836,9 +862,12 @@ export default function App() {
                 {/* SECTION 3: PASTRY & BAKERY SHOWCASE */}
                 <div ref={pastrySecRef} className="flex flex-col gap-3 scroll-mt-24">
                   <div className="bg-gradient-to-r from-orange-500/20 via-orange-500/10 to-transparent border-l-4 border-orange-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                    <h3 className="text-xs sm:text-sm font-black text-orange-300 uppercase tracking-wider flex items-center gap-2">
-                      <UtensilsCrossed className="w-4 h-4 text-orange-500" /> 🥐 ETALASE PASTRY & WARM BAKERY
-                    </h3>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-black text-orange-300 uppercase tracking-wider flex items-center gap-2">
+                        <UtensilsCrossed className="w-4 h-4 text-orange-500" /> 🥐 ETALASE PASTRY & WARM BAKERY
+                      </h3>
+                      <span className="text-[9px] font-mono text-orange-400/70 font-semibold">HFE Core Category: CAT-PASTRY-03 • GL 4020-Food</span>
+                    </div>
                     <span className="text-[10px] font-mono font-bold text-orange-400/80">1 Item</span>
                   </div>
 
@@ -849,7 +878,9 @@ export default function App() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">{item.category}</span>
+                              <span className="text-[9px] font-mono font-bold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">
+                                {item.hfeCategoryCode}
+                              </span>
                               <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
@@ -872,9 +903,12 @@ export default function App() {
                 {/* SECTION 4: SNACK & FINGER FOODS SHOWCASE */}
                 <div ref={snackSecRef} className="flex flex-col gap-3 scroll-mt-24">
                   <div className="bg-gradient-to-r from-indigo-500/20 via-indigo-500/10 to-transparent border-l-4 border-indigo-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                    <h3 className="text-xs sm:text-sm font-black text-indigo-300 uppercase tracking-wider flex items-center gap-2">
-                      <Flame className="w-4 h-4 text-indigo-500" /> 🍟 ETALASE SNACK & SAVORY FINGER FOODS
-                    </h3>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-black text-indigo-300 uppercase tracking-wider flex items-center gap-2">
+                        <Flame className="w-4 h-4 text-indigo-500" /> 🍟 ETALASE SNACK & SAVORY FINGER FOODS
+                      </h3>
+                      <span className="text-[9px] font-mono text-indigo-400/70 font-semibold">HFE Core Category: CAT-SNACK-04 • GL 4020-Food</span>
+                    </div>
                     <span className="text-[10px] font-mono font-bold text-indigo-400/80">1 Item</span>
                   </div>
 
@@ -885,7 +919,9 @@ export default function App() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">{item.category}</span>
+                              <span className="text-[9px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
+                                {item.hfeCategoryCode}
+                              </span>
                               <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
@@ -970,6 +1006,9 @@ export default function App() {
                               </span>
                             )}
                           </p>
+                          <span className="text-[9px] font-mono text-amber-400">
+                            {item.hfeCategoryCode} • GL: {item.hfeGlAccount}
+                          </span>
                           {item.temperature && (
                             <p className="text-[11px] text-slate-400">
                               {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
@@ -1926,7 +1965,7 @@ export default function App() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white tracking-tight">Halaman Konfigurasi Cafe & Owner Settings</h2>
-                <p className="text-xs text-slate-400">Pajak PB1, Service Charge, KDS Station Split & Modal Kasir Shift</p>
+                <p className="text-xs text-slate-400">Pajak PB1, Service Charge, KDS Station Split & Mapping Kategori HFE Core</p>
               </div>
             </div>
             <button 
@@ -1935,6 +1974,38 @@ export default function App() {
             >
               <Check className="w-4 h-4" /> Simpan Seluruh Konfigurasi
             </button>
+          </div>
+
+          {/* CARD HFE PRODUCT CATEGORIES MAPPING PORTAL */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+            <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+              <FolderTree className="w-4 h-4 text-amber-500" /> Mapping Kategori Produk HFE Engine & GL Accounts
+            </h3>
+            <p className="text-xs text-slate-400">Pemetaan resmi kategori etalase POS ke kode kategori produk & subledger akuntansi Headless Company Books:</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { name: 'Coffee Specialty', code: 'CAT-COFFEE-01', gl: '4010-Beverage Sales', items: 3, icon: '☕' },
+                { name: 'Non-Coffee & Matcha', code: 'CAT-NONCOFFEE-02', gl: '4010-Beverage Sales', items: 1, icon: '🍵' },
+                { name: 'Pastry & Warm Bakery', code: 'CAT-PASTRY-03', gl: '4020-Food Sales', items: 1, icon: '🥐' },
+                { name: 'Snack & Finger Foods', code: 'CAT-SNACK-04', gl: '4020-Food Sales', items: 1, icon: '🍟' }
+              ].map((hfeCat, idx) => (
+                <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span>{hfeCat.icon}</span> {hfeCat.name}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                      {hfeCat.code}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-1.5">
+                    <span>HFE Subledger GL:</span>
+                    <span className="font-mono text-emerald-400 font-bold">{hfeCat.gl}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
