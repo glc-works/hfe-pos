@@ -50,6 +50,7 @@ import {
   HeartHandshake,
   ShoppingCart,
   Sliders,
+  Tag,
   Building2,
   Store,
   Compass,
@@ -103,6 +104,8 @@ export interface TableReservation {
   approvalPolicy: 'instant' | 'manual_review'
   status: 'pending' | 'confirmed' | 'seated' | 'cancelled'
   specialNotes?: string
+  preOrderItems?: { name: string; qty: number; price: number }[]
+  totalPreOrderAmount?: number
   createdAt: string
 }
 
@@ -454,20 +457,30 @@ export default function App() {
     setActiveTheme(prev => ({ ...prev, brandName: hfeCompanyProfile.brandName }))
   }, [hfeCompanyProfile.brandName])
 
+  // --- CAFE USERNAME SLUG ROUTING (/username e.g., /senopati-roastery) ---
+  const [cafeUsername, setCafeUsername] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search)
+    const userParam = params.get('username')
+    if (userParam) return userParam
+    const path = window.location.pathname.replace('/', '').trim()
+    if (path && path !== 'cafe' && path !== 'customer') return path
+    return 'senopati-roastery'
+  })
+
   // --- SEPARATE DOMAIN / 3-URL ROUTING ARCHITECTURE ---
   const [activeApp, setActiveApp] = useState<PrimaryDomainApp>(() => {
     const params = new URLSearchParams(window.location.search)
     const appParam = params.get('app')
-    if (appParam === 'cafe' || window.location.pathname.startsWith('/cafe')) return 'cafe'
-    if (appParam === 'customer' || window.location.pathname.startsWith('/customer')) return 'customer'
-    if (appParam === 'landing' || window.location.pathname.startsWith('/landing')) return 'landing'
-    return 'landing' // URL 3 default: Official Cafe/Resto Brand Landing Page!
+    const path = window.location.pathname.replace('/', '').trim()
+    if (appParam === 'cafe' || path === 'cafe') return 'cafe'
+    if (appParam === 'customer' || path === 'customer') return 'customer'
+    return 'landing' // URL 3 default: Official Landing Page (/username e.g., /senopati-roastery)
   })
 
-  // --- DYNAMIC URL SWITCHER EFFECT ---
-  const switchDomainApp = (targetApp: PrimaryDomainApp) => {
+  // --- DYNAMIC URL SWITCHER EFFECT WITH CAFE USERNAME ---
+  const switchDomainApp = (targetApp: PrimaryDomainApp, username: string = cafeUsername) => {
     setActiveApp(targetApp)
-    const newUrl = targetApp === 'cafe' ? '?app=cafe' : targetApp === 'customer' ? '?app=customer' : '?app=landing'
+    const newUrl = targetApp === 'cafe' ? '?app=cafe' : targetApp === 'customer' ? '?app=customer' : `/${username}`
     window.history.pushState({}, '', newUrl)
   }
 
@@ -553,6 +566,17 @@ export default function App() {
   const [reservationPolicyMode, setReservationPolicyMode] = useState<'instant' | 'manual_review'>('manual_review')
   const [dpRequiredMode, setDpRequiredMode] = useState<boolean>(true)
   const [dpAmountConfig, setDpAmountConfig] = useState<number>(50000)
+
+  // --- CAFE OPERATIONAL & RESERVATION ORDER FLOW MODES ---
+  // 1. Flow Reservasi: 'table_only' (Meja Saja) | 'optional_order' (Meja + Pre-Order Opsional) | 'mandatory_order' (Wajib Pre-Order Menu)
+  const [reservationOrderMode, setReservationOrderMode] = useState<'table_only' | 'optional_order' | 'mandatory_order'>('optional_order')
+  // 2. Mode Aplikasi Pelanggan: 'full_ordering' (Order & Checkout Active) | 'catalog_only' (Katalog Digital / Lihat Saja)
+  const [customerAppDisplayMode, setCustomerAppDisplayMode] = useState<'full_ordering' | 'catalog_only'>('full_ordering')
+  // 3. Visibilitas Harga: 'show_prices' (Tampilkan Rp) | 'hide_prices' (Sembunyikan Harga / Hidden Price Mode)
+  const [priceVisibilityMode, setPriceVisibilityMode] = useState<'show_prices' | 'hide_prices'>('show_prices')
+
+  // Selected Pre-Order Menu Items inside Reservation Modal
+  const [resPreOrderItems, setResPreOrderItems] = useState<{ itemId: string; name: string; price: number; qty: number }[]>([])
 
   const [showReservationModal, setShowReservationModal] = useState<boolean>(false)
   const [resDate, setResDate] = useState<string>('2026-08-16')
@@ -863,6 +887,12 @@ export default function App() {
       return
     }
 
+    if (reservationOrderMode === 'mandatory_order' && resPreOrderItems.length === 0) {
+      alert('⚠️ Kebijakan Kafe: Wajib memilih minimal 1 menu Pre-Order untuk melakukan reservasi meja!')
+      return
+    }
+
+    const totalPreOrderAmount = resPreOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0)
     const finalDpAmount = (dpRequiredMode && resPayDpNow) ? dpAmountConfig : 0
     const initialStatus = reservationPolicyMode === 'instant' ? 'confirmed' : 'pending'
 
@@ -879,11 +909,14 @@ export default function App() {
       approvalPolicy: reservationPolicyMode,
       status: initialStatus,
       specialNotes: resNotes.trim() || undefined,
+      preOrderItems: resPreOrderItems.length > 0 ? resPreOrderItems.map(i => ({ name: i.name, qty: i.qty, price: i.price })) : undefined,
+      totalPreOrderAmount: totalPreOrderAmount > 0 ? totalPreOrderAmount : undefined,
       createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
     }
 
     setReservations([newReservation, ...reservations])
     setShowReservationModal(false)
+    setResPreOrderItems([])
 
     if (initialStatus === 'confirmed') {
       alert(`🎉 Reservasi Instan Berhasil Disetujui! Direservasikan untuk ${resCustomerName} (${resDate} @ ${resTimeSlot}). DP Rp ${finalDpAmount.toLocaleString('id-ID')} Terposting ke Ledger Deposit HFE!`)
@@ -1268,7 +1301,7 @@ export default function App() {
               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
               : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
           }`}>
-            {activeApp === 'landing' ? '🌐 WWW.KOPITIAM.COM (?app=landing)' : activeApp === 'customer' ? '📱 ORDER.KOPITIAM.COM (?app=customer)' : '🏪 POS.KOPITIAM.COM (?app=cafe)'}
+            {activeApp === 'landing' ? `🌐 WWW.KOPITIAM.COM/${cafeUsername}` : activeApp === 'customer' ? '📱 ORDER.KOPITIAM.COM (?app=customer)' : '🏪 POS.KOPITIAM.COM (?app=cafe)'}
           </span>
         </div>
 
@@ -1279,7 +1312,7 @@ export default function App() {
               activeApp === 'landing' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Globe className="w-3.5 h-3.5 text-amber-950" /> URL 3: Official Landing Page
+            <Globe className="w-3.5 h-3.5 text-amber-950" /> URL 3: Official Landing Page (/{cafeUsername})
           </button>
 
           <button
@@ -1592,17 +1625,29 @@ export default function App() {
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                {priceVisibilityMode === 'show_prices' ? (
+                                  <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-slate-400 font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800">🏷️ Kontak Barista</span>
+                                )}
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
-                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
-                              </button>
-                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
-                                <Plus className="w-3.5 h-3.5" /> Tambah
-                              </button>
+                              {customerAppDisplayMode === 'full_ordering' ? (
+                                <>
+                                  <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                    <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
+                                  </button>
+                                  <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                                    <Plus className="w-3.5 h-3.5" /> Tambah
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 font-bold">
+                                  📖 Buku Menu (View Only)
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1627,17 +1672,29 @@ export default function App() {
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                {priceVisibilityMode === 'show_prices' ? (
+                                  <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-slate-400 font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800">🏷️ Kontak Barista</span>
+                                )}
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
-                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
-                              </button>
-                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
-                                <Plus className="w-3.5 h-3.5" /> Tambah
-                              </button>
+                              {customerAppDisplayMode === 'full_ordering' ? (
+                                <>
+                                  <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                    <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
+                                  </button>
+                                  <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                                    <Plus className="w-3.5 h-3.5" /> Tambah
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 font-bold">
+                                  📖 Buku Menu (View Only)
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1662,17 +1719,29 @@ export default function App() {
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                {priceVisibilityMode === 'show_prices' ? (
+                                  <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-slate-400 font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800">🏷️ Kontak Barista</span>
+                                )}
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
-                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
-                              </button>
-                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
-                                <Plus className="w-3.5 h-3.5" /> Tambah
-                              </button>
+                              {customerAppDisplayMode === 'full_ordering' ? (
+                                <>
+                                  <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                    <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
+                                  </button>
+                                  <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                                    <Plus className="w-3.5 h-3.5" /> Tambah
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 font-bold">
+                                  📖 Buku Menu (View Only)
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1697,17 +1766,29 @@ export default function App() {
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                {priceVisibilityMode === 'show_prices' ? (
+                                  <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-slate-400 font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800">🏷️ Kontak Barista</span>
+                                )}
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
-                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
-                              </button>
-                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
-                                <Plus className="w-3.5 h-3.5" /> Tambah
-                              </button>
+                              {customerAppDisplayMode === 'full_ordering' ? (
+                                <>
+                                  <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                    <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
+                                  </button>
+                                  <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                                    <Plus className="w-3.5 h-3.5" /> Tambah
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 font-bold">
+                                  📖 Buku Menu (View Only)
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1727,7 +1808,7 @@ export default function App() {
                 </div>
 
                 {/* STICKY FLOATING BOTTOM CART BAR -> NAVIGATE TO DEDICATED CHECKOUT VIEW */}
-                {cart.length > 0 && (
+                {cart.length > 0 && customerAppDisplayMode === 'full_ordering' && (
                   <div 
                     onClick={() => setQrStepView('checkout')}
                     className="fixed bottom-4 inset-x-3 max-w-md mx-auto z-40 theme-customer-btn-primary rounded-2xl p-3.5 shadow-2xl flex items-center justify-between font-bold cursor-pointer border transition-all transform hover:scale-[1.02]"
@@ -3162,6 +3243,117 @@ export default function App() {
                 </div>
               </div>
 
+              {/* CARD 1.8: OPERATIONAL FLOWS, RESERVATION ORDER MODE & PRICE VISIBILITY CONFIG */}
+              <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                <div className="border-b border-slate-800 pb-3">
+                  <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-amber-400" /> Mode Operasional Aplikasi Pelanggan, Order Reservasi & Visibilitas Harga
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Konfigurasi alur pemesanan reservasi, apakah pelanggan bisa pesan langsung / hanya lihat katalog, dan sembunyikan harga.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* 1. FLOW RESERVASI MEJA & ORDER */}
+                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                    <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <CalendarCheck className="w-3.5 h-3.5 text-indigo-400" /> Flow Order Reservasi Meja:
+                    </label>
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        onClick={() => setReservationOrderMode('table_only')}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between transition-all ${
+                          reservationOrderMode === 'table_only' ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>🪑 Reservasi Meja Saja</span>
+                        {reservationOrderMode === 'table_only' && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                      </button>
+
+                      <button
+                        onClick={() => setReservationOrderMode('optional_order')}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between transition-all ${
+                          reservationOrderMode === 'optional_order' ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>☕ Meja + Pre-Order (Opsional)</span>
+                        {reservationOrderMode === 'optional_order' && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                      </button>
+
+                      <button
+                        onClick={() => setReservationOrderMode('mandatory_order')}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between transition-all ${
+                          reservationOrderMode === 'mandatory_order' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>⚠️ Wajib Pre-Order Menu</span>
+                        {reservationOrderMode === 'mandatory_order' && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 2. MODE APLIKASI PELANGGAN (ORDER VS CATALOG ONLY) */}
+                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                    <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Smartphone className="w-3.5 h-3.5 text-emerald-400" /> Mode Aplikasi Pelanggan:
+                    </label>
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        onClick={() => setCustomerAppDisplayMode('full_ordering')}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between transition-all ${
+                          customerAppDisplayMode === 'full_ordering' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>🛍️ Full Ordering (Order Active)</span>
+                        {customerAppDisplayMode === 'full_ordering' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                      </button>
+
+                      <button
+                        onClick={() => setCustomerAppDisplayMode('catalog_only')}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between transition-all ${
+                          customerAppDisplayMode === 'catalog_only' ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>📖 Katalog Digital (View Only)</span>
+                        {customerAppDisplayMode === 'catalog_only' && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3. VISIBILITAS HARGA MENU */}
+                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                    <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-amber-400" /> Visibilitas Harga Menu (Rp):
+                    </label>
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        onClick={() => setPriceVisibilityMode('show_prices')}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex items-center justify-between transition-all ${
+                          priceVisibilityMode === 'show_prices' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>🏷️ Tampilkan Harga (Rp)</span>
+                        {priceVisibilityMode === 'show_prices' && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                      </button>
+
+                      <button
+                        onClick={() => setPriceVisibilityMode('hide_prices')}
+                        className={`px-3 py-2 rounded-lg text-xs font-bold border text-left flex flex-col transition-all ${
+                          priceVisibilityMode === 'hide_prices' ? 'bg-rose-500/20 border-rose-500 text-rose-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>🙈 Sembunyikan Harga</span>
+                          {priceVisibilityMode === 'hide_prices' && <Check className="w-3.5 h-3.5 text-rose-400" />}
+                        </div>
+                        <span className="text-[9px] text-slate-400 font-normal mt-0.5">Cocok untuk Buku Menu Eksklusif / Fine Dining</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* CARD 2: THEME STYLESHEET CUSTOMIZER ENGINE (AI EXPORT & IMPORT) */}
               <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
@@ -3987,6 +4179,72 @@ export default function App() {
                 className="bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500"
               />
             </div>
+
+            {/* PRE-ORDER MENU SECTION FOR RESERVATION */}
+            {reservationOrderMode !== 'table_only' && (
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                    <Coffee className="w-3.5 h-3.5 text-amber-500" /> Pre-Order Menu Specialty {reservationOrderMode === 'mandatory_order' ? '(Wajib Minimal 1 Item)' : '(Opsional)'}:
+                  </span>
+                  {resPreOrderItems.length > 0 && (
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                      Subtotal: Rp {resPreOrderItems.reduce((s, i) => s + (i.price * i.qty), 0).toLocaleString('id-ID')}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 max-h-36 overflow-y-auto pr-1">
+                  {PRODUCT_CATALOG.map(item => {
+                    const existing = resPreOrderItems.find(i => i.itemId === item.id)
+                    const qty = existing ? existing.qty : 0
+                    return (
+                      <div key={item.id} className="bg-slate-900 p-2 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+                        <div>
+                          <span className="font-bold text-white text-[11px]">{item.name}</span>
+                          {priceVisibilityMode === 'show_prices' && (
+                            <p className="text-[10px] text-amber-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          {qty > 0 ? (
+                            <>
+                              <button
+                                onClick={() => {
+                                  if (qty === 1) {
+                                    setResPreOrderItems(prev => prev.filter(i => i.itemId !== item.id))
+                                  } else {
+                                    setResPreOrderItems(prev => prev.map(i => i.itemId === item.id ? { ...i, qty: i.qty - 1 } : i))
+                                  }
+                                }}
+                                className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center"
+                              >
+                                -
+                              </button>
+                              <span className="font-mono font-bold text-xs text-white w-4 text-center">{qty}</span>
+                              <button
+                                onClick={() => setResPreOrderItems(prev => prev.map(i => i.itemId === item.id ? { ...i, qty: i.qty + 1 } : i))}
+                                className="w-5 h-5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center"
+                              >
+                                +
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setResPreOrderItems(prev => [...prev, { itemId: item.id, name: item.name, price: item.price, qty: 1 }])}
+                              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded-md"
+                            >
+                              + Tambah
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* DOWN PAYMENT COMMITMENT SECTION */}
             {dpRequiredMode && (
