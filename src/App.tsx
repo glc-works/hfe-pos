@@ -38,11 +38,15 @@ import {
   Layers,
   X,
   Settings,
-  Filter
+  Filter,
+  BellRing,
+  CheckSquare,
+  BadgeCheck,
+  Footprints
 } from 'lucide-react'
 
 // --- TYPES ---
-type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-screen'
+type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-screen' | 'server-waiter' | 'checker-qc'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
 
@@ -70,6 +74,7 @@ interface CartItem extends MenuItem {
   temperature?: 'Hot' | 'Iced'
   sugarLevel?: '0%' | '50%' | '100%'
   milkOption?: 'Whole Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)'
+  served?: boolean
 }
 
 interface TableStatus {
@@ -89,9 +94,10 @@ interface OrderTicket {
   items: CartItem[]
   policy: PaymentPolicy
   total: number
-  status: 'placed' | 'processing' | 'ready'
+  status: 'placed' | 'processing' | 'ready' | 'qc-passed' | 'served'
   timeElapsedMinutes: number
   createdAt: string
+  waiterCall?: string
 }
 
 // --- MOCK PRODUCT MASTER DATA WITH BOM & PREPARATION SOP ---
@@ -215,7 +221,7 @@ const PRODUCT_CATALOG: MenuItem[] = [
 
 export default function App() {
   // --- SURFACE APP STATE ---
-  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('kds-screen')
+  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('server-waiter')
   
   // --- KDS VIEW, SORTING & CUSTOM STATIONS STATE ---
   const [kdsViewMode, setKdsViewMode] = useState<'kanban' | 'list'>('kanban')
@@ -225,7 +231,7 @@ export default function App() {
   // Owner Custom Station Split State
   const [activeStationId, setActiveStationId] = useState<string>('all')
   const [showStationSettingsModal, setShowStationSettingsModal] = useState<boolean>(false)
-  const [stations, setStations] = useState<StationConfig[]>([
+  const [stations] = useState<StationConfig[]>([
     { id: 'all', name: 'Semua Station (Gabungan)', icon: '🌟', categories: ['Coffee', 'Non-Coffee', 'Pastry', 'Snack'] },
     { id: 'drink-bar', name: 'Drink Bar (Barista)', icon: '☕', categories: ['Coffee', 'Non-Coffee'] },
     { id: 'hot-kitchen', name: 'Hot Kitchen (Dapur Utm)', icon: '🍳', categories: ['Snack'] },
@@ -264,7 +270,7 @@ export default function App() {
   const [modMilk, setModMilk] = useState<'Whole Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)'>('Oat Milk (+Rp 5.000)')
   const [showQRISModal, setShowQRISModal] = useState<boolean>(false)
 
-  // --- KITCHEN KANBAN ORDERS STATE ---
+  // --- KITCHEN KANBAN & EXPEDITOR ORDERS STATE ---
   const [orders, setOrders] = useState<OrderTicket[]>([
     {
       id: 'ORD-8821',
@@ -277,9 +283,10 @@ export default function App() {
       ],
       policy: 'pay-first',
       total: 86000,
-      status: 'processing',
+      status: 'qc-passed',
       timeElapsedMinutes: 4,
-      createdAt: '19:24'
+      createdAt: '19:24',
+      waiterCall: 'Minta Tambah Sedotan & Sendok Garpu'
     },
     {
       id: 'ORD-8820',
@@ -292,7 +299,7 @@ export default function App() {
       ],
       policy: 'open-tab',
       total: 70000,
-      status: 'placed',
+      status: 'ready',
       timeElapsedMinutes: 8,
       createdAt: '19:18'
     },
@@ -306,7 +313,7 @@ export default function App() {
       ],
       policy: 'pay-first',
       total: 70000,
-      status: 'ready',
+      status: 'served',
       timeElapsedMinutes: 12,
       createdAt: '19:14'
     }
@@ -447,13 +454,17 @@ export default function App() {
     setSelectedPOSTable(null)
   }
 
-  const handleMoveKanbanColumn = (orderId: string, targetStatus: 'placed' | 'processing' | 'ready') => {
+  const handleMoveStatus = (orderId: string, targetStatus: OrderTicket['status']) => {
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
         return { ...o, status: targetStatus }
       }
       return o
     }))
+  }
+
+  const handleDismissWaiterCall = (orderId: string) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, waiterCall: undefined } : o))
   }
 
   // --- KDS STATION FILTERING & SORTING LOGIC ---
@@ -474,12 +485,12 @@ export default function App() {
 
   const placedOrders = sortedOrders.filter(o => o.status === 'placed')
   const processingOrders = sortedOrders.filter(o => o.status === 'processing')
-  const readyOrders = sortedOrders.filter(o => o.status === 'ready')
+  const readyOrders = sortedOrders.filter(o => o.status === 'ready' || o.status === 'qc-passed')
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
       
-      {/* --- TOP SYSTEM BAR SWITCHER (MOBILE VIEWPORT FIRST • 100% FLUID) --- */}
+      {/* --- TOP SYSTEM BAR SWITCHER (5 SURFACES MOBILE-FIRST) --- */}
       <header className="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-start">
           <div className="flex items-center gap-2.5">
@@ -490,51 +501,60 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">Mobile-First View • Tablet Secondary</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">5 Operational Modes • Mobile View First</p>
             </div>
           </div>
 
           <span className="sm:hidden text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-            📱 Mobile View
+            📱 Mobile
           </span>
         </div>
 
-        {/* Surface Switcher Buttons */}
-        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto justify-between overflow-x-auto">
+        {/* 5 Surface Switcher Buttons */}
+        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto gap-1">
           <button
             onClick={() => setActiveSurface('mobile-qr')}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-              activeSurface === 'mobile-qr'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeSurface === 'mobile-qr' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Smartphone className="w-3.5 h-3.5" />
-            1. Mobile QR
+            <Smartphone className="w-3.5 h-3.5" /> 1. Customer QR
           </button>
 
           <button
             onClick={() => setActiveSurface('barista-pos')}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-              activeSurface === 'barista-pos'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeSurface === 'barista-pos' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            2. Touch POS
+            <Users className="w-3.5 h-3.5" /> 2. Touch POS
           </button>
 
           <button
             onClick={() => setActiveSurface('kds-screen')}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-              activeSurface === 'kds-screen'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeSurface === 'kds-screen' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <UtensilsCrossed className="w-3.5 h-3.5" />
-            3. Kitchen KDS
+            <UtensilsCrossed className="w-3.5 h-3.5" /> 3. Kitchen KDS
+          </button>
+
+          <button
+            onClick={() => setActiveSurface('checker-qc')}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeSurface === 'checker-qc' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <BadgeCheck className="w-3.5 h-3.5" /> 4. Mode Checker (QC)
+          </button>
+
+          <button
+            onClick={() => setActiveSurface('server-waiter')}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeSurface === 'server-waiter' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Footprints className="w-3.5 h-3.5" /> 5. Mode Server (Waiter)
           </button>
         </div>
       </header>
@@ -1126,7 +1146,6 @@ export default function App() {
                         </span>
                       </div>
 
-                      {/* Clickable Menu Items for BOM Recipe Drawer */}
                       <div className="flex flex-col gap-1.5 text-xs">
                         {order.items.map((item, idx) => (
                           <div 
@@ -1150,7 +1169,7 @@ export default function App() {
                       </div>
 
                       <button
-                        onClick={() => handleMoveKanbanColumn(order.id, 'processing')}
+                        onClick={() => handleMoveStatus(order.id, 'processing')}
                         className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
                       >
                         <ChefHat className="w-4 h-4" /> Proses Pesanan <ArrowRight className="w-3.5 h-3.5" />
@@ -1205,16 +1224,16 @@ export default function App() {
 
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleMoveKanbanColumn(order.id, 'placed')}
+                          onClick={() => handleMoveStatus(order.id, 'placed')}
                           className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold py-2 px-2.5 rounded-lg"
                         >
                           <ArrowLeft className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleMoveKanbanColumn(order.id, 'ready')}
+                          onClick={() => handleMoveStatus(order.id, 'ready')}
                           className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
                         >
-                          Selesai Diproses <ArrowRight className="w-3.5 h-3.5" />
+                          Kirim ke Checker (QC) <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -1222,7 +1241,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* COLUMN 3: READY */}
+              {/* COLUMN 3: READY / QC PASSED */}
               <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <h3 className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center gap-2">
@@ -1239,7 +1258,7 @@ export default function App() {
                           <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
                         </div>
                         <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                          <CheckCircle2 className="w-3 h-3" /> Ready
+                          <CheckCircle2 className="w-3 h-3" /> {order.status === 'qc-passed' ? 'QC Passed' : 'Ready'}
                         </span>
                       </div>
 
@@ -1318,7 +1337,7 @@ export default function App() {
                     <div className="text-right">
                       {order.status === 'placed' && (
                         <button
-                          onClick={() => handleMoveKanbanColumn(order.id, 'processing')}
+                          onClick={() => handleMoveStatus(order.id, 'processing')}
                           className="bg-amber-500 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs"
                         >
                           Proses ➔
@@ -1326,13 +1345,13 @@ export default function App() {
                       )}
                       {order.status === 'processing' && (
                         <button
-                          onClick={() => handleMoveKanbanColumn(order.id, 'ready')}
+                          onClick={() => handleMoveStatus(order.id, 'ready')}
                           className="bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs"
                         >
                           Selesai ➔
                         </button>
                       )}
-                      {order.status === 'ready' && (
+                      {(order.status === 'ready' || order.status === 'qc-passed') && (
                         <button
                           onClick={() => alert(`Struk ${order.id} dicetak!`)}
                           className="bg-slate-800 text-slate-200 font-bold px-3 py-1 rounded-lg text-xs border border-slate-700"
@@ -1347,6 +1366,155 @@ export default function App() {
             </div>
           )}
 
+        </main>
+      )}
+
+      {/* --- SURFACE 4: MODE CHECKER / EXPEDITOR & QC STATION --- */}
+      {activeSurface === 'checker-qc' && (
+        <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                <BadgeCheck className="w-5 h-5 text-amber-500" /> Mode Checker (Expeditor & Quality Control Pass)
+              </h2>
+              <p className="text-xs text-slate-400">Verifikasi kelengkapan nampan masakan & racikan minuman sebelum diserahkan ke Waiter/Runner</p>
+            </div>
+            <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold">
+              {orders.filter(o => o.status === 'ready').length} Pesanan Menunggu QC Check
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {orders.filter(o => o.status === 'ready').map(order => (
+              <div key={order.id} className="bg-slate-900 border border-amber-500/40 rounded-2xl p-4 flex flex-col gap-4 shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div>
+                    <span className="font-mono font-bold text-xs text-amber-400">{order.id}</span>
+                    <h3 className="text-sm font-bold text-white">{order.table} • {order.customerName}</h3>
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">
+                    Siap di QC Pass
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold text-slate-400">Checklist Kelengkapan Item Pesanan:</span>
+                  {order.items.map((item, idx) => (
+                    <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="w-4 h-4 text-emerald-400" />
+                        <div>
+                          <p className="text-xs font-bold text-white">{item.quantity}x {item.name}</p>
+                          {item.temperature && (
+                            <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        Checked ✓
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => {
+                    handleMoveStatus(order.id, 'qc-passed')
+                    alert(`Order ${order.id} (Meja ${order.table}) Lolos QC Pass & Diteruskan ke Layar Waiter / Runner!`)
+                  }}
+                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg flex items-center justify-center gap-2"
+                >
+                  <BadgeCheck className="w-4 h-4" /> QC Pass & Serahkan ke Waiter (Mode Server) ➔
+                </button>
+              </div>
+            ))}
+          </div>
+        </main>
+      )}
+
+      {/* --- SURFACE 5: MODE SERVER / WAITER & RUNNER STATION --- */}
+      {activeSurface === 'server-waiter' && (
+        <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                <Footprints className="w-5 h-5 text-amber-500" /> Mode Server (Pramusaji & Food Runner)
+              </h2>
+              <p className="text-xs text-slate-400">Monitoring nampan makanan/minuman yang siap diantar ke meja & Panggilan Pelanggan</p>
+            </div>
+            <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">
+              {orders.filter(o => o.status === 'qc-passed').length} Nampan Siap Diantar
+            </span>
+          </div>
+
+          {/* Waiter Calls / Customer Request Alerts */}
+          {orders.some(o => o.waiterCall) && (
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-2xl p-4 flex flex-col gap-2">
+              <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2">
+                <BellRing className="w-4 h-4 text-amber-500 animate-bounce" /> Panggilan Pelanggan di Meja:
+              </h3>
+              {orders.filter(o => o.waiterCall).map(o => (
+                <div key={o.id} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-white">{o.table} ({o.customerName}):</span>
+                    <span className="text-amber-400 font-semibold ml-2">"{o.waiterCall}"</span>
+                  </div>
+                  <button
+                    onClick={() => handleDismissWaiterCall(o.id)}
+                    className="bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg text-[11px]"
+                  >
+                    Selesai Dibar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tray Ready for Delivery Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {orders.filter(o => o.status === 'qc-passed').map(order => (
+              <div key={order.id} className="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 flex flex-col justify-between gap-4 shadow-xl">
+                <div>
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div>
+                      <span className="font-mono font-bold text-xs text-emerald-400">{order.id}</span>
+                      <h3 className="text-base font-bold text-white">{order.table} • {order.customerName}</h3>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
+                      Nampan Siap Diantar!
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2 mt-3">
+                    <span className="text-xs font-semibold text-slate-400">Daftar Item di Nampan:</span>
+                    {order.items.map((item, idx) => (
+                      <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-white">{item.quantity}x {item.name}</p>
+                          {item.temperature && (
+                            <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                          {item.category}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    handleMoveStatus(order.id, 'served')
+                    alert(`Pesanan Meja ${order.table} telah selesai diantar oleh Waiter! Status diperbarui ke Served.`)
+                  }}
+                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Tandai Selesai Diantar ke Meja (Served)
+                </button>
+              </div>
+            ))}
+          </div>
         </main>
       )}
 
