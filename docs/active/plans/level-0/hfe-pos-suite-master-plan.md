@@ -3,7 +3,7 @@ okf_version: "0.2"
 type: Strategic Plan Level 0
 title: Hfe POS & Cafe Mobile Order Suite — Master Strategic Plan
 description: Master product vision for the Cafe & F&B Experience Layer, delivering a dual-surface cashier station and smartphone QR table self-ordering web app powered by Hfe REST APIs.
-tags: [master-plan, level-0, pos, cafe, mobile-qr-order, f-and-b, phone-login, guest-mode, open-tab, custom-loyalty-benefits, owner-settings]
+tags: [master-plan, level-0, pos, cafe, mobile-qr-order, f-and-b, phone-login, guest-mode, open-tab, universal-hfe-loyalty, owner-settings]
 status: Proposed
 ---
 
@@ -14,10 +14,10 @@ status: Proposed
 The **Hfe POS & Cafe Mobile Order Suite** (`glc-works/hfe-pos`) is the dedicated **Cafe & F&B Experience Layer** built for modern coffee shops, cafes, and restaurants.
 
 It provides a seamless **Dual-Surface Experience**:
-1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, select their preferred login mode (**Phone/WhatsApp Login with Customizable Loyalty Tiers & Perks** OR **Pure Guest Mode with Name only**), browse visual coffee & food menus, customize modifiers, redeem loyalty points for drink discounts, and order under cafe-configurable payment policies (**Pay-First** vs **Open Tab Billing**).
+1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, select their preferred login mode (**Phone/WhatsApp Login with Universal HFE Loyalty Tiers** OR **Pure Guest Mode with Name only**), browse visual coffee & food menus, customize modifiers, redeem loyalty points for drink discounts, and order under cafe-configurable payment policies (**Pay-First** vs **Open Tab Billing**).
 2. **Barista & Cashier Touch POS (POS & Kitchen Display):** Baristas and cashiers manage table billing tabs, print kitchen tickets, handle offline cash/QRIS checkouts, and reconcile daily shift cash drawers.
 
-Cafe Owners can customize their loyalty tier names (e.g. "Penikmat Kopi" ➔ "Barista Master") and **custom tier benefits & perks** (e.g. "Free 1 Shot Espresso di Hari Ultah", "Diskon Biji Kopi 10%") via **Owner Loyalty Policy Settings** (`PUT /v1/loyalty/settings`) and monitor customer point metrics on a **per-contact basis** (`GET /v1/contacts/{id}/loyalty`). All **Customers, Employee Profiles, and Loyalty Point Balances** are resolved via `Hfe` Contact Master & Loyalty REST APIs (`/v1/contacts`, `/v1/loyalty`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
+`hfe-pos` leverages the **Universal HFE Customer Loyalty Core Engine** (`/v1/loyalty`). Business Owners can customize their loyalty tier names, thresholds, and tier benefits (e.g. "Free 1 Shot Espresso di Hari Ultah", "Diskon Biji Kopi 10%") via **Owner Loyalty Policy Settings** (`PUT /v1/loyalty/settings`) and monitor customer point metrics on a **per-contact basis** (`GET /v1/contacts/{id}/loyalty`). All **Customers, Employee Profiles, and Loyalty Point Balances** are resolved via `Hfe` Contact Master & Loyalty REST APIs (`/v1/contacts`, `/v1/loyalty`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
 
 ---
 
@@ -32,18 +32,18 @@ Cafe Owners can customize their loyalty tier names (e.g. "Penikmat Kopi" ➔ "Ba
          │                      │                                       │                      │
 ┌────────▼─────────────┐ ┌──────▼──────────────┐               ┌────────▼─────────────┐ ┌──────▼──────────────┐
 │ L1-01: Phone Login,  │ │ L1-02: Barista Touch │               │ L1-03: Policy Payment│ │ L1-04: Kitchen Ticket│
-│ Custom Perks & QR    │ │ POS & Table Engine   │               │ Checkout (Pay/Tab)   │ │ & Barista Display    │
+│ Universal Loyalty &QR│ │ POS & Table Engine   │               │ Checkout (Pay/Tab)   │ │ & Barista Display    │
 └──────────────────────┘ └──────────────────────┘               └──────────────────────┘ └──────────────────────┘
                                  │
                                  ▼ (100% REST API Transport Layer)
                      ┌─────────────────────────────────────────────────────────────┐
-                     │  Hfe Core REST APIs (Contacts, Products, Loyalty & Ledger)  │
+                     │  Hfe Universal Core REST APIs (Contacts, Products, Loyalty) │
                      └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Pillar 1: Customer Phone / Guest Name Mobile QR Self-Ordering (`L1-01`)
 - **Zero App Install & Flexible Customer Entry:**
-  - **Option A (Phone/WhatsApp Login with Custom Perks):** Customer enters Phone Number for digital receipts and automatic **Customizable Loyalty Tiers & Perks** with point multipliers (`GET /v1/contacts/{id}/loyalty`).
+  - **Option A (Phone/WhatsApp Login with Universal Loyalty Tiers):** Customer enters Phone Number for digital receipts and automatic **Universal HFE Loyalty Tiers & Perks** with point multipliers (`GET /v1/contacts/{id}/loyalty`).
   - **Option B (Pure Guest Mode):** Customer simply enters a display Name (e.g. "Aldi") for instant table delivery identification without disclosing a phone number.
 - **Product Master Menu Fetch:** Dynamic menu rendering fetched from `Hfe` Product Master API (`GET /v1/products`).
 - **Drink & Food Customizer:** Interactive modifiers (Ice/Hot, Sugar 0%/50%/100%, Dairy Options).
@@ -65,7 +65,7 @@ Cafe Owners can customize their loyalty tier names (e.g. "Penikmat Kopi" ➔ "Ba
 
 ---
 
-## 3. Customizable HFE Loyalty Tier & Benefit Matrix
+## 3. Universal HFE Loyalty Tier & Benefit Matrix
 
 | Tier Level | Total Lifetime Spend Threshold | Point Multiplier | Default Tier Name | Example Custom Cafe Perks / Benefits |
 |---|---|---|---|---|
@@ -78,6 +78,7 @@ Cafe Owners can customize their loyalty tier names (e.g. "Penikmat Kopi" ➔ "Ba
 
 ## 4. Verification & Quality Standards
 
+- **Universal Core Integration:** Leverages generic Hfe Loyalty REST APIs (`/v1/loyalty`) across all Company Books.
 - **Custom Tier Perks Render:** Customized owner tier perks render dynamically on customer phone < 1 second.
 - **Tier Evaluation Speed:** Automatic tier upgrade calculation < 100ms per checkout.
 - **Owner Settings Response:** Policy, tier name, and perk updates propagate to checkout calculation < 1 second.
