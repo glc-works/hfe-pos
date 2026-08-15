@@ -36,13 +36,22 @@ import {
   SlidersHorizontal,
   FileText,
   Layers,
-  X
+  X,
+  Settings,
+  Filter
 } from 'lucide-react'
 
 // --- TYPES ---
 type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-screen'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
+
+interface StationConfig {
+  id: string
+  name: string
+  icon: string
+  categories: string[]
+}
 
 interface MenuItem {
   id: string
@@ -206,12 +215,22 @@ const PRODUCT_CATALOG: MenuItem[] = [
 
 export default function App() {
   // --- SURFACE APP STATE ---
-  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('mobile-qr')
+  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('kds-screen')
   
-  // --- KDS VIEW & SORTING STATE ---
+  // --- KDS VIEW, SORTING & CUSTOM STATIONS STATE ---
   const [kdsViewMode, setKdsViewMode] = useState<'kanban' | 'list'>('kanban')
   const [kdsSortBy, setKdsSortBy] = useState<'time-desc' | 'time-asc' | 'category'>('time-desc')
   const [selectedRecipeBOM, setSelectedRecipeBOM] = useState<MenuItem | null>(null)
+  
+  // Owner Custom Station Split State
+  const [activeStationId, setActiveStationId] = useState<string>('all')
+  const [showStationSettingsModal, setShowStationSettingsModal] = useState<boolean>(false)
+  const [stations, setStations] = useState<StationConfig[]>([
+    { id: 'all', name: 'Semua Station (Gabungan)', icon: '🌟', categories: ['Coffee', 'Non-Coffee', 'Pastry', 'Snack'] },
+    { id: 'drink-bar', name: 'Drink Bar (Barista)', icon: '☕', categories: ['Coffee', 'Non-Coffee'] },
+    { id: 'hot-kitchen', name: 'Hot Kitchen (Dapur Utm)', icon: '🍳', categories: ['Snack'] },
+    { id: 'pastry-bakery', name: 'Pastry & Bakery', icon: '🥐', categories: ['Pastry'] },
+  ])
 
   // --- MOBILE QR SURFACE STATE ---
   const [selectedTable, setSelectedTable] = useState<string>('MEJA-04')
@@ -437,8 +456,17 @@ export default function App() {
     }))
   }
 
-  // --- KDS SORTING LOGIC ---
-  const sortedOrders = [...orders].sort((a, b) => {
+  // --- KDS STATION FILTERING & SORTING LOGIC ---
+  const currentStation = stations.find(s => s.id === activeStationId) || stations[0]
+
+  const stationFilteredOrders = orders.map(order => {
+    if (activeStationId === 'all') return order
+    const filteredItems = order.items.filter(item => currentStation.categories.includes(item.category))
+    if (filteredItems.length === 0) return null
+    return { ...order, items: filteredItems }
+  }).filter(Boolean) as OrderTicket[]
+
+  const sortedOrders = [...stationFilteredOrders].sort((a, b) => {
     if (kdsSortBy === 'time-desc') return b.timeElapsedMinutes - a.timeElapsedMinutes
     if (kdsSortBy === 'time-asc') return a.timeElapsedMinutes - b.timeElapsedMinutes
     return a.items[0]?.category.localeCompare(b.items[0]?.category || '') || 0
@@ -471,7 +499,7 @@ export default function App() {
           </span>
         </div>
 
-        {/* Surface Switcher Buttons (Fluid Mobile Bar) */}
+        {/* Surface Switcher Buttons */}
         <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto justify-between overflow-x-auto">
           <button
             onClick={() => setActiveSurface('mobile-qr')}
@@ -991,21 +1019,53 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 3: KITCHEN DISPLAY KANBAN & LIST SCREEN WITH SORTING & RECIPE BOM --- */}
+      {/* --- SURFACE 3: KITCHEN DISPLAY WITH OWNER CUSTOM STATION SPLIT --- */}
       {activeSurface === 'kds-screen' && (
         <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
           
-          {/* KDS HEADER WITH VIEW SWITCHER & SORTING CONTROLS */}
+          {/* OWNER CUSTOM STATION FILTER TABS */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" /> Kitchen Stations (Split Screen Mode)
+              </h2>
+
+              <button
+                onClick={() => setShowStationSettingsModal(true)}
+                className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-300 flex items-center gap-1.5"
+              >
+                <Settings className="w-3.5 h-3.5 text-amber-500" /> Setting Station (Owner)
+              </button>
+            </div>
+
+            {/* Station Filter Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {stations.map(station => (
+                <button
+                  key={station.id}
+                  onClick={() => setActiveStationId(station.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                    activeStationId === station.id
+                      ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <span>{station.icon}</span>
+                  <span>{station.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* KDS CONTROLS: VIEW SWITCHER & SORTING */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-                <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" /> Kitchen KDS Monitor (Makanan & Minuman)
-              </h2>
-              <p className="text-[11px] sm:text-xs text-slate-400">Klik item pesanan untuk melihat **Bill of Materials (BOM) & Petunjuk SOP Pembuatan**</p>
+              <span className="text-[10px] font-bold uppercase text-amber-400 font-mono">Station Aktif: {currentStation.name}</span>
+              <p className="text-[11px] sm:text-xs text-slate-400">Menampilkan item kategori: <span className="text-white font-semibold">{currentStation.categories.join(', ')}</span></p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs w-full sm:w-auto justify-between sm:justify-end">
-              {/* View Switcher (Kanban vs List) */}
+              {/* View Switcher */}
               <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
                 <button
                   onClick={() => setKdsViewMode('kanban')}
@@ -1288,6 +1348,56 @@ export default function App() {
           )}
 
         </main>
+      )}
+
+      {/* --- OWNER CUSTOM STATION SETTINGS MODAL --- */}
+      {showStationSettingsModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-5 sm:p-6 flex flex-col gap-4 shadow-2xl relative">
+            <button
+              onClick={() => setShowStationSettingsModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+              <Settings className="w-5 h-5 text-amber-500" /> Owner Policy: Custom Split Station KDS
+            </h3>
+
+            <p className="text-xs text-slate-400">Atur pemisahan layar display untuk stasiun Barista, Dapur Utm, dan Pastry:</p>
+
+            <div className="flex flex-col gap-3">
+              {stations.map(st => (
+                <div key={st.id} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">{st.icon}</span>
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{st.name}</h4>
+                      <p className="text-[10px] text-amber-400 font-mono">{st.categories.join(', ')}</p>
+                    </div>
+                  </div>
+
+                  {st.id !== 'all' && (
+                    <button 
+                      onClick={() => alert(`Pengaturan station ${st.name} diperbarui!`)}
+                      className="text-[11px] text-amber-400 font-bold px-2 py-1 bg-amber-500/10 rounded border border-amber-500/20"
+                    >
+                      Edit Kategori
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowStationSettingsModal(false)}
+              className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg mt-2"
+            >
+              Simpan Pengaturan Station Owner
+            </button>
+          </div>
+        </div>
       )}
 
       {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP --- */}
