@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { 
   Coffee, 
   QrCode, 
@@ -48,11 +48,14 @@ import {
   Armchair,
   RotateCcw,
   HeartHandshake,
-  ShoppingCart
+  ShoppingCart,
+  Sliders,
+  Building2,
+  Store
 } from 'lucide-react'
 
 // --- TYPES ---
-type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-screen' | 'server-waiter' | 'checker-qc'
+type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-screen' | 'server-waiter' | 'checker-qc' | 'cafe-config'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
 type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show on bill), 2=Include (Embedded in price)
@@ -235,13 +238,14 @@ export default function App() {
   // --- SURFACE APP STATE ---
   const [activeSurface, setActiveSurface] = useState<SurfaceMode>('mobile-qr')
   
-  // Ref for Cart Section Scroll Target
-  const cartSectionRef = useRef<HTMLDivElement>(null)
+  // Dedicated Step 2 Checkout Screen View State for Mobile QR
+  const [qrStepView, setQrStepView] = useState<'catalog' | 'checkout'>('catalog')
 
   // --- OWNER DYNAMIC TAX (PB1 10%), SERVICE FEE % & TIPS ENGINE STATE ---
   const [taxPB1Mode, setTaxPB1Mode] = useState<PB1TaxMode>(1) // 0=Off, 1=Exclude (Show), 2=Include (Embedded)
   const [serviceFeeRate, setServiceFeeRate] = useState<number>(5) // 5% Service Charge
   const [selectedTipAmount, setSelectedTipAmount] = useState<number>(5000) // Default Rp 5.000 Tip
+  const [cashDrawerFloat, setCashDrawerFloat] = useState<number>(500000)
 
   // --- ALI'S EX-ESB CATEGORY FILTER CHIPS STATE ---
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Semua')
@@ -253,8 +257,7 @@ export default function App() {
   
   // Owner Custom Station Split State
   const [activeStationId, setActiveStationId] = useState<string>('all')
-  const [showStationSettingsModal, setShowStationSettingsModal] = useState<boolean>(false)
-  const [stations] = useState<StationConfig[]>([
+  const [stations, setStations] = useState<StationConfig[]>([
     { id: 'all', name: 'Semua Station (Gabungan)', icon: '🌟', categories: ['Coffee', 'Non-Coffee', 'Pastry', 'Snack'] },
     { id: 'drink-bar', name: 'Drink Bar (Barista)', icon: '☕', categories: ['Coffee', 'Non-Coffee'] },
     { id: 'hot-kitchen', name: 'Hot Kitchen (Dapur Utm)', icon: '🍳', categories: ['Snack'] },
@@ -399,10 +402,6 @@ export default function App() {
   const totalCartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
 
   // --- HANDLERS ---
-  const scrollToCartSection = () => {
-    cartSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   const handleAddToCart = (item: MenuItem) => {
     if (item.hasModifiers) {
       setShowModifierModal(item)
@@ -490,6 +489,7 @@ export default function App() {
       }
       setOrders(prev => [newOrder, ...prev])
       setCart([])
+      setQrStepView('catalog')
       alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur!`)
     }
   }
@@ -513,6 +513,7 @@ export default function App() {
     }
     setOrders(prev => [newOrder, ...prev])
     setCart([])
+    setQrStepView('catalog')
     setLoyaltyPoints(prev => prev + Math.floor(grandTotalBill / 10000))
     alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur.`)
   }
@@ -565,7 +566,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans relative">
       
-      {/* --- TOP SYSTEM BAR SWITCHER (5 SURFACES MOBILE-FIRST) --- */}
+      {/* --- TOP SYSTEM BAR SWITCHER (6 OPERATIONAL SURFACES) --- */}
       <header className="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-start">
           <div className="flex items-center gap-2.5">
@@ -576,7 +577,7 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">Pajak PB1 • Service Charge • Tips</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Pakuwon • Chef Mike • Ali ex-ESB Design</p>
             </div>
           </div>
 
@@ -585,7 +586,7 @@ export default function App() {
           </span>
         </div>
 
-        {/* 5 Surface Switcher Buttons */}
+        {/* 6 Surface Switcher Buttons */}
         <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto gap-1">
           <button
             onClick={() => setActiveSurface('mobile-qr')}
@@ -631,6 +632,15 @@ export default function App() {
           >
             <Footprints className="w-3.5 h-3.5" /> 5. Mode Server (Waiter)
           </button>
+
+          <button
+            onClick={() => setActiveSurface('cafe-config')}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeSurface === 'cafe-config' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Store className="w-3.5 h-3.5" /> 6. Konfigurasi Cafe (Owner)
+          </button>
         </div>
       </header>
 
@@ -638,432 +648,454 @@ export default function App() {
       {activeSurface === 'mobile-qr' && (
         <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-28">
           
-          {/* Table Banner */}
-          <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-3.5 rounded-2xl flex items-center justify-between shadow-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">
-                QR
-              </div>
-              <div>
-                <span className="text-[10px] font-medium text-amber-400 uppercase tracking-wider">Meja Ter-Scan</span>
-                <h2 className="text-base font-bold text-white">{selectedTable}</h2>
-              </div>
-            </div>
-            <select
-              value={selectedTable}
-              onChange={(e) => setSelectedTable(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500"
-            >
-              {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Customer Entry Mode Selector */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 flex flex-col gap-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-amber-500" /> Mode Masuk Pelanggan
-              </span>
-              <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800 w-full sm:w-auto justify-between">
-                <button
-                  onClick={() => setLoginType('phone')}
-                  className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                    loginType === 'phone' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
-                  }`}
-                >
-                  Nomor HP (Poin)
-                </button>
-                <button
-                  onClick={() => setLoginType('guest-name')}
-                  className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                    loginType === 'guest-name' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
-                  }`}
-                >
-                  Pure Guest (Nama)
-                </button>
-              </div>
-            </div>
-
-            {loginType === 'phone' ? (
-              <div className="flex flex-col gap-2 pt-1">
-                <label className="text-[11px] text-slate-400">Nomor WhatsApp untuk Struk & Loyalty Wallet:</label>
-                <input
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 font-mono"
-                  placeholder="0812..."
-                />
-                
-                {/* Loyalty Tier & Wallet Badge */}
-                <div className="mt-1 bg-gradient-to-br from-amber-500/10 via-slate-950 to-slate-950 border border-amber-500/30 rounded-xl p-3 flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                      {userTier.icon} {userTier.name}
-                    </span>
-                    <span className="text-xs font-black text-amber-500 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">
-                      {loyaltyPoints} Poin Hfe
-                    </span>
+          {/* STEP 1: KATALOG MENU VIEW */}
+          {qrStepView === 'catalog' && (
+            <>
+              {/* Table Banner */}
+              <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-3.5 rounded-2xl flex items-center justify-between shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">
+                    QR
                   </div>
-                  <p className="text-[11px] text-slate-400">{userTier.perk}</p>
-                  
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-800/80">
-                    <span className="text-[11px] text-slate-400">Voucher Rp 10.000 Hfe</span>
+                  <div>
+                    <span className="text-[10px] font-medium text-amber-400 uppercase tracking-wider">Meja Ter-Scan</span>
+                    <h2 className="text-base font-bold text-white">{selectedTable}</h2>
+                  </div>
+                </div>
+                <select
+                  value={selectedTable}
+                  onChange={(e) => setSelectedTable(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500"
+                >
+                  {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Customer Entry Mode Selector */}
+              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-amber-500" /> Mode Masuk Pelanggan
+                  </span>
+                  <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800 w-full sm:w-auto justify-between">
                     <button
-                      onClick={() => setRedeemedVoucher(!redeemedVoucher)}
-                      className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
-                        redeemedVoucher
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                          : 'bg-amber-500 text-slate-950 border-amber-500 hover:bg-amber-400'
+                      onClick={() => setLoginType('phone')}
+                      className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                        loginType === 'phone' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
                       }`}
                     >
-                      {redeemedVoucher ? '✓ Voucher Terpasang (-10rb)' : 'Tukar Poin Diskon'}
+                      Nomor HP (Poin)
+                    </button>
+                    <button
+                      onClick={() => setLoginType('guest-name')}
+                      className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                        loginType === 'guest-name' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
+                      }`}
+                    >
+                      Pure Guest (Nama)
                     </button>
                   </div>
                 </div>
 
-                {/* Referral Code Card */}
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400 flex items-center gap-1"><Share2 className="w-3 h-3 text-amber-500" /> Kode Referral Anda:</span>
-                    <span className="font-mono font-bold text-amber-400">ALDI-CAFE10</span>
+                {loginType === 'phone' ? (
+                  <div className="flex flex-col gap-2 pt-1">
+                    <label className="text-[11px] text-slate-400">Nomor WhatsApp untuk Struk & Loyalty Wallet:</label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 font-mono"
+                      placeholder="0812..."
+                    />
+                    
+                    {/* Loyalty Tier & Wallet Badge */}
+                    <div className="mt-1 bg-gradient-to-br from-amber-500/10 via-slate-950 to-slate-950 border border-amber-500/30 rounded-xl p-3 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
+                          {userTier.icon} {userTier.name}
+                        </span>
+                        <span className="text-xs font-black text-amber-500 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">
+                          {loyaltyPoints} Poin Hfe
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">{userTier.perk}</p>
+                      
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-800/80">
+                        <span className="text-[11px] text-slate-400">Voucher Rp 10.000 Hfe</span>
+                        <button
+                          onClick={() => setRedeemedVoucher(!redeemedVoucher)}
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                            redeemedVoucher
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : 'bg-amber-500 text-slate-950 border-amber-500 hover:bg-amber-400'
+                          }`}
+                        >
+                          {redeemedVoucher ? '✓ Voucher Terpasang (-10rb)' : 'Tukar Poin Diskon'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Referral Code Card */}
+                    <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-slate-400 flex items-center gap-1"><Share2 className="w-3 h-3 text-amber-500" /> Kode Referral Anda:</span>
+                        <span className="font-mono font-bold text-amber-400">ALDI-CAFE10</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={referralInput}
+                          onChange={(e) => setReferralInput(e.target.value)}
+                          placeholder="Masukkan Kode Referral Teman"
+                          className="flex-1 bg-slate-900 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none uppercase font-mono"
+                        />
+                        <button
+                          onClick={handleClaimReferral}
+                          disabled={referralClaimed}
+                          className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-200"
+                        >
+                          {referralClaimed ? '✓ Klaim (+100 Poin)' : 'Klaim'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+                ) : (
+                  <div className="flex flex-col gap-2 pt-1">
+                    <label className="text-[11px] text-slate-400">Nama Tampilan untuk Pengantaran Meja:</label>
                     <input
                       type="text"
-                      value={referralInput}
-                      onChange={(e) => setReferralInput(e.target.value)}
-                      placeholder="Masukkan Kode Referral Teman"
-                      className="flex-1 bg-slate-900 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none uppercase font-mono"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 font-semibold"
+                      placeholder="Masukkan Nama Anda..."
                     />
-                    <button
-                      onClick={handleClaimReferral}
-                      disabled={referralClaimed}
-                      className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-200"
-                    >
-                      {referralClaimed ? '✓ Klaim (+100 Poin)' : 'Klaim'}
-                    </button>
                   </div>
+                )}
+              </div>
+
+              {/* Catalog Menu Grid with ALI'S EX-ESB CATEGORY FILTER CHIPS */}
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
+                    <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe & Resto
+                  </h3>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2 pt-1">
-                <label className="text-[11px] text-slate-400">Nama Tampilan untuk Pengantaran Meja:</label>
-                <input
-                  type="text"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 font-semibold"
-                  placeholder="Masukkan Nama Anda..."
-                />
-              </div>
-            )}
-          </div>
 
-          {/* Catalog Menu Grid with ALI'S EX-ESB CATEGORY FILTER CHIPS */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe & Resto
-              </h3>
-            </div>
-
-            {/* ALI'S CATEGORY FILTER CHIPS */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              {['Semua', 'Coffee', 'Non-Coffee', 'Pastry', 'Snack'].map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategoryFilter(cat)}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                    selectedCategoryFilter === cat
-                      ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md'
-                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  {cat === 'Semua' ? '🌟 Semua Menu' : cat}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 gap-3">
-              {filteredCatalog.map(item => (
-                <div 
-                  key={item.id}
-                  className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all"
-                >
-                  <img 
-                    src={item.image} 
-                    alt={item.name} 
-                    className="w-20 h-20 rounded-xl object-cover border border-slate-800"
-                  />
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                          {item.category}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-400">
-                          Rp {item.price.toLocaleString('id-ID')}
-                        </span>
-                      </div>
-                      <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
-                      <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-2 mt-2">
-                      <button
-                        onClick={() => handleReorderSameItem(item)}
-                        className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700"
-                        title="Pesan Lagi Kopi Yang Sama"
-                      >
-                        <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
-                      </button>
-                      
-                      <button
-                        onClick={() => handleAddToCart(item)}
-                        className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Tambah
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Cart & Payment Policy Bar (Ref for Scrolling) */}
-          {cart.length > 0 && (
-            <div ref={cartSectionRef} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-2xl">
-              <h3 className="text-xs font-bold text-slate-300 flex items-center gap-1.5 border-b border-slate-800 pb-2">
-                <ShoppingBag className="w-4 h-4 text-amber-500" /> Ringkasan Keranjang Pesanan Meja ({totalCartCount} Items)
-              </h3>
-
-              <div className="flex flex-col gap-2 divide-y divide-slate-800/60">
-                {cart.map((item, idx) => (
-                  <div key={idx} className="pt-2 first:pt-0 flex flex-col gap-1 text-xs">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-bold text-slate-200 flex items-center gap-1.5">
-                          {item.name} 
-                          {item.seatNumber && (
-                            <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
-                              {item.seatNumber}
-                            </span>
-                          )}
-                        </p>
-                        {item.temperature && (
-                          <p className="text-[10px] text-slate-400">
-                            {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => handleUpdateQty(idx, -1)}
-                          className="w-6 h-6 bg-slate-800 rounded-md flex items-center justify-center text-slate-300 hover:bg-slate-700"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="font-bold font-mono text-slate-100 w-4 text-center">{item.quantity}</span>
-                        <button 
-                          onClick={() => handleUpdateQty(idx, 1)}
-                          className="w-6 h-6 bg-slate-800 rounded-md flex items-center justify-center text-slate-300 hover:bg-slate-700"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Allergen Badge */}
-                    {item.allergenNotes && (
-                      <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 w-fit">
-                        <AlertTriangle className="w-3 h-3 text-rose-500" /> Catatan Alergen: {item.allergenNotes}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Promo Code Input */}
-              <div className="flex gap-2 pt-2 border-t border-slate-800">
-                <input
-                  type="text"
-                  value={promoCodeInput}
-                  onChange={(e) => setPromoCodeInput(e.target.value)}
-                  placeholder="Kode Promo (cth: HAPPYHOUR)"
-                  className="flex-1 bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-1.5 focus:outline-none uppercase font-mono"
-                />
-                <button
-                  onClick={handleApplyPromo}
-                  className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl text-slate-200"
-                >
-                  Gunakan
-                </button>
-              </div>
-
-              {/* OPTIONAL CUSTOMER TIPS SELECTION */}
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
-                <span className="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
-                  <HeartHandshake className="w-3.5 h-3.5 text-amber-500" /> Ucapkan Terima Kasih ke Staf / Barista (Tips Opsional):
-                </span>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {[
-                    { label: 'Tanpa Tip', val: 0 },
-                    { label: 'Rp 2.000', val: 2000 },
-                    { label: 'Rp 5.000', val: 5000 },
-                    { label: 'Rp 10.000', val: 10000 }
-                  ].map(tip => (
+                {/* ALI'S CATEGORY FILTER CHIPS */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  {['Semua', 'Coffee', 'Non-Coffee', 'Pastry', 'Snack'].map(cat => (
                     <button
-                      key={tip.label}
-                      onClick={() => setSelectedTipAmount(tip.val)}
-                      className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                        selectedTipAmount === tip.val
-                          ? 'bg-amber-500 text-slate-950 border-amber-500'
-                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                      key={cat}
+                      onClick={() => setSelectedCategoryFilter(cat)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                        selectedCategoryFilter === cat
+                          ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md'
+                          : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
                       }`}
                     >
-                      {tip.label}
+                      {cat === 'Semua' ? '🌟 Semua Menu' : cat}
                     </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {filteredCatalog.map(item => (
+                    <div 
+                      key={item.id}
+                      className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all"
+                    >
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="w-20 h-20 rounded-xl object-cover border border-slate-800"
+                      />
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                              {item.category}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-400">
+                              Rp {item.price.toLocaleString('id-ID')}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
+                          <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 mt-2">
+                          <button
+                            onClick={() => handleReorderSameItem(item)}
+                            className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700"
+                            title="Pesan Lagi Kopi Yang Sama"
+                          >
+                            <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                          </button>
+                          
+                          <button
+                            onClick={() => handleAddToCart(item)}
+                            className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Tambah
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
 
-              {/* Payment Policy Selector */}
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 mt-1">
-                <span className="text-[11px] font-semibold text-slate-300">Kebijakan Pembayaran Kafe:</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setPaymentPolicy('pay-first')}
-                    className={`p-2 rounded-xl text-xs font-bold border text-left flex flex-col gap-0.5 transition-all ${
-                      paymentPolicy === 'pay-first'
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                        : 'bg-slate-900 border-slate-800 text-slate-400'
-                    }`}
-                  >
-                    <span>1. Pay-First (Pre-Paid)</span>
-                    <span className="text-[9px] font-normal text-slate-400">Bayar QRIS dulu baru diproses</span>
-                  </button>
+              {/* STICKY FLOATING BOTTOM CART BAR -> NAVIGATE TO DEDICATED CHECKOUT VIEW */}
+              {cart.length > 0 && (
+                <div 
+                  onClick={() => setQrStepView('checkout')}
+                  className="fixed bottom-4 inset-x-3 max-w-md mx-auto z-40 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between font-bold cursor-pointer border border-amber-300 transition-all transform hover:scale-[1.02]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-mono font-black text-xs relative">
+                      <ShoppingCart className="w-4 h-4" />
+                      <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                        {totalCartCount}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-900 tracking-wider">Keranjang Meja ({totalCartCount} Items)</span>
+                      <h4 className="text-sm font-black font-mono">Rp {grandTotalBill.toLocaleString('id-ID')}</h4>
+                    </div>
+                  </div>
 
-                  <button
-                    onClick={() => setPaymentPolicy('open-tab')}
-                    className={`p-2 rounded-xl text-xs font-bold border text-left flex flex-col gap-0.5 transition-all ${
-                      paymentPolicy === 'open-tab'
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                        : 'bg-slate-900 border-slate-800 text-slate-400'
-                    }`}
-                  >
-                    <span>2. Open Tab (Post-Paid)</span>
-                    <span className="text-[9px] font-normal text-slate-400">Pesan dulu, bayar saat pulang</span>
-                  </button>
+                  <div className="flex items-center gap-1 text-xs font-black bg-slate-950 text-amber-400 px-3 py-1.5 rounded-xl">
+                    <span>Lanjut ke Checkout</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
                 </div>
-              </div>
-
-              {/* Dynamic Tax PB1, Service Fee & Grand Total Calculation */}
-              <div className="pt-2 border-t border-slate-800 flex flex-col gap-1 text-xs">
-                <div className="flex justify-between text-slate-400">
-                  <span>Subtotal Pesanan:</span>
-                  <span>Rp {rawSubtotal.toLocaleString('id-ID')}</span>
-                </div>
-
-                {appliedPromo && (
-                  <div className="flex justify-between text-emerald-400 font-semibold">
-                    <span>Promo ({appliedPromo.code}):</span>
-                    <span>-Rp {appliedPromo.discount.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
-
-                {redeemedVoucher && (
-                  <div className="flex justify-between text-emerald-400 font-semibold">
-                    <span>Voucher Points Hfe:</span>
-                    <span>-Rp 10.000</span>
-                  </div>
-                )}
-
-                {/* Service Fee Line */}
-                {serviceFeeRate > 0 && (
-                  <div className="flex justify-between text-slate-400">
-                    <span>Service Fee ({serviceFeeRate}%):</span>
-                    <span>+Rp {calculatedServiceFee.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
-
-                {/* PB1 Resto Tax Modes Display */}
-                {taxPB1Mode === 1 && (
-                  <div className="flex justify-between text-amber-400 font-medium">
-                    <span>Pajak Restoran PB1 (10% Exclude):</span>
-                    <span>+Rp {calculatedPB1Tax.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
-
-                {taxPB1Mode === 2 && (
-                  <div className="flex justify-between text-slate-400 italic text-[11px]">
-                    <span>Pajak PB1 (10% Include Dibelakang):</span>
-                    <span>[Terhitung Rp {calculatedPB1Tax.toLocaleString('id-ID')}]</span>
-                  </div>
-                )}
-
-                {/* Tips Line */}
-                {selectedTipAmount > 0 && (
-                  <div className="flex justify-between text-amber-400 font-bold">
-                    <span>Tips Staf & Barista:</span>
-                    <span>+Rp {selectedTipAmount.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-sm font-black text-white pt-1 border-t border-slate-800">
-                  <span>Total Tagihan Meja:</span>
-                  <span className="text-amber-400 font-mono">Rp {grandTotalBill.toLocaleString('id-ID')}</span>
-                </div>
-              </div>
-
-              {/* Submit Order Button */}
-              <button
-                onClick={handleSubmitOrder}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-1"
-              >
-                {paymentPolicy === 'pay-first' ? (
-                  <> <CreditCard className="w-4 h-4" /> Bayar QRIS & Kirim Dapur (Rp {grandTotalBill.toLocaleString('id-ID')}) </>
-                ) : (
-                  <> <CheckCircle2 className="w-4 h-4" /> Tambah ke Open Tab Meja </>
-                )}
-              </button>
-            </div>
+              )}
+            </>
           )}
 
-          {/* STICKY FLOATING BOTTOM CART BAR (ALWAYS VISIBLE WHEN CART NOT EMPTY) */}
-          {cart.length > 0 && (
-            <div 
-              onClick={scrollToCartSection}
-              className="fixed bottom-4 inset-x-3 max-w-md mx-auto z-40 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between font-bold cursor-pointer border border-amber-300 transition-all transform hover:scale-[1.02]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-mono font-black text-xs relative">
-                  <ShoppingCart className="w-4 h-4" />
-                  <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                    {totalCartCount}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-900 tracking-wider">Keranjang Meja ({totalCartCount} Items)</span>
-                  <h4 className="text-sm font-black font-mono">Rp {grandTotalBill.toLocaleString('id-ID')}</h4>
-                </div>
+          {/* STEP 2: DEDICATED CHECKOUT SCREEN VIEW */}
+          {qrStepView === 'checkout' && (
+            <div className="flex flex-col gap-4">
+              
+              {/* Back to Catalog Header Button */}
+              <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+                <button
+                  onClick={() => setQrStepView('catalog')}
+                  className="flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Kembali Tambah Menu
+                </button>
+                <span className="text-xs font-bold text-slate-300 font-mono">{selectedTable}</span>
               </div>
 
-              <div className="flex items-center gap-1 text-xs font-black bg-slate-950 text-amber-400 px-3 py-1.5 rounded-xl">
-                <span>Lihat Keranjang</span>
-                <ArrowRight className="w-4 h-4" />
+              {/* Dedicated Checkout Container */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4 shadow-2xl">
+                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+                  <ShoppingBag className="w-5 h-5 text-amber-500" /> Ringkasan Pesanan & Pelunasan Meja
+                </h3>
+
+                {/* Items Breakdown */}
+                <div className="flex flex-col gap-2.5 divide-y divide-slate-800/80">
+                  {cart.map((item, idx) => (
+                    <div key={idx} className="pt-2.5 first:pt-0 flex flex-col gap-1.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-white flex items-center gap-1.5 text-sm">
+                            {item.name} 
+                            {item.seatNumber && (
+                              <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
+                                {item.seatNumber}
+                              </span>
+                            )}
+                          </p>
+                          {item.temperature && (
+                            <p className="text-[11px] text-slate-400">
+                              {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => handleUpdateQty(idx, -1)}
+                            className="w-7 h-7 bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-700"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="font-bold font-mono text-slate-100 w-4 text-center">{item.quantity}</span>
+                          <button 
+                            onClick={() => handleUpdateQty(idx, 1)}
+                            className="w-7 h-7 bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-700"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Allergen Badge */}
+                      {item.allergenNotes && (
+                        <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2.5 py-0.5 rounded border border-rose-500/20 w-fit">
+                          <AlertTriangle className="w-3 h-3 text-rose-500" /> Catatan Alergen: {item.allergenNotes}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Promo Code Input */}
+                <div className="flex gap-2 pt-2 border-t border-slate-800">
+                  <input
+                    type="text"
+                    value={promoCodeInput}
+                    onChange={(e) => setPromoCodeInput(e.target.value)}
+                    placeholder="Kode Promo (cth: HAPPYHOUR)"
+                    className="flex-1 bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none uppercase font-mono"
+                  />
+                  <button
+                    onClick={handleApplyPromo}
+                    className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-4 py-2 rounded-xl text-slate-200"
+                  >
+                    Gunakan
+                  </button>
+                </div>
+
+                {/* OPTIONAL CUSTOMER TIPS SELECTION */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                  <span className="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
+                    <HeartHandshake className="w-3.5 h-3.5 text-amber-500" /> Ucapkan Terima Kasih ke Staf / Barista (Tips Opsional):
+                  </span>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { label: 'Tanpa Tip', val: 0 },
+                      { label: 'Rp 2.000', val: 2000 },
+                      { label: 'Rp 5.000', val: 5000 },
+                      { label: 'Rp 10.000', val: 10000 }
+                    ].map(tip => (
+                      <button
+                        key={tip.label}
+                        onClick={() => setSelectedTipAmount(tip.val)}
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                          selectedTipAmount === tip.val
+                            ? 'bg-amber-500 text-slate-950 border-amber-500'
+                            : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {tip.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Payment Policy Selector */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 mt-1">
+                  <span className="text-[11px] font-semibold text-slate-300">Kebijakan Pembayaran Kafe:</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setPaymentPolicy('pay-first')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border text-left flex flex-col gap-0.5 transition-all ${
+                        paymentPolicy === 'pay-first'
+                          ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span>1. Pay-First (Pre-Paid)</span>
+                      <span className="text-[9px] font-normal text-slate-400">Bayar QRIS dulu baru diproses</span>
+                    </button>
+
+                    <button
+                      onClick={() => setPaymentPolicy('open-tab')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border text-left flex flex-col gap-0.5 transition-all ${
+                        paymentPolicy === 'open-tab'
+                          ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span>2. Open Tab (Post-Paid)</span>
+                      <span className="text-[9px] font-normal text-slate-400">Pesan dulu, bayar saat pulang</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dynamic Tax PB1, Service Fee & Grand Total Calculation */}
+                <div className="pt-3 border-t border-slate-800 flex flex-col gap-1.5 text-xs">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Subtotal Pesanan:</span>
+                    <span>Rp {rawSubtotal.toLocaleString('id-ID')}</span>
+                  </div>
+
+                  {appliedPromo && (
+                    <div className="flex justify-between text-emerald-400 font-semibold">
+                      <span>Promo ({appliedPromo.code}):</span>
+                      <span>-Rp {appliedPromo.discount.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
+
+                  {redeemedVoucher && (
+                    <div className="flex justify-between text-emerald-400 font-semibold">
+                      <span>Voucher Points Hfe:</span>
+                      <span>-Rp 10.000</span>
+                    </div>
+                  )}
+
+                  {/* Service Fee Line */}
+                  {serviceFeeRate > 0 && (
+                    <div className="flex justify-between text-slate-400">
+                      <span>Service Fee ({serviceFeeRate}%):</span>
+                      <span>+Rp {calculatedServiceFee.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
+
+                  {/* PB1 Resto Tax Modes Display */}
+                  {taxPB1Mode === 1 && (
+                    <div className="flex justify-between text-amber-400 font-medium">
+                      <span>Pajak Restoran PB1 (10% Exclude):</span>
+                      <span>+Rp {calculatedPB1Tax.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
+
+                  {taxPB1Mode === 2 && (
+                    <div className="flex justify-between text-slate-400 italic text-[11px]">
+                      <span>Pajak PB1 (10% Include Dibelakang):</span>
+                      <span>[Terhitung Rp {calculatedPB1Tax.toLocaleString('id-ID')}]</span>
+                    </div>
+                  )}
+
+                  {/* Tips Line */}
+                  {selectedTipAmount > 0 && (
+                    <div className="flex justify-between text-amber-400 font-bold">
+                      <span>Tips Staf & Barista:</span>
+                      <span>+Rp {selectedTipAmount.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-base font-black text-white pt-2 border-t border-slate-800">
+                    <span>Total Tagihan Akhir:</span>
+                    <span className="text-amber-400 font-mono text-lg">Rp {grandTotalBill.toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+
+                {/* Submit Order Button */}
+                <button
+                  onClick={handleSubmitOrder}
+                  className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-2"
+                >
+                  {paymentPolicy === 'pay-first' ? (
+                    <> <CreditCard className="w-5 h-5" /> Bayar QRIS Sekarang (Rp {grandTotalBill.toLocaleString('id-ID')}) </>
+                  ) : (
+                    <> <CheckCircle2 className="w-5 h-5" /> Konfirmasi Open Tab Meja </>
+                  )}
+                </button>
               </div>
+
             </div>
           )}
 
         </main>
       )}
 
-      {/* --- SURFACE 2: BARISTA & CASHIER TOUCH POS WITH OWNER TAX & SERVICE FEE SETTINGS --- */}
+      {/* --- SURFACE 2: BARISTA & CASHIER TOUCH POS --- */}
       {activeSurface === 'barista-pos' && (
         <main className="flex-1 p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto w-full">
           
@@ -1123,41 +1155,27 @@ export default function App() {
               ))}
             </div>
 
-            {/* OWNER TAX PB1 & SERVICE FEE POLICY SETTINGS PANEL */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
-              <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2">
-                <Settings className="w-4 h-4 text-amber-500" /> Pengaturan Kebijakan Pajak PB1 & Service Fee Owner Kafe
+            {/* Quick Catalog Grid for Walk-In / Cashier Direct Order */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
+              <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
+                <Coffee className="w-4 h-4 text-amber-500" /> Katalog Kasir Touchscreen (Pesanan Walk-In / Takeaway)
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* PB1 Tax Selector */}
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
-                  <label className="text-[11px] text-slate-400 font-semibold">Mode Pajak Restoran (PB1 10%):</label>
-                  <select
-                    value={taxPB1Mode}
-                    onChange={(e) => setTaxPB1Mode(Number(e.target.value) as PB1TaxMode)}
-                    className="bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold rounded-lg p-2 focus:outline-none"
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {PRODUCT_CATALOG.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (selectedPOSTable) {
+                        setTablesGrid(prev => prev.map(t => t.id === selectedPOSTable.id ? { ...t, status: 'open-tab', totalBill: t.totalBill + item.price, orderCount: t.orderCount + 1 } : t))
+                      }
+                    }}
+                    className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left p-2.5 rounded-xl flex flex-col justify-between h-20 transition-all"
                   >
-                    <option value={0}>0 = Non-Aktif (Tax 0%)</option>
-                    <option value={1}>1 = Mode Exclude (Tampil di Struk Tagihan)</option>
-                    <option value={2}>2 = Mode Include (Dibukukan Dibelakang Harga)</option>
-                  </select>
-                </div>
-
-                {/* Service Fee Selector */}
-                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
-                  <label className="text-[11px] text-slate-400 font-semibold">Persentase Service Charge (Fee):</label>
-                  <select
-                    value={serviceFeeRate}
-                    onChange={(e) => setServiceFeeRate(Number(e.target.value))}
-                    className="bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold rounded-lg p-2 focus:outline-none"
-                  >
-                    <option value={0}>0% (Tanpa Service Charge)</option>
-                    <option value={5}>5% Service Charge</option>
-                    <option value={7}>7% Service Charge</option>
-                    <option value={10}>10% Service Charge</option>
-                  </select>
-                </div>
+                    <span className="font-bold text-xs text-slate-200 line-clamp-1">{item.name}</span>
+                    <span className="text-[11px] font-mono font-bold text-amber-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -1272,7 +1290,7 @@ export default function App() {
               </span>
               <div className="flex justify-between text-xs text-slate-400">
                 <span>Modal Awal:</span>
-                <span className="font-mono text-slate-200">Rp 500.000</span>
+                <span className="font-mono text-slate-200">Rp {cashDrawerFloat.toLocaleString('id-ID')}</span>
               </div>
               <div className="flex justify-between text-xs text-slate-400">
                 <span>Total Tunai Masuk:</span>
@@ -1301,10 +1319,10 @@ export default function App() {
               </h2>
 
               <button
-                onClick={() => setShowStationSettingsModal(true)}
+                onClick={() => setActiveSurface('cafe-config')}
                 className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-300 flex items-center gap-1.5"
               >
-                <Settings className="w-3.5 h-3.5 text-amber-500" /> Setting Station (Owner)
+                <Settings className="w-3.5 h-3.5 text-amber-500" /> Setting Station (Owner Portal)
               </button>
             </div>
 
@@ -1335,7 +1353,6 @@ export default function App() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs w-full sm:w-auto justify-between sm:justify-end">
-              {/* View Switcher */}
               <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
                 <button
                   onClick={() => setKdsViewMode('kanban')}
@@ -1355,7 +1372,6 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Sorting Selector */}
               <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800">
                 <SlidersHorizontal className="w-3 h-3 text-amber-500" />
                 <select
@@ -1840,54 +1856,141 @@ export default function App() {
         </main>
       )}
 
-      {/* --- OWNER CUSTOM STATION SETTINGS MODAL --- */}
-      {showStationSettingsModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-5 sm:p-6 flex flex-col gap-4 shadow-2xl relative">
-            <button
-              onClick={() => setShowStationSettingsModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Settings className="w-5 h-5 text-amber-500" /> Owner Policy: Custom Split Station KDS
-            </h3>
-
-            <p className="text-xs text-slate-400">Atur pemisahan layar display untuk stasiun Barista, Dapur Utm, dan Pastry:</p>
-
-            <div className="flex flex-col gap-3">
-              {stations.map(st => (
-                <div key={st.id} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-base">{st.icon}</span>
-                    <div>
-                      <h4 className="text-xs font-bold text-white">{st.name}</h4>
-                      <p className="text-[10px] text-amber-400 font-mono">{st.categories.join(', ')}</p>
-                    </div>
-                  </div>
-
-                  {st.id !== 'all' && (
-                    <button 
-                      onClick={() => alert(`Pengaturan station ${st.name} diperbarui!`)}
-                      className="text-[11px] text-amber-400 font-bold px-2 py-1 bg-amber-500/10 rounded border border-amber-500/20"
-                    >
-                      Edit Kategori
-                    </button>
-                  )}
-                </div>
-              ))}
+      {/* --- SURFACE 6: DEDICATED HALAMAN KONFIGURASI CAFE & OWNER POLICY --- */}
+      {activeSurface === 'cafe-config' && (
+        <main className="flex-1 p-3 sm:p-6 max-w-5xl mx-auto w-full flex flex-col gap-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-inner">
+                <Store className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Halaman Konfigurasi Cafe & Owner Settings</h2>
+                <p className="text-xs text-slate-400">Pajak PB1, Service Charge, KDS Station Split & Modal Kasir Shift</p>
+              </div>
             </div>
-
-            <button
-              onClick={() => setShowStationSettingsModal(false)}
-              className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg mt-2"
+            <button 
+              onClick={() => alert('Seluruh Konfigurasi Policy Cafe Berhasil Disimpan ke Hfe Backend!')}
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 w-full sm:w-auto justify-center"
             >
-              Simpan Pengaturan Station Owner
+              <Check className="w-4 h-4" /> Simpan Seluruh Konfigurasi
             </button>
           </div>
-        </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* CARD 1: PAJAK RESTORAN PB1 10% */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+              <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                <Receipt className="w-4 h-4 text-amber-500" /> Kebijakan Pajak Restoran (PB1 10%)
+              </h3>
+              <p className="text-xs text-slate-400">Atur perlakuan pajak resto 10% pada seluruh tagihan kafe:</p>
+
+              <div className="flex flex-col gap-2">
+                {[
+                  { mode: 0, title: '0 = Non-Aktif (Tax 0%)', desc: 'Tidak mengenakan pajak resto pada tagihan.' },
+                  { mode: 1, title: '1 = Mode Exclude (Tampil di Struk)', desc: 'Ditambahkan +10% di atas subtotal dan muncul di struk.' },
+                  { mode: 2, title: '2 = Mode Include (Dibukukan Dibelakang)', desc: 'Harga menu sudah termasuk pajak, dibukukan ke subledger Hfe.' }
+                ].map(item => (
+                  <button
+                    key={item.mode}
+                    onClick={() => setTaxPB1Mode(item.mode as PB1TaxMode)}
+                    className={`p-3 rounded-xl border text-left flex flex-col gap-1 transition-all ${
+                      taxPB1Mode === item.mode
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-300 ring-1 ring-amber-500/50'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span className="text-xs font-bold">{item.title}</span>
+                    <span className="text-[11px] text-slate-400">{item.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CARD 2: SERVICE CHARGE FEE % */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+              <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                <Percent className="w-4 h-4 text-amber-500" /> Persentase Service Charge (Fee)
+              </h3>
+              <p className="text-xs text-slate-400">Biaya layanan restoran yang dikenakan kepada tamu:</p>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {[0, 5, 7, 10].map(rate => (
+                  <button
+                    key={rate}
+                    onClick={() => setServiceFeeRate(rate)}
+                    className={`p-3 rounded-xl border text-center flex flex-col items-center justify-center gap-1 transition-all ${
+                      serviceFeeRate === rate
+                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span className="text-sm font-black">{rate === 0 ? '0% (Disabled)' : `${rate}%`}</span>
+                    <span className="text-[10px] font-normal opacity-80">{rate === 0 ? 'Tanpa Fee' : 'Service Fee'}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CARD 3: KITCHEN STATION SPLIT CONFIGURATION */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+              <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                <UtensilsCrossed className="w-4 h-4 text-amber-500" /> KDS Station Split Screen Config
+              </h3>
+              <p className="text-xs text-slate-400">Pemisahan layar monitor berdasarkan divisi operasional:</p>
+
+              <div className="flex flex-col gap-2.5">
+                {stations.map(st => (
+                  <div key={st.id} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">{st.icon}</span>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">{st.name}</h4>
+                        <p className="text-[10px] text-amber-400 font-mono">{st.categories.join(', ')}</p>
+                      </div>
+                    </div>
+                    {st.id !== 'all' && (
+                      <button 
+                        onClick={() => alert(`Station ${st.name} diperbarui!`)}
+                        className="text-[11px] font-bold text-amber-400 px-2.5 py-1 bg-amber-500/10 rounded-lg border border-amber-500/20"
+                      >
+                        Edit Kategori
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CARD 4: SHIFT CASH DRAWER FLOAT BALANCE */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+              <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                <Banknote className="w-4 h-4 text-amber-500" /> Modal Shift Kasir (1010-Cash Drawer)
+              </h3>
+              <p className="text-xs text-slate-400">Nominal saldo awal kembalian kasir setiap pembukaan shift:</p>
+
+              <div className="flex flex-col gap-2 bg-slate-950 border border-slate-800 rounded-xl p-3.5">
+                <label className="text-[11px] text-slate-400">Modal Awal Kembalian Kasir (Rp):</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={cashDrawerFloat}
+                    onChange={(e) => setCashDrawerFloat(Number(e.target.value))}
+                    className="flex-1 bg-slate-900 border border-slate-800 text-white font-mono font-bold text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                  />
+                  <button
+                    onClick={() => alert(`Modal Shift Kasir Diperbarui: Rp ${cashDrawerFloat.toLocaleString('id-ID')}`)}
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-xl"
+                  >
+                    Simpan Modal
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </main>
       )}
 
       {/* --- DRINK MODIFIER MODAL WITH SEAT TAGGING & ALLERGEN NOTES --- */}
