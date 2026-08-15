@@ -3,7 +3,7 @@ okf_version: "0.2"
 type: Strategic Plan Level 0
 title: Hfe POS & Cafe Mobile Order Suite — Master Strategic Plan
 description: Master product vision for the Cafe & F&B Experience Layer, delivering a dual-surface cashier station and smartphone QR table self-ordering web app powered by Hfe REST APIs.
-tags: [master-plan, level-0, pos, cafe, mobile-qr-order, f-and-b, phone-number-login, open-tab, hfe-connect, contact-master]
+tags: [master-plan, level-0, pos, cafe, mobile-qr-order, f-and-b, phone-login, guest-mode, open-tab, hfe-connect]
 status: Proposed
 ---
 
@@ -14,10 +14,10 @@ status: Proposed
 The **Hfe POS & Cafe Mobile Order Suite** (`glc-works/hfe-pos`) is the dedicated **Cafe & F&B Experience Layer** built for modern coffee shops, cafes, and restaurants.
 
 It provides a seamless **Dual-Surface Experience**:
-1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, complete a friction-free **Simple Phone Number Login** (just entering Phone/WhatsApp Number), browse visual coffee & food menus, customize modifiers, and order under cafe-configurable payment policies (**Pay-First** vs **Open Tab Billing**).
+1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, select their preferred login mode (**Phone/WhatsApp Login** OR **Pure Guest Mode with Name only**), browse visual coffee & food menus, customize modifiers, and order under cafe-configurable payment policies (**Pay-First** vs **Open Tab Billing**).
 2. **Barista & Cashier Touch POS (POS & Kitchen Display):** Baristas and cashiers manage table billing tabs, print kitchen tickets, handle offline cash/QRIS checkouts, and reconcile daily shift cash drawers.
 
-All **Customers and Employees/Staff Profiles** are linked directly via `Hfe` Contact Master REST APIs (`/v1/contacts`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
+All **Customers and Employees/Staff Profiles** are resolved via `Hfe` Contact Master REST APIs (`/v1/contacts`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
 
 ---
 
@@ -31,8 +31,8 @@ All **Customers and Employees/Staff Profiles** are linked directly via `Hfe` Con
          ┌──────────────────────┬───────────────────┴───────────────────┬──────────────────────┐
          │                      │                                       │                      │
 ┌────────▼─────────────┐ ┌──────▼──────────────┐               ┌────────▼─────────────┐ ┌──────▼──────────────┐
-│ L1-01: Phone Login & │ │ L1-02: Barista Touch │               │ L1-03: Policy Payment│ │ L1-04: Kitchen Ticket│
-│ Mobile QR Self-Order │ │ POS & Table Engine   │               │ Checkout (Pay/Tab)   │ │ & Barista Display    │
+│ L1-01: Phone Login / │ │ L1-02: Barista Touch │               │ L1-03: Policy Payment│ │ L1-04: Kitchen Ticket│
+│ Guest Name QR Order  │ │ POS & Table Engine   │               │ Checkout (Pay/Tab)   │ │ & Barista Display    │
 └──────────────────────┘ └──────────────────────┘               └──────────────────────┘ └──────────────────────┘
                                  │
                                  ▼ (100% REST API Transport Layer)
@@ -41,8 +41,10 @@ All **Customers and Employees/Staff Profiles** are linked directly via `Hfe` Con
                      └─────────────────────────────────────────────────────────────┘
 ```
 
-### Pillar 1: Phone Login & Customer Mobile QR Self-Ordering (`L1-01`)
-- **Zero App Install & Simple Phone Login:** Customer scans table QR code (`hfe-pos.togrow.id/table/{id}`) and simply enters their Phone/WhatsApp Number, creating/linking a `customer` record via `Hfe` Contact Master API (`POST /v1/contacts`).
+### Pillar 1: Customer Phone / Guest Name Mobile QR Self-Ordering (`L1-01`)
+- **Zero App Install & Flexible Customer Entry:**
+  - **Option A (Phone/WhatsApp Login):** Customer enters Phone Number for digital receipts & loyalty tracking.
+  - **Option B (Pure Guest Mode):** Customer simply enters a display Name (e.g. "Aldi") for instant table delivery identification without disclosing a phone number.
 - **Product Master Menu Fetch:** Dynamic menu rendering fetched from `Hfe` Product Master API (`GET /v1/products`).
 - **Drink & Food Customizer:** Interactive modifiers (Ice/Hot, Sugar 0%/50%/100%, Dairy Options).
 - **Real-Time Order Tracker:** Live status tracking (Order Placed ➔ Brewing ➔ Ready for Pickup / Served).
@@ -67,7 +69,7 @@ All **Customers and Employees/Staff Profiles** are linked directly via `Hfe` Con
 
 | Concern | `hfe-pos` (Experience Layer) | `Hfe` Backend (REST API Platform) |
 |---|---|---|
-| **Customer Phone Login & Employee PIN** | 👁️ Captures Phone Number UI & Pin | ✅ `POST /v1/contacts` (`type: customer/employee`) |
+| **Phone Login vs Guest Name Mode** | 👁️ Captures Phone OR Display Name UI | ✅ `POST /v1/contacts` (`type: customer`) |
 | **Simple Phone Login & Table QR Web App** | ✅ Owns Phone UI & Session Token | ❌ Not concerned |
 | **Payment Policy (Pay-First vs Open Tab)** | ✅ Enforces Policy Workflow UI | ❌ Not concerned |
 | **Product Master Data & Menu Catalog** | 👁️ Consumes API & Renders UI | ✅ `GET /v1/products` |
@@ -78,7 +80,7 @@ All **Customers and Employees/Staff Profiles** are linked directly via `Hfe` Con
 
 ## 4. Verification & Quality Standards
 
-- **Simple Phone Login Speed:** Customer phone authentication < 1 second.
+- **Guest Entry Speed:** Phone login or Guest Name entry < 1 second.
 - **Mobile Scan Performance:** Page load < 1 second on 4G connection; cart interaction < 30ms.
 - **Kitchen Ticket Sync:** Order transmission from customer phone to Barista screen < 500ms.
 - **Hfe API Compliance:** All checkout payloads match `Hfe` OpenAPI specifications.
