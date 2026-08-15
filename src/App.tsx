@@ -69,7 +69,11 @@ import {
   Upload,
   Code2,
   Wand2,
-  FileCode
+  FileCode,
+  Building,
+  Globe,
+  Radio,
+  FileCheck
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -79,6 +83,19 @@ type KdsViewModeType = 'kanban' | 'list' | 'workorder'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
 type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
+
+export interface HfeCompanyProfile {
+  companyBookId: string
+  ptLegalName: string
+  brandName: string
+  logoUrl: string
+  taxIdNpwp: string
+  nibPermit: string
+  address: string
+  hfeLedgerApiEndpoint: string
+  isLiveHfeSynced: boolean
+  lastSyncedAt: string
+}
 
 export interface CafeThemeConfig {
   version: string
@@ -382,10 +399,29 @@ const PRODUCT_CATALOG: MenuItem[] = [
 ]
 
 export default function App() {
+  // --- HFE COMPANY / PROFIL PT LEGAL ENTITY STATE (REST API INTEGRATION) ---
+  const [hfeCompanyProfile, setHfeCompanyProfile] = useState<HfeCompanyProfile>({
+    companyBookId: 'BOOK-SENOPATI-01',
+    ptLegalName: 'PT Kopi Karya Nusantara',
+    brandName: 'Kopitiam Senopati & Roastery',
+    logoUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=100&q=80',
+    taxIdNpwp: '01.234.567.8-012.000',
+    nibPermit: '1234000987654',
+    address: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
+    hfeLedgerApiEndpoint: 'http://localhost:8080/v1/company-books/BOOK-SENOPATI-01',
+    isLiveHfeSynced: true,
+    lastSyncedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  })
+
   // --- CAFE THEME STYLESHEET STATE (EXPORT & IMPORT ENGINE) ---
   const [activeTheme, setActiveTheme] = useState<CafeThemeConfig>(BUILTIN_THEMES[0])
   const [aiStylesheetInput, setAiStylesheetInput] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Sync active theme brand name with HFE Company Profile
+  useEffect(() => {
+    setActiveTheme(prev => ({ ...prev, brandName: hfeCompanyProfile.brandName }))
+  }, [hfeCompanyProfile.brandName])
 
   // --- SEPARATE DOMAIN / URL ROUTING ARCHITECTURE ---
   const [activeApp, setActiveApp] = useState<PrimaryDomainApp>(() => {
@@ -577,6 +613,28 @@ export default function App() {
   const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(tablesGrid[3])
   const [posPayMethod, setPosPayMethod] = useState<'cash' | 'qris' | 'card'>('cash')
   const [posCashGiven, setPosCashGiven] = useState<string>('100000')
+
+  // --- HFE COMPANY PROFILE REST API SYNC HANDLERS ---
+  const handleFetchHfeCompanyProfile = () => {
+    // Simulated REST API call: GET /v1/company-books/BOOK-SENOPATI-01/profile
+    const mockSyncedProfile: HfeCompanyProfile = {
+      ...hfeCompanyProfile,
+      isLiveHfeSynced: true,
+      lastSyncedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    }
+    setHfeCompanyProfile(mockSyncedProfile)
+    alert(`🔄 Success GET /v1/company-books/${hfeCompanyProfile.companyBookId}/profile! Profil PT "${mockSyncedProfile.ptLegalName}" & Branding "${mockSyncedProfile.brandName}" Ter-sync Live dari HFE Rust Backend.`)
+  }
+
+  const handlePushHfeCompanyProfile = () => {
+    // Simulated REST API call: POST /v1/company-books/BOOK-SENOPATI-01/profile
+    setHfeCompanyProfile(prev => ({
+      ...prev,
+      isLiveHfeSynced: true,
+      lastSyncedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    }))
+    alert(`💾 Success POST /v1/company-books/${hfeCompanyProfile.companyBookId}/profile! Perubahan Profil PT "${hfeCompanyProfile.ptLegalName}" & Logo Outlet Berhasil Diposting ke HFE Engine.`)
+  }
 
   // --- EXPORT & IMPORT THEME STYLESHEET ENGINE HANDLERS ---
   const handleExportThemeFile = () => {
@@ -806,7 +864,7 @@ export default function App() {
       setOrders(prev => [newOrder, ...prev])
       setCart([])
       setQrStepView('catalog')
-      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur! Terkoneksi dengan Hfe Ledger.`)
+      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur! Terkoneksi dengan Hfe Ledger (${hfeCompanyProfile.ptLegalName}).`)
     }
   }
 
@@ -831,13 +889,13 @@ export default function App() {
     setCart([])
     setQrStepView('catalog')
     setLoyaltyPoints(prev => prev + Math.floor(grandTotalBill / 10000))
-    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur & Terposting ke Hfe Engine.`)
+    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur & Terposting ke Hfe Engine (${hfeCompanyProfile.ptLegalName}).`)
   }
 
   const handlePOSCheckoutTable = () => {
     if (!selectedPOSTable || selectedPOSTable.totalBill === 0) return
     setTablesGrid(prev => prev.map(t => t.id === selectedPOSTable.id ? { ...t, status: 'free', totalBill: 0, customerName: undefined } : t))
-    alert(`Pembayaran Meja ${selectedPOSTable.name} (${selectedPOSTable.customerName}) LUNAS via ${posPayMethod.toUpperCase()}! Struk Penjualan Terkirim ke Hfe REST API.`)
+    alert(`Pembayaran Meja ${selectedPOSTable.name} (${selectedPOSTable.customerName}) LUNAS via ${posPayMethod.toUpperCase()}! Struk Terposting ke Hfe REST API (${hfeCompanyProfile.ptLegalName}).`)
     setSelectedPOSTable(null)
   }
 
@@ -958,22 +1016,32 @@ export default function App() {
       {activeApp === 'customer' && (
         <div className="flex-1 flex flex-col theme-customer-container">
           
-          {/* STICKY MICRO-COMPACT INTEGRATED BRANDING & NAVIGATION CONTAINER (DYNAMIC STYLED) */}
+          {/* STICKY MICRO-COMPACT INTEGRATED BRANDING & NAVIGATION CONTAINER (CONNECTED TO HFE PROFIL PT) */}
           <header className="border-b border-slate-800/90 backdrop-blur-md sticky top-0 z-40 px-3 py-2 flex flex-col gap-2 shadow-2xl theme-customer-header">
             
-            {/* ROW 1: CAFE BRANDING, TABLE SELECTOR & COMPACT USER BADGE */}
+            {/* ROW 1: CAFE BRANDING LOGO & PROFIL PT BADGE */}
             <div className="flex items-center justify-between gap-2">
               
-              {/* BRANDING CAFE & TABLE BADGE */}
+              {/* BRANDING CAFE LOGO & PROFIL PT */}
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg theme-customer-btn-primary flex items-center justify-center font-black text-xs shadow-md">
-                  <Coffee className="w-4 h-4 text-slate-950" />
-                </div>
+                {hfeCompanyProfile.logoUrl ? (
+                  <img 
+                    src={hfeCompanyProfile.logoUrl} 
+                    alt={hfeCompanyProfile.brandName} 
+                    className="w-7 h-7 rounded-lg object-cover border border-amber-500/50 shadow"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-lg theme-customer-btn-primary flex items-center justify-center font-black text-xs shadow-md">
+                    <Coffee className="w-4 h-4 text-slate-950" />
+                  </div>
+                )}
                 <div>
                   <h1 className="font-bold text-xs sm:text-sm text-white tracking-tight leading-none">
-                    {activeTheme.brandName}
+                    {hfeCompanyProfile.brandName}
                   </h1>
-                  <p className="text-[9px] text-slate-400 mt-0.5 font-medium">Digital QR Ordering • {activeTheme.themeName.split(' ')[1]}</p>
+                  <p className="text-[9px] text-slate-400 mt-0.5 font-medium flex items-center gap-1">
+                    <Building className="w-2.5 h-2.5 text-amber-500" /> {hfeCompanyProfile.ptLegalName}
+                  </p>
                 </div>
               </div>
 
@@ -1184,6 +1252,15 @@ export default function App() {
                     </div>
                   </div>
 
+                </div>
+
+                {/* FOOTER PT ENTITY PROFIL BRANDING */}
+                <div className="pt-6 border-t border-slate-800/60 text-center flex flex-col gap-1 text-[11px] text-slate-500">
+                  <p className="font-bold text-slate-400 flex items-center justify-center gap-1">
+                    <Building className="w-3 h-3 text-amber-500" /> {hfeCompanyProfile.ptLegalName}
+                  </p>
+                  <p className="font-mono text-[10px]">NPWP: {hfeCompanyProfile.taxIdNpwp} • {hfeCompanyProfile.address}</p>
+                  <p className="text-[9px] text-slate-600 mt-1">Powered by Headless Company Books (HFE) Core Engine</p>
                 </div>
 
                 {/* STICKY FLOATING BOTTOM CART BAR -> NAVIGATE TO DEDICATED CHECKOUT VIEW */}
@@ -2238,18 +2315,119 @@ export default function App() {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">Halaman Konfigurasi Cafe & Owner Settings</h2>
-                    <p className="text-xs text-slate-400">Nama Branding Kafe, Stylesheet Customizer (Export/Import), Pajak PB1, Service Charge, & CRM</p>
+                    <p className="text-xs text-slate-400">Profil PT Legal Entity, HFE REST API, Stylesheet Customizer, Pajak PB1, & Service Charge</p>
                   </div>
                 </div>
                 <button 
-                  onClick={() => alert('Seluruh Konfigurasi Policy & Branding Cafe Berhasil Disimpan ke Hfe Backend!')}
+                  onClick={handlePushHfeCompanyProfile}
                   className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 w-full sm:w-auto justify-center"
                 >
-                  <Check className="w-4 h-4" /> Simpan Seluruh Konfigurasi
+                  <Check className="w-4 h-4" /> Push & Simpan Seluruh Konfigurasi
                 </button>
               </div>
 
-              {/* CARD THEME STYLESHEET CUSTOMIZER ENGINE (AI EXPORT & IMPORT) */}
+              {/* CARD 1: HFE COMPANY / PROFIL PT LEGAL ENTITY REST API INTEGRATION */}
+              <div className="bg-slate-900 border border-indigo-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                        <Building className="w-4 h-4 text-indigo-400" /> Profil PT & HFE Core Ledger REST API Connection
+                      </h3>
+                      <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
+                        <Radio className="w-3 h-3 text-emerald-400 animate-pulse" /> LIVE HFE SYNCED
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Identitas Legal PT, Logo Outlet, NPWP Pajak E-Faktur, & Endpoint HFE Book ID: <span className="font-mono text-indigo-300 font-bold">{hfeCompanyProfile.companyBookId}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleFetchHfeCompanyProfile}
+                      className="bg-slate-950 hover:bg-slate-800 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
+                    >
+                      <RefreshCw className="w-4 h-4 text-indigo-400" /> Sync Ulang dari REST API
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* PT LEGAL ENTITY NAME */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                      <Building2 className="w-3.5 h-3.5 text-indigo-400" /> Nama Badan Hukum (Profil PT Official):
+                    </label>
+                    <input
+                      type="text"
+                      value={hfeCompanyProfile.ptLegalName}
+                      onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, ptLegalName: e.target.value }))}
+                      className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:border-indigo-500"
+                      placeholder="cth: PT Kopi Karya Nusantara"
+                    />
+                  </div>
+
+                  {/* TRADING BRAND NAME */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                      <Store className="w-3.5 h-3.5 text-amber-500" /> Nama Branding Outlet Kafe:
+                    </label>
+                    <input
+                      type="text"
+                      value={hfeCompanyProfile.brandName}
+                      onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, brandName: e.target.value }))}
+                      className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:border-indigo-500"
+                      placeholder="cth: Kopitiam Senopati & Roastery"
+                    />
+                  </div>
+
+                  {/* CAFE LOGO URL */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                      <Globe className="w-3.5 h-3.5 text-indigo-400" /> URL Logo Outlet Kafe:
+                    </label>
+                    <input
+                      type="text"
+                      value={hfeCompanyProfile.logoUrl}
+                      onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, logoUrl: e.target.value }))}
+                      className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3.5 py-2.5 font-mono focus:outline-none focus:border-indigo-500"
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  {/* NPWP TAX ID */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-400" /> NPWP Badan Pajak (E-Faktur DJP):
+                    </label>
+                    <input
+                      type="text"
+                      value={hfeCompanyProfile.taxIdNpwp}
+                      onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, taxIdNpwp: e.target.value }))}
+                      className="bg-slate-950 border border-slate-800 text-emerald-400 text-xs rounded-xl px-3.5 py-2.5 font-mono focus:outline-none focus:border-indigo-500"
+                      placeholder="01.234.567.8-012.000"
+                    />
+                  </div>
+                </div>
+
+                {/* HFE REST API CONNECTION FOOTER */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-2">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-indigo-400" />
+                    <span className="text-slate-400">Endpoint HFE REST API:</span>
+                    <span className="font-mono text-indigo-300 font-bold">{hfeCompanyProfile.hfeLedgerApiEndpoint}</span>
+                  </div>
+                  <button
+                    onClick={handlePushHfeCompanyProfile}
+                    className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs px-3.5 py-1.5 rounded-lg shadow flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Push & Sync ke HFE Core
+                  </button>
+                </div>
+              </div>
+
+              {/* CARD 2: THEME STYLESHEET CUSTOMIZER ENGINE (AI EXPORT & IMPORT) */}
               <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                   <div>
@@ -2350,25 +2528,6 @@ export default function App() {
                     <span>Bg: {activeTheme.pageBgHex}</span>
                     <span>Radius: {activeTheme.borderRadiusPx}px</span>
                   </div>
-                </div>
-              </div>
-
-              {/* BRANDING CAFE SETTINGS CONTAINER */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
-                <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
-                  <Store className="w-4 h-4 text-amber-500" /> Identitas & Nama Branding Kafe (Tampil di Customer QR Web)
-                </h3>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs text-slate-400 font-semibold">Nama Outlet Kafe / Restoran:</label>
-                  <input
-                    type="text"
-                    value={activeTheme.brandName}
-                    onChange={(e) => setActiveTheme(prev => ({ ...prev, brandName: e.target.value }))}
-                    className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:border-amber-500"
-                    placeholder="cth: Kopitiam Senopati & Roastery"
-                  />
-                  <p className="text-[10px] text-slate-400">✓ Nama ini otomatis tampil elegan di header aplikasi pelanggan mobile QR.</p>
                 </div>
               </div>
 
