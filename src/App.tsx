@@ -206,7 +206,7 @@ const PRODUCT_CATALOG: MenuItem[] = [
 
 export default function App() {
   // --- SURFACE APP STATE ---
-  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('kds-screen')
+  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('mobile-qr')
   
   // --- KDS VIEW & SORTING STATE ---
   const [kdsViewMode, setKdsViewMode] = useState<'kanban' | 'list'>('kanban')
@@ -451,79 +451,85 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
       
-      {/* --- TOP SYSTEM BAR SWITCHER --- */}
-      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-lg shadow-amber-500/10">
-            <Coffee className="w-5 h-5" />
+      {/* --- TOP SYSTEM BAR SWITCHER (MOBILE VIEWPORT FIRST • 100% FLUID) --- */}
+      <header className="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-lg shadow-amber-500/10">
+              <Coffee className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+            <div>
+              <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
+                Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
+              </h1>
+              <p className="text-[10px] sm:text-xs text-slate-400">Mobile-First View • Tablet Secondary</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-bold text-base tracking-tight flex items-center gap-2">
-              Hfe POS <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
-            </h1>
-            <p className="text-xs text-slate-400">Cafe Experience Layer • Hfe REST API Backend</p>
-          </div>
+
+          <span className="sm:hidden text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            📱 Mobile View
+          </span>
         </div>
 
-        {/* Surface Switcher Buttons */}
-        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+        {/* Surface Switcher Buttons (Fluid Mobile Bar) */}
+        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto justify-between overflow-x-auto">
           <button
             onClick={() => setActiveSurface('mobile-qr')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeSurface === 'mobile-qr'
                 ? 'bg-amber-500 text-slate-950 shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            1. Customer Mobile QR
+            1. Mobile QR
           </button>
 
           <button
             onClick={() => setActiveSurface('barista-pos')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeSurface === 'barista-pos'
                 ? 'bg-amber-500 text-slate-950 shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            2. Barista Touch POS
+            2. Touch POS
           </button>
 
           <button
             onClick={() => setActiveSurface('kds-screen')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeSurface === 'kds-screen'
                 ? 'bg-amber-500 text-slate-950 shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <UtensilsCrossed className="w-3.5 h-3.5" />
-            3. Kitchen KDS Screen
+            3. Kitchen KDS
           </button>
         </div>
       </header>
 
       {/* --- SURFACE 1: CUSTOMER MOBILE QR WEB APP --- */}
       {activeSurface === 'mobile-qr' && (
-        <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-5 pb-24">
+        <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-24">
           
           {/* Table Banner */}
-          <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-4 rounded-2xl flex items-center justify-between shadow-xl">
+          <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-3.5 rounded-2xl flex items-center justify-between shadow-xl">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">
+              <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">
                 QR
               </div>
               <div>
-                <span className="text-xs font-medium text-amber-400 uppercase tracking-wider">Nomor Meja Ter-Scan</span>
-                <h2 className="text-lg font-bold text-white">{selectedTable}</h2>
+                <span className="text-[10px] font-medium text-amber-400 uppercase tracking-wider">Meja Ter-Scan</span>
+                <h2 className="text-base font-bold text-white">{selectedTable}</h2>
               </div>
             </div>
             <select
               value={selectedTable}
               onChange={(e) => setSelectedTable(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-amber-500"
+              className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500"
             >
               {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
                 <option key={t} value={t}>{t}</option>
@@ -532,27 +538,27 @@ export default function App() {
           </div>
 
           {/* Customer Entry Mode Selector */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-amber-500" /> Mode Masuk Pelanggan
               </span>
-              <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+              <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800 w-full sm:w-auto justify-between">
                 <button
                   onClick={() => setLoginType('phone')}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                  className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
                     loginType === 'phone' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
                   }`}
                 >
-                  Nomor HP (Poin & Wallet)
+                  Nomor HP (Poin)
                 </button>
                 <button
                   onClick={() => setLoginType('guest-name')}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                  className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
                     loginType === 'guest-name' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
                   }`}
                 >
-                  Pure Guest (Nama Saja)
+                  Pure Guest (Nama)
                 </button>
               </div>
             </div>
@@ -569,7 +575,7 @@ export default function App() {
                 />
                 
                 {/* Loyalty Tier & Wallet Badge */}
-                <div className="mt-2 bg-gradient-to-br from-amber-500/10 via-slate-950 to-slate-950 border border-amber-500/30 rounded-xl p-3 flex flex-col gap-2">
+                <div className="mt-1 bg-gradient-to-br from-amber-500/10 via-slate-950 to-slate-950 border border-amber-500/30 rounded-xl p-3 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
                       {userTier.icon} {userTier.name}
@@ -635,7 +641,7 @@ export default function App() {
 
           {/* Catalog Menu Grid */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
               <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe & Resto
             </h3>
 
@@ -803,30 +809,30 @@ export default function App() {
 
       {/* --- SURFACE 2: BARISTA & CASHIER TOUCH POS --- */}
       {activeSurface === 'barista-pos' && (
-        <main className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto w-full">
           
           {/* Floor Plan & Tables Grid */}
           <div className="lg:col-span-2 flex flex-col gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-amber-500" /> Matriks Floor Plan Meja Kafe
+                <h2 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" /> Matriks Floor Plan Meja Kafe
                 </h2>
-                <p className="text-xs text-slate-400">Monitoring status keterisian meja & Open Tab Billing</p>
+                <p className="text-[11px] sm:text-xs text-slate-400">Monitoring status keterisian meja & Open Tab Billing</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Free</span>
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">Occupied</span>
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Open Tab</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Free</span>
+                <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">Occupied</span>
+                <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Open Tab</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
               {tablesGrid.map(table => (
                 <div
                   key={table.id}
                   onClick={() => setSelectedPOSTable(table)}
-                  className={`border rounded-2xl p-4 flex flex-col justify-between h-32 transition-all cursor-pointer ${
+                  className={`border rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-28 sm:h-32 transition-all cursor-pointer ${
                     selectedPOSTable?.id === table.id
                       ? 'ring-2 ring-amber-500 bg-amber-500/20 border-amber-500'
                       : table.status === 'occupied' 
@@ -837,7 +843,7 @@ export default function App() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-sm text-slate-200">{table.name}</span>
+                    <span className="font-mono font-bold text-xs sm:text-sm text-slate-200">{table.name}</span>
                     <span className={`w-2.5 h-2.5 rounded-full ${
                       table.status === 'occupied' ? 'bg-amber-500' : table.status === 'open-tab' ? 'bg-indigo-500' : 'bg-emerald-500'
                     }`} />
@@ -845,11 +851,11 @@ export default function App() {
 
                   <div>
                     {table.customerName ? (
-                      <p className="text-xs font-semibold text-slate-300 truncate">{table.customerName}</p>
+                      <p className="text-[11px] sm:text-xs font-semibold text-slate-300 truncate">{table.customerName}</p>
                     ) : (
-                      <p className="text-xs text-slate-500">Kosong</p>
+                      <p className="text-[11px] text-slate-500">Kosong</p>
                     )}
-                    <p className="text-xs font-mono font-bold text-amber-400 mt-1">
+                    <p className="text-xs font-mono font-bold text-amber-400 mt-0.5">
                       {table.totalBill > 0 ? `Rp ${table.totalBill.toLocaleString('id-ID')}` : 'Rp 0'}
                     </p>
                   </div>
@@ -858,12 +864,12 @@ export default function App() {
             </div>
 
             {/* Quick Catalog Grid for Walk-In / Cashier Direct Order */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
               <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
                 <Coffee className="w-4 h-4 text-amber-500" /> Katalog Kasir Touchscreen (Pesanan Walk-In / Takeaway)
               </h3>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {PRODUCT_CATALOG.map(item => (
                   <button
                     key={item.id}
@@ -987,50 +993,49 @@ export default function App() {
 
       {/* --- SURFACE 3: KITCHEN DISPLAY KANBAN & LIST SCREEN WITH SORTING & RECIPE BOM --- */}
       {activeSurface === 'kds-screen' && (
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
+        <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
           
           {/* KDS HEADER WITH VIEW SWITCHER & SORTING CONTROLS */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <UtensilsCrossed className="w-5 h-5 text-amber-500" /> Kitchen KDS Monitor (Makanan & Minuman)
+              <h2 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" /> Kitchen KDS Monitor (Makanan & Minuman)
               </h2>
-              <p className="text-xs text-slate-400">Klik item pesanan untuk melihat **Bill of Materials (BOM) & Petunjuk SOP Pembuatan**</p>
+              <p className="text-[11px] sm:text-xs text-slate-400">Klik item pesanan untuk melihat **Bill of Materials (BOM) & Petunjuk SOP Pembuatan**</p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs w-full sm:w-auto justify-between sm:justify-end">
               {/* View Switcher (Kanban vs List) */}
               <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
                 <button
                   onClick={() => setKdsViewMode('kanban')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition-all ${
                     kdsViewMode === 'kanban' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400'
                   }`}
                 >
-                  <Kanban className="w-3.5 h-3.5" /> Kanban View
+                  <Kanban className="w-3.5 h-3.5" /> Kanban
                 </button>
                 <button
                   onClick={() => setKdsViewMode('list')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition-all ${
                     kdsViewMode === 'list' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400'
                   }`}
                 >
-                  <List className="w-3.5 h-3.5" /> List View
+                  <List className="w-3.5 h-3.5" /> List
                 </button>
               </div>
 
               {/* Sorting Selector */}
-              <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-slate-400">Sortir:</span>
+              <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800">
+                <SlidersHorizontal className="w-3 h-3 text-amber-500" />
                 <select
                   value={kdsSortBy}
                   onChange={(e) => setKdsSortBy(e.target.value as any)}
-                  className="bg-transparent text-amber-400 font-bold focus:outline-none"
+                  className="bg-transparent text-amber-400 font-bold focus:outline-none text-xs"
                 >
-                  <option value="time-desc">Waktu Terlama (Priority)</option>
-                  <option value="time-asc">Waktu Terbaru</option>
-                  <option value="category">Kategori (Kopi/Pastry)</option>
+                  <option value="time-desc">Terlama (Priority)</option>
+                  <option value="time-asc">Terbaru</option>
+                  <option value="category">Kategori</option>
                 </select>
               </div>
             </div>
@@ -1038,12 +1043,12 @@ export default function App() {
 
           {/* VIEW MODE 1: KANBAN BOARD */}
           {kdsViewMode === 'kanban' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               
               {/* COLUMN 1: INCOMING */}
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-amber-400 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-amber-500" /> 1. Incoming ({placedOrders.length})
                   </h3>
                 </div>
@@ -1096,9 +1101,9 @@ export default function App() {
               </div>
 
               {/* COLUMN 2: IN PROGRESS */}
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-indigo-400 flex items-center gap-2">
                     <ChefHat className="w-4 h-4 text-indigo-500" /> 2. In Progress ({processingOrders.length})
                   </h3>
                 </div>
@@ -1158,9 +1163,9 @@ export default function App() {
               </div>
 
               {/* COLUMN 3: READY */}
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-emerald-400 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 3. Ready ({readyOrders.length})
                   </h3>
                 </div>
@@ -1205,17 +1210,17 @@ export default function App() {
 
           {/* VIEW MODE 2: LIST VIEW */}
           {kdsViewMode === 'list' && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-xl">
-              <div className="grid grid-cols-6 text-xs font-bold text-slate-400 border-b border-slate-800 pb-2 px-3">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-xl overflow-x-auto">
+              <div className="grid grid-cols-6 text-xs font-bold text-slate-400 border-b border-slate-800 pb-2 px-3 min-w-[600px]">
                 <span>ID Tiket</span>
                 <span>Meja / Customer</span>
-                <span>Item Pesanan (Klik untuk BOM)</span>
+                <span>Item Pesanan (Klik BOM)</span>
                 <span>Durasi Antre</span>
                 <span>Status KDS</span>
                 <span className="text-right">Aksi</span>
               </div>
 
-              <div className="flex flex-col gap-2 divide-y divide-slate-800/60">
+              <div className="flex flex-col gap-2 divide-y divide-slate-800/60 min-w-[600px]">
                 {sortedOrders.map(order => (
                   <div key={order.id} className="pt-2 first:pt-0 grid grid-cols-6 items-center text-xs px-3">
                     <span className="font-mono font-bold text-amber-400">{order.id}</span>
@@ -1288,7 +1293,7 @@ export default function App() {
       {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP --- */}
       {selectedRecipeBOM && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 flex flex-col gap-4 shadow-2xl relative">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedRecipeBOM(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
@@ -1296,7 +1301,7 @@ export default function App() {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-3 pr-8">
               <img 
                 src={selectedRecipeBOM.image} 
                 alt={selectedRecipeBOM.name} 
@@ -1306,8 +1311,8 @@ export default function App() {
                 <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                   {selectedRecipeBOM.category}
                 </span>
-                <h3 className="text-base font-bold text-white mt-0.5">{selectedRecipeBOM.name}</h3>
-                <p className="text-xs text-slate-400">{selectedRecipeBOM.description}</p>
+                <h3 className="text-sm sm:text-base font-bold text-white mt-0.5">{selectedRecipeBOM.name}</h3>
+                <p className="text-[11px] text-slate-400">{selectedRecipeBOM.description}</p>
               </div>
             </div>
 
