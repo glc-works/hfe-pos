@@ -26,7 +26,8 @@ import {
   Percent, 
   UtensilsCrossed,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  ChefHat
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -68,7 +69,7 @@ interface OrderTicket {
   items: CartItem[]
   policy: PaymentPolicy
   total: number
-  status: 'placed' | 'brewing' | 'ready'
+  status: 'placed' | 'processing' | 'ready'
   timeElapsedMinutes: number
   createdAt: string
 }
@@ -132,7 +133,7 @@ export default function App() {
       ],
       policy: 'pay-first',
       total: 86000,
-      status: 'brewing',
+      status: 'processing',
       timeElapsedMinutes: 4,
       createdAt: '19:24'
     },
@@ -282,17 +283,17 @@ export default function App() {
       items: [...cart],
       policy: 'pay-first',
       total: finalTotal,
-      status: 'brewing',
+      status: 'processing',
       timeElapsedMinutes: 1,
       createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
     }
     setOrders(prev => [newOrder, ...prev])
     setCart([])
     setLoyaltyPoints(prev => prev + Math.floor(finalTotal / 10000))
-    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk kolom Brewing Kanban.`)
+    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk kolom 'In Progress' Kanban Dapur.`)
   }
 
-  const handleMoveKanbanColumn = (orderId: string, targetStatus: 'placed' | 'brewing' | 'ready') => {
+  const handleMoveKanbanColumn = (orderId: string, targetStatus: 'placed' | 'processing' | 'ready') => {
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
         return { ...o, status: targetStatus }
@@ -301,9 +302,9 @@ export default function App() {
     }))
   }
 
-  // Kanban Columns Helper
+  // Standard Kanban Columns Filtering (Makanan & Minuman)
   const placedOrders = orders.filter(o => o.status === 'placed')
-  const brewingOrders = orders.filter(o => o.status === 'brewing')
+  const processingOrders = orders.filter(o => o.status === 'processing')
   const readyOrders = orders.filter(o => o.status === 'ready')
 
   return (
@@ -494,7 +495,7 @@ export default function App() {
           {/* Catalog Menu Grid */}
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-              <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe
+              <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe & Resto
             </h3>
 
             <div className="grid grid-cols-1 gap-3">
@@ -602,7 +603,7 @@ export default function App() {
                     }`}
                   >
                     <span>1. Pay-First (Pre-Paid)</span>
-                    <span className="text-[9px] font-normal text-slate-400">Bayar QRIS dulu baru diseduh</span>
+                    <span className="text-[9px] font-normal text-slate-400">Bayar QRIS dulu baru diproses</span>
                   </button>
 
                   <button
@@ -744,31 +745,31 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 3: KITCHEN DISPLAY KANBAN BOARD --- */}
+      {/* --- SURFACE 3: KITCHEN DISPLAY KANBAN BOARD (STANDAR MAKANAN & MINUMAN) --- */}
       {activeSurface === 'kds-kanban' && (
         <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <UtensilsCrossed className="w-5 h-5 text-amber-500" /> Kitchen & Barista KDS Kanban Board
+                <UtensilsCrossed className="w-5 h-5 text-amber-500" /> Kitchen KDS Kanban Board (Makanan & Minuman)
               </h2>
-              <p className="text-xs text-slate-400">3-Column Kanban Workflow (<span className="text-emerald-400 font-mono">Placed ➔ Brewing ➔ Ready</span>)</p>
+              <p className="text-xs text-slate-400">Standar Monitor Dapur & Barista (<span className="text-emerald-400 font-mono">Incoming ➔ In Progress ➔ Ready</span>)</p>
             </div>
             <div className="flex items-center gap-3 text-xs">
               <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono font-bold">
-                {orders.length} Total Antrean Active
+                {orders.length} Total Pesanan Aktif
               </span>
             </div>
           </div>
 
-          {/* 3-COLUMN KANBAN BOARD */}
+          {/* 3-COLUMN KANBAN BOARD (STANDAR UNIVERSAL MAKANAN & MINUMAN) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* COLUMN 1: PLACED */}
+            {/* COLUMN 1: PLACED / INCOMING */}
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                 <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-500" /> 1. Placed (Pesanan Masuk)
+                  <Clock className="w-4 h-4 text-amber-500" /> 1. Incoming (Pesanan Masuk)
                 </h3>
                 <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-bold font-mono flex items-center justify-center border border-amber-500/30">
                   {placedOrders.length}
@@ -788,39 +789,41 @@ export default function App() {
                       </span>
                     </div>
 
-                    <div className="flex flex-col gap-1 text-xs">
+                    <div className="flex flex-col gap-1.5 text-xs">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
+                        <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-1.5 rounded-lg">
                           <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
-                          <span className="text-[10px] text-slate-400">{item.temperature}</span>
+                          <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                            {item.category}
+                          </span>
                         </div>
                       ))}
                     </div>
 
                     <button
-                      onClick={() => handleMoveKanbanColumn(order.id, 'brewing')}
+                      onClick={() => handleMoveKanbanColumn(order.id, 'processing')}
                       className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 mt-1 shadow"
                     >
-                      Mulai Seduh / Masak <ArrowRight className="w-3.5 h-3.5" />
+                      <ChefHat className="w-4 h-4" /> Proses Pesanan <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* COLUMN 2: BREWING */}
+            {/* COLUMN 2: IN PROGRESS (SEDANG DIPROSES) */}
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                 <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-indigo-500" /> 2. Brewing (Sedang Diseduh)
+                  <ChefHat className="w-4 h-4 text-indigo-500" /> 2. In Progress (Sedang Diproses)
                 </h3>
                 <span className="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 text-xs font-bold font-mono flex items-center justify-center border border-indigo-500/30">
-                  {brewingOrders.length}
+                  {processingOrders.length}
                 </span>
               </div>
 
               <div className="flex flex-col gap-3 flex-1">
-                {brewingOrders.map(order => (
+                {processingOrders.map(order => (
                   <div key={order.id} className="bg-slate-950 border border-indigo-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
                       <div>
@@ -832,11 +835,13 @@ export default function App() {
                       </span>
                     </div>
 
-                    <div className="flex flex-col gap-1 text-xs">
+                    <div className="flex flex-col gap-1.5 text-xs">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
+                        <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-1.5 rounded-lg">
                           <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
-                          <span className="text-[10px] text-slate-400">{item.temperature}</span>
+                          <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                            {item.category}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -852,7 +857,7 @@ export default function App() {
                         onClick={() => handleMoveKanbanColumn(order.id, 'ready')}
                         className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
                       >
-                        Selesai Diseduh <ArrowRight className="w-3.5 h-3.5" />
+                        Selesai Diproses <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -860,11 +865,11 @@ export default function App() {
               </div>
             </div>
 
-            {/* COLUMN 3: READY */}
+            {/* COLUMN 3: READY (SIAP DIANTAR / DIAKSELERASI) */}
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                 <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 3. Ready (Siap Diambil/Diantar)
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 3. Ready (Siap Diantar/Diambil)
                 </h3>
                 <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-bold font-mono flex items-center justify-center border border-emerald-500/30">
                   {readyOrders.length}
@@ -884,17 +889,19 @@ export default function App() {
                       </span>
                     </div>
 
-                    <div className="flex flex-col gap-1 text-xs">
+                    <div className="flex flex-col gap-1.5 text-xs">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
+                        <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-1.5 rounded-lg">
                           <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
-                          <span className="text-[10px] text-slate-400">{item.temperature}</span>
+                          <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                            {item.category}
+                          </span>
                         </div>
                       ))}
                     </div>
 
                     <button
-                      onClick={() => alert(`Tiket struk thermal order ${order.id} meja ${order.table} berhasil dicetak!`)}
+                      onClick={() => alert(`Tiket struk thermal order ${order.id} meja ${order.table} dicetak!`)}
                       className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 border border-slate-700"
                     >
                       <Printer className="w-3.5 h-3.5" /> Cetak Struk Dapur
