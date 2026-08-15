@@ -63,7 +63,13 @@ import {
   Barcode,
   Contact,
   UserPlus,
-  Heart
+  Heart,
+  Palette,
+  Download,
+  Upload,
+  Code2,
+  Wand2,
+  FileCode
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -73,6 +79,25 @@ type KdsViewModeType = 'kanban' | 'list' | 'workorder'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
 type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
+
+export interface CafeThemeConfig {
+  version: string
+  themeId: string
+  themeName: string
+  brandName: string
+  fontFamily: string
+  primaryAccentHex: string
+  primaryAccentHoverHex: string
+  pageBgHex: string
+  cardBgHex: string
+  headerBgHex: string
+  textColorHex: string
+  secondaryTextColorHex: string
+  highlightBadgeBgHex: string
+  highlightBadgeTextHex: string
+  borderRadiusPx: number
+  customCssOverrides?: string
+}
 
 interface StationConfig {
   id: string
@@ -148,6 +173,82 @@ interface OrderTicket {
   createdAt: string
   waiterCall?: string
 }
+
+// --- BUILT-IN THEME STYLESHEET PRESETS ---
+const BUILTIN_THEMES: CafeThemeConfig[] = [
+  {
+    version: '1.0',
+    themeId: 'theme-warm-amber',
+    themeName: '☕ Kopitiam Warm Amber (Default)',
+    brandName: 'Kopitiam Senopati & Roastery',
+    fontFamily: 'Inter, sans-serif',
+    primaryAccentHex: '#f59e0b',
+    primaryAccentHoverHex: '#d97706',
+    pageBgHex: '#020617',
+    cardBgHex: '#0f172a',
+    headerBgHex: '#0f172af2',
+    textColorHex: '#f8fafc',
+    secondaryTextColorHex: '#94a3b8',
+    highlightBadgeBgHex: '#f59e0b20',
+    highlightBadgeTextHex: '#fbbf24',
+    borderRadiusPx: 16,
+    customCssOverrides: `/* Custom Warm Amber Overrides */\n.theme-brand-accent { color: #f59e0b; }`
+  },
+  {
+    version: '1.0',
+    themeId: 'theme-botanica-matcha',
+    themeName: '🌿 Botanica Matcha (Emerald & Mint)',
+    brandName: 'Botanica Coffee & Artisan Matcha',
+    fontFamily: 'Inter, sans-serif',
+    primaryAccentHex: '#10b981',
+    primaryAccentHoverHex: '#059669',
+    pageBgHex: '#022c22',
+    cardBgHex: '#064e3b',
+    headerBgHex: '#064e3bf2',
+    textColorHex: '#ecfdf5',
+    secondaryTextColorHex: '#a7f3d0',
+    highlightBadgeBgHex: '#10b98120',
+    highlightBadgeTextHex: '#34d399',
+    borderRadiusPx: 20,
+    customCssOverrides: `/* Botanica Matcha Glow */\n.theme-brand-accent { color: #10b981; }`
+  },
+  {
+    version: '1.0',
+    themeId: 'theme-cyberpunk-neon',
+    themeName: '🌌 Cyberpunk Neon (Purple & Cyan)',
+    brandName: 'Neon Bistro 2088',
+    fontFamily: 'Courier New, monospace',
+    primaryAccentHex: '#a855f7',
+    primaryAccentHoverHex: '#9333ea',
+    pageBgHex: '#09090b',
+    cardBgHex: '#18181b',
+    headerBgHex: '#18181bf2',
+    textColorHex: '#fafafa',
+    secondaryTextColorHex: '#a1a1aa',
+    highlightBadgeBgHex: '#a855f720',
+    highlightBadgeTextHex: '#c084fc',
+    borderRadiusPx: 12,
+    customCssOverrides: `/* Neon Glow Border Effects */\n.theme-brand-card { border-color: rgba(168, 85, 247, 0.4); }`
+  },
+  {
+    version: '1.0',
+    themeId: 'theme-parisian-rose',
+    themeName: '🥐 Parisian Rose (Rose & Cream)',
+    brandName: 'Maison de Pastry Paris',
+    fontFamily: 'Georgia, serif',
+    primaryAccentHex: '#f43f5e',
+    primaryAccentHoverHex: '#e11d48',
+    pageBgHex: '#1c1917',
+    cardBgHex: '#292524',
+    headerBgHex: '#292524f2',
+    textColorHex: '#fef2f2',
+    secondaryTextColorHex: '#fca5a5',
+    highlightBadgeBgHex: '#f43f5e20',
+    highlightBadgeTextHex: '#fb7185',
+    borderRadiusPx: 24,
+    customCssOverrides: `/* Parisian Elegant Serif Text */\n.theme-brand-title { font-style: italic; }`
+  }
+]
 
 // --- MOCK PRODUCT MASTER DATA WITH KODE BARANG CAFE & BOM RAW CODES ---
 const PRODUCT_CATALOG: MenuItem[] = [
@@ -281,8 +382,10 @@ const PRODUCT_CATALOG: MenuItem[] = [
 ]
 
 export default function App() {
-  // --- CAFE BRANDING STATE ---
-  const [cafeBrandName, setCafeBrandName] = useState<string>('Kopitiam Senopati & Roastery')
+  // --- CAFE THEME STYLESHEET STATE (EXPORT & IMPORT ENGINE) ---
+  const [activeTheme, setActiveTheme] = useState<CafeThemeConfig>(BUILTIN_THEMES[0])
+  const [aiStylesheetInput, setAiStylesheetInput] = useState<string>('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // --- SEPARATE DOMAIN / URL ROUTING ARCHITECTURE ---
   const [activeApp, setActiveApp] = useState<PrimaryDomainApp>(() => {
@@ -474,6 +577,51 @@ export default function App() {
   const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(tablesGrid[3])
   const [posPayMethod, setPosPayMethod] = useState<'cash' | 'qris' | 'card'>('cash')
   const [posCashGiven, setPosCashGiven] = useState<string>('100000')
+
+  // --- EXPORT & IMPORT THEME STYLESHEET ENGINE HANDLERS ---
+  const handleExportThemeFile = () => {
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(activeTheme, null, 2))}`
+    const downloadAnchor = document.createElement('a')
+    downloadAnchor.setAttribute('href', jsonString)
+    downloadAnchor.setAttribute('download', `${activeTheme.themeId}-stylesheet.json`)
+    document.body.appendChild(downloadAnchor)
+    downloadAnchor.click()
+    downloadAnchor.remove()
+  }
+
+  const handleImportThemeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileReader = new FileReader()
+    if (e.target.files && e.target.files[0]) {
+      fileReader.readAsText(e.target.files[0], "UTF-8")
+      fileReader.onload = (event) => {
+        try {
+          const parsedTheme = JSON.parse(event.target?.result as string) as CafeThemeConfig
+          if (parsedTheme.themeId && parsedTheme.primaryAccentHex) {
+            setActiveTheme(parsedTheme)
+            alert(`✅ Stylesheet Tema "${parsedTheme.themeName}" Berhasil Di-import & Diterapkan ke Aplikasi Customer!`)
+          } else {
+            alert('⚠️ Format file Stylesheet JSON tidak valid. Pastikan berisi properti themeId & primaryAccentHex.')
+          }
+        } catch (err) {
+          alert('⚠️ Gagal membaca file JSON stylesheet.')
+        }
+      }
+    }
+  }
+
+  const handleApplyAIThemeString = () => {
+    try {
+      const parsedTheme = JSON.parse(aiStylesheetInput) as CafeThemeConfig
+      if (parsedTheme.themeId && parsedTheme.primaryAccentHex) {
+        setActiveTheme(parsedTheme)
+        alert(`⚡ Tema AI "${parsedTheme.themeName}" Berhasil Diterapkan ke Layar Pelanggan!`)
+      } else {
+        alert('⚠️ Format JSON tidak valid.')
+      }
+    } catch (err) {
+      alert('⚠️ Syntax JSON error. Silakan periksa kembali format teks yang di-paste dari AI.')
+    }
+  }
 
   // --- DYNAMIC URL SWITCHER EFFECT ---
   const switchDomainApp = (targetApp: PrimaryDomainApp) => {
@@ -729,6 +877,49 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans relative">
       
+      {/* INJECT DYNAMIC CUSTOMER STYLESHEET CSS VARIABLES */}
+      <style>{`
+        :root {
+          --brand-primary: ${activeTheme.primaryAccentHex};
+          --brand-primary-hover: ${activeTheme.primaryAccentHoverHex};
+          --brand-bg: ${activeTheme.pageBgHex};
+          --brand-card-bg: ${activeTheme.cardBgHex};
+          --brand-header-bg: ${activeTheme.headerBgHex};
+          --brand-text: ${activeTheme.textColorHex};
+          --brand-secondary-text: ${activeTheme.secondaryTextColorHex};
+          --brand-badge-bg: ${activeTheme.highlightBadgeBgHex};
+          --brand-badge-text: ${activeTheme.highlightBadgeTextHex};
+          --brand-radius: ${activeTheme.borderRadiusPx}px;
+          --brand-font: ${activeTheme.fontFamily};
+        }
+        .theme-customer-container {
+          background-color: var(--brand-bg) !important;
+          color: var(--brand-text) !important;
+          font-family: var(--brand-font) !important;
+        }
+        .theme-customer-header {
+          background-color: var(--brand-header-bg) !important;
+          border-radius: 0 0 var(--brand-radius) var(--brand-radius) !important;
+        }
+        .theme-customer-card {
+          background-color: var(--brand-card-bg) !important;
+          border-radius: var(--brand-radius) !important;
+        }
+        .theme-customer-btn-primary {
+          background-color: var(--brand-primary) !important;
+          color: #020617 !important;
+          border-radius: calc(var(--brand-radius) * 0.75) !important;
+        }
+        .theme-customer-btn-primary:hover {
+          background-color: var(--brand-primary-hover) !important;
+        }
+        .theme-customer-badge {
+          background-color: var(--brand-badge-bg) !important;
+          color: var(--brand-badge-text) !important;
+        }
+        ${activeTheme.customCssOverrides || ''}
+      `}</style>
+
       {/* --- TOP GLOBAL DOMAIN NAVIGATOR BAR (SEPARATED WEBSITES) --- */}
       <div className="bg-slate-950 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
@@ -765,36 +956,37 @@ export default function App() {
 
       {/* --- APPLICATION ROUTE 1: CUSTOMER MOBILE QR WEB APP --- */}
       {activeApp === 'customer' && (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col theme-customer-container">
           
-          {/* STICKY MICRO-COMPACT INTEGRATED BRANDING & NAVIGATION CONTAINER (SINGLE SLEEK ELEMENT) */}
-          <header className="border-b border-slate-800/90 bg-slate-900/95 backdrop-blur-md sticky top-0 z-40 px-3 py-2 flex flex-col gap-2 shadow-2xl">
+          {/* STICKY MICRO-COMPACT INTEGRATED BRANDING & NAVIGATION CONTAINER (DYNAMIC STYLED) */}
+          <header className="border-b border-slate-800/90 backdrop-blur-md sticky top-0 z-40 px-3 py-2 flex flex-col gap-2 shadow-2xl theme-customer-header">
             
             {/* ROW 1: CAFE BRANDING, TABLE SELECTOR & COMPACT USER BADGE */}
             <div className="flex items-center justify-between gap-2">
               
               {/* BRANDING CAFE & TABLE BADGE */}
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-md">
-                  <Coffee className="w-4 h-4" />
+                <div className="w-7 h-7 rounded-lg theme-customer-btn-primary flex items-center justify-center font-black text-xs shadow-md">
+                  <Coffee className="w-4 h-4 text-slate-950" />
                 </div>
                 <div>
                   <h1 className="font-bold text-xs sm:text-sm text-white tracking-tight leading-none">
-                    {cafeBrandName}
+                    {activeTheme.brandName}
                   </h1>
-                  <p className="text-[9px] text-slate-400 mt-0.5 font-medium">Digital QR Ordering</p>
+                  <p className="text-[9px] text-slate-400 mt-0.5 font-medium">Digital QR Ordering • {activeTheme.themeName.split(' ')[1]}</p>
                 </div>
               </div>
 
               {/* TABLE SELECTOR PILL & COMPACT PROFILE BUTTON */}
               <div className="flex items-center gap-1.5">
                 {/* COMPACT TABLE PILL SELECTOR */}
-                <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded-lg text-amber-400 text-[11px] font-bold">
-                  <span className="text-[9px] uppercase tracking-wider text-amber-500">Meja:</span>
+                <div className="flex items-center gap-1 theme-customer-badge px-2 py-1 rounded-lg text-[11px] font-bold">
+                  <span className="text-[9px] uppercase tracking-wider">Meja:</span>
                   <select
                     value={selectedTable}
                     onChange={(e) => setSelectedTable(e.target.value)}
-                    className="bg-transparent text-amber-300 font-mono font-bold focus:outline-none cursor-pointer text-xs"
+                    className="bg-transparent font-mono font-bold focus:outline-none cursor-pointer text-xs"
+                    style={{ color: activeTheme.primaryAccentHex }}
                   >
                     {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
                       <option key={t} value={t} className="bg-slate-950 text-slate-200">{t}</option>
@@ -806,16 +998,16 @@ export default function App() {
                 {isCustomerSessionActive ? (
                   <button
                     onClick={() => setShowLoginModal(true)}
-                    className="flex items-center gap-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-2 py-1 rounded-lg text-[10px] font-bold text-slate-200 transition-all"
+                    className="flex items-center gap-1 bg-slate-950/80 hover:bg-slate-800 border border-slate-800 px-2 py-1 rounded-lg text-[10px] font-bold text-slate-200 transition-all"
                   >
                     <UserCheck className="w-3 h-3 text-emerald-400" />
                     <span className="max-w-[70px] truncate">{loginType === 'phone' ? customerPhone : guestName}</span>
-                    {loginType === 'phone' && <span className="text-amber-400 font-mono">({loyaltyPoints}p)</span>}
+                    {loginType === 'phone' && <span className="font-mono" style={{ color: activeTheme.primaryAccentHex }}>({loyaltyPoints}p)</span>}
                   </button>
                 ) : (
                   <button
                     onClick={() => setShowLoginModal(true)}
-                    className="bg-amber-500 text-slate-950 font-bold text-[10px] px-2 py-1 rounded-lg shadow"
+                    className="theme-customer-btn-primary font-bold text-[10px] px-2 py-1 rounded-lg shadow"
                   >
                     Masuk
                   </button>
@@ -834,7 +1026,8 @@ export default function App() {
                 <button
                   key={cat.id}
                   onClick={() => scrollToCategorySection(cat.id)}
-                  className="flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap bg-slate-950 text-slate-300 hover:bg-amber-500 hover:text-slate-950 border border-slate-800 transition-all shadow-sm"
+                  className="flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap bg-slate-950/90 text-slate-300 hover:text-slate-950 border border-slate-800 transition-all shadow-sm"
+                  style={{ borderRadius: `${Math.min(activeTheme.borderRadiusPx, 12)}px` }}
                 >
                   <span className="text-xs">{cat.icon}</span>
                   <span>{cat.name}</span>
@@ -853,30 +1046,30 @@ export default function App() {
                   
                   {/* SECTION 1: COFFEE SHOWCASE */}
                   <div ref={coffeeSecRef} className="flex flex-col gap-3 scroll-mt-28">
-                    <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-l-4 border-amber-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                      <h3 className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-                        <Coffee className="w-4 h-4 text-amber-500" /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
+                    <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-l-4 px-3.5 py-2 rounded-r-xl flex items-center justify-between" style={{ borderColor: activeTheme.primaryAccentHex }}>
+                      <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2" style={{ color: activeTheme.primaryAccentHex }}>
+                        <Coffee className="w-4 h-4" style={{ color: activeTheme.primaryAccentHex }} /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
                       </h3>
-                      <span className="text-[10px] font-mono font-bold text-amber-400/80">3 Items</span>
+                      <span className="text-[10px] font-mono font-bold">3 Items</span>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3">
                       {PRODUCT_CATALOG.filter(p => p.category === 'Coffee').map(item => (
-                        <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <div key={item.id} className="theme-customer-card border border-slate-800/80 p-3 flex gap-3 hover:border-slate-700 transition-all shadow-lg">
                           <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
-                                <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
                               </button>
-                              <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
                                 <Plus className="w-3.5 h-3.5" /> Tambah
                               </button>
                             </div>
@@ -897,21 +1090,21 @@ export default function App() {
 
                     <div className="grid grid-cols-1 gap-3">
                       {PRODUCT_CATALOG.filter(p => p.category === 'Non-Coffee').map(item => (
-                        <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <div key={item.id} className="theme-customer-card border border-slate-800/80 p-3 flex gap-3 hover:border-slate-700 transition-all shadow-lg">
                           <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
-                                <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
                               </button>
-                              <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
                                 <Plus className="w-3.5 h-3.5" /> Tambah
                               </button>
                             </div>
@@ -932,21 +1125,21 @@ export default function App() {
 
                     <div className="grid grid-cols-1 gap-3">
                       {PRODUCT_CATALOG.filter(p => p.category === 'Pastry').map(item => (
-                        <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <div key={item.id} className="theme-customer-card border border-slate-800/80 p-3 flex gap-3 hover:border-slate-700 transition-all shadow-lg">
                           <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
-                                <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
                               </button>
-                              <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
                                 <Plus className="w-3.5 h-3.5" /> Tambah
                               </button>
                             </div>
@@ -967,21 +1160,21 @@ export default function App() {
 
                     <div className="grid grid-cols-1 gap-3">
                       {PRODUCT_CATALOG.filter(p => p.category === 'Snack').map(item => (
-                        <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <div key={item.id} className="theme-customer-card border border-slate-800/80 p-3 flex gap-3 hover:border-slate-700 transition-all shadow-lg">
                           <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
-                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <span className="text-xs font-bold font-mono" style={{ color: activeTheme.primaryAccentHex }}>Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
                               <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
-                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
-                                <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                              <button onClick={() => handleReorderSameItem(item)} className="bg-slate-950/80 hover:bg-slate-800 text-slate-300 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-800">
+                                <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
                               </button>
-                              <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <button onClick={() => handleAddToCart(item)} className="theme-customer-btn-primary text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
                                 <Plus className="w-3.5 h-3.5" /> Tambah
                               </button>
                             </div>
@@ -997,11 +1190,11 @@ export default function App() {
                 {cart.length > 0 && (
                   <div 
                     onClick={() => setQrStepView('checkout')}
-                    className="fixed bottom-4 inset-x-3 max-w-md mx-auto z-40 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between font-bold cursor-pointer border border-amber-300 transition-all transform hover:scale-[1.02]"
+                    className="fixed bottom-4 inset-x-3 max-w-md mx-auto z-40 theme-customer-btn-primary rounded-2xl p-3.5 shadow-2xl flex items-center justify-between font-bold cursor-pointer border transition-all transform hover:scale-[1.02]"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-mono font-black text-xs relative">
-                        <ShoppingCart className="w-4 h-4" />
+                      <div className="w-8 h-8 rounded-xl bg-slate-950 text-white flex items-center justify-center font-mono font-black text-xs relative">
+                        <ShoppingCart className="w-4 h-4" style={{ color: activeTheme.primaryAccentHex }} />
                         <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                           {totalCartCount}
                         </span>
@@ -1012,7 +1205,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 text-xs font-black bg-slate-950 text-amber-400 px-3 py-1.5 rounded-xl">
+                    <div className="flex items-center gap-1 text-xs font-black bg-slate-950 text-white px-3 py-1.5 rounded-xl">
                       <span>Lanjut ke Checkout</span>
                       <ArrowRight className="w-4 h-4" />
                     </div>
@@ -1025,7 +1218,7 @@ export default function App() {
             {qrStepView === 'checkout' && (
               <div className="flex flex-col gap-4">
                 {/* Back to Catalog Header Button */}
-                <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+                <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-3 rounded-2xl">
                   <button
                     onClick={() => setQrStepView('catalog')}
                     className="flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800"
@@ -1036,7 +1229,7 @@ export default function App() {
                 </div>
 
                 {/* Dedicated Checkout Container */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4 shadow-2xl">
+                <div className="theme-customer-card border border-slate-800 rounded-2xl p-4 flex flex-col gap-4 shadow-2xl">
                   <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
                     <ShoppingBag className="w-5 h-5 text-amber-500" /> Ringkasan Pesanan & Pelunasan Meja
                   </h3>
@@ -1071,14 +1264,14 @@ export default function App() {
                           <div className="flex items-center gap-2">
                             <button 
                               onClick={() => handleUpdateQty(idx, -1)}
-                              className="w-7 h-7 bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-700"
+                              className="w-7 h-7 bg-slate-950/80 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-800"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
                             <span className="font-bold font-mono text-slate-100 w-4 text-center">{item.quantity}</span>
                             <button 
                               onClick={() => handleUpdateQty(idx, 1)}
-                              className="w-7 h-7 bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-700"
+                              className="w-7 h-7 bg-slate-950/80 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-800"
                             >
                               <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -1113,7 +1306,7 @@ export default function App() {
                   </div>
 
                   {/* OPTIONAL CUSTOMER TIPS SELECTION */}
-                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                  <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
                     <span className="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
                       <HeartHandshake className="w-3.5 h-3.5 text-amber-500" /> Ucapkan Terima Kasih ke Staf / Barista (Tips Opsional):
                     </span>
@@ -1140,7 +1333,7 @@ export default function App() {
                   </div>
 
                   {/* Payment Policy Selector */}
-                  <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 mt-1">
+                  <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 mt-1">
                     <span className="text-[11px] font-semibold text-slate-300">Kebijakan Pembayaran Kafe:</span>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -1223,19 +1416,19 @@ export default function App() {
 
                     <div className="flex justify-between text-base font-black text-white pt-2 border-t border-slate-800">
                       <span>Total Tagihan Akhir:</span>
-                      <span className="text-amber-400 font-mono text-lg">Rp {grandTotalBill.toLocaleString('id-ID')}</span>
+                      <span className="font-mono text-lg" style={{ color: activeTheme.primaryAccentHex }}>Rp {grandTotalBill.toLocaleString('id-ID')}</span>
                     </div>
                   </div>
 
                   {/* Submit Order Button */}
                   <button
                     onClick={handleSubmitOrder}
-                    className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-2"
+                    className="w-full theme-customer-btn-primary font-bold text-sm py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-2"
                   >
                     {paymentPolicy === 'pay-first' ? (
-                      <> <CreditCard className="w-5 h-5" /> Bayar QRIS Sekarang (Rp {grandTotalBill.toLocaleString('id-ID')}) </>
+                      <> <CreditCard className="w-5 h-5 text-slate-950" /> Bayar QRIS Sekarang (Rp {grandTotalBill.toLocaleString('id-ID')}) </>
                     ) : (
-                      <> <CheckCircle2 className="w-5 h-5" /> Konfirmasi Open Tab Meja </>
+                      <> <CheckCircle2 className="w-5 h-5 text-slate-950" /> Konfirmasi Open Tab Meja </>
                     )}
                   </button>
                 </div>
@@ -2045,7 +2238,7 @@ export default function App() {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">Halaman Konfigurasi Cafe & Owner Settings</h2>
-                    <p className="text-xs text-slate-400">Nama Branding Kafe, Pajak PB1, Service Charge, & Customer CRM</p>
+                    <p className="text-xs text-slate-400">Nama Branding Kafe, Stylesheet Customizer (Export/Import), Pajak PB1, Service Charge, & CRM</p>
                   </div>
                 </div>
                 <button 
@@ -2054,6 +2247,110 @@ export default function App() {
                 >
                   <Check className="w-4 h-4" /> Simpan Seluruh Konfigurasi
                 </button>
+              </div>
+
+              {/* CARD THEME STYLESHEET CUSTOMIZER ENGINE (AI EXPORT & IMPORT) */}
+              <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-amber-500" /> Stylesheet Theme Manager & AI Theme Customizer Engine
+                    </h3>
+                    <p className="text-xs text-slate-400">Kustomisasi warna, font, border, & tema tanpa mengubah struktur layout. Mudah di-edit dengan AI!</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* EXPORT BUTTON */}
+                    <button
+                      onClick={handleExportThemeFile}
+                      className="bg-slate-950 hover:bg-slate-800 text-amber-400 border border-amber-500/30 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
+                    >
+                      <Download className="w-4 h-4 text-amber-500" /> Export Stylesheet (.json)
+                    </button>
+
+                    {/* IMPORT BUTTON */}
+                    <label className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow">
+                      <Upload className="w-4 h-4 text-slate-950" /> Import File
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept=".json"
+                        onChange={handleImportThemeFile}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* BUILT-IN PRESET SELECTOR */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs text-slate-300 font-semibold">Pilih Preset Tema Bawaan:</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {BUILTIN_THEMES.map(t => (
+                      <button
+                        key={t.themeId}
+                        onClick={() => setActiveTheme(t)}
+                        className={`p-3 rounded-xl text-left border flex flex-col gap-1 transition-all ${
+                          activeTheme.themeId === t.themeId
+                            ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500'
+                            : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: t.primaryAccentHex }} />
+                          <span className="text-[9px] font-mono text-slate-400">{t.version}</span>
+                        </div>
+                        <span className="font-bold text-xs text-white line-clamp-1">{t.themeName}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AI THEME PASTE CODE BOX */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                      <Wand2 className="w-4 h-4 text-amber-500" /> AI Stylesheet Prompting Workflow:
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                      Export file ➔ Minta AI ubah warna ➔ Paste di sini
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    💡 <b>Cara Kustomisasi Mudah:</b> Klik <b>Export Stylesheet</b> di atas, lalu berikan file JSON ke ChatGPT/Gemini dengan contoh perintah: 
+                    <i className="text-amber-300"> "AI, ubah tema ini jadi Neon Cyberpunk Pink Gold"</i>. Setelah AI membalas, tempelkan teks JSON hasil buatan AI ke dalam kotak di bawah ini lalu klik <b>Applikasikan Tema AI</b>!
+                  </p>
+
+                  <textarea
+                    rows={4}
+                    value={aiStylesheetInput}
+                    onChange={(e) => setAiStylesheetInput(e.target.value)}
+                    placeholder='Paste Teks JSON Stylesheet Hasil Buatan AI di sini... (Contoh: {"version": "1.0", "themeId": "my-ai-theme", ...})'
+                    className="bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-xs rounded-xl p-3 focus:outline-none focus:border-amber-500"
+                  />
+
+                  <button
+                    onClick={handleApplyAIThemeString}
+                    className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow flex items-center justify-center gap-2"
+                  >
+                    <Wand2 className="w-4 h-4 text-slate-950" /> Applikasikan Teks Stylesheet AI ke Layar Pelanggan ➔
+                  </button>
+                </div>
+
+                {/* ACTIVE THEME STYLESHEET SUMMARY */}
+                <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 flex flex-wrap items-center justify-between text-xs gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">Tema Aktif:</span>
+                    <span className="font-bold text-white">{activeTheme.themeName}</span>
+                    <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: activeTheme.primaryAccentHex }} />
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+                    <span>Accent: {activeTheme.primaryAccentHex}</span>
+                    <span>Bg: {activeTheme.pageBgHex}</span>
+                    <span>Radius: {activeTheme.borderRadiusPx}px</span>
+                  </div>
+                </div>
               </div>
 
               {/* BRANDING CAFE SETTINGS CONTAINER */}
@@ -2066,8 +2363,8 @@ export default function App() {
                   <label className="text-xs text-slate-400 font-semibold">Nama Outlet Kafe / Restoran:</label>
                   <input
                     type="text"
-                    value={cafeBrandName}
-                    onChange={(e) => setCafeBrandName(e.target.value)}
+                    value={activeTheme.brandName}
+                    onChange={(e) => setActiveTheme(prev => ({ ...prev, brandName: e.target.value }))}
                     className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:border-amber-500"
                     placeholder="cth: Kopitiam Senopati & Roastery"
                   />
