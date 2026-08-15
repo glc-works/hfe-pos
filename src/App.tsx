@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { 
   Coffee, 
   QrCode, 
@@ -47,7 +47,8 @@ import {
   Zap,
   Armchair,
   RotateCcw,
-  HeartHandshake
+  HeartHandshake,
+  ShoppingCart
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -234,6 +235,9 @@ export default function App() {
   // --- SURFACE APP STATE ---
   const [activeSurface, setActiveSurface] = useState<SurfaceMode>('mobile-qr')
   
+  // Ref for Cart Section Scroll Target
+  const cartSectionRef = useRef<HTMLDivElement>(null)
+
   // --- OWNER DYNAMIC TAX (PB1 10%), SERVICE FEE % & TIPS ENGINE STATE ---
   const [taxPB1Mode, setTaxPB1Mode] = useState<PB1TaxMode>(1) // 0=Off, 1=Exclude (Show), 2=Include (Embedded)
   const [serviceFeeRate, setServiceFeeRate] = useState<number>(5) // 5% Service Charge
@@ -382,10 +386,8 @@ export default function App() {
   // Resto Tax PB1 10% Modes
   let calculatedPB1Tax = 0
   if (taxPB1Mode === 1) {
-    // Mode 1: Exclude (10% added on top of bill)
     calculatedPB1Tax = Math.round(discountedSubtotal * 0.10)
   } else if (taxPB1Mode === 2) {
-    // Mode 2: Include (Embedded in product price behind scenes)
     calculatedPB1Tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.10))
   }
 
@@ -394,7 +396,13 @@ export default function App() {
     ? discountedSubtotal + calculatedServiceFee + calculatedPB1Tax + selectedTipAmount
     : discountedSubtotal + calculatedServiceFee + selectedTipAmount
 
+  const totalCartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
+
   // --- HANDLERS ---
+  const scrollToCartSection = () => {
+    cartSectionRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   const handleAddToCart = (item: MenuItem) => {
     if (item.hasModifiers) {
       setShowModifierModal(item)
@@ -555,7 +563,7 @@ export default function App() {
   const readyOrders = sortedOrders.filter(o => o.status === 'ready' || o.status === 'qc-passed')
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans relative">
       
       {/* --- TOP SYSTEM BAR SWITCHER (5 SURFACES MOBILE-FIRST) --- */}
       <header className="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -628,7 +636,7 @@ export default function App() {
 
       {/* --- SURFACE 1: CUSTOMER MOBILE QR WEB APP --- */}
       {activeSurface === 'mobile-qr' && (
-        <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-24">
+        <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-28">
           
           {/* Table Banner */}
           <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-3.5 rounded-2xl flex items-center justify-between shadow-xl">
@@ -826,11 +834,11 @@ export default function App() {
             </div>
           </div>
 
-          {/* Cart & Payment Policy Bar */}
+          {/* Cart & Payment Policy Bar (Ref for Scrolling) */}
           {cart.length > 0 && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-2xl">
+            <div ref={cartSectionRef} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-2xl">
               <h3 className="text-xs font-bold text-slate-300 flex items-center gap-1.5 border-b border-slate-800 pb-2">
-                <ShoppingBag className="w-4 h-4 text-amber-500" /> Ringkasan Keranjang Pesanan Meja
+                <ShoppingBag className="w-4 h-4 text-amber-500" /> Ringkasan Keranjang Pesanan Meja ({totalCartCount} Items)
               </h3>
 
               <div className="flex flex-col gap-2 divide-y divide-slate-800/60">
@@ -1025,6 +1033,33 @@ export default function App() {
               </button>
             </div>
           )}
+
+          {/* STICKY FLOATING BOTTOM CART BAR (ALWAYS VISIBLE WHEN CART NOT EMPTY) */}
+          {cart.length > 0 && (
+            <div 
+              onClick={scrollToCartSection}
+              className="fixed bottom-4 inset-x-3 max-w-md mx-auto z-40 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between font-bold cursor-pointer border border-amber-300 transition-all transform hover:scale-[1.02]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-mono font-black text-xs relative">
+                  <ShoppingCart className="w-4 h-4" />
+                  <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                    {totalCartCount}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-900 tracking-wider">Keranjang Meja ({totalCartCount} Items)</span>
+                  <h4 className="text-sm font-black font-mono">Rp {grandTotalBill.toLocaleString('id-ID')}</h4>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 text-xs font-black bg-slate-950 text-amber-400 px-3 py-1.5 rounded-xl">
+                <span>Lihat Keranjang</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </div>
+          )}
+
         </main>
       )}
 
