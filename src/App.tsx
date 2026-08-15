@@ -416,6 +416,15 @@ export default function App() {
     lastSyncedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
   })
 
+  // --- HFE MULTI-BRANCH ENGINE CONFIGURATION STATE ---
+  const [hfeBranchMode, setHfeBranchMode] = useState<'dimensional' | 'multi_book' | 'sub_account'>('dimensional')
+  const [activeBranchId, setActiveBranchId] = useState<string>('OUTLET-SENOPATI-01')
+  const [outletBranches] = useState([
+    { id: 'OUTLET-SENOPATI-01', name: 'Kopitiam Senopati & Roastery (HQ)', warehouse: 'WH-SENOPATI-01' },
+    { id: 'OUTLET-BSD-02', name: 'Kopitiam BSD Breeze', warehouse: 'WH-BSD-02' },
+    { id: 'OUTLET-BDG-03', name: 'Kopitiam Bandung Dago', warehouse: 'WH-BDG-03' }
+  ])
+
   // --- CAFE THEME STYLESHEET STATE (EXPORT & IMPORT ENGINE) ---
   const [activeTheme, setActiveTheme] = useState<CafeThemeConfig>(BUILTIN_THEMES[0])
   const [aiStylesheetInput, setAiStylesheetInput] = useState<string>('')
@@ -2486,6 +2495,123 @@ export default function App() {
                   >
                     <Check className="w-3.5 h-3.5" /> Push & Sync ke HFE Core
                   </button>
+                </div>
+              </div>
+
+              {/* CARD 1.5: HFE MULTI-BRANCH ENGINE CONFIGURATION (3 TREATMENT MODES) */}
+              <div className="bg-slate-900 border border-indigo-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-indigo-400" /> Konfigurasi Multi-Branch / Multi-Outlet HFE Engine
+                      </h3>
+                      <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30 uppercase">
+                        MODE: {hfeBranchMode}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Pilih treatment akuntansi pencatatan cabang: <b className="text-white">Dimensional Tagging</b>, <b className="text-white">Multi-Book Hierarchy</b>, atau <b className="text-white">Sub-Account COA</b>.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <Store className="w-3.5 h-3.5 text-indigo-400" />
+                    <span className="text-xs text-slate-400 font-semibold">Cabang Aktif:</span>
+                    <select
+                      value={activeBranchId}
+                      onChange={(e) => setActiveBranchId(e.target.value)}
+                      className="bg-transparent text-indigo-300 font-mono font-bold text-xs focus:outline-none"
+                    >
+                      {outletBranches.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 3 BRANCH TREATMENT MODE CARDS */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* MODE 1: DIMENSIONAL */}
+                  <div
+                    onClick={() => setHfeBranchMode('dimensional')}
+                    className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 cursor-pointer transition-all ${
+                      hfeBranchMode === 'dimensional'
+                        ? 'bg-indigo-500/20 border-indigo-500 ring-1 ring-indigo-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase">Opsi 1 (Default F&B)</span>
+                        {hfeBranchMode === 'dimensional' && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
+                      </div>
+                      <h4 className="font-bold text-xs text-white mt-1">Dimensional Tagging</h4>
+                      <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                        1 CompanyBook PT Utama. Setiap transaksi diberi tag <code className="text-amber-400">branch_id</code>. Konsolidasi P&L real-time instan.
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold w-fit">
+                      RECOMMENDED UMKM & F&B
+                    </span>
+                  </div>
+
+                  {/* MODE 2: MULTI-BOOK HIERARCHY */}
+                  <div
+                    onClick={() => setHfeBranchMode('multi_book')}
+                    className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 cursor-pointer transition-all ${
+                      hfeBranchMode === 'multi_book'
+                        ? 'bg-indigo-500/20 border-indigo-500 ring-1 ring-indigo-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase">Opsi 2 (Holding/Franchise)</span>
+                        {hfeBranchMode === 'multi_book' && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
+                      </div>
+                      <h4 className="font-bold text-xs text-white mt-1">Multi-Book Hierarchy</h4>
+                      <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                        Setiap outlet punya <code className="text-indigo-300">CompanyBook</code> terpisah. HFE Consolidation Engine memproses agregasi ke HQ.
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20 font-bold w-fit">
+                      ENTERPRISE & FRANCHISE
+                    </span>
+                  </div>
+
+                  {/* MODE 3: SUB-ACCOUNT COA */}
+                  <div
+                    onClick={() => setHfeBranchMode('sub_account')}
+                    className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 cursor-pointer transition-all ${
+                      hfeBranchMode === 'sub_account'
+                        ? 'bg-indigo-500/20 border-indigo-500 ring-1 ring-indigo-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase">Opsi 3 (Strict COA)</span>
+                        {hfeBranchMode === 'sub_account' && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
+                      </div>
+                      <h4 className="font-bold text-xs text-white mt-1">Sub-Account COA</h4>
+                      <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+                        Transaksi langsung memposting ke Sub-Akun COA spesifik cabang (<code className="text-amber-400">1010-01 Kas Senopati</code>).
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold w-fit">
+                      AUDIT PHYSICAL CASH/INV
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 flex flex-wrap items-center justify-between text-xs gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">Cabang Terpilih:</span>
+                    <span className="font-bold text-white">{outletBranches.find(b => b.id === activeBranchId)?.name}</span>
+                    <span className="font-mono text-amber-400 font-bold text-[11px]">({activeBranchId})</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-emerald-400">Gudang BOM: {outletBranches.find(b => b.id === activeBranchId)?.warehouse}</span>
                 </div>
               </div>
 
