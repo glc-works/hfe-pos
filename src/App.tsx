@@ -27,7 +27,9 @@ import {
   UtensilsCrossed,
   ArrowRight,
   ArrowLeft,
-  ChefHat
+  ChefHat,
+  Banknote,
+  Receipt
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -86,7 +88,7 @@ const PRODUCT_CATALOG: MenuItem[] = [
 
 export default function App() {
   // --- SURFACE APP STATE ---
-  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('mobile-qr')
+  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('barista-pos')
   
   // --- MOBILE QR SURFACE STATE ---
   const [selectedTable, setSelectedTable] = useState<string>('MEJA-04')
@@ -168,8 +170,8 @@ export default function App() {
     }
   ])
 
-  // --- POS TABLES FLOOR PLAN STATE ---
-  const [tablesGrid] = useState<TableStatus[]>([
+  // --- POS TABLES & CASHIER STATE ---
+  const [tablesGrid, setTablesGrid] = useState<TableStatus[]>([
     { id: 'T1', name: 'MEJA-01', status: 'free', totalBill: 0, orderCount: 0 },
     { id: 'T2', name: 'MEJA-02', status: 'free', totalBill: 0, orderCount: 0 },
     { id: 'T3', name: 'MEJA-03', status: 'free', totalBill: 0, orderCount: 0 },
@@ -177,6 +179,9 @@ export default function App() {
     { id: 'T5', name: 'MEJA-05', status: 'free', totalBill: 0, orderCount: 0 },
     { id: 'T12', name: 'MEJA-12', status: 'open-tab', customerName: 'Budi Santoso', totalBill: 140000, orderCount: 4 },
   ])
+  const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(tablesGrid[3])
+  const [posPayMethod, setPosPayMethod] = useState<'cash' | 'qris' | 'card'>('qris')
+  const [posCashGiven, setPosCashGiven] = useState<string>('100000')
 
   // --- COMPUTED CART TOTALS ---
   const rawSubtotal = cart.reduce((sum, item) => {
@@ -293,6 +298,13 @@ export default function App() {
     alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk kolom 'In Progress' Kanban Dapur.`)
   }
 
+  const handlePOSCheckoutTable = () => {
+    if (!selectedPOSTable || selectedPOSTable.totalBill === 0) return
+    setTablesGrid(prev => prev.map(t => t.id === selectedPOSTable.id ? { ...t, status: 'free', totalBill: 0, customerName: undefined } : t))
+    alert(`Pembayaran Meja ${selectedPOSTable.name} (${selectedPOSTable.customerName}) LUNAS via ${posPayMethod.toUpperCase()}! Struk Penjualan Terkirim ke Hfe REST API.`)
+    setSelectedPOSTable(null)
+  }
+
   const handleMoveKanbanColumn = (orderId: string, targetStatus: 'placed' | 'processing' | 'ready') => {
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
@@ -302,7 +314,7 @@ export default function App() {
     }))
   }
 
-  // Standard Kanban Columns Filtering (Makanan & Minuman)
+  // Standard Kanban Columns Filtering
   const placedOrders = orders.filter(o => o.status === 'placed')
   const processingOrders = orders.filter(o => o.status === 'processing')
   const readyOrders = orders.filter(o => o.status === 'ready')
@@ -684,8 +696,11 @@ export default function App() {
               {tablesGrid.map(table => (
                 <div
                   key={table.id}
+                  onClick={() => setSelectedPOSTable(table)}
                   className={`border rounded-2xl p-4 flex flex-col justify-between h-32 transition-all cursor-pointer ${
-                    table.status === 'occupied' 
+                    selectedPOSTable?.id === table.id
+                      ? 'ring-2 ring-amber-500 bg-amber-500/20 border-amber-500'
+                      : table.status === 'occupied' 
                       ? 'bg-amber-500/10 border-amber-500/50'
                       : table.status === 'open-tab'
                       ? 'bg-indigo-500/10 border-indigo-500/50'
@@ -712,35 +727,131 @@ export default function App() {
                 </div>
               ))}
             </div>
+
+            {/* Quick Catalog Grid for Walk-In / Cashier Direct Order */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+              <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
+                <Coffee className="w-4 h-4 text-amber-500" /> Katalog Kasir Touchscreen (Pesanan Walk-In / Takeaway)
+              </h3>
+
+              <div className="grid grid-cols-3 gap-2">
+                {PRODUCT_CATALOG.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (selectedPOSTable) {
+                        setTablesGrid(prev => prev.map(t => t.id === selectedPOSTable.id ? { ...t, status: 'open-tab', totalBill: t.totalBill + item.price, orderCount: t.orderCount + 1 } : t))
+                      }
+                    }}
+                    className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left p-2.5 rounded-xl flex flex-col justify-between h-20 transition-all"
+                  >
+                    <span className="font-bold text-xs text-slate-200 line-clamp-1">{item.name}</span>
+                    <span className="text-[11px] font-mono font-bold text-amber-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Cashier Control & Shift Drawer Panel */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4">
-            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-2">
-              <DollarSign className="w-4 h-4 text-amber-500" /> Stasiun Kasir & Modal Shift (1010-Cash Drawer)
-            </h3>
+          {/* Cashier Control & Open Tab Checkout Panel */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-4">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-2">
+                <Receipt className="w-4 h-4 text-amber-500" /> Stasiun Kasir & Pelunasan Meja
+              </h3>
 
+              {selectedPOSTable ? (
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div>
+                      <span className="text-xs font-bold text-amber-400 font-mono">{selectedPOSTable.name}</span>
+                      <h4 className="text-sm font-bold text-white">{selectedPOSTable.customerName || 'Pelanggan Walk-In'}</h4>
+                    </div>
+                    <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                      {selectedPOSTable.status}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-xs text-slate-400">
+                    <span>Jumlah Item:</span>
+                    <span className="font-bold text-slate-200">{selectedPOSTable.orderCount} Items</span>
+                  </div>
+
+                  <div className="flex justify-between text-sm font-black text-white pt-2 border-t border-slate-800">
+                    <span>Total Tagihan Meja:</span>
+                    <span className="text-amber-400 font-mono text-base">Rp {selectedPOSTable.totalBill.toLocaleString('id-ID')}</span>
+                  </div>
+
+                  {/* Payment Method Selector */}
+                  <div className="flex flex-col gap-1.5 pt-2">
+                    <label className="text-[11px] text-slate-400">Metode Pembayaran Kasir:</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['cash', 'qris', 'card'] as const).map(method => (
+                        <button
+                          key={method}
+                          onClick={() => setPosPayMethod(method)}
+                          className={`py-2 rounded-lg text-xs font-bold border uppercase transition-all ${
+                            posPayMethod === method
+                              ? 'bg-amber-500 text-slate-950 border-amber-500'
+                              : 'bg-slate-900 border-slate-800 text-slate-400'
+                          }`}
+                        >
+                          {method}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {posPayMethod === 'cash' && (
+                    <div className="flex flex-col gap-1 pt-1">
+                      <label className="text-[11px] text-slate-400">Uang Tunai Diterima:</label>
+                      <input
+                        type="text"
+                        value={posCashGiven}
+                        onChange={(e) => setPosCashGiven(e.target.value)}
+                        className="bg-slate-900 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none font-mono"
+                      />
+                      <p className="text-[11px] text-emerald-400 font-mono pt-0.5">
+                        Kembalian: Rp {Math.max(0, parseInt(posCashGiven || '0') - selectedPOSTable.totalBill).toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handlePOSCheckoutTable}
+                    disabled={selectedPOSTable.totalBill === 0}
+                    className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Pelunasan Meja ({posPayMethod.toUpperCase()})
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-8 text-center text-xs text-slate-500">
+                  Pilihlah salah satu Meja di Matriks Floor Plan untuk melihat & melunasi tagihan.
+                </div>
+              )}
+            </div>
+
+            {/* Shift Cash Drawer Reconciliation Panel */}
             <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <Banknote className="w-4 h-4 text-amber-500" /> Modal Shift Kasir (1010-Cash Drawer)
+              </span>
               <div className="flex justify-between text-xs text-slate-400">
-                <span>Kasir Shift Aktif:</span>
-                <span className="font-semibold text-amber-400">Barista Staff #102</span>
-              </div>
-              <div className="flex justify-between text-xs text-slate-400">
-                <span>Modal Kasir Awal:</span>
+                <span>Modal Awal:</span>
                 <span className="font-mono text-slate-200">Rp 500.000</span>
               </div>
               <div className="flex justify-between text-xs text-slate-400">
-                <span>Pemasukan Tunai Hari Ini:</span>
+                <span>Total Tunai Masuk:</span>
                 <span className="font-mono text-emerald-400 font-bold">+Rp 1.450.000</span>
               </div>
+              <button 
+                onClick={() => alert('Rekonsiliasi Modal Kasir Berhasil Dicetak & Disimpan ke Hfe!')}
+                className="mt-1 w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2 rounded-lg border border-slate-700 flex items-center justify-center gap-2"
+              >
+                <Printer className="w-3.5 h-3.5" /> Rekonsiliasi Kasir & Print Struk
+              </button>
             </div>
-
-            <button 
-              onClick={() => alert('Rekonsiliasi Modal Kasir Berhasil Dicetak & Disimpan ke Hfe!')}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-2"
-            >
-              <Printer className="w-3.5 h-3.5" /> Rekonsiliasi & Tutup Shift Kasir
-            </button>
           </div>
         </main>
       )}
