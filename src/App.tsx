@@ -52,7 +52,9 @@ import {
   Sliders,
   Building2,
   Store,
-  Compass
+  Compass,
+  UserCheck,
+  LogOut
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -242,6 +244,10 @@ export default function App() {
   // Dedicated Step 2 Checkout Screen View State for Mobile QR
   const [qrStepView, setQrStepView] = useState<'catalog' | 'checkout'>('catalog')
 
+  // PERSISTENT 1-TIME CUSTOMER LOGIN STATE (TERSIMPAN)
+  const [isCustomerSessionActive, setIsCustomerSessionActive] = useState<boolean>(true)
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
+
   // Section Refs for Smooth Category Scrolling
   const coffeeSecRef = useRef<HTMLDivElement>(null)
   const nonCoffeeSecRef = useRef<HTMLDivElement>(null)
@@ -417,6 +423,12 @@ export default function App() {
   }
 
   // --- HANDLERS ---
+  const handleSaveInitialLogin = () => {
+    setIsCustomerSessionActive(true)
+    setShowLoginModal(false)
+    alert(`Profil berhasil tersimpan! Selamat datang kembali, ${loginType === 'phone' ? 'Customer ' + customerPhone : guestName}.`)
+  }
+
   const handleAddToCart = (item: MenuItem) => {
     if (item.hasModifiers) {
       setShowModifierModal(item)
@@ -587,7 +599,7 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">Continuous Smooth Scroll & Category Navigator</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Login Sekali Tersimpan & Etalase Kategori Jelas</p>
             </div>
           </div>
 
@@ -658,10 +670,10 @@ export default function App() {
       {activeSurface === 'mobile-qr' && (
         <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-28">
           
-          {/* STEP 1: KATALOG MENU VIEW WITH CONTINUOUS SCROLL & CATEGORY NAVIGATOR */}
+          {/* STEP 1: KATALOG MENU VIEW WITH CONTINUOUS SCROLL & HIGH-VISIBILITY CATEGORY SHOWCASE */}
           {qrStepView === 'catalog' && (
             <>
-              {/* Table Banner */}
+              {/* Table & Persistent Saved User Session Banner */}
               <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-3.5 rounded-2xl flex items-center justify-between shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">
@@ -672,118 +684,60 @@ export default function App() {
                     <h2 className="text-base font-bold text-white">{selectedTable}</h2>
                   </div>
                 </div>
-                <select
-                  value={selectedTable}
-                  onChange={(e) => setSelectedTable(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500"
-                >
-                  {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Customer Entry Mode Selector */}
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 flex flex-col gap-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-amber-500" /> Mode Masuk Pelanggan
-                  </span>
-                  <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800 w-full sm:w-auto justify-between">
-                    <button
-                      onClick={() => setLoginType('phone')}
-                      className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                        loginType === 'phone' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
-                      }`}
-                    >
-                      Nomor HP (Poin)
-                    </button>
-                    <button
-                      onClick={() => setLoginType('guest-name')}
-                      className={`flex-1 sm:flex-initial px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                        loginType === 'guest-name' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
-                      }`}
-                    >
-                      Pure Guest (Nama)
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedTable}
+                    onChange={(e) => setSelectedTable(e.target.value)}
+                    className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500"
+                  >
+                    {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
                 </div>
-
-                {loginType === 'phone' ? (
-                  <div className="flex flex-col gap-2 pt-1">
-                    <label className="text-[11px] text-slate-400">Nomor WhatsApp untuk Struk & Loyalty Wallet:</label>
-                    <input
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 font-mono"
-                      placeholder="0812..."
-                    />
-                    
-                    {/* Loyalty Tier & Wallet Badge */}
-                    <div className="mt-1 bg-gradient-to-br from-amber-500/10 via-slate-950 to-slate-950 border border-amber-500/30 rounded-xl p-3 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                          {userTier.icon} {userTier.name}
-                        </span>
-                        <span className="text-xs font-black text-amber-500 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">
-                          {loyaltyPoints} Poin Hfe
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-400">{userTier.perk}</p>
-                      
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-800/80">
-                        <span className="text-[11px] text-slate-400">Voucher Rp 10.000 Hfe</span>
-                        <button
-                          onClick={() => setRedeemedVoucher(!redeemedVoucher)}
-                          className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
-                            redeemedVoucher
-                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                              : 'bg-amber-500 text-slate-950 border-amber-500 hover:bg-amber-400'
-                          }`}
-                        >
-                          {redeemedVoucher ? '✓ Voucher Terpasang (-10rb)' : 'Tukar Poin Diskon'}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Referral Code Card */}
-                    <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400 flex items-center gap-1"><Share2 className="w-3 h-3 text-amber-500" /> Kode Referral Anda:</span>
-                        <span className="font-mono font-bold text-amber-400">ALDI-CAFE10</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={referralInput}
-                          onChange={(e) => setReferralInput(e.target.value)}
-                          placeholder="Masukkan Kode Referral Teman"
-                          className="flex-1 bg-slate-900 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none uppercase font-mono"
-                        />
-                        <button
-                          onClick={handleClaimReferral}
-                          disabled={referralClaimed}
-                          className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-200"
-                        >
-                          {referralClaimed ? '✓ Klaim (+100 Poin)' : 'Klaim'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 pt-1">
-                    <label className="text-[11px] text-slate-400">Nama Tampilan untuk Pengantaran Meja:</label>
-                    <input
-                      type="text"
-                      value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
-                      className="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 font-semibold"
-                      placeholder="Masukkan Nama Anda..."
-                    />
-                  </div>
-                )}
               </div>
+
+              {/* PERSISTENT SAVED GUEST SESSION BADGE (TAMPIL SEKALI & TERSIMPAN) */}
+              {isCustomerSessionActive ? (
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                      <UserCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-xs font-bold text-white">
+                          {loginType === 'phone' ? `HP: ${customerPhone}` : `Tamu: ${guestName}`}
+                        </h3>
+                        {loginType === 'phone' && (
+                          <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded border border-amber-500/30">
+                            {userTier.icon} {loyaltyPoints} Poin
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400">Sesi Login Tersimpan • Siap Pesan Menu</p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="text-[10px] font-bold text-amber-400 hover:text-amber-300 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800"
+                  >
+                    Ubah
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between">
+                  <span className="text-xs text-amber-400 font-semibold">Belum masuk?</span>
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow"
+                  >
+                    Masuk Sekali
+                  </button>
+                </div>
+              )}
 
               {/* STICKY CATEGORY JUMP NAVIGATOR BAR */}
               <div className="sticky top-[60px] z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 rounded-2xl flex items-center gap-1.5 overflow-x-auto shadow-xl">
@@ -804,14 +758,18 @@ export default function App() {
                 ))}
               </div>
 
-              {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS */}
+              {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS WITH HIGH-VISIBILITY CATEGORY SHOWCASE HEADERS */}
               <div className="flex flex-col gap-6 pt-1">
                 
                 {/* SECTION 1: COFFEE SHOWCASE */}
                 <div ref={coffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
-                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Coffee className="w-4 h-4 text-amber-500" /> ☕ Etalase Kopi Specialty & Espresso
-                  </h3>
+                  <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-l-4 border-amber-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
+                    <h3 className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                      <Coffee className="w-4 h-4 text-amber-500" /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold text-amber-400/80">3 Items</span>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-3">
                     {PRODUCT_CATALOG.filter(p => p.category === 'Coffee').map(item => (
                       <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
@@ -841,9 +799,13 @@ export default function App() {
 
                 {/* SECTION 2: NON-COFFEE SHOWCASE */}
                 <div ref={nonCoffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
-                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Sparkles className="w-4 h-4 text-amber-500" /> 🍵 Etalase Non-Coffee & Artisan Matcha
-                  </h3>
+                  <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border-l-4 border-emerald-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
+                    <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-500" /> 🍵 ETALASE NON-COFFEE & ARTISAN MATCHA
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400/80">1 Item</span>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-3">
                     {PRODUCT_CATALOG.filter(p => p.category === 'Non-Coffee').map(item => (
                       <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
@@ -851,7 +813,7 @@ export default function App() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">{item.category}</span>
                               <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
@@ -873,9 +835,13 @@ export default function App() {
 
                 {/* SECTION 3: PASTRY & BAKERY SHOWCASE */}
                 <div ref={pastrySecRef} className="flex flex-col gap-3 scroll-mt-24">
-                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <UtensilsCrossed className="w-4 h-4 text-amber-500" /> 🥐 Etalase Pastry & Warm Bakery
-                  </h3>
+                  <div className="bg-gradient-to-r from-orange-500/20 via-orange-500/10 to-transparent border-l-4 border-orange-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
+                    <h3 className="text-xs sm:text-sm font-black text-orange-300 uppercase tracking-wider flex items-center gap-2">
+                      <UtensilsCrossed className="w-4 h-4 text-orange-500" /> 🥐 ETALASE PASTRY & WARM BAKERY
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold text-orange-400/80">1 Item</span>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-3">
                     {PRODUCT_CATALOG.filter(p => p.category === 'Pastry').map(item => (
                       <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
@@ -883,7 +849,7 @@ export default function App() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-[10px] font-semibold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">{item.category}</span>
                               <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
@@ -905,9 +871,13 @@ export default function App() {
 
                 {/* SECTION 4: SNACK & FINGER FOODS SHOWCASE */}
                 <div ref={snackSecRef} className="flex flex-col gap-3 scroll-mt-24">
-                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Flame className="w-4 h-4 text-amber-500" /> 🍟 Etalase Snack & Savory Finger Foods
-                  </h3>
+                  <div className="bg-gradient-to-r from-indigo-500/20 via-indigo-500/10 to-transparent border-l-4 border-indigo-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
+                    <h3 className="text-xs sm:text-sm font-black text-indigo-300 uppercase tracking-wider flex items-center gap-2">
+                      <Flame className="w-4 h-4 text-indigo-500" /> 🍟 ETALASE SNACK & SAVORY FINGER FOODS
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold text-indigo-400/80">1 Item</span>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-3">
                     {PRODUCT_CATALOG.filter(p => p.category === 'Snack').map(item => (
                       <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
@@ -915,7 +885,7 @@ export default function App() {
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">{item.category}</span>
                               <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
@@ -2081,6 +2051,82 @@ export default function App() {
 
           </div>
         </main>
+      )}
+
+      {/* --- INITIAL ONE-TIME CUSTOMER LOGIN ONBOARDING MODAL --- */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 sm:p-6 flex flex-col gap-4 shadow-2xl relative">
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                <Coffee className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Selamat Datang di Kafe!</h3>
+                <p className="text-[11px] text-slate-400">Masuk sekali, tersimpan sepanjang kunjungan</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <button
+                onClick={() => setLoginType('phone')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  loginType === 'phone' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400'
+                }`}
+              >
+                Nomor HP (Poin)
+              </button>
+              <button
+                onClick={() => setLoginType('guest-name')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  loginType === 'guest-name' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400'
+                }`}
+              >
+                Pure Guest (Nama)
+              </button>
+            </div>
+
+            {loginType === 'phone' ? (
+              <div className="flex flex-col gap-2">
+                <label className="text-xs text-slate-400">Nomor WhatsApp Pelanggan:</label>
+                <input
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500 font-mono"
+                  placeholder="081298765432"
+                />
+                <p className="text-[10px] text-amber-400">✓ Poin & Voucher Hfe otomatis terhubung ke HP ini.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <label className="text-xs text-slate-400">Nama Tampilan Meja:</label>
+                <input
+                  type="text"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500 font-semibold"
+                  placeholder="Masukkan Nama Anda..."
+                />
+                <p className="text-[10px] text-slate-400">✓ Untuk pengantaran pesanan oleh waiter.</p>
+              </div>
+            )}
+
+            <button
+              onClick={handleSaveInitialLogin}
+              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-1"
+            >
+              Simpan Profil & Mulai Pesan Menu ➔
+            </button>
+          </div>
+        </div>
       )}
 
       {/* --- DRINK MODIFIER MODAL WITH SEAT TAGGING & ALLERGEN NOTES --- */}
