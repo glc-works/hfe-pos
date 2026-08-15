@@ -3,7 +3,7 @@ okf_version: "0.2"
 type: Strategic Plan Level 0
 title: Hfe POS & Cafe Mobile Order Suite — Master Strategic Plan
 description: Master product vision for the Cafe & F&B Experience Layer, delivering a dual-surface cashier station and smartphone QR table self-ordering web app powered by Hfe REST APIs.
-tags: [master-plan, level-0, pos, cafe, mobile-qr-order, f-and-b, phone-login, guest-mode, open-tab, loyalty-points, hfe-connect]
+tags: [master-plan, level-0, pos, cafe, mobile-qr-order, f-and-b, phone-login, guest-mode, open-tab, loyalty-points, owner-settings]
 status: Proposed
 ---
 
@@ -17,7 +17,7 @@ It provides a seamless **Dual-Surface Experience**:
 1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, select their preferred login mode (**Phone/WhatsApp Login with Loyalty Points** OR **Pure Guest Mode with Name only**), browse visual coffee & food menus, customize modifiers, redeem loyalty points for drink discounts, and order under cafe-configurable payment policies (**Pay-First** vs **Open Tab Billing**).
 2. **Barista & Cashier Touch POS (POS & Kitchen Display):** Baristas and cashiers manage table billing tabs, print kitchen tickets, handle offline cash/QRIS checkouts, and reconcile daily shift cash drawers.
 
-All **Customers, Employee Profiles, and Loyalty Point Balances** are resolved via `Hfe` Contact Master & Loyalty REST APIs (`/v1/contacts`, `/v1/loyalty`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
+Cafe Owners configure loyalty rules (accrual rate, point valuation, expiry) via **Owner Loyalty Policy Settings** and monitor customer point metrics on a **per-contact basis** (`GET /v1/contacts/{id}/loyalty`). All **Customers, Employee Profiles, and Loyalty Point Balances** are resolved via `Hfe` Contact Master & Loyalty REST APIs (`/v1/contacts`, `/v1/loyalty`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
 
 ---
 
@@ -69,8 +69,9 @@ All **Customers, Employee Profiles, and Loyalty Point Balances** are resolved vi
 
 | Concern | `hfe-pos` (Experience Layer) | `Hfe` Backend (REST API Platform) |
 |---|---|---|
+| **Owner Loyalty Policy Settings** | 👁️ Config UI Widget in Settings | ✅ `PUT /v1/loyalty/settings` (Per Company Book) |
+| **Per-Contact Loyalty Monitoring** | 👁️ Displays Point Balance per Contact | ✅ `GET /v1/contacts/{id}/loyalty` (Audit log) |
 | **Phone Login vs Guest Name Mode** | 👁️ Captures Phone OR Display Name UI | ✅ `POST /v1/contacts` (`type: customer`) |
-| **Loyalty Points Balance & Redeem** | 👁️ Displays Points & Discount Button | ✅ `GET /v1/contacts/{id}/loyalty` & `POST /v1/loyalty/redeem` |
 | **Payment Policy (Pay-First vs Open Tab)** | ✅ Enforces Policy Workflow UI | ❌ Not concerned |
 | **Product Master Data & Menu Catalog** | 👁️ Consumes API & Renders UI | ✅ `GET /v1/products` |
 | **Barista Touch POS & Kitchen Display** | ✅ Owns Barista & Cashier UX | ❌ Not concerned |
@@ -80,6 +81,7 @@ All **Customers, Employee Profiles, and Loyalty Point Balances** are resolved vi
 
 ## 4. Verification & Quality Standards
 
+- **Owner Settings Response:** Policy updates propagate to checkout calculation < 1 second.
 - **Loyalty Resolution Speed:** Customer loyalty balance query < 1 second.
 - **Guest Entry Speed:** Phone login or Guest Name entry < 1 second.
 - **Mobile Scan Performance:** Page load < 1 second on 4G connection; cart interaction < 30ms.
