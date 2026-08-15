@@ -42,7 +42,10 @@ import {
   BellRing,
   CheckSquare,
   BadgeCheck,
-  Footprints
+  Footprints,
+  AlertTriangle,
+  Zap,
+  Armchair
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -71,6 +74,8 @@ interface MenuItem {
 
 interface CartItem extends MenuItem {
   quantity: number
+  seatNumber?: string
+  allergenNotes?: string
   temperature?: 'Hot' | 'Iced'
   sugarLevel?: '0%' | '50%' | '100%'
   milkOption?: 'Whole Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)'
@@ -221,7 +226,7 @@ const PRODUCT_CATALOG: MenuItem[] = [
 
 export default function App() {
   // --- SURFACE APP STATE ---
-  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('server-waiter')
+  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('barista-pos')
   
   // --- KDS VIEW, SORTING & CUSTOM STATIONS STATE ---
   const [kdsViewMode, setKdsViewMode] = useState<'kanban' | 'list'>('kanban')
@@ -258,16 +263,18 @@ export default function App() {
   })
   const [redeemedVoucher, setRedeemedVoucher] = useState<boolean>(false)
 
-  // Cart & Policy State
+  // Cart & Policy State (with Chef Mike's Seat Tagging & Allergen Notes)
   const [cart, setCart] = useState<CartItem[]>([
-    { ...PRODUCT_CATALOG[0], quantity: 2, temperature: 'Iced', sugarLevel: '50%', milkOption: 'Oat Milk (+Rp 5.000)' },
-    { ...PRODUCT_CATALOG[4], quantity: 1 }
+    { ...PRODUCT_CATALOG[0], quantity: 2, seatNumber: 'Seat 1', allergenNotes: 'Alergi Lactose (Ganti Oatside)', temperature: 'Iced', sugarLevel: '50%', milkOption: 'Oat Milk (+Rp 5.000)' },
+    { ...PRODUCT_CATALOG[4], quantity: 1, seatNumber: 'Seat 2' }
   ])
   const [paymentPolicy, setPaymentPolicy] = useState<PaymentPolicy>('pay-first')
   const [showModifierModal, setShowModifierModal] = useState<MenuItem | null>(null)
   const [modTemp, setModTemp] = useState<'Hot' | 'Iced'>('Iced')
   const [modSugar, setModSugar] = useState<'0%' | '50%' | '100%'>('50%')
   const [modMilk, setModMilk] = useState<'Whole Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)'>('Oat Milk (+Rp 5.000)')
+  const [modSeat, setModSeat] = useState<string>('Seat 1')
+  const [modAllergen, setModAllergen] = useState<string>('')
   const [showQRISModal, setShowQRISModal] = useState<boolean>(false)
 
   // --- KITCHEN KANBAN & EXPEDITOR ORDERS STATE ---
@@ -278,13 +285,13 @@ export default function App() {
       customerName: 'Aldi',
       phone: '081298765432',
       items: [
-        { ...PRODUCT_CATALOG[0], quantity: 2, temperature: 'Iced', sugarLevel: '50%', milkOption: 'Oat Milk (+Rp 5.000)' },
-        { ...PRODUCT_CATALOG[4], quantity: 1 }
+        { ...PRODUCT_CATALOG[0], quantity: 2, seatNumber: 'Seat 1', allergenNotes: 'Alergi Lactose (Ganti Oatside)', temperature: 'Iced', sugarLevel: '50%', milkOption: 'Oat Milk (+Rp 5.000)' },
+        { ...PRODUCT_CATALOG[4], quantity: 1, seatNumber: 'Seat 2' }
       ],
       policy: 'pay-first',
       total: 86000,
-      status: 'qc-passed',
-      timeElapsedMinutes: 4,
+      status: 'placed',
+      timeElapsedMinutes: 12, // OVERDUE TIMER TRIGGER (>10 mins Pakuwon's Alert)
       createdAt: '19:24',
       waiterCall: 'Minta Tambah Sedotan & Sendok Garpu'
     },
@@ -294,13 +301,13 @@ export default function App() {
       customerName: 'Budi Santoso',
       phone: '081311223344',
       items: [
-        { ...PRODUCT_CATALOG[1], quantity: 1, temperature: 'Hot', sugarLevel: '100%' },
-        { ...PRODUCT_CATALOG[5], quantity: 1 }
+        { ...PRODUCT_CATALOG[1], quantity: 1, seatNumber: 'Seat 1', temperature: 'Hot', sugarLevel: '100%' },
+        { ...PRODUCT_CATALOG[5], quantity: 1, seatNumber: 'Seat 3', allergenNotes: 'No Truffle Oil (Garam Saja)' }
       ],
       policy: 'open-tab',
       total: 70000,
-      status: 'ready',
-      timeElapsedMinutes: 8,
+      status: 'processing',
+      timeElapsedMinutes: 4,
       createdAt: '19:18'
     },
     {
@@ -309,12 +316,12 @@ export default function App() {
       customerName: 'Siti Rahma',
       phone: '081599887766',
       items: [
-        { ...PRODUCT_CATALOG[2], quantity: 2, temperature: 'Iced', sugarLevel: '0%' }
+        { ...PRODUCT_CATALOG[2], quantity: 2, seatNumber: 'Seat 2', temperature: 'Iced', sugarLevel: '0%' }
       ],
       policy: 'pay-first',
       total: 70000,
-      status: 'served',
-      timeElapsedMinutes: 12,
+      status: 'qc-passed',
+      timeElapsedMinutes: 6,
       createdAt: '19:14'
     }
   ])
@@ -329,7 +336,7 @@ export default function App() {
     { id: 'T12', name: 'MEJA-12', status: 'open-tab', customerName: 'Budi Santoso', totalBill: 140000, orderCount: 4 },
   ])
   const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(tablesGrid[3])
-  const [posPayMethod, setPosPayMethod] = useState<'cash' | 'qris' | 'card'>('qris')
+  const [posPayMethod, setPosPayMethod] = useState<'cash' | 'qris' | 'card'>('cash')
   const [posCashGiven, setPosCashGiven] = useState<string>('100000')
 
   // --- COMPUTED CART TOTALS ---
@@ -356,7 +363,7 @@ export default function App() {
         if (existing) {
           return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i)
         }
-        return [...prev, { ...item, quantity: 1 }]
+        return [...prev, { ...item, quantity: 1, seatNumber: 'Seat 1' }]
       })
     }
   }
@@ -368,12 +375,15 @@ export default function App() {
       {
         ...showModifierModal,
         quantity: 1,
+        seatNumber: modSeat,
+        allergenNotes: modAllergen.trim() || undefined,
         temperature: modTemp,
         sugarLevel: modSugar,
         milkOption: modMilk
       }
     ])
     setShowModifierModal(null)
+    setModAllergen('')
   }
 
   const handleUpdateQty = (index: number, delta: number) => {
@@ -501,7 +511,7 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">5 Operational Modes • Mobile View First</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Pakuwon & Chef Mike Hospitality Standard</p>
             </div>
           </div>
 
@@ -739,31 +749,47 @@ export default function App() {
 
               <div className="flex flex-col gap-2 divide-y divide-slate-800/60">
                 {cart.map((item, idx) => (
-                  <div key={idx} className="pt-2 first:pt-0 flex items-center justify-between text-xs">
-                    <div>
-                      <p className="font-bold text-slate-200">{item.name}</p>
-                      {item.temperature && (
-                        <p className="text-[10px] text-slate-400">
-                          {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
+                  <div key={idx} className="pt-2 first:pt-0 flex flex-col gap-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-slate-200 flex items-center gap-1.5">
+                          {item.name} 
+                          {item.seatNumber && (
+                            <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
+                              {item.seatNumber}
+                            </span>
+                          )}
                         </p>
-                      )}
+                        {item.temperature && (
+                          <p className="text-[10px] text-slate-400">
+                            {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleUpdateQty(idx, -1)}
+                          className="w-6 h-6 bg-slate-800 rounded-md flex items-center justify-center text-slate-300 hover:bg-slate-700"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="font-bold font-mono text-slate-100 w-4 text-center">{item.quantity}</span>
+                        <button 
+                          onClick={() => handleUpdateQty(idx, 1)}
+                          className="w-6 h-6 bg-slate-800 rounded-md flex items-center justify-center text-slate-300 hover:bg-slate-700"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleUpdateQty(idx, -1)}
-                        className="w-6 h-6 bg-slate-800 rounded-md flex items-center justify-center text-slate-300 hover:bg-slate-700"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="font-bold font-mono text-slate-100 w-4 text-center">{item.quantity}</span>
-                      <button 
-                        onClick={() => handleUpdateQty(idx, 1)}
-                        className="w-6 h-6 bg-slate-800 rounded-md flex items-center justify-center text-slate-300 hover:bg-slate-700"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
+
+                    {/* Allergen Badge */}
+                    {item.allergenNotes && (
+                      <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 w-fit">
+                        <AlertTriangle className="w-3 h-3 text-rose-500" /> Catatan Alergen: {item.allergenNotes}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -986,7 +1012,7 @@ export default function App() {
                   </div>
 
                   {posPayMethod === 'cash' && (
-                    <div className="flex flex-col gap-1 pt-1">
+                    <div className="flex flex-col gap-2 pt-1">
                       <label className="text-[11px] text-slate-400">Uang Tunai Diterima:</label>
                       <input
                         type="text"
@@ -994,6 +1020,30 @@ export default function App() {
                         onChange={(e) => setPosCashGiven(e.target.value)}
                         className="bg-slate-900 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none font-mono"
                       />
+
+                      {/* PAKUWON'S QUICK CASH BUTTONS (RP 20K, 50K, 100K, UANG PAS) */}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-amber-400 flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-amber-500" /> Quick Cash Nominal (Pakuwon's Speed Rule):
+                        </span>
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[
+                            { label: 'Uang Pas', value: String(selectedPOSTable.totalBill) },
+                            { label: '20rb', value: '20000' },
+                            { label: '50rb', value: '50000' },
+                            { label: '100rb', value: '100000' }
+                          ].map(qc => (
+                            <button
+                              key={qc.label}
+                              onClick={() => setPosCashGiven(qc.value)}
+                              className="bg-slate-900 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-mono text-[11px] font-bold py-1.5 rounded-lg border border-slate-800 transition-all"
+                            >
+                              {qc.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       <p className="text-[11px] text-emerald-400 font-mono pt-0.5">
                         Kembalian: Rp {Math.max(0, parseInt(posCashGiven || '0') - selectedPOSTable.totalBill).toLocaleString('id-ID')}
                       </p>
@@ -1039,7 +1089,7 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 3: KITCHEN DISPLAY WITH OWNER CUSTOM STATION SPLIT --- */}
+      {/* --- SURFACE 3: KITCHEN DISPLAY WITH OVERDUE TIMER & ALLERGEN BADGES --- */}
       {activeSurface === 'kds-screen' && (
         <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
           
@@ -1121,7 +1171,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* VIEW MODE 1: KANBAN BOARD */}
+          {/* VIEW MODE 1: KANBAN BOARD WITH OVERDUE ALERT BADGES */}
           {kdsViewMode === 'kanban' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               
@@ -1134,48 +1184,78 @@ export default function App() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  {placedOrders.map(order => (
-                    <div key={order.id} className="bg-slate-950 border border-amber-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                        <div>
-                          <span className="font-mono font-black text-xs text-amber-400">{order.id}</span>
-                          <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
-                        </div>
-                        <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                          <Clock className="w-3 h-3" /> {order.timeElapsedMinutes}m ago
-                        </span>
-                      </div>
+                  {placedOrders.map(order => {
+                    const isOverdue = order.timeElapsedMinutes > 10
+                    return (
+                      <div 
+                        key={order.id} 
+                        className={`bg-slate-950 border rounded-xl p-3.5 flex flex-col gap-3 shadow-lg transition-all ${
+                          isOverdue ? 'border-rose-500/80 bg-rose-950/20 ring-1 ring-rose-500/50' : 'border-amber-500/40'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                          <div>
+                            <span className="font-mono font-black text-xs text-amber-400">{order.id}</span>
+                            <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+                          </div>
 
-                      <div className="flex flex-col gap-1.5 text-xs">
-                        {order.items.map((item, idx) => (
-                          <div 
-                            key={idx} 
-                            onClick={() => setSelectedRecipeBOM(item)}
-                            className="flex items-center justify-between bg-slate-900/80 p-2 rounded-lg hover:border-amber-500/50 border border-transparent cursor-pointer transition-all"
-                          >
-                            <div>
-                              <p className="font-bold text-slate-200 flex items-center gap-1">
-                                {item.quantity}x {item.name} <BookOpen className="w-3 h-3 text-amber-500 ml-1 inline" />
-                              </p>
-                              {item.temperature && (
-                                <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                          {/* PAKUWON'S OVERDUE TIMER ALERT BADGE (>10 MINS) */}
+                          <span className={`text-[10px] font-mono flex items-center gap-1 px-2 py-0.5 rounded border font-bold ${
+                            isOverdue
+                              ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
+                              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          }`}>
+                            {isOverdue && <AlertTriangle className="w-3 h-3 text-rose-500" />}
+                            {order.timeElapsedMinutes}m ago {isOverdue && '(OVERDUE)'}
+                          </span>
+                        </div>
+
+                        {/* Clickable Menu Items for BOM Recipe & CHEF MIKE'S SEAT / ALLERGEN BADGES */}
+                        <div className="flex flex-col gap-1.5 text-xs">
+                          {order.items.map((item, idx) => (
+                            <div 
+                              key={idx} 
+                              onClick={() => setSelectedRecipeBOM(item)}
+                              className="flex flex-col gap-1 bg-slate-900/80 p-2 rounded-lg hover:border-amber-500/50 border border-transparent cursor-pointer transition-all"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-bold text-slate-200 flex items-center gap-1.5">
+                                    {item.quantity}x {item.name}
+                                    {item.seatNumber && (
+                                      <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
+                                        {item.seatNumber}
+                                      </span>
+                                    )}
+                                  </p>
+                                  {item.temperature && (
+                                    <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                                  )}
+                                </div>
+                                <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                                  {item.category}
+                                </span>
+                              </div>
+
+                              {/* CHEF MIKE'S ALLERGEN WARNING BADGE */}
+                              {item.allergenNotes && (
+                                <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 w-fit">
+                                  <AlertTriangle className="w-3 h-3 text-rose-500" /> Alergen/Kustom: {item.allergenNotes}
+                                </span>
                               )}
                             </div>
-                            <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                              {item.category}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
 
-                      <button
-                        onClick={() => handleMoveStatus(order.id, 'processing')}
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
-                      >
-                        <ChefHat className="w-4 h-4" /> Proses Pesanan <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
+                        <button
+                          onClick={() => handleMoveStatus(order.id, 'processing')}
+                          className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
+                        >
+                          <ChefHat className="w-4 h-4" /> Proses Pesanan <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -1205,19 +1285,32 @@ export default function App() {
                           <div 
                             key={idx} 
                             onClick={() => setSelectedRecipeBOM(item)}
-                            className="flex items-center justify-between bg-slate-900/80 p-2 rounded-lg hover:border-indigo-500/50 border border-transparent cursor-pointer transition-all"
+                            className="flex flex-col gap-1 bg-slate-900/80 p-2 rounded-lg hover:border-indigo-500/50 border border-transparent cursor-pointer transition-all"
                           >
-                            <div>
-                              <p className="font-bold text-slate-200 flex items-center gap-1">
-                                {item.quantity}x {item.name} <BookOpen className="w-3 h-3 text-indigo-400 ml-1 inline" />
-                              </p>
-                              {item.temperature && (
-                                <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
-                              )}
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-bold text-slate-200 flex items-center gap-1.5">
+                                  {item.quantity}x {item.name}
+                                  {item.seatNumber && (
+                                    <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
+                                      {item.seatNumber}
+                                    </span>
+                                  )}
+                                </p>
+                                {item.temperature && (
+                                  <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                                )}
+                              </div>
+                              <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                                {item.category}
+                              </span>
                             </div>
-                            <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
-                              {item.category}
-                            </span>
+
+                            {item.allergenNotes && (
+                              <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 w-fit">
+                                <AlertTriangle className="w-3 h-3 text-rose-500" /> Alergen/Kustom: {item.allergenNotes}
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1400,19 +1493,34 @@ export default function App() {
                 <div className="flex flex-col gap-2">
                   <span className="text-xs font-semibold text-slate-400">Checklist Kelengkapan Item Pesanan:</span>
                   {order.items.map((item, idx) => (
-                    <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckSquare className="w-4 h-4 text-emerald-400" />
-                        <div>
-                          <p className="text-xs font-bold text-white">{item.quantity}x {item.name}</p>
-                          {item.temperature && (
-                            <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
-                          )}
+                    <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckSquare className="w-4 h-4 text-emerald-400" />
+                          <div>
+                            <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                              {item.quantity}x {item.name}
+                              {item.seatNumber && (
+                                <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
+                                  {item.seatNumber}
+                                </span>
+                              )}
+                            </p>
+                            {item.temperature && (
+                              <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                            )}
+                          </div>
                         </div>
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                          Checked ✓
+                        </span>
                       </div>
-                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        Checked ✓
-                      </span>
+
+                      {item.allergenNotes && (
+                        <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 w-fit mt-1">
+                          <AlertTriangle className="w-3 h-3 text-rose-500" /> Alergen/Kustom: {item.allergenNotes}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1432,7 +1540,7 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 5: MODE SERVER / WAITER & RUNNER STATION --- */}
+      {/* --- SURFACE 5: MODE SERVER / WAITER WITH SEAT-LEVEL TAGGING --- */}
       {activeSurface === 'server-waiter' && (
         <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
@@ -1440,7 +1548,7 @@ export default function App() {
               <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <Footprints className="w-5 h-5 text-amber-500" /> Mode Server (Pramusaji & Food Runner)
               </h2>
-              <p className="text-xs text-slate-400">Monitoring nampan makanan/minuman yang siap diantar ke meja & Panggilan Pelanggan</p>
+              <p className="text-xs text-slate-400">Pengantaran Nampan Presisi Berdasarkan Penandaan Kursi Tamu (Seat 1, Seat 2, dst)</p>
             </div>
             <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">
               {orders.filter(o => o.status === 'qc-passed').length} Nampan Siap Diantar
@@ -1481,23 +1589,40 @@ export default function App() {
                       <h3 className="text-base font-bold text-white">{order.table} • {order.customerName}</h3>
                     </div>
                     <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
-                      Nampan Siap Diantar!
+                      Nampan Lolos QC!
                     </span>
                   </div>
 
                   <div className="flex flex-col gap-2 mt-3">
-                    <span className="text-xs font-semibold text-slate-400">Daftar Item di Nampan:</span>
+                    <span className="text-xs font-semibold text-slate-400">Chef Mike's Seat Delivery Target:</span>
                     {order.items.map((item, idx) => (
-                      <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-white">{item.quantity}x {item.name}</p>
-                          {item.temperature && (
-                            <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
-                          )}
+                      <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-white flex items-center gap-2">
+                              {item.quantity}x {item.name}
+                              {item.seatNumber ? (
+                                <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1">
+                                  <Armchair className="w-3 h-3 text-amber-500" /> Antar ke {item.seatNumber}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-400">Meja Umum</span>
+                              )}
+                            </p>
+                            {item.temperature && (
+                              <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            {item.category}
+                          </span>
                         </div>
-                        <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                          {item.category}
-                        </span>
+
+                        {item.allergenNotes && (
+                          <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 w-fit mt-0.5">
+                            <AlertTriangle className="w-3 h-3 text-rose-500" /> Catatan Alergen: {item.allergenNotes}
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1568,6 +1693,99 @@ export default function App() {
         </div>
       )}
 
+      {/* --- DRINK MODIFIER MODAL WITH SEAT TAGGING & ALLERGEN NOTES --- */}
+      {showModifierModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 flex flex-col gap-4 shadow-2xl">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Coffee className="w-5 h-5 text-amber-500" /> Kustomisasi {showModifierModal.name}
+            </h3>
+
+            {/* Chef Mike's Seat Selection */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-amber-400 flex items-center gap-1">
+                <Armchair className="w-3.5 h-3.5 text-amber-500" /> Penandaan Nomor Kursi (Seat Number):
+              </label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {['Seat 1', 'Seat 2', 'Seat 3', 'Seat 4'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setModSeat(s)}
+                    className={`py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                      modSeat === s ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Allergen & Custom Request Note */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-rose-400 flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-500" /> Catatan Alergen / Pantangan (Opsional):
+              </label>
+              <input
+                type="text"
+                value={modAllergen}
+                onChange={(e) => setModAllergen(e.target.value)}
+                placeholder="cth: Alergi Lactose, No Truffle Oil"
+                className="bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500 text-rose-200 font-medium"
+              />
+            </div>
+
+            {/* Temp */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-400">Suhu Minuman:</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setModTemp('Iced')}
+                  className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                    modTemp === 'Iced' ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
+                  }`}
+                >
+                  🧊 Iced
+                </button>
+                <button
+                  onClick={() => setModTemp('Hot')}
+                  className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                    modTemp === 'Hot' ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
+                  }`}
+                >
+                  ☕ Hot
+                </button>
+              </div>
+            </div>
+
+            {/* Sugar */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-400">Tingkat Manis / Sugar:</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['0%', '50%', '100%'] as const).map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setModSugar(s)}
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      modSugar === s ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleConfirmModifier}
+              className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-2"
+            >
+              Konfirmasi & Tambah ke Keranjang
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP --- */}
       {selectedRecipeBOM && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1628,65 +1846,6 @@ export default function App() {
               className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg mt-1"
             >
               Tutup Petunjuk Resep
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* --- DRINK MODIFIER MODAL --- */}
-      {showModifierModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 flex flex-col gap-4 shadow-2xl">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Coffee className="w-5 h-5 text-amber-500" /> Kustomisasi {showModifierModal.name}
-            </h3>
-
-            {/* Temp */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-400">Suhu Minuman:</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setModTemp('Iced')}
-                  className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                    modTemp === 'Iced' ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                  }`}
-                >
-                  🧊 Iced
-                </button>
-                <button
-                  onClick={() => setModTemp('Hot')}
-                  className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                    modTemp === 'Hot' ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                  }`}
-                >
-                  ☕ Hot
-                </button>
-              </div>
-            </div>
-
-            {/* Sugar */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-400">Tingkat Manis / Sugar:</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['0%', '50%', '100%'] as const).map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setModSugar(s)}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      modSugar === s ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={handleConfirmModifier}
-              className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-2"
-            >
-              Konfirmasi & Tambah ke Keranjang
             </button>
           </div>
         </div>
