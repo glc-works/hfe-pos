@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { 
   Coffee, 
   QrCode, 
@@ -51,7 +51,8 @@ import {
   ShoppingCart,
   Sliders,
   Building2,
-  Store
+  Store,
+  Compass
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -241,14 +242,17 @@ export default function App() {
   // Dedicated Step 2 Checkout Screen View State for Mobile QR
   const [qrStepView, setQrStepView] = useState<'catalog' | 'checkout'>('catalog')
 
+  // Section Refs for Smooth Category Scrolling
+  const coffeeSecRef = useRef<HTMLDivElement>(null)
+  const nonCoffeeSecRef = useRef<HTMLDivElement>(null)
+  const pastrySecRef = useRef<HTMLDivElement>(null)
+  const snackSecRef = useRef<HTMLDivElement>(null)
+
   // --- OWNER DYNAMIC TAX (PB1 10%), SERVICE FEE % & TIPS ENGINE STATE ---
   const [taxPB1Mode, setTaxPB1Mode] = useState<PB1TaxMode>(1) // 0=Off, 1=Exclude (Show), 2=Include (Embedded)
   const [serviceFeeRate, setServiceFeeRate] = useState<number>(5) // 5% Service Charge
   const [selectedTipAmount, setSelectedTipAmount] = useState<number>(5000) // Default Rp 5.000 Tip
   const [cashDrawerFloat, setCashDrawerFloat] = useState<number>(500000)
-
-  // --- ALI'S EX-ESB CATEGORY FILTER CHIPS STATE ---
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Semua')
 
   // --- KDS VIEW, SORTING & CUSTOM STATIONS STATE ---
   const [kdsViewMode, setKdsViewMode] = useState<'kanban' | 'list'>('kanban')
@@ -257,7 +261,7 @@ export default function App() {
   
   // Owner Custom Station Split State
   const [activeStationId, setActiveStationId] = useState<string>('all')
-  const [stations, setStations] = useState<StationConfig[]>([
+  const [stations] = useState<StationConfig[]>([
     { id: 'all', name: 'Semua Station (Gabungan)', icon: '🌟', categories: ['Coffee', 'Non-Coffee', 'Pastry', 'Snack'] },
     { id: 'drink-bar', name: 'Drink Bar (Barista)', icon: '☕', categories: ['Coffee', 'Non-Coffee'] },
     { id: 'hot-kitchen', name: 'Hot Kitchen (Dapur Utm)', icon: '🍳', categories: ['Snack'] },
@@ -401,6 +405,17 @@ export default function App() {
 
   const totalCartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
 
+  // --- SMOOTH SCROLL CATEGORY JUMP HANDLER ---
+  const scrollToCategorySection = (category: string) => {
+    let targetRef: React.RefObject<HTMLDivElement> | null = null
+    if (category === 'Coffee') targetRef = coffeeSecRef
+    else if (category === 'Non-Coffee') targetRef = nonCoffeeSecRef
+    else if (category === 'Pastry') targetRef = pastrySecRef
+    else if (category === 'Snack') targetRef = snackSecRef
+
+    targetRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   // --- HANDLERS ---
   const handleAddToCart = (item: MenuItem) => {
     if (item.hasModifiers) {
@@ -538,11 +553,6 @@ export default function App() {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, waiterCall: undefined } : o))
   }
 
-  // --- FILTERED CATALOG FOR ALI'S CATEGORY CHIPS ---
-  const filteredCatalog = selectedCategoryFilter === 'Semua' 
-    ? PRODUCT_CATALOG 
-    : PRODUCT_CATALOG.filter(p => p.category === selectedCategoryFilter)
-
   // --- KDS STATION FILTERING & SORTING LOGIC ---
   const currentStation = stations.find(s => s.id === activeStationId) || stations[0]
 
@@ -577,7 +587,7 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">Pakuwon • Chef Mike • Ali ex-ESB Design</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Continuous Smooth Scroll & Category Navigator</p>
             </div>
           </div>
 
@@ -648,7 +658,7 @@ export default function App() {
       {activeSurface === 'mobile-qr' && (
         <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-28">
           
-          {/* STEP 1: KATALOG MENU VIEW */}
+          {/* STEP 1: KATALOG MENU VIEW WITH CONTINUOUS SCROLL & CATEGORY NAVIGATOR */}
           {qrStepView === 'catalog' && (
             <>
               {/* Table Banner */}
@@ -775,76 +785,156 @@ export default function App() {
                 )}
               </div>
 
-              {/* Catalog Menu Grid with ALI'S EX-ESB CATEGORY FILTER CHIPS */}
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
-                    <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe & Resto
+              {/* STICKY CATEGORY JUMP NAVIGATOR BAR */}
+              <div className="sticky top-[60px] z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-2 rounded-2xl flex items-center gap-1.5 overflow-x-auto shadow-xl">
+                {[
+                  { id: 'Coffee', icon: '☕', name: 'Coffee' },
+                  { id: 'Non-Coffee', icon: '🍵', name: 'Non-Coffee' },
+                  { id: 'Pastry', icon: '🥐', name: 'Pastry' },
+                  { id: 'Snack', icon: '🍟', name: 'Snack' }
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => scrollToCategorySection(cat.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-950 text-slate-300 hover:bg-amber-500 hover:text-slate-950 border border-slate-800 transition-all shadow-sm"
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS */}
+              <div className="flex flex-col gap-6 pt-1">
+                
+                {/* SECTION 1: COFFEE SHOWCASE */}
+                <div ref={coffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <Coffee className="w-4 h-4 text-amber-500" /> ☕ Etalase Kopi Specialty & Espresso
                   </h3>
-                </div>
-
-                {/* ALI'S CATEGORY FILTER CHIPS */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                  {['Semua', 'Coffee', 'Non-Coffee', 'Pastry', 'Snack'].map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategoryFilter(cat)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                        selectedCategoryFilter === cat
-                          ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md'
-                          : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
-                      }`}
-                    >
-                      {cat === 'Semua' ? '🌟 Semua Menu' : cat}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  {filteredCatalog.map(item => (
-                    <div 
-                      key={item.id}
-                      className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all"
-                    >
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-20 h-20 rounded-xl object-cover border border-slate-800"
-                      />
-                      <div className="flex-1 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                              {item.category}
-                            </span>
-                            <span className="text-xs font-bold text-emerald-400">
-                              Rp {item.price.toLocaleString('id-ID')}
-                            </span>
+                  <div className="grid grid-cols-1 gap-3">
+                    {PRODUCT_CATALOG.filter(p => p.category === 'Coffee').map(item => (
+                      <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
+                            <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
                           </div>
-                          <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
-                          <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
-                        </div>
-
-                        <div className="flex items-center justify-end gap-2 mt-2">
-                          <button
-                            onClick={() => handleReorderSameItem(item)}
-                            className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700"
-                            title="Pesan Lagi Kopi Yang Sama"
-                          >
-                            <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
-                          </button>
-                          
-                          <button
-                            onClick={() => handleAddToCart(item)}
-                            className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md"
-                          >
-                            <Plus className="w-3.5 h-3.5" /> Tambah
-                          </button>
+                          <div className="flex items-center justify-end gap-2 mt-2">
+                            <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
+                              <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                            </button>
+                            <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <Plus className="w-3.5 h-3.5" /> Tambah
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+
+                {/* SECTION 2: NON-COFFEE SHOWCASE */}
+                <div ref={nonCoffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" /> 🍵 Etalase Non-Coffee & Artisan Matcha
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {PRODUCT_CATALOG.filter(p => p.category === 'Non-Coffee').map(item => (
+                      <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
+                            <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-2">
+                            <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
+                              <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                            </button>
+                            <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <Plus className="w-3.5 h-3.5" /> Tambah
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* SECTION 3: PASTRY & BAKERY SHOWCASE */}
+                <div ref={pastrySecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <UtensilsCrossed className="w-4 h-4 text-amber-500" /> 🥐 Etalase Pastry & Warm Bakery
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {PRODUCT_CATALOG.filter(p => p.category === 'Pastry').map(item => (
+                      <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
+                            <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-2">
+                            <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
+                              <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                            </button>
+                            <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <Plus className="w-3.5 h-3.5" /> Tambah
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* SECTION 4: SNACK & FINGER FOODS SHOWCASE */}
+                <div ref={snackSecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <Flame className="w-4 h-4 text-amber-500" /> 🍟 Etalase Snack & Savory Finger Foods
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {PRODUCT_CATALOG.filter(p => p.category === 'Snack').map(item => (
+                      <div key={item.id} className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all">
+                        <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{item.category}</span>
+                              <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
+                            <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 mt-2">
+                            <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
+                              <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                            </button>
+                            <button onClick={() => handleAddToCart(item)} className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md">
+                              <Plus className="w-3.5 h-3.5" /> Tambah
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
               {/* STICKY FLOATING BOTTOM CART BAR -> NAVIGATE TO DEDICATED CHECKOUT VIEW */}
