@@ -45,7 +45,8 @@ import {
   Footprints,
   AlertTriangle,
   Zap,
-  Armchair
+  Armchair,
+  RotateCcw
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -226,8 +227,11 @@ const PRODUCT_CATALOG: MenuItem[] = [
 
 export default function App() {
   // --- SURFACE APP STATE ---
-  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('barista-pos')
+  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('mobile-qr')
   
+  // --- ALI'S EX-ESB CATEGORY FILTER CHIPS STATE ---
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Semua')
+
   // --- KDS VIEW, SORTING & CUSTOM STATIONS STATE ---
   const [kdsViewMode, setKdsViewMode] = useState<'kanban' | 'list'>('kanban')
   const [kdsSortBy, setKdsSortBy] = useState<'time-desc' | 'time-asc' | 'category'>('time-desc')
@@ -291,7 +295,7 @@ export default function App() {
       policy: 'pay-first',
       total: 86000,
       status: 'placed',
-      timeElapsedMinutes: 12, // OVERDUE TIMER TRIGGER (>10 mins Pakuwon's Alert)
+      timeElapsedMinutes: 12,
       createdAt: '19:24',
       waiterCall: 'Minta Tambah Sedotan & Sendok Garpu'
     },
@@ -399,6 +403,11 @@ export default function App() {
     })
   }
 
+  const handleReorderSameItem = (item: MenuItem) => {
+    handleAddToCart(item)
+    alert(`1x ${item.name} berhasil ditambahkan kembali ke keranjang pesanan meja!`)
+  }
+
   const handleApplyPromo = () => {
     if (promoCodeInput.toUpperCase() === 'HAPPYHOUR' || promoCodeInput.toUpperCase() === 'WEEKEND20') {
       setAppliedPromo({ code: promoCodeInput.toUpperCase(), discount: 15000 })
@@ -477,6 +486,11 @@ export default function App() {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, waiterCall: undefined } : o))
   }
 
+  // --- FILTERED CATALOG FOR ALI'S CATEGORY CHIPS ---
+  const filteredCatalog = selectedCategoryFilter === 'Semua' 
+    ? PRODUCT_CATALOG 
+    : PRODUCT_CATALOG.filter(p => p.category === selectedCategoryFilter)
+
   // --- KDS STATION FILTERING & SORTING LOGIC ---
   const currentStation = stations.find(s => s.id === activeStationId) || stations[0]
 
@@ -511,7 +525,7 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">Pakuwon & Chef Mike Hospitality Standard</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Pak Pakuwon • Chef Mike • Ali ex-ESB Design</p>
             </div>
           </div>
 
@@ -697,14 +711,33 @@ export default function App() {
             )}
           </div>
 
-          {/* Catalog Menu Grid */}
+          {/* Catalog Menu Grid with ALI'S EX-ESB CATEGORY FILTER CHIPS */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
-              <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe & Resto
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-200 flex items-center gap-2">
+                <Coffee className="w-4 h-4 text-amber-500" /> Katalog Menu Kafe & Resto
+              </h3>
+            </div>
+
+            {/* ALI'S CATEGORY FILTER CHIPS */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              {['Semua', 'Coffee', 'Non-Coffee', 'Pastry', 'Snack'].map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategoryFilter(cat)}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                    selectedCategoryFilter === cat
+                      ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md'
+                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  {cat === 'Semua' ? '🌟 Semua Menu' : cat}
+                </button>
+              ))}
+            </div>
 
             <div className="grid grid-cols-1 gap-3">
-              {PRODUCT_CATALOG.map(item => (
+              {filteredCatalog.map(item => (
                 <div 
                   key={item.id}
                   className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex gap-3 hover:border-slate-700 transition-all"
@@ -728,12 +761,23 @@ export default function App() {
                       <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
                     </div>
 
-                    <button
-                      onClick={() => handleAddToCart(item)}
-                      className="mt-2 self-end bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md"
-                    >
-                      <Plus className="w-3.5 h-3.5" /> Tambah Pesanan
-                    </button>
+                    <div className="flex items-center justify-end gap-2 mt-2">
+                      {/* ALI'S ONE-TAP RE-ORDER BUTTON */}
+                      <button
+                        onClick={() => handleReorderSameItem(item)}
+                        className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700"
+                        title="Pesan Lagi Kopi Yang Sama (Ali's UX Feature)"
+                      >
+                        <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
+                      </button>
+                      
+                      <button
+                        onClick={() => handleAddToCart(item)}
+                        className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-md"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Tambah
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -881,7 +925,7 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 2: BARISTA & CASHIER TOUCH POS --- */}
+      {/* --- SURFACE 2: BARISTA & CASHIER TOUCH POS WITH ALI'S VISUAL COLOR BAR --- */}
       {activeSurface === 'barista-pos' && (
         <main className="flex-1 p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto w-full">
           
@@ -906,7 +950,7 @@ export default function App() {
                 <div
                   key={table.id}
                   onClick={() => setSelectedPOSTable(table)}
-                  className={`border rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-28 sm:h-32 transition-all cursor-pointer ${
+                  className={`border rounded-2xl p-3 sm:p-4 flex flex-col justify-between h-28 sm:h-32 transition-all cursor-pointer relative overflow-hidden ${
                     selectedPOSTable?.id === table.id
                       ? 'ring-2 ring-amber-500 bg-amber-500/20 border-amber-500'
                       : table.status === 'occupied' 
@@ -916,14 +960,19 @@ export default function App() {
                       : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  {/* ALI'S VISUAL STATUS COLOR BAR ON LEFT EDGE */}
+                  <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${
+                    table.status === 'occupied' ? 'bg-amber-500' : table.status === 'open-tab' ? 'bg-indigo-500' : 'bg-emerald-500'
+                  }`} />
+
+                  <div className="flex items-center justify-between pl-1">
                     <span className="font-mono font-bold text-xs sm:text-sm text-slate-200">{table.name}</span>
                     <span className={`w-2.5 h-2.5 rounded-full ${
                       table.status === 'occupied' ? 'bg-amber-500' : table.status === 'open-tab' ? 'bg-indigo-500' : 'bg-emerald-500'
                     }`} />
                   </div>
 
-                  <div>
+                  <div className="pl-1">
                     {table.customerName ? (
                       <p className="text-[11px] sm:text-xs font-semibold text-slate-300 truncate">{table.customerName}</p>
                     ) : (
