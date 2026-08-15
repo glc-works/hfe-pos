@@ -2,8 +2,8 @@
 okf_version: "0.2"
 type: Strategic Plan Level 0
 title: Hfe POS & Cafe Mobile Order Suite — Master Strategic Plan
-description: Master product vision for the Cafe & F&B Experience Layer, delivering a dual-surface cashier station and smartphone QR table self-ordering web app powered by Hfe REST APIs.
-tags: [master-plan, level-0, pos, cafe, mobile-qr-order, f-and-b, phone-login, guest-mode, open-tab, universal-hfe-loyalty, promo-discounts, referral-program, owner-settings]
+description: Master product vision for the Cafe & F&B Experience Layer, delivering a mobile-first dual-surface cashier station and smartphone QR table self-ordering web app powered by Hfe REST APIs.
+tags: [master-plan, level-0, pos, cafe, mobile-first-view, tablet-second-option, mobile-qr-order, f-and-b, phone-login, guest-mode, open-tab, universal-hfe-loyalty, owner-settings]
 status: Proposed
 ---
 
@@ -13,11 +13,14 @@ status: Proposed
 
 The **Hfe POS & Cafe Mobile Order Suite** (`glc-works/hfe-pos`) is the dedicated **Cafe & F&B Experience Layer** built for modern coffee shops, cafes, and restaurants.
 
-It provides a seamless **Dual-Surface Experience**:
-1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, select their preferred login mode (**Phone/WhatsApp Login with Universal HFE Loyalty Tiers & Referral Program** OR **Pure Guest Mode with Name only**), browse visual coffee & food menus, customize modifiers, redeem promo discount codes, share referral codes, redeem loyalty points for drink discounts, and order under cafe-configurable payment policies (**Pay-First** vs **Open Tab Billing**).
-2. **Barista & Cashier Touch POS (POS & Kitchen Display):** Baristas and cashiers manage table billing tabs, print kitchen tickets, apply cashier promo discounts, handle offline cash/QRIS checkouts, and reconcile daily shift cash drawers.
+### 📱 Mobile-First Design Principle (Primary Focus):
+All 3 surface interfaces (**Customer QR Ordering**, **Barista POS**, and **Kitchen KDS Kanban**) are engineered with **Mobile Viewport as Primary Focus**, with **Tablet Viewport as Secondary Option**. Every component, modal, drawer, and table layout is optimized for ultra-smooth 60fps mobile ergonomics, zero content shifting, and one-thumb touch interactions.
 
-`hfe-pos` leverages the **Universal HFE Customer Loyalty, Promo & Referral Engine** (`/v1/loyalty`, `/v1/promos`, `/v1/referrals`, `/v1/vouchers`). Business Owners can create custom promo discount codes (e.g. `HAPPYHOUR`, `WEEKEND20`), set up Customer Referral dual-bonus rewards, customize loyalty tier names, thresholds, and perks via **Owner Loyalty Policy Settings** (`PUT /v1/loyalty/settings`), and monitor customer point/referral metrics on a **per-contact basis** (`GET /v1/contacts/{id}/loyalty`). All **Customers, Employee Profiles, Loyalty Point Balances, and Referral Logs** are resolved via `Hfe` REST APIs (`/v1/contacts`, `/v1/loyalty`, `/v1/promos`, `/v1/referrals`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
+It provides a seamless **Dual-Surface Experience**:
+1. **Customer Smartphone QR Ordering (Mobile-First Web App):** Customers scan a QR code at their table, select their preferred login mode (**Phone/WhatsApp Login with Universal HFE Loyalty Tiers** OR **Pure Guest Mode with Name only**), browse visual coffee & food menus, customize modifiers, redeem loyalty points to claim **Hfe Voucher Codes** for instant cart discounts, and order under cafe-configurable payment policies (**Pay-First** vs **Open Tab Billing**).
+2. **Barista Touch POS & Kitchen KDS Kanban:** Baristas and kitchen staff manage table billing tabs, review KDS Kanban queues, check recipe BOMs & SOP steps, print kitchen tickets, and reconcile daily shift cash drawers on mobile or tablet devices.
+
+`hfe-pos` leverages the **Universal HFE Customer Loyalty & Voucher Engine** (`/v1/loyalty`, `/v1/vouchers`). Business Owners can customize their loyalty tier names, thresholds, linked voucher templates, and tier benefits via **Owner Loyalty Policy Settings** (`PUT /v1/loyalty/settings`) and monitor customer point metrics on a **per-contact basis** (`GET /v1/contacts/{id}/loyalty`). All **Customers, Employee Profiles, Loyalty Point Balances, and Claimed Voucher Wallets** are resolved via `Hfe` REST APIs (`/v1/contacts`, `/v1/loyalty`, `/v1/vouchers`). Product master data, financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed behind **Hfe REST APIs**.
 
 ---
 
@@ -26,61 +29,65 @@ It provides a seamless **Dual-Surface Experience**:
 ```
                      ┌─────────────────────────────────────────────────────────────┐
                      │    Hfe Cafe POS & Mobile Order Experience Layer (L0)       │
+                     │    (MOBILE VIEWPORT FIRST • TABLET SECONDARY OPTION)       │
                      └──────────────────────────────┬──────────────────────────────┘
                                                     │
          ┌──────────────────────┬───────────────────┴───────────────────┬──────────────────────┐
          │                      │                                       │                      │
 ┌────────▼─────────────┐ ┌──────▼──────────────┐               ┌────────▼─────────────┐ ┌──────▼──────────────┐
 │ L1-01: Phone Login,  │ │ L1-02: Barista Touch │               │ L1-03: Policy Payment│ │ L1-04: Kitchen Ticket│
-│ Promos, Referrals &QR│ │ POS & Table Engine   │               │ Checkout (Pay/Tab)   │ │ & Barista Display    │
+│ Loyalty & Vouchers   │ │ POS & Table Engine   │               │ Checkout (Pay/Tab)   │ │ & KDS Kanban Screen  │
 └──────────────────────┘ └──────────────────────┘               └──────────────────────┘ └──────────────────────┘
                                  │
                                  ▼ (100% REST API Transport Layer)
                      ┌─────────────────────────────────────────────────────────────┐
-                     │ Hfe Core REST APIs (Contacts, Products, Promos & Referrals) │
+                     │ Hfe Core REST APIs (Contacts, Products, Loyalty & Vouchers) │
                      └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Pillar 1: Customer Phone / Guest Name Mobile QR Self-Ordering (`L1-01`)
 - **Zero App Install & Flexible Customer Entry:**
-  - **Option A (Phone/WhatsApp Login with Loyalty & Referrals):** Customer enters Phone Number for digital receipts, **Loyalty Tier Status**, unique **Referral Code Sharing** (e.g. `ALDI-CAFE10`), and active **Promo Discount Code input**.
+  - **Option A (Phone/WhatsApp Login with Voucher Wallet):** Customer enters Phone Number for digital receipts, **Loyalty Tier Status**, and active **Hfe Voucher Wallet** (`GET /v1/contacts/{id}/vouchers`).
   - **Option B (Pure Guest Mode):** Customer simply enters a display Name (e.g. "Aldi") for instant table delivery identification without disclosing a phone number.
 - **Product Master Menu Fetch:** Dynamic menu rendering fetched from `Hfe` Product Master API (`GET /v1/products`).
 - **Drink & Food Customizer:** Interactive modifiers (Ice/Hot, Sugar 0%/50%/100%, Dairy Options).
-- **Promo & Referral Apply:** Customers can enter owner promo codes (`HAPPYHOUR`) and claim friend referral codes for instant dual bonus points.
-- **Real-Time Order Tracker:** Live status tracking (Order Placed ➔ Brewing ➔ Ready for Pickup / Served).
+- **Voucher Claim & Apply:** Customers can redeem points to claim Hfe Vouchers and apply discount promo codes directly inside the checkout cart.
+- **Real-Time Order Tracker:** Live status tracking (Order Placed ➔ Processing ➔ Ready for Pickup / Served).
 
 ### Pillar 2: Barista & Cashier Touch POS (`L1-02`)
+- **Mobile & Tablet Touch Ergonomics:** Touch-optimized floor plan grid and touch catalog for phone and tablet screens.
 - **Employee Contact Authentication:** Baristas & Cashiers authenticate shift openings using their `employee` record via `Hfe` Contact Master API.
-- **Table Matrix & Queue Grid:** Touch-optimized order matrix organized by Table Numbers and Takeaway queues.
-- **Manual Promo Override:** Cashiers can apply owner promo discount codes manually at the POS touchscreen.
+- **Table Matrix & Queue Grid:** Visual order matrix organized by Table Numbers and Takeaway queues.
 - **Shift Drawer Float Reconciliation:** Opening and closing cash drawer count verification with variance logging via `Hfe` REST APIs.
 
 ### Pillar 3: Policy-Based Payment Checkout (`L1-03`)
 - **Pay-First Policy (Pre-Paid):** Customer pays immediately via QRIS/VA before order is sent to Barista/Kitchen.
 - **Open Tab / Pay-at-End Policy (Post-Paid):** Customer adds multiple round orders to their table tab and settles total bill upon departure (Pay via Phone or Cashier).
-- **Automated Settlement & Referral Accrual:** Outbound checkout payloads submitted to `Hfe` REST APIs.
+- **Automated Settlement & Tiered Loyalty Accrual:** Outbound checkout payloads submitted to `Hfe` REST Transaction & Loyalty APIs (`POST /v1/transactions`, `POST /v1/loyalty/accrue`).
 
 ### Pillar 4: Kitchen & Barista Ticket Display (`L1-04`)
-- Real-time Kitchen Display System (KDS) showing pending drinks and food orders.
+- Real-time Kitchen KDS Screen with **Kanban View & List View Switcher** and sorting controls.
+- Interactive recipe **Bill of Materials (BOM)** and step-by-step **SOP Preparation Drawer**.
 - ESC/POS thermal printer integration for printing order chits to espresso bar and kitchen.
 
 ---
 
-## 3. Owner Marketing & Growth Suite
+## 3. Universal HFE Loyalty Tier & Benefit Matrix (Voucher Integration)
 
-| Marketing Feature | Owner Capability | Hfe REST API Endpoint | Customer / POS Experience |
-|---|---|---|---|
-| **Promo Discount Codes** | Create fixed IDR or % discount codes (e.g. `HAPPYHOUR`, `WEEKEND20`) | `POST /v1/promos` | Input promo code at checkout cart for instant discount |
-| **Referral Program** | Set dual bonus points for referrer & friend | `POST /v1/referrals/claim` | Share unique code (`ALDI-CAFE10`); both get bonus points |
-| **Tier Perk Linking** | Link Hfe Voucher templates to loyalty tiers | `PUT /v1/loyalty/settings` | Auto-unlocks free vouchers upon reaching tier thresholds |
+| Tier Level | Total Lifetime Spend Threshold | Point Multiplier | Default Tier Name | Linked Hfe Voucher Perk Template |
+|---|---|---|---|---|
+| **Tier 1** | Rp 0 – Rp 999.999 | **1.0x** | 🥉 **Bronze** | *"Struk Digital & Poin Dasar"* |
+| **Tier 2** | Rp 1.000.000 – Rp 4.999.999 | **1.25x** | 🥈 **Silver** | 🎫 **`VOUCHER-BIRTHDAY`** (Free 1 Shot Espresso di Ultah) |
+| **Tier 3** | Rp 5.000.000 – Rp 14.999.999 | **1.5x** | 🥇 **Gold** | 🎫 **`VOUCHER-DISC10PCT`** (Diskon Biji Kopi 10%) |
+| **Tier 4** | Rp 15.000.000+ | **2.0x** | 💎 **Platinum**| 🎫 **`VOUCHER-FREEUPGRADE`** (Free Upgrade Ukuran Drink) |
 
 ---
 
-## 4. Verification & Quality Standards
+## 4. Mobile Viewport Standards & Quality Standards
 
-- **Promo Validation Speed:** Promo code validation & cart discount recalculation < 150ms.
-- **Referral Bonus Accrual:** Dual bonus point credit to both referrer and referee < 1 second.
-- **Universal Core Integration:** Leverages generic Hfe Loyalty, Promo, and Referral REST APIs (`/v1/loyalty`, `/v1/promos`, `/v1/referrals`).
+- **Mobile Viewport Primary Focus:** 100% of UI screens (Customer QR, Barista POS, KDS Kanban) are optimized for single-hand smartphone viewports (360px - 430px width) with 60fps smooth touch responses.
+- **Tablet Viewport Second Option:** Adaptive fluid grid expanding to tablet screens (768px - 1024px width) without layout breaking.
+- **Voucher Validation Speed:** Hfe Voucher claim and promo code application < 200ms.
+- **Universal Core Integration:** Leverages generic Hfe Loyalty & Voucher REST APIs (`/v1/loyalty`, `/v1/vouchers`) across all Company Books.
 - **Kitchen Ticket Sync:** Order transmission from customer phone to Barista screen < 500ms.
 - **Hfe API Compliance:** All checkout payloads match `Hfe` OpenAPI specifications.
