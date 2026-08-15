@@ -1,74 +1,81 @@
 ---
 okf_version: "0.2"
 type: Strategic Plan Level 0
-title: Hfe POS & Commerce Suite Master Strategic Plan
-description: Master product vision and architectural blueprint for the Hfe POS & Commerce Suite, delivering a resilient, offline-first cashier interface connected to the Hfe Headless Financial Engine.
-tags: [master-plan, level-0, pos, cashier, commerce, hfe-connect, subledger]
-status: Approved
+title: Hfe POS & Commerce Suite — Experience Layer Master Plan
+description: Master product vision and architectural blueprint for the Hfe POS & Commerce Suite experience layer, delivering a responsive, offline-first cashier interface powered by the Hfe Headless Financial Engine.
+tags: [master-plan, level-0, pos, cashier-experience, hfe-connect, frontend-suite]
+status: Proposed
 ---
 
-# Level 0 Strategic Plan: Hfe POS & Commerce Suite
+# Level 0 Strategic Plan: Hfe POS & Commerce Suite (Experience Layer)
 
 ## 1. Executive Summary & Vision
 
-The **Hfe POS & Commerce Suite** (`glc-works/hfe-pos`) is the official retail cashier and point-of-sale frontend built for the **Headless Company Books (`Hfe`)** ecosystem.
+The **Hfe POS & Commerce Suite** (`glc-works/hfe-pos`) is the dedicated **Cashier & Retail Experience Layer** designed to interface directly with the **Headless Company Books (`Hfe`)** core engine.
 
-Designed for high-concurrency retail outlets, clinics, and F&B businesses, `hfe-pos` bridges physical cashier checkouts with sub-millisecond double-entry financial subledgers. It guarantees 100% offline resilience, instant QRIS/Virtual Account payment splits, PERURI e-stamping, and DJP e-Faktur compliance.
-
----
-
-## 2. Core Strategic Pillars (Level 1 Plan Mapping)
-
-```
-                       ┌──────────────────────────────────────────┐
-                       │     Hfe POS & Commerce Suite (L0)       │
-                       └────────────────────┬─────────────────────┘
-                                            │
-         ┌──────────────────┬───────────────┴───────────────┬──────────────────┐
-         │                  │                               │                  │
-┌────────▼────────┐ ┌───────▼─────────┐         ┌───────────▼──────────┐ ┌─────▼──────────┐
-│ L1-01: Cashier  │ │ L1-02: Offline  │         │ L1-03: Biller Split  │ │ L1-04: Inventory│
-│  & Cart Engine  │ │   Sync Buffer   │         │  & Payment Gateway   │ │   Subledger     │
-└─────────────────┘ └─────────────────┘         └──────────────────────┘ └─────────────────┘
-```
-
-### L1 Domain 01: Cashier & Touchscreen Cart Engine (`docs/active/plans/level-1/l1-01-cashier-cart-engine.md`)
-- High-speed barcode scanning (<10ms item lookup).
-- Touch-optimized checkout cart supporting discounts, customer loyalty tiering, and custom biller fees.
-- Real-time tax calculation (PPN 11%/12% Kode 01 & Kode 08 exempt).
-
-### L1 Domain 02: Offline-First Resilience & Sync (`docs/active/plans/level-1/l1-02-offline-sync-buffer.md`)
-- Zero downtime: 100% functional sales processing even when internet connection dies.
-- Local storage buffer using `IndexedDB` with cryptographic payload checksums.
-- Automatic background synchronization to `Hfe` subledger upon network restoration.
-
-### L1 Domain 03: Biller Split & Payment Gateway (`docs/active/plans/level-1/l1-03-biller-split-payments.md`)
-- Instant dynamic QRIS generation (ASPI national standard).
-- Real-time BCA / Mandiri / BRI Virtual Account cashier settlement.
-- Biller fee split engine (e.g. 20% platform fee, 80% merchant payout routed via TigerBeetle subledger).
-
-### L1 Domain 04: Inventory & Stock Subledger (`docs/active/plans/level-1/l1-04-inventory-stock-subledger.md`)
-- Automated COGS (Cost of Goods Sold) inventory journal postings (`1200-Inventory` ➔ `5000-COGS`).
-- Multi-outlet stock availability lookup and transfer requests.
-- Low stock threshold alerts and automatic purchase order triggers.
-
-### L1 Domain 05: Multi-outlet Shift & Drawer Reconciliation (`docs/active/plans/level-1/l1-05-shift-drawer-reconciliation.md`)
-- Cashier shift opening and closing cash drawer count validation (`1010-Cash Drawer`).
-- Over/short cash variance posting with audit trail logging.
-- Shift report export (PDF/Thermal receipt printer format).
+Because `Hfe` owns all subledger journal postings, TigerBeetle double-entry invariants, tax calculations, and biller revenue sharing, `hfe-pos` focuses **100% on Cashier UX Excellence**:
+- Sub-millisecond touchscreen cart responsiveness & hardware barcode scanning.
+- Complete offline-first resilience with local transaction buffering (`IndexedDB`).
+- Seamless cashier checkout experiences supporting QRIS, Virtual Account modals, and cash drawer shift reconciliations.
 
 ---
 
-## 3. Financial Subledger Integration & Monetization
+## 2. Strategic Experience Pillars (Level 1 Domain Mapping)
 
-- **Metered Revenue Share:** `hfe-pos` acts as a premier `Hfe Connect` marketplace connector.
-- **Transaction Billing:** Rp 250 fee per completed checkout transaction (20% platform revenue share to Hfe Core, 80% to merchant account).
-- **Subledger Immutable Journal:** Every completed transaction automatically posts an unalterable financial transaction inside `Hfe`.
+```
+                 ┌─────────────────────────────────────────────────────────────┐
+                 │       Hfe POS Suite — Cashier Experience Layer (L0)         │
+                 └──────────────────────────────┬──────────────────────────────┘
+                                                │
+         ┌──────────────────────┬───────────────┴───────────────┬──────────────────────┐
+         │                      │                               │                      │
+┌────────▼─────────────┐ ┌──────▼──────────────┐       ┌────────▼─────────────┐ ┌──────▼──────────────┐
+│ L1-01: Cashier & Cart│ │ L1-02: Offline-First│       │ L1-03: Dynamic Payment│ │ L1-04: Cash Shift    │
+│ Touch Experience     │ │ Client Sync Buffer  │       │ Checkout Modals      │ │ Drawer Reconciliation│
+└──────────────────────┘ └─────────────────────┘       └──────────────────────┘ └──────────────────────┘
+                                 │
+                                 ▼ (Delegates Subledger & Ledger Postings)
+                 ┌─────────────────────────────────────────────────────────────┐
+                 │             Hfe Headless Financial Engine Core               │
+                 └─────────────────────────────────────────────────────────────┘
+```
+
+### Pillar 1: Touchscreen Cashier & Cart UX (`L1-01`)
+- Fast hardware barcode scanner listener (<10ms item insertion).
+- Touch-optimized cart layout (item search, line item discounts, quantity adjustments, tax preview).
+- Thermal receipt preview and direct browser ESC/POS printing.
+
+### Pillar 2: Offline-First Client Sync Buffer (`L1-02`)
+- Zero-downtime sales processing during internet disconnects.
+- Local cryptographic payload persistence in `IndexedDB` with SHA-256 integrity checksums.
+- Background sync manager pushing buffered sales to `Hfe` API upon network recovery.
+
+### Pillar 3: Dynamic Payment Checkout Modals (`L1-03`)
+- Dynamic ASPI QRIS code display modal with real-time WebSocket payment completion alerts.
+- Cashier Virtual Account payment modal for instant customer checkout.
+- Multi-pay splitting (e.g. partial cash + partial QRIS).
+
+### Pillar 4: Cash Drawer & Shift Reconciliation UX (`L1-04`)
+- Cashier shift opening and closing cash float verification (`1010-Cash Drawer`).
+- Cash drawer overage/shortage variance input modal.
+- End-of-shift cash drawer balance report generation.
+
+---
+
+## 3. Delegation Boundary — Engine vs Experience Layer
+
+| Concern | `hfe-pos` (Experience Layer) | `Hfe` Core (Financial Engine) |
+|---|---|---|
+| **Cashier Touchscreen & Barcode Scan** | ✅ Owns UI & Keyboard Listener | ❌ Not concerned |
+| **Offline Cart State & Local Storage** | ✅ Persists in `IndexedDB` | ❌ Not concerned |
+| **Double-Entry Journal & Subledger** | ❌ Sends REST payload | ✅ Owns TigerBeetle posting |
+| **Tax Calculation (PPN Kode 01/08)** | 👁️ Pre-calculates preview | ✅ Enforces DJP XML & ledger rules |
+| **Biller Fee Split (20% / 80%)** | 👁️ Displays split breakdown | ✅ Executes money routing & ledger split |
 
 ---
 
 ## 4. Verification & Quality Standards
 
-- **Performance SLA:** Cashier cart latency < 50ms per item add; checkout response < 200ms.
-- **Zero Data Loss Guarantee:** Offline transactions must withstand unexpected browser closes or power cuts.
-- **Contract Enforcement:** All API interactions must match OpenAPI schemas defined in `Hfe`.
+- **Touch Responsiveness:** Cart item addition < 50ms per scan.
+- **Offline Resilience:** 100% data persistence test (browser crash recovery during offline sale).
+- **Hfe API Compliance:** All outbound payloads must match `Hfe` OpenAPI specifications.
