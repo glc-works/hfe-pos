@@ -59,7 +59,8 @@ import {
   Database,
   ExternalLink,
   Monitor,
-  ClipboardList
+  ClipboardList,
+  Barcode
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -87,7 +88,7 @@ interface MenuItem {
   image: string
   description: string
   hasModifiers?: boolean
-  bomIngredients?: { name: string; amount: string }[]
+  bomIngredients?: { itemCode: string; name: string; amount: string }[]
   preparationSteps?: string[]
 }
 
@@ -127,7 +128,7 @@ interface OrderTicket {
   waiterCall?: string
 }
 
-// --- MOCK PRODUCT MASTER DATA WITH OFFICIAL HFE BACKEND CATEGORY CODES ---
+// --- MOCK PRODUCT MASTER DATA WITH KODE BARANG CAFE & BOM RAW CODES ---
 const PRODUCT_CATALOG: MenuItem[] = [
   { 
     id: 'PRD-01', 
@@ -140,10 +141,10 @@ const PRODUCT_CATALOG: MenuItem[] = [
     description: 'Double espresso dengan gula aren organik dan susu segar', 
     hasModifiers: true,
     bomIngredients: [
-      { name: 'Houseblend Arabica Beans', amount: '18 gram' },
-      { name: 'Oatside Oat Milk / Fresh Milk', amount: '150 ml' },
-      { name: 'Liquid Organic Aren Syrup', amount: '20 ml' },
-      { name: 'Ice Cubes', amount: '120 gram' }
+      { itemCode: 'RAW-BEAN-01', name: 'Houseblend Arabica Beans', amount: '18 gram' },
+      { itemCode: 'RAW-MILK-02', name: 'Oatside Oat Milk / Fresh Milk', amount: '150 ml' },
+      { itemCode: 'RAW-SYRUP-03', name: 'Liquid Organic Aren Syrup', amount: '20 ml' },
+      { itemCode: 'RAW-ICE-04', name: 'Ice Cubes', amount: '120 gram' }
     ],
     preparationSteps: [
       '1. Grinding 18g biji kopi Arabica Houseblend ke portafilter double shot.',
@@ -164,9 +165,9 @@ const PRODUCT_CATALOG: MenuItem[] = [
     description: 'Rich espresso blended dengan condensed milk dan velvety foam', 
     hasModifiers: true,
     bomIngredients: [
-      { name: 'Espresso Beans Single Origin', amount: '18 gram' },
-      { name: 'Sweetened Condensed Milk', amount: '25 ml' },
-      { name: 'Fresh Milk Steamed/Cold', amount: '140 ml' }
+      { itemCode: 'RAW-BEAN-02', name: 'Espresso Beans Single Origin', amount: '18 gram' },
+      { itemCode: 'RAW-[MILK]-03', name: 'Sweetened Condensed Milk', amount: '25 ml' },
+      { itemCode: 'RAW-MILK-01', name: 'Fresh Milk Steamed/Cold', amount: '140 ml' }
     ],
     preparationSteps: [
       '1. Campur 25ml kental manis ke gelas saji.',
@@ -186,9 +187,9 @@ const PRODUCT_CATALOG: MenuItem[] = [
     description: 'Single-origin beans diseduh V60 langsung ke atas es batu', 
     hasModifiers: true,
     bomIngredients: [
-      { name: 'Single Origin Filter Beans (Ethiopia/Gayo)', amount: '15 gram' },
-      { name: 'Air Panas (92°C)', amount: '150 ml' },
-      { name: 'Ice Cubes Server', amount: '100 gram' }
+      { itemCode: 'RAW-BEAN-03', name: 'Single Origin Filter Beans (Ethiopia/Gayo)', amount: '15 gram' },
+      { itemCode: 'RAW-WATER-01', name: 'Air Panas (92°C)', amount: '150 ml' },
+      { itemCode: 'RAW-ICE-04', name: 'Ice Cubes Server', amount: '100 gram' }
     ],
     preparationSteps: [
       '1. Giling 15g kopi medium-coarse filter grind.',
@@ -207,9 +208,9 @@ const PRODUCT_CATALOG: MenuItem[] = [
     description: 'Uji Matcha Jepang premium dicampur susu gandum Oatside', 
     hasModifiers: true,
     bomIngredients: [
-      { name: 'Uji Matcha Powder Premium', amount: '6 gram' },
-      { name: 'Air Hangat (80°C)', amount: '30 ml' },
-      { name: 'Oatside Oat Milk', amount: '160 ml' }
+      { itemCode: 'RAW-MATCHA-01', name: 'Uji Matcha Powder Premium', amount: '6 gram' },
+      { itemCode: 'RAW-WATER-01', name: 'Air Hangat (80°C)', amount: '30 ml' },
+      { itemCode: 'RAW-MILK-02', name: 'Oatside Oat Milk', amount: '160 ml' }
     ],
     preparationSteps: [
       '1. Whisk 6g bubuk Matcha Uji dengan 30ml air hangat 80°C hingga terlarut sempurna.',
@@ -227,8 +228,8 @@ const PRODUCT_CATALOG: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80', 
     description: 'Flaky pastry mentega Prancis panggang hangat',
     bomIngredients: [
-      { name: 'Pre-baked Butter Croissant', amount: '1 pcs' },
-      { name: 'French Salted Butter', amount: '10 gram' }
+      { itemCode: 'RAW-PASTRY-01', name: 'Pre-baked Butter Croissant', amount: '1 pcs' },
+      { itemCode: 'RAW-BUTTER-02', name: 'French Salted Butter', amount: '10 gram' }
     ],
     preparationSteps: [
       '1. Masukkan croissant ke oven salamander / air fryer suhu 180°C selama 3 menit.',
@@ -245,10 +246,10 @@ const PRODUCT_CATALOG: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80', 
     description: 'Kentang goreng renyah minyak truffle dan taburan keju parmesan',
     bomIngredients: [
-      { name: 'Shoestring French Fries', amount: '180 gram' },
-      { name: 'White Truffle Oil', amount: '5 ml' },
-      { name: 'Grated Parmesan Cheese', amount: '15 gram' },
-      { name: 'Parsley Flakes', amount: '2 gram' }
+      { itemCode: 'RAW-POTATO-01', name: 'Shoestring French Fries', amount: '180 gram' },
+      { itemCode: 'RAW-TRUFFLE-02', name: 'White Truffle Oil', amount: '5 ml' },
+      { itemCode: 'RAW-CHEESE-03', name: 'Grated Parmesan Cheese', amount: '15 gram' },
+      { itemCode: 'RAW-HERB-04', name: 'Parsley Flakes', amount: '2 gram' }
     ],
     preparationSteps: [
       '1. Goreng kentang di deep fryer suhu 175°C selama 4 menit hingga golden crispy.',
@@ -658,7 +659,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* --- APPLICATION ROUTE 1: CUSTOMER MOBILE QR WEB APP --- */}
+      {/* --- APPLICATION ROUTE 1: CUSTOMER MOBILE QR WEB APP (CLEAN UX - NO CODES) --- */}
       {activeApp === 'customer' && (
         <div className="flex-1 flex flex-col">
           {/* Customer App Top Banner */}
@@ -753,18 +754,18 @@ export default function App() {
                   </div>
                 )}
 
-                {/* STICKY CATEGORY JUMP NAVIGATOR BAR WITH HFE CATEGORY CODES */}
+                {/* STICKY CATEGORY JUMP NAVIGATOR BAR (CLEAN CUSTOMER LOOK) */}
                 <div className="sticky top-[60px] z-30 bg-slate-900/95 backdrop-blur-md border border-slate-800/90 p-2 rounded-2xl flex items-center gap-1.5 overflow-x-auto shadow-xl">
                   {[
-                    { id: 'Coffee', icon: '☕', name: 'Coffee', hfeCode: 'CAT-COFFEE-01' },
-                    { id: 'Non-Coffee', icon: '🍵', name: 'Non-Coffee', hfeCode: 'CAT-NONCOFFEE-02' },
-                    { id: 'Pastry', icon: '🥐', name: 'Pastry', hfeCode: 'CAT-PASTRY-03' },
-                    { id: 'Snack', icon: '🍟', name: 'Snack', hfeCode: 'CAT-SNACK-04' }
+                    { id: 'Coffee', icon: '☕', name: 'Coffee' },
+                    { id: 'Non-Coffee', icon: '🍵', name: 'Non-Coffee' },
+                    { id: 'Pastry', icon: '🥐', name: 'Pastry' },
+                    { id: 'Snack', icon: '🍟', name: 'Snack' }
                   ].map(cat => (
                     <button
                       key={cat.id}
                       onClick={() => scrollToCategorySection(cat.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-950 text-slate-300 hover:bg-amber-500 hover:text-slate-950 border border-slate-800 transition-all shadow-sm"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-950 text-slate-300 hover:bg-amber-500 hover:text-slate-950 border border-slate-800 transition-all shadow-sm"
                     >
                       <span>{cat.icon}</span>
                       <span>{cat.name}</span>
@@ -772,18 +773,15 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS */}
+                {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS (NO INTERNAL CODES SHOWN) */}
                 <div className="flex flex-col gap-6 pt-1">
                   
                   {/* SECTION 1: COFFEE SHOWCASE */}
                   <div ref={coffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
                     <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-l-4 border-amber-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-                          <Coffee className="w-4 h-4 text-amber-500" /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
-                        </h3>
-                        <span className="text-[9px] font-mono text-amber-400/70 font-semibold">HFE Core Category: CAT-COFFEE-01 • GL 4010-Beverage</span>
-                      </div>
+                      <h3 className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                        <Coffee className="w-4 h-4 text-amber-500" /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
+                      </h3>
                       <span className="text-[10px] font-mono font-bold text-amber-400/80">3 Items</span>
                     </div>
 
@@ -794,13 +792,10 @@ export default function App() {
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                                  {item.hfeCategoryCode}
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
+                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
-                              <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
-                              <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                              <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
                               <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
@@ -819,12 +814,9 @@ export default function App() {
                   {/* SECTION 2: NON-COFFEE SHOWCASE */}
                   <div ref={nonCoffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
                     <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border-l-4 border-emerald-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wider flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-emerald-500" /> 🍵 ETALASE NON-COFFEE & ARTISAN MATCHA
-                        </h3>
-                        <span className="text-[9px] font-mono text-emerald-400/70 font-semibold">HFE Core Category: CAT-NONCOFFEE-02 • GL 4010-Beverage</span>
-                      </div>
+                      <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-500" /> 🍵 ETALASE NON-COFFEE & ARTISAN MATCHA
+                      </h3>
                       <span className="text-[10px] font-mono font-bold text-emerald-400/80">1 Item</span>
                     </div>
 
@@ -835,13 +827,10 @@ export default function App() {
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                                  {item.hfeCategoryCode}
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
+                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
-                              <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
-                              <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                              <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
                               <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
@@ -860,12 +849,9 @@ export default function App() {
                   {/* SECTION 3: PASTRY & BAKERY SHOWCASE */}
                   <div ref={pastrySecRef} className="flex flex-col gap-3 scroll-mt-24">
                     <div className="bg-gradient-to-r from-orange-500/20 via-orange-500/10 to-transparent border-l-4 border-orange-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xs sm:text-sm font-black text-orange-300 uppercase tracking-wider flex items-center gap-2">
-                          <UtensilsCrossed className="w-4 h-4 text-orange-500" /> 🥐 ETALASE PASTRY & WARM BAKERY
-                        </h3>
-                        <span className="text-[9px] font-mono text-orange-400/70 font-semibold">HFE Core Category: CAT-PASTRY-03 • GL 4020-Food</span>
-                      </div>
+                      <h3 className="text-xs sm:text-sm font-black text-orange-300 uppercase tracking-wider flex items-center gap-2">
+                        <UtensilsCrossed className="w-4 h-4 text-orange-500" /> 🥐 ETALASE PASTRY & WARM BAKERY
+                      </h3>
                       <span className="text-[10px] font-mono font-bold text-orange-400/80">1 Item</span>
                     </div>
 
@@ -876,13 +862,10 @@ export default function App() {
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-mono font-bold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/20">
-                                  {item.hfeCategoryCode}
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
+                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
-                              <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
-                              <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                              <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
                               <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
@@ -901,12 +884,9 @@ export default function App() {
                   {/* SECTION 4: SNACK & FINGER FOODS SHOWCASE */}
                   <div ref={snackSecRef} className="flex flex-col gap-3 scroll-mt-24">
                     <div className="bg-gradient-to-r from-indigo-500/20 via-indigo-500/10 to-transparent border-l-4 border-indigo-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xs sm:text-sm font-black text-indigo-300 uppercase tracking-wider flex items-center gap-2">
-                          <Flame className="w-4 h-4 text-indigo-500" /> 🍟 ETALASE SNACK & SAVORY FINGER FOODS
-                        </h3>
-                        <span className="text-[9px] font-mono text-indigo-400/70 font-semibold">HFE Core Category: CAT-SNACK-04 • GL 4020-Food</span>
-                      </div>
+                      <h3 className="text-xs sm:text-sm font-black text-indigo-300 uppercase tracking-wider flex items-center gap-2">
+                        <Flame className="w-4 h-4 text-indigo-500" /> 🍟 ETALASE SNACK & SAVORY FINGER FOODS
+                      </h3>
                       <span className="text-[10px] font-mono font-bold text-indigo-400/80">1 Item</span>
                     </div>
 
@@ -917,13 +897,10 @@ export default function App() {
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
-                                  {item.hfeCategoryCode}
-                                </span>
-                                <span className="text-xs font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                                <h4 className="font-bold text-sm text-slate-100">{item.name}</h4>
+                                <span className="text-xs font-bold text-emerald-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</span>
                               </div>
-                              <h4 className="font-bold text-sm text-slate-100 mt-1">{item.name}</h4>
-                              <p className="text-[11px] text-slate-400 line-clamp-1">{item.description}</p>
+                              <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{item.description}</p>
                             </div>
                             <div className="flex items-center justify-end gap-2 mt-2">
                               <button onClick={() => handleReorderSameItem(item)} className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700">
@@ -969,7 +946,7 @@ export default function App() {
               </>
             )}
 
-            {/* STEP 2: DEDICATED CHECKOUT SCREEN VIEW */}
+            {/* STEP 2: DEDICATED CHECKOUT SCREEN VIEW (NO INTERNAL CODES SHOWN) */}
             {qrStepView === 'checkout' && (
               <div className="flex flex-col gap-4">
                 {/* Back to Catalog Header Button */}
@@ -1003,9 +980,6 @@ export default function App() {
                                 </span>
                               )}
                             </p>
-                            <span className="text-[9px] font-mono text-amber-400">
-                              {item.hfeCategoryCode} • GL: {item.hfeGlAccount}
-                            </span>
                             {item.temperature && (
                               <p className="text-[11px] text-slate-400">
                                 {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
@@ -1190,7 +1164,7 @@ export default function App() {
         </div>
       )}
 
-      {/* --- APPLICATION ROUTE 2: CAFE STAFF & MANAGEMENT PORTAL --- */}
+      {/* --- APPLICATION ROUTE 2: CAFE STAFF & MANAGEMENT PORTAL (SHOWING KODE BARANG & KODE MENU) --- */}
       {activeApp === 'cafe' && (
         <div className="flex-1 flex flex-col">
           {/* Staff App Top Bar Switcher */}
@@ -1323,10 +1297,11 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* Quick Catalog Grid for Walk-In / Cashier Direct Order */}
+                {/* Quick Catalog Grid for Walk-In / Cashier Direct Order (SHOWING KODE MENU CAFE) */}
                 <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
-                  <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                    <Coffee className="w-4 h-4 text-indigo-400" /> Katalog Kasir Touchscreen (Pesanan Walk-In / Takeaway)
+                  <h3 className="text-xs font-bold text-slate-200 flex items-center justify-between">
+                    <span className="flex items-center gap-2"><Coffee className="w-4 h-4 text-indigo-400" /> Katalog Kasir Touchscreen (Pesanan Walk-In / Takeaway)</span>
+                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20 font-bold">MODE STAF: SHOW SKU CODES</span>
                   </h3>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1338,10 +1313,18 @@ export default function App() {
                             setTablesGrid(prev => prev.map(t => t.id === selectedPOSTable.id ? { ...t, status: 'open-tab', totalBill: t.totalBill + item.price, orderCount: t.orderCount + 1 } : t))
                           }
                         }}
-                        className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left p-2.5 rounded-xl flex flex-col justify-between h-20 transition-all"
+                        className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left p-2.5 rounded-xl flex flex-col justify-between h-24 transition-all"
                       >
-                        <span className="font-bold text-xs text-slate-200 line-clamp-1">{item.name}</span>
-                        <span className="text-[11px] font-mono font-bold text-amber-400">Rp {item.price.toLocaleString('id-ID')}</span>
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                              {item.id}
+                            </span>
+                            <span className="text-[9px] font-mono text-indigo-400">{item.hfeCategoryCode}</span>
+                          </div>
+                          <span className="font-bold text-xs text-slate-200 line-clamp-1 mt-1">{item.name}</span>
+                        </div>
+                        <span className="text-[11px] font-mono font-bold text-emerald-400">Rp {item.price.toLocaleString('id-ID')}</span>
                       </button>
                     ))}
                   </div>
@@ -1472,7 +1455,7 @@ export default function App() {
             </main>
           )}
 
-          {/* STAFF SURFACE 2: KITCHEN DISPLAY SCREEN WITH 3 VIEW MODES INCLUDING WORK ORDER VIEW */}
+          {/* STAFF SURFACE 2: KITCHEN DISPLAY SCREEN WITH KODE BARANG BOM */}
           {activeStaffSurface === 'kds-screen' && (
             <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
               
@@ -1509,7 +1492,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* KDS CONTROLS: 3 VIEW MODES SWITCHER (KANBAN, LIST, WORK ORDER VIEW) */}
+              {/* KDS CONTROLS: 3 VIEW MODES SWITCHER */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-[10px] font-bold uppercase text-indigo-400 font-mono">Station Aktif: {currentStation.name}</span>
@@ -1517,7 +1500,6 @@ export default function App() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs w-full sm:w-auto justify-between sm:justify-end">
-                  {/* 3 KDS VIEW MODE SWITCHER BUTTONS */}
                   <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
                     <button
                       onClick={() => setKdsViewMode('workorder')}
@@ -1562,7 +1544,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* MODE 1: WORK ORDER VIEW (FABRIKASI RESEP BOM & SOP CHEF/BARISTA) */}
+              {/* MODE 1: WORK ORDER VIEW (SHOWING KODE BARANG RAW MATERIAL IN BOM) */}
               {kdsViewMode === 'workorder' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {sortedOrders.map(order => (
@@ -1589,10 +1571,11 @@ export default function App() {
                         </span>
                       </div>
 
-                      {/* Item Work Orders with BOM & SOP Instructions */}
+                      {/* Item Work Orders with BOM Raw Material Codes */}
                       <div className="flex flex-col gap-3">
-                        <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                          <ClipboardList className="w-4 h-4 text-amber-500" /> Lembar Kerja Fabrikasi Pesanan (Work Order):
+                        <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center justify-between">
+                          <span className="flex items-center gap-1.5"><ClipboardList className="w-4 h-4 text-amber-500" /> Lembar Kerja Fabrikasi (Work Order):</span>
+                          <span className="text-[9px] font-mono text-indigo-400 bg-indigo-500/10 px-1.5 py-0.2 rounded border border-indigo-500/20">SHOW KODE BARANG BOM</span>
                         </span>
 
                         {order.items.map((item, idx) => (
@@ -1600,6 +1583,9 @@ export default function App() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                                  <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                                    {item.id}
+                                  </span>
                                   {item.quantity}x {item.name}
                                   {item.seatNumber && (
                                     <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
@@ -1618,20 +1604,26 @@ export default function App() {
                                 onClick={() => setSelectedRecipeBOM(item)}
                                 className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800 flex items-center gap-1"
                               >
-                                <BookOpen className="w-3 h-3 text-indigo-400" /> Detail SOP
+                                <BookOpen className="w-3 h-3 text-indigo-400" /> Detail SOP & Kode BOM
                               </button>
                             </div>
 
-                            {/* BOM Ingredients Breakdown Directly on Work Order Card */}
+                            {/* BOM Ingredients Breakdown with Raw Material SKU Codes */}
                             {item.bomIngredients && (
-                              <div className="bg-slate-900/90 border border-slate-800/90 rounded-lg p-2.5 flex flex-col gap-1 text-[11px]">
-                                <span className="font-semibold text-slate-400 flex items-center gap-1 text-[10px]">
-                                  <Layers className="w-3 h-3 text-amber-500" /> Komposisi Bahan Baku (BOM):
+                              <div className="bg-slate-900/90 border border-slate-800/90 rounded-lg p-2.5 flex flex-col gap-1.5 text-[11px]">
+                                <span className="font-semibold text-slate-400 flex items-center justify-between text-[10px]">
+                                  <span className="flex items-center gap-1"><Layers className="w-3 h-3 text-amber-500" /> Komposisi Bahan Baku (BOM):</span>
+                                  <span className="text-[9px] font-mono text-emerald-400">Inventory Sync</span>
                                 </span>
                                 {item.bomIngredients.map((ing, ingIdx) => (
-                                  <div key={ingIdx} className="flex justify-between text-slate-300">
-                                    <span>• {ing.name}</span>
-                                    <span className="font-mono font-bold text-amber-400">{ing.amount}</span>
+                                  <div key={ingIdx} className="flex items-center justify-between text-slate-300 bg-slate-950/80 px-2 py-1 rounded border border-slate-800/80">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1 rounded border border-amber-500/20">
+                                        {ing.itemCode}
+                                      </span>
+                                      <span>{ing.name}</span>
+                                    </div>
+                                    <span className="font-mono font-bold text-amber-400 text-xs">{ing.amount}</span>
                                   </div>
                                 ))}
                               </div>
@@ -1702,8 +1694,9 @@ export default function App() {
 
                           <div className="flex flex-col gap-1.5 text-xs">
                             {order.items.map((item, idx) => (
-                              <div key={idx} onClick={() => setSelectedRecipeBOM(item)} className="bg-slate-900/80 p-2 rounded-lg cursor-pointer">
+                              <div key={idx} onClick={() => setSelectedRecipeBOM(item)} className="bg-slate-900/80 p-2 rounded-lg cursor-pointer flex items-center justify-between">
                                 <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
+                                <span className="text-[9px] font-mono text-amber-400 font-bold">{item.id}</span>
                               </div>
                             ))}
                           </div>
@@ -1734,8 +1727,9 @@ export default function App() {
 
                           <div className="flex flex-col gap-1.5 text-xs">
                             {order.items.map((item, idx) => (
-                              <div key={idx} onClick={() => setSelectedRecipeBOM(item)} className="bg-slate-900/80 p-2 rounded-lg cursor-pointer">
+                              <div key={idx} onClick={() => setSelectedRecipeBOM(item)} className="bg-slate-900/80 p-2 rounded-lg cursor-pointer flex items-center justify-between">
                                 <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
+                                <span className="text-[9px] font-mono text-amber-400 font-bold">{item.id}</span>
                               </div>
                             ))}
                           </div>
@@ -1801,7 +1795,7 @@ export default function App() {
                               onClick={() => setSelectedRecipeBOM(item)}
                               className="font-semibold text-slate-200 hover:text-amber-400 cursor-pointer flex items-center gap-1"
                             >
-                              {item.quantity}x {item.name} <BookOpen className="w-3 h-3 text-amber-500 inline" />
+                              [{item.id}] {item.quantity}x {item.name} <BookOpen className="w-3 h-3 text-amber-500 inline" />
                             </span>
                           ))}
                         </div>
@@ -1933,7 +1927,7 @@ export default function App() {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">Halaman Konfigurasi Cafe & Owner Settings</h2>
-                    <p className="text-xs text-slate-400">Pajak PB1, Service Charge, KDS Station Split & Mapping Kategori HFE Core</p>
+                    <p className="text-xs text-slate-400">Pajak PB1, Service Charge, Kode Barang BOM & Mapping Kategori HFE Core</p>
                   </div>
                 </div>
                 <button 
@@ -1944,32 +1938,34 @@ export default function App() {
                 </button>
               </div>
 
-              {/* CARD HFE PRODUCT CATEGORIES MAPPING PORTAL */}
+              {/* CARD HFE PRODUCT CATEGORIES & SKU INVENTORY MATRIX */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
                 <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
-                  <FolderTree className="w-4 h-4 text-indigo-400" /> Mapping Kategori Produk HFE Engine & GL Accounts
+                  <Barcode className="w-4 h-4 text-indigo-400" /> Matriks Kode Menu POS & Raw Material BOM (Inventori Kafe)
                 </h3>
-                <p className="text-xs text-slate-400">Pemetaan resmi kategori etalase POS ke kode kategori produk & subledger akuntansi Headless Company Books:</p>
+                <p className="text-xs text-slate-400">Kode Barang Internal Kasir & Bahan Baku BOM (Hanya Tampil di Portal Staf Kafe):</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { name: 'Coffee Specialty', code: 'CAT-COFFEE-01', gl: '4010-Beverage Sales', items: 3, icon: '☕' },
-                    { name: 'Non-Coffee & Matcha', code: 'CAT-NONCOFFEE-02', gl: '4010-Beverage Sales', items: 1, icon: '🍵' },
-                    { name: 'Pastry & Warm Bakery', code: 'CAT-PASTRY-03', gl: '4020-Food Sales', items: 1, icon: '🥐' },
-                    { name: 'Snack & Finger Foods', code: 'CAT-SNACK-04', gl: '4020-Food Sales', items: 1, icon: '🍟' }
-                  ].map((hfeCat, idx) => (
-                    <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                          <span>{hfeCat.icon}</span> {hfeCat.name}
-                        </span>
-                        <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                          {hfeCat.code}
-                        </span>
+                  {PRODUCT_CATALOG.map((item) => (
+                    <div key={item.id} className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-2">
+                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            {item.id}
+                          </span>
+                          <h4 className="text-xs font-bold text-white">{item.name}</h4>
+                        </div>
+                        <span className="text-[10px] font-mono text-indigo-400 font-semibold">{item.hfeCategoryCode}</span>
                       </div>
-                      <div className="flex justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-1.5">
-                        <span>HFE Subledger GL:</span>
-                        <span className="font-mono text-emerald-400 font-bold">{hfeCat.gl}</span>
+
+                      <div className="flex flex-col gap-1 text-[11px] text-slate-400">
+                        <span className="font-semibold text-slate-300 text-[10px]">Kode Bahan Baku BOM:</span>
+                        {item.bomIngredients?.map((ing, ingIdx) => (
+                          <div key={ingIdx} className="flex justify-between text-slate-400 font-mono text-[10px]">
+                            <span>• [{ing.itemCode}] {ing.name}</span>
+                            <span className="text-amber-400">{ing.amount}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -2146,7 +2142,7 @@ export default function App() {
         </div>
       )}
 
-      {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP --- */}
+      {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP (SHOWING KODE BARANG RAW MATERIAL FOR STAFF) --- */}
       {selectedRecipeBOM && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -2164,22 +2160,33 @@ export default function App() {
                 className="w-14 h-14 rounded-xl object-cover border border-slate-700"
               />
               <div>
-                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  {selectedRecipeBOM.category}
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-white mt-0.5">{selectedRecipeBOM.name}</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    {selectedRecipeBOM.id}
+                  </span>
+                  <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                    {selectedRecipeBOM.category}
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white mt-1">{selectedRecipeBOM.name}</h3>
                 <p className="text-[11px] text-slate-400">{selectedRecipeBOM.description}</p>
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-amber-500" /> Bill of Materials (BOM / Resep Bahan Baku)
+              <h4 className="text-xs font-bold text-amber-400 flex items-center justify-between">
+                <span className="flex items-center gap-1.5"><Layers className="w-4 h-4 text-amber-500" /> Bill of Materials (BOM Resep & Kode Inventori)</span>
+                <span className="text-[9px] font-mono text-indigo-400">STAFF ONLY</span>
               </h4>
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
                 {selectedRecipeBOM.bomIngredients?.map((ing, idx) => (
-                  <div key={idx} className="flex justify-between text-xs text-slate-300">
-                    <span>• {ing.name}</span>
+                  <div key={idx} className="flex justify-between items-center text-xs text-slate-300 bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                        {ing.itemCode}
+                      </span>
+                      <span>{ing.name}</span>
+                    </div>
                     <span className="font-mono font-bold text-amber-400">{ing.amount}</span>
                   </div>
                 )) || <p className="text-xs text-slate-500">Resep standar pabrikasi.</p>}
