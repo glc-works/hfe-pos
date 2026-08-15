@@ -60,7 +60,10 @@ import {
   ExternalLink,
   Monitor,
   ClipboardList,
-  Barcode
+  Barcode,
+  Contact,
+  UserPlus,
+  Heart
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -69,13 +72,26 @@ type StaffSurfaceMode = 'barista-pos' | 'kds-screen' | 'checker-qc' | 'server-wa
 type KdsViewModeType = 'kanban' | 'list' | 'workorder'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
-type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show on bill), 2=Include (Embedded in price)
+type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
 
 interface StationConfig {
   id: string
   name: string
   icon: string
   categories: string[]
+}
+
+interface CustomerProfile {
+  id: string
+  name: string
+  phone: string
+  favoriteSeat: string
+  favoriteDrink: string
+  preferredMilk: string
+  preferredSugar: string
+  allergenAlert?: string
+  totalVisits: number
+  loyaltyTier: string
 }
 
 interface MenuItem {
@@ -95,6 +111,11 @@ interface MenuItem {
 interface CartItem extends MenuItem {
   quantity: number
   seatNumber?: string
+  seatCustomerContact?: {
+    name: string
+    phone?: string
+    savedPreferences?: string
+  }
   allergenNotes?: string
   temperature?: 'Hot' | 'Iced'
   sugarLevel?: '0%' | '50%' | '100%'
@@ -166,7 +187,7 @@ const PRODUCT_CATALOG: MenuItem[] = [
     hasModifiers: true,
     bomIngredients: [
       { itemCode: 'RAW-BEAN-02', name: 'Espresso Beans Single Origin', amount: '18 gram' },
-      { itemCode: 'RAW-[MILK]-03', name: 'Sweetened Condensed Milk', amount: '25 ml' },
+      { itemCode: 'RAW-MILK-03', name: 'Sweetened Condensed Milk', amount: '25 ml' },
       { itemCode: 'RAW-MILK-01', name: 'Fresh Milk Steamed/Cold', amount: '140 ml' }
     ],
     preparationSteps: [
@@ -304,6 +325,33 @@ export default function App() {
     { id: 'pastry-bakery', name: 'Pastry & Bakery', icon: '🥐', categories: ['Pastry'] },
   ])
 
+  // --- SAVED CUSTOMER PROFILES DATABASE FOR SEAT-LEVEL BINDING & PREFERENCE PROFILING ---
+  const [customerProfiles, setCustomerProfiles] = useState<CustomerProfile[]>([
+    {
+      id: 'CUST-01',
+      name: 'Aldi',
+      phone: '081298765432',
+      favoriteSeat: 'Seat 1',
+      favoriteDrink: 'Espresso Aren Latte',
+      preferredMilk: 'Oat Milk (+Rp 5.000)',
+      preferredSugar: '50%',
+      allergenAlert: 'Alergi Lactose (Ganti Oatside)',
+      totalVisits: 14,
+      loyaltyTier: 'Gold Tier (Barista Pro)'
+    },
+    {
+      id: 'CUST-02',
+      name: 'Siti Rahma',
+      phone: '081599887766',
+      favoriteSeat: 'Seat 2',
+      favoriteDrink: 'Japanese Cold Brew V60',
+      preferredMilk: 'Tanpa Susu',
+      preferredSugar: '0%',
+      totalVisits: 8,
+      loyaltyTier: 'Silver Tier'
+    }
+  ])
+
   // --- MOBILE QR SURFACE STATE ---
   const [selectedTable, setSelectedTable] = useState<string>('MEJA-04')
   const [loginType, setLoginType] = useState<CustomerLoginType>('phone')
@@ -324,17 +372,35 @@ export default function App() {
   })
   const [redeemedVoucher, setRedeemedVoucher] = useState<boolean>(false)
 
-  // Cart & Policy State (with Chef Mike's Seat Tagging & Allergen Notes)
+  // Cart & Policy State (with Seat Tagging & Contact Binding)
   const [cart, setCart] = useState<CartItem[]>([
-    { ...PRODUCT_CATALOG[0], quantity: 2, seatNumber: 'Seat 1', allergenNotes: 'Alergi Lactose (Ganti Oatside)', temperature: 'Iced', sugarLevel: '50%', milkOption: 'Oat Milk (+Rp 5.000)' },
-    { ...PRODUCT_CATALOG[4], quantity: 1, seatNumber: 'Seat 2' }
+    { 
+      ...PRODUCT_CATALOG[0], 
+      quantity: 2, 
+      seatNumber: 'Seat 1', 
+      seatCustomerContact: { name: 'Aldi', phone: '081298765432', savedPreferences: 'Oat Milk 50% Sugar' },
+      allergenNotes: 'Alergi Lactose (Ganti Oatside)', 
+      temperature: 'Iced', 
+      sugarLevel: '50%', 
+      milkOption: 'Oat Milk (+Rp 5.000)' 
+    },
+    { 
+      ...PRODUCT_CATALOG[4], 
+      quantity: 1, 
+      seatNumber: 'Seat 2',
+      seatCustomerContact: { name: 'Siti Rahma', phone: '081599887766', savedPreferences: 'No Sugar' }
+    }
   ])
   const [paymentPolicy, setPaymentPolicy] = useState<PaymentPolicy>('pay-first')
+  
+  // MODIFIER MODAL STATE WITH SEAT CONTACT BINDING
   const [showModifierModal, setShowModifierModal] = useState<MenuItem | null>(null)
   const [modTemp, setModTemp] = useState<'Hot' | 'Iced'>('Iced')
   const [modSugar, setModSugar] = useState<'0%' | '50%' | '100%'>('50%')
   const [modMilk, setModMilk] = useState<'Whole Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)'>('Oat Milk (+Rp 5.000)')
   const [modSeat, setModSeat] = useState<string>('Seat 1')
+  const [modSeatCustomerName, setModSeatCustomerName] = useState<string>('Aldi')
+  const [modSeatCustomerPhone, setModSeatCustomerPhone] = useState<string>('081298765432')
   const [modAllergen, setModAllergen] = useState<string>('')
   const [showQRISModal, setShowQRISModal] = useState<boolean>(false)
 
@@ -346,8 +412,22 @@ export default function App() {
       customerName: 'Aldi',
       phone: '081298765432',
       items: [
-        { ...PRODUCT_CATALOG[0], quantity: 2, seatNumber: 'Seat 1', allergenNotes: 'Alergi Lactose (Ganti Oatside)', temperature: 'Iced', sugarLevel: '50%', milkOption: 'Oat Milk (+Rp 5.000)' },
-        { ...PRODUCT_CATALOG[4], quantity: 1, seatNumber: 'Seat 2' }
+        { 
+          ...PRODUCT_CATALOG[0], 
+          quantity: 2, 
+          seatNumber: 'Seat 1', 
+          seatCustomerContact: { name: 'Aldi', phone: '081298765432', savedPreferences: 'Oat Milk 50% Sugar' },
+          allergenNotes: 'Alergi Lactose (Ganti Oatside)', 
+          temperature: 'Iced', 
+          sugarLevel: '50%', 
+          milkOption: 'Oat Milk (+Rp 5.000)' 
+        },
+        { 
+          ...PRODUCT_CATALOG[4], 
+          quantity: 1, 
+          seatNumber: 'Seat 2',
+          seatCustomerContact: { name: 'Siti Rahma', phone: '081599887766', savedPreferences: 'No Sugar' }
+        }
       ],
       policy: 'pay-first',
       total: 86000,
@@ -376,23 +456,6 @@ export default function App() {
       status: 'processing',
       timeElapsedMinutes: 4,
       createdAt: '19:18'
-    },
-    {
-      id: 'ORD-8819',
-      table: 'MEJA-08',
-      customerName: 'Siti Rahma',
-      phone: '081599887766',
-      items: [
-        { ...PRODUCT_CATALOG[2], quantity: 2, seatNumber: 'Seat 2', temperature: 'Iced', sugarLevel: '0%' }
-      ],
-      policy: 'pay-first',
-      total: 70000,
-      taxPB1Amount: 7000,
-      serviceFeeAmount: 3500,
-      tipAmount: 5000,
-      status: 'qc-passed',
-      timeElapsedMinutes: 6,
-      createdAt: '19:14'
     }
   ])
 
@@ -482,12 +545,51 @@ export default function App() {
 
   const handleConfirmModifier = () => {
     if (!showModifierModal) return
+    
+    // Save or Update Customer Profile in CRM Matrix
+    if (modSeatCustomerName.trim()) {
+      const existingProfileIndex = customerProfiles.findIndex(c => c.name.toLowerCase() === modSeatCustomerName.toLowerCase() || (modSeatCustomerPhone && c.phone === modSeatCustomerPhone))
+      const prefSummary = `${modMilk.replace(' (+Rp 5.000)', '')} ${modSugar} Sugar`
+      
+      if (existingProfileIndex >= 0) {
+        setCustomerProfiles(prev => prev.map((c, idx) => idx === existingProfileIndex ? {
+          ...c,
+          favoriteSeat: modSeat,
+          preferredMilk: modMilk,
+          preferredSugar: modSugar,
+          allergenAlert: modAllergen || c.allergenAlert,
+          totalVisits: c.totalVisits + 1
+        } : c))
+      } else {
+        setCustomerProfiles(prev => [
+          ...prev,
+          {
+            id: `CUST-0${prev.length + 1}`,
+            name: modSeatCustomerName,
+            phone: modSeatCustomerPhone || '081200009999',
+            favoriteSeat: modSeat,
+            favoriteDrink: showModifierModal.name,
+            preferredMilk: modMilk,
+            preferredSugar: modSugar,
+            allergenAlert: modAllergen || undefined,
+            totalVisits: 1,
+            loyaltyTier: 'Silver Member'
+          }
+        ])
+      }
+    }
+
     setCart(prev => [
       ...prev,
       {
         ...showModifierModal,
         quantity: 1,
         seatNumber: modSeat,
+        seatCustomerContact: modSeatCustomerName ? {
+          name: modSeatCustomerName,
+          phone: modSeatCustomerPhone,
+          savedPreferences: `${modMilk.replace(' (+Rp 5.000)', '')} • ${modSugar}`
+        } : undefined,
         allergenNotes: modAllergen.trim() || undefined,
         temperature: modTemp,
         sugarLevel: modSugar,
@@ -659,7 +761,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* --- APPLICATION ROUTE 1: CUSTOMER MOBILE QR WEB APP (CLEAN UX - NO CODES) --- */}
+      {/* --- APPLICATION ROUTE 1: CUSTOMER MOBILE QR WEB APP --- */}
       {activeApp === 'customer' && (
         <div className="flex-1 flex flex-col">
           {/* Customer App Top Banner */}
@@ -754,7 +856,7 @@ export default function App() {
                   </div>
                 )}
 
-                {/* STICKY CATEGORY JUMP NAVIGATOR BAR (CLEAN CUSTOMER LOOK) */}
+                {/* STICKY CATEGORY JUMP NAVIGATOR BAR */}
                 <div className="sticky top-[60px] z-30 bg-slate-900/95 backdrop-blur-md border border-slate-800/90 p-2 rounded-2xl flex items-center gap-1.5 overflow-x-auto shadow-xl">
                   {[
                     { id: 'Coffee', icon: '☕', name: 'Coffee' },
@@ -773,7 +875,7 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS (NO INTERNAL CODES SHOWN) */}
+                {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS */}
                 <div className="flex flex-col gap-6 pt-1">
                   
                   {/* SECTION 1: COFFEE SHOWCASE */}
@@ -946,7 +1048,7 @@ export default function App() {
               </>
             )}
 
-            {/* STEP 2: DEDICATED CHECKOUT SCREEN VIEW (NO INTERNAL CODES SHOWN) */}
+            {/* STEP 2: DEDICATED CHECKOUT SCREEN VIEW WITH SEAT-LEVEL CONTACT BINDING */}
             {qrStepView === 'checkout' && (
               <div className="flex flex-col gap-4">
                 {/* Back to Catalog Header Button */}
@@ -966,22 +1068,28 @@ export default function App() {
                     <ShoppingBag className="w-5 h-5 text-amber-500" /> Ringkasan Pesanan & Pelunasan Meja
                   </h3>
 
-                  {/* Items Breakdown */}
+                  {/* Items Breakdown with Seat Level & Customer Contact Profiling Badges */}
                   <div className="flex flex-col gap-2.5 divide-y divide-slate-800/80">
                     {cart.map((item, idx) => (
                       <div key={idx} className="pt-2.5 first:pt-0 flex flex-col gap-1.5 text-xs">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-bold text-white flex items-center gap-1.5 text-sm">
-                              {item.name} 
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-bold text-white text-sm">{item.name}</p>
                               {item.seatNumber && (
                                 <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">
                                   {item.seatNumber}
                                 </span>
                               )}
-                            </p>
+                              {item.seatCustomerContact && (
+                                <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
+                                  <Contact className="w-3 h-3 text-emerald-400" /> {item.seatCustomerContact.name} ({item.seatCustomerContact.savedPreferences})
+                                </span>
+                              )}
+                            </div>
+                            
                             {item.temperature && (
-                              <p className="text-[11px] text-slate-400">
+                              <p className="text-[11px] text-slate-400 mt-0.5">
                                 {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
                               </p>
                             )}
@@ -1164,7 +1272,7 @@ export default function App() {
         </div>
       )}
 
-      {/* --- APPLICATION ROUTE 2: CAFE STAFF & MANAGEMENT PORTAL (SHOWING KODE BARANG & KODE MENU) --- */}
+      {/* --- APPLICATION ROUTE 2: CAFE STAFF & MANAGEMENT PORTAL --- */}
       {activeApp === 'cafe' && (
         <div className="flex-1 flex flex-col">
           {/* Staff App Top Bar Switcher */}
@@ -1297,7 +1405,7 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* Quick Catalog Grid for Walk-In / Cashier Direct Order (SHOWING KODE MENU CAFE) */}
+                {/* Quick Catalog Grid for Walk-In / Cashier Direct Order */}
                 <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
                   <h3 className="text-xs font-bold text-slate-200 flex items-center justify-between">
                     <span className="flex items-center gap-2"><Coffee className="w-4 h-4 text-indigo-400" /> Katalog Kasir Touchscreen (Pesanan Walk-In / Takeaway)</span>
@@ -1455,7 +1563,7 @@ export default function App() {
             </main>
           )}
 
-          {/* STAFF SURFACE 2: KITCHEN DISPLAY SCREEN WITH KODE BARANG BOM */}
+          {/* STAFF SURFACE 2: KITCHEN DISPLAY SCREEN WITH SEAT-LEVEL CONTACT BINDING */}
           {activeStaffSurface === 'kds-screen' && (
             <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
               
@@ -1544,7 +1652,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* MODE 1: WORK ORDER VIEW (SHOWING KODE BARANG RAW MATERIAL IN BOM) */}
+              {/* MODE 1: WORK ORDER VIEW WITH SEAT-LEVEL CONTACT PROFILING */}
               {kdsViewMode === 'workorder' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {sortedOrders.map(order => (
@@ -1571,18 +1679,18 @@ export default function App() {
                         </span>
                       </div>
 
-                      {/* Item Work Orders with BOM Raw Material Codes */}
+                      {/* Item Work Orders with Seat-Level Contact Binding Badges */}
                       <div className="flex flex-col gap-3">
                         <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center justify-between">
                           <span className="flex items-center gap-1.5"><ClipboardList className="w-4 h-4 text-amber-500" /> Lembar Kerja Fabrikasi (Work Order):</span>
-                          <span className="text-[9px] font-mono text-indigo-400 bg-indigo-500/10 px-1.5 py-0.2 rounded border border-indigo-500/20">SHOW KODE BARANG BOM</span>
+                          <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">SEAT CONTACT BOUND</span>
                         </span>
 
                         {order.items.map((item, idx) => (
                           <div key={idx} className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-2.5">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                                <h4 className="text-xs font-bold text-white flex items-center gap-1.5 flex-wrap">
                                   <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
                                     {item.id}
                                   </span>
@@ -1593,8 +1701,15 @@ export default function App() {
                                     </span>
                                   )}
                                 </h4>
+
+                                {item.seatCustomerContact && (
+                                  <div className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 mt-0.5 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 w-fit">
+                                    <Contact className="w-3 h-3 text-emerald-400" /> Tamu Ter-profil: {item.seatCustomerContact.name} ({item.seatCustomerContact.savedPreferences})
+                                  </div>
+                                )}
+
                                 {item.temperature && (
-                                  <p className="text-[10px] text-amber-400 font-medium">
+                                  <p className="text-[10px] text-amber-400 font-medium mt-0.5">
                                     {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
                                   </p>
                                 )}
@@ -1604,11 +1719,11 @@ export default function App() {
                                 onClick={() => setSelectedRecipeBOM(item)}
                                 className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800 flex items-center gap-1"
                               >
-                                <BookOpen className="w-3 h-3 text-indigo-400" /> Detail SOP & Kode BOM
+                                <BookOpen className="w-3 h-3 text-indigo-400" /> Detail SOP
                               </button>
                             </div>
 
-                            {/* BOM Ingredients Breakdown with Raw Material SKU Codes */}
+                            {/* BOM Ingredients Breakdown */}
                             {item.bomIngredients && (
                               <div className="bg-slate-900/90 border border-slate-800/90 rounded-lg p-2.5 flex flex-col gap-1.5 text-[11px]">
                                 <span className="font-semibold text-slate-400 flex items-center justify-between text-[10px]">
@@ -1886,26 +2001,56 @@ export default function App() {
             </main>
           )}
 
-          {/* STAFF SURFACE 4: MODE SERVER / WAITER */}
+          {/* STAFF SURFACE 4: MODE SERVER / WAITER WITH SEAT-LEVEL CONTACT BINDING */}
           {activeStaffSurface === 'server-waiter' && (
             <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <Footprints className="w-5 h-5 text-indigo-400" /> Mode Server (Pramusaji & Food Runner)
+                    <Footprints className="w-5 h-5 text-indigo-400" /> Mode Server (Pramusaji & Food Runner Delivery)
                   </h2>
-                  <p className="text-xs text-slate-400">Pengantaran Nampan Presisi Berdasarkan Penandaan Kursi Tamu (Seat 1, Seat 2, dst)</p>
+                  <p className="text-xs text-slate-400">Pengantaran Nampan Presisi Berdasarkan Penandaan Nomor Kursi & Profil Kontak Tamu (Seat 1-4)</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {orders.filter(o => o.status === 'qc-passed').map(order => (
                   <div key={order.id} className="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 flex flex-col justify-between gap-4 shadow-xl">
-                    <span className="font-mono font-bold text-xs text-emerald-400">{order.id} • {order.table}</span>
+                    <div>
+                      <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <span className="font-mono font-bold text-xs text-emerald-400">{order.id} • {order.table}</span>
+                        <span className="text-xs font-bold text-white">{order.customerName}</span>
+                      </div>
+
+                      <div className="flex flex-col gap-2 mt-3">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Rincian Antar Kursi Meja:</span>
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                            <div>
+                              <div className="flex items-center gap-1.5 font-bold text-white">
+                                <span>{item.quantity}x {item.name}</span>
+                                {item.seatNumber && (
+                                  <span className="text-[10px] font-mono bg-indigo-500/20 text-indigo-400 px-1.5 py-0.2 rounded border border-indigo-500/30">
+                                    {item.seatNumber}
+                                  </span>
+                                )}
+                              </div>
+                              {item.seatCustomerContact && (
+                                <p className="text-[10px] text-emerald-400 font-semibold mt-0.5">
+                                  👤 Kontak: {item.seatCustomerContact.name} ({item.seatCustomerContact.phone})
+                                </p>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-mono text-amber-400 font-bold">{item.temperature || 'Reg'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     <button
                       onClick={() => {
                         handleMoveStatus(order.id, 'served')
-                        alert(`Pesanan Meja ${order.table} telah selesai diantar!`)
+                        alert(`Pesanan Meja ${order.table} telah selesai diantar! Profil preferensi tamu diperbarui.`)
                       }}
                       className="w-full bg-emerald-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg flex items-center justify-center gap-2"
                     >
@@ -1917,7 +2062,7 @@ export default function App() {
             </main>
           )}
 
-          {/* STAFF SURFACE 5: DEDICATED HALAMAN KONFIGURASI CAFE & OWNER POLICY */}
+          {/* STAFF SURFACE 5: DEDICATED HALAMAN KONFIGURASI CAFE & CUSTOMER PROFILING DATABASE */}
           {activeStaffSurface === 'cafe-config' && (
             <main className="flex-1 p-3 sm:p-6 max-w-5xl mx-auto w-full flex flex-col gap-6">
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
@@ -1927,7 +2072,7 @@ export default function App() {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">Halaman Konfigurasi Cafe & Owner Settings</h2>
-                    <p className="text-xs text-slate-400">Pajak PB1, Service Charge, Kode Barang BOM & Mapping Kategori HFE Core</p>
+                    <p className="text-xs text-slate-400">Pajak PB1, Service Charge, Customer CRM Profiling & HFE Category Matrix</p>
                   </div>
                 </div>
                 <button 
@@ -1936,6 +2081,65 @@ export default function App() {
                 >
                   <Check className="w-4 h-4" /> Simpan Seluruh Konfigurasi
                 </button>
+              </div>
+
+              {/* CARD CUSTOMER PROFILING & SEAT-LEVEL PREFERENCE DATABASE */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                  <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                    <Contact className="w-4 h-4 text-emerald-400" /> Database Profil & Preferensi Tamu (Seat Binding CRM)
+                  </h3>
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                    {customerProfiles.length} Contacts Profiled
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">Profil preferensi otomatis terikat saat kustomisasi item dengan penandaan nomor kursi meja:</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {customerProfiles.map((cust) => (
+                    <div key={cust.id} className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-2">
+                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs">
+                            👤
+                          </span>
+                          <div>
+                            <h4 className="text-xs font-bold text-white">{cust.name}</h4>
+                            <p className="text-[10px] font-mono text-slate-400">{cust.phone}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                          {cust.loyaltyTier}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1">
+                        <div>
+                          <span>Preferensi Kursi:</span>
+                          <p className="font-bold text-indigo-400 font-mono">{cust.favoriteSeat}</p>
+                        </div>
+                        <div>
+                          <span>Minuman Favorit:</span>
+                          <p className="font-bold text-slate-200 truncate">{cust.favoriteDrink}</p>
+                        </div>
+                        <div>
+                          <span>Jenis Susu Preferensi:</span>
+                          <p className="font-bold text-emerald-400">{cust.preferredMilk}</p>
+                        </div>
+                        <div>
+                          <span>Level Gula Preferensi:</span>
+                          <p className="font-bold text-amber-400">{cust.preferredSugar}</p>
+                        </div>
+                      </div>
+
+                      {cust.allergenAlert && (
+                        <div className="text-[10px] text-rose-400 font-semibold bg-rose-500/10 p-1.5 rounded border border-rose-500/20 flex items-center gap-1 mt-1">
+                          <AlertTriangle className="w-3 h-3 text-rose-500" /> Profil Alergen: {cust.allergenAlert}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* CARD HFE PRODUCT CATEGORIES & SKU INVENTORY MATRIX */}
@@ -2053,17 +2257,25 @@ export default function App() {
         </div>
       )}
 
-      {/* --- DRINK MODIFIER MODAL WITH SEAT TAGGING & ALLERGEN NOTES --- */}
+      {/* --- DRINK MODIFIER MODAL WITH SEAT TAGGING & CUSTOMER PROFILE BINDING --- */}
       {showModifierModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 flex flex-col gap-4 shadow-2xl">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowModifierModal(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-base font-bold text-white flex items-center gap-2 pr-6">
               <Coffee className="w-5 h-5 text-amber-500" /> Kustomisasi {showModifierModal.name}
             </h3>
 
+            {/* SEAT SELECTION */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-amber-400 flex items-center gap-1">
-                <Armchair className="w-3.5 h-3.5 text-amber-500" /> Penandaan Nomor Kursi (Seat Number):
+                <Armchair className="w-3.5 h-3.5 text-amber-500" /> Penandaan Nomor Kursi (Seat Tagging):
               </label>
               <div className="grid grid-cols-4 gap-1.5">
                 {['Seat 1', 'Seat 2', 'Seat 3', 'Seat 4'].map(s => (
@@ -2080,6 +2292,32 @@ export default function App() {
               </div>
             </div>
 
+            {/* CUSTOMER CONTACT BINDING FOR PREFERENCE PROFILING */}
+            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+              <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                <UserPlus className="w-3.5 h-3.5 text-emerald-400" /> Bind Kontak Tamu Kursi ({modSeat}):
+              </span>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={modSeatCustomerName}
+                  onChange={(e) => setModSeatCustomerName(e.target.value)}
+                  placeholder="Nama Tamu (cth: Budi)"
+                  className="bg-slate-900 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 text-white font-semibold focus:outline-none focus:border-emerald-500"
+                />
+                <input
+                  type="tel"
+                  value={modSeatCustomerPhone}
+                  onChange={(e) => setModSeatCustomerPhone(e.target.value)}
+                  placeholder="No HP / WA Tamu"
+                  className="bg-slate-900 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <p className="text-[9px] text-emerald-400/80">✓ Preferensi susu & gula otomatis tersimpan ke profil kontak ini.</p>
+            </div>
+
+            {/* ALLERGEN NOTES */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-rose-400 flex items-center gap-1">
                 <AlertTriangle className="w-3.5 h-3.5 text-rose-500" /> Catatan Alergen / Pantangan (Opsional):
@@ -2093,6 +2331,7 @@ export default function App() {
               />
             </div>
 
+            {/* TEMPERATURE */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-400">Suhu Minuman:</label>
               <div className="grid grid-cols-2 gap-2">
@@ -2115,6 +2354,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* SUGAR LEVEL */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-400">Tingkat Manis / Sugar:</label>
               <div className="grid grid-cols-3 gap-2">
@@ -2132,17 +2372,35 @@ export default function App() {
               </div>
             </div>
 
+            {/* MILK OPTION */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-400">Pilihan Susu / Dairy:</label>
+              <div className="flex flex-col gap-1.5">
+                {(['Whole Milk', 'Oat Milk (+Rp 5.000)', 'Almond Milk (+Rp 5.000)'] as const).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setModMilk(m)}
+                    className={`p-2 rounded-xl text-xs font-bold border text-left transition-all ${
+                      modMilk === m ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button
               onClick={handleConfirmModifier}
-              className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-2"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-2 flex items-center justify-center gap-2"
             >
-              Konfirmasi & Tambah ke Keranjang
+              <Heart className="w-4 h-4 fill-slate-950" /> Konfirmasi & Profilkan Preferensi Tamu
             </button>
           </div>
         </div>
       )}
 
-      {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP (SHOWING KODE BARANG RAW MATERIAL FOR STAFF) --- */}
+      {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP --- */}
       {selectedRecipeBOM && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
