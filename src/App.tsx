@@ -1,4 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { DomainNavigator } from './components/common/DomainNavigator'
+import { LandingPageView } from './components/landing/LandingPageView'
+import { ReservationModal } from './components/modals/ReservationModal'
+import { TableOperationsModal } from './components/modals/TableOperationsModal'
+import { ModifierModal } from './components/modals/ModifierModal'
+import { QrisModal } from './components/modals/QrisModal'
+import { RecipeBomModal } from './components/modals/RecipeBomModal'
+import { LoginModal } from './components/modals/LoginModal'
 import { 
   Coffee, 
   QrCode, 
@@ -50,7 +58,6 @@ import {
   HeartHandshake,
   ShoppingCart,
   Sliders,
-  Tag,
   Building2,
   Store,
   Compass,
@@ -1291,184 +1298,20 @@ export default function App() {
       `}</style>
 
       {/* --- TOP GLOBAL DOMAIN NAVIGATOR BAR (3 SEPARATED WEBSITES) --- */}
-      <div className="bg-slate-950 border-b border-slate-800 px-3 py-1.5 flex flex-col sm:flex-row items-center justify-between text-xs gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono text-slate-400">DOMAIN APP:</span>
-          <span className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
-            activeApp === 'landing' 
-              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-              : activeApp === 'customer'
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-              : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-          }`}>
-            {activeApp === 'landing' ? `🌐 WWW.KOPITIAM.COM/${cafeUsername}` : activeApp === 'customer' ? '📱 ORDER.KOPITIAM.COM (?app=customer)' : '🏪 POS.KOPITIAM.COM (?app=cafe)'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => switchDomainApp('landing')}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold text-[11px] transition-all ${
-              activeApp === 'landing' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Globe className="w-3.5 h-3.5 text-amber-950" /> URL 3: Official Landing Page (/{cafeUsername})
-          </button>
-
-          <button
-            onClick={() => switchDomainApp('customer')}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold text-[11px] transition-all ${
-              activeApp === 'customer' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Smartphone className="w-3.5 h-3.5" /> URL 1: Web Pelanggan (QR)
-          </button>
-          
-          <button
-            onClick={() => switchDomainApp('cafe')}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold text-[11px] transition-all ${
-              activeApp === 'cafe' ? 'bg-indigo-500 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Store className="w-3.5 h-3.5" /> URL 2: Web Staf POS/KDS
-          </button>
-        </div>
-      </div>
+      <DomainNavigator
+        activeApp={activeApp}
+        cafeUsername={cafeUsername}
+        onSwitchDomain={switchDomainApp}
+      />
 
       {/* --- APPLICATION ROUTE 3: OFFICIAL CAFE & RESTO BRAND LANDING PAGE --- */}
       {activeApp === 'landing' && (
-        <div className="flex-1 flex flex-col bg-slate-950 theme-customer-container">
-          {/* LANDING PAGE NAVBAR */}
-          <header className="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 sm:px-8 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {hfeCompanyProfile.logoUrl ? (
-                <img src={hfeCompanyProfile.logoUrl} alt={hfeCompanyProfile.brandName} className="w-9 h-9 rounded-xl object-cover border border-amber-500/50 shadow" />
-              ) : (
-                <div className="w-9 h-9 rounded-xl theme-customer-btn-primary flex items-center justify-center font-black text-xs">
-                  <Coffee className="w-5 h-5 text-slate-950" />
-                </div>
-              )}
-              <div>
-                <h1 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-none">{hfeCompanyProfile.brandName}</h1>
-                <p className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
-                  <Building className="w-3 h-3 text-amber-500" /> {hfeCompanyProfile.ptLegalName}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowReservationModal(true)}
-                className="theme-customer-btn-primary text-xs font-bold px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5"
-              >
-                <CalendarCheck className="w-4 h-4" /> Reservasi Meja
-              </button>
-              <button
-                onClick={() => switchDomainApp('customer')}
-                className="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-800 flex items-center gap-1.5"
-              >
-                <QrCode className="w-4 h-4 text-amber-500" /> Scan QR Order
-              </button>
-            </div>
-          </header>
-
-          {/* HERO SHOWCASE */}
-          <section className="relative px-4 sm:px-8 py-12 sm:py-20 max-w-6xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex-1 flex flex-col gap-4">
-              <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 w-fit">
-                ✨ OFFICIAL CAFE & ARTISAN ROASTERY
-              </span>
-              <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                Nikmati Pengalaman Kuliner & Kopi Specialty Terbaik di Senopati
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                Menyajikan biji kopi houseblend Arabica pilihan, artisan matcha Uji Jepang, hangatnya pastry mentega Prancis, dan suasana tempat yang hangat untuk meeting maupun berkumpul.
-              </p>
-
-              {/* QUICK ACTION BUTTONS */}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  onClick={() => setShowReservationModal(true)}
-                  className="theme-customer-btn-primary text-xs font-bold px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transform hover:scale-105 transition-all"
-                >
-                  <CalendarCheck className="w-4 h-4" /> Reservasi Slot Meja Sekarang ➔
-                </button>
-                <button
-                  onClick={() => switchDomainApp('customer')}
-                  className="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold px-4 py-3 rounded-xl border border-slate-800 flex items-center gap-2"
-                >
-                  <Smartphone className="w-4 h-4 text-amber-400" /> Buku Menu & QR Order
-                </button>
-              </div>
-            </div>
-
-            {/* HERO IMAGE SHOWCASE */}
-            <div className="w-full md:w-1/2 relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-indigo-500 rounded-3xl blur-lg opacity-30"></div>
-              <img
-                src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80"
-                alt="Cafe Ambiance"
-                className="relative rounded-3xl object-cover border border-slate-800 shadow-2xl w-full h-64 sm:h-80"
-              />
-            </div>
-          </section>
-
-          {/* FACILITY & AMBIANCE CARDS */}
-          <section className="px-4 sm:px-8 py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-800/80">
-            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" /> Fasilitas & Kenyamanan Outlet Kafe
-            </h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { icon: '🍃', title: 'Outdoor Garden', desc: 'Area outdoor asri & smoking area' },
-                { icon: '❄️', title: 'VIP AC Room', desc: 'Ruang privat meeting 12 pax' },
-                { icon: '📶', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
-                { icon: '🅿️', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
-              ].map((fac, idx) => (
-                <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1 shadow-lg">
-                  <span className="text-2xl">{fac.icon}</span>
-                  <h4 className="font-bold text-xs text-white mt-1">{fac.title}</h4>
-                  <p className="text-[10px] text-slate-400">{fac.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* FEATURED SPECIALTY MENU */}
-          <section className="px-4 sm:px-8 py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-800/80">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-amber-500" /> Menu Specialty Populer
-              </h3>
-              <button onClick={() => switchDomainApp('customer')} className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1">
-                Lihat Seluruh Katalog <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {PRODUCT_CATALOG.slice(0, 3).map(item => (
-                <div key={item.id} className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex gap-3 shadow-xl">
-                  <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border border-slate-800" />
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <h4 className="font-bold text-xs text-white">{item.name}</h4>
-                      <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-amber-400">Rp {item.price.toLocaleString('id-ID')}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* FOOTER & ADDRESS */}
-          <footer className="mt-auto border-t border-slate-800 bg-slate-950 px-4 sm:px-8 py-6 text-center text-xs text-slate-500 flex flex-col gap-2">
-            <p className="font-bold text-slate-300">{hfeCompanyProfile.brandName} • {hfeCompanyProfile.ptLegalName}</p>
-            <p className="text-[11px] text-slate-400 font-mono">NPWP: {hfeCompanyProfile.taxIdNpwp} • {hfeCompanyProfile.address}</p>
-            <p className="text-[10px] text-slate-600">Jam Operasional: Setiap Hari 07:00 - 23:00 WIB • Powered by HFE Core Engine</p>
-          </footer>
-        </div>
+        <LandingPageView
+          hfeCompanyProfile={hfeCompanyProfile}
+          productCatalog={PRODUCT_CATALOG}
+          onOpenReservationModal={() => setShowReservationModal(true)}
+          onSwitchToCustomerApp={() => switchDomainApp('customer')}
+        />
       )}
 
       {/* --- APPLICATION ROUTE 1: CUSTOMER MOBILE QR WEB APP --- */}
@@ -3621,671 +3464,112 @@ export default function App() {
                 <p className="text-[10px] text-slate-400">✓ Untuk pengantaran pesanan oleh waiter.</p>
               </div>
             )}
-
-            <button
-              onClick={handleSaveInitialLogin}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-1"
-            >
-              Simpan Profil & Mulai Pesan Menu ➔
-            </button>
           </div>
         </div>
       )}
 
       {/* --- F&B TABLE OPERATIONS MODAL (PINDAH, SPLIT & JOIN MEJA) --- */}
-      {showTableReassignModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl relative">
-            <button
-              onClick={() => setShowTableReassignModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                <Armchair className="w-5 h-5 text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white">Operasi Meja F&B Kasir & Admin</h3>
-                <p className="text-[11px] text-slate-400">Pindah Meja, Split Bill/Seat, & Gabung Tagihan Meja</p>
-              </div>
-            </div>
-
-            {/* 3 OPERATION TABS SWITCHER */}
-            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button
-                onClick={() => setTableOpMode('move')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                  tableOpMode === 'move' ? 'bg-indigo-500 text-white shadow' : 'text-slate-400'
-                }`}
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5" /> Pindah
-              </button>
-              <button
-                onClick={() => setTableOpMode('split')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                  tableOpMode === 'split' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400'
-                }`}
-              >
-                ✂️ Split Meja
-              </button>
-              <button
-                onClick={() => setTableOpMode('join')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                  tableOpMode === 'join' ? 'bg-emerald-500 text-slate-950 shadow' : 'text-slate-400'
-                }`}
-              >
-                🔗 Join Meja
-              </button>
-            </div>
-
-            {/* TAB 1: PINDAH MEJA (MOVE TABLE) */}
-            {tableOpMode === 'move' && (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-slate-400 font-semibold">Pilih Meja Asal (Yang Ingin Dipindah):</label>
-                  <select
-                    value={reassignFromTable}
-                    onChange={(e) => setReassignFromTable(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
-                  >
-                    {tablesGrid.filter(t => t.totalBill > 0 || t.status !== 'free').map(t => (
-                      <option key={t.id} value={t.name}>{t.name} ({t.customerName || 'Aktif'} - Rp {t.totalBill.toLocaleString('id-ID')})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-slate-400 font-semibold">Pilih Meja Tujuan Baru:</label>
-                  <select
-                    value={reassignTargetTable}
-                    onChange={(e) => setReassignTargetTable(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
-                  >
-                    {tablesGrid.map(t => (
-                      <option key={t.id} value={t.name}>{t.name} ({t.status === 'free' ? 'Kosong' : 'Ada Tamu'})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  onClick={handleConfirmTableReassign}
-                  className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-3 rounded-xl shadow-lg mt-2 flex items-center justify-center gap-2"
-                >
-                  <CheckCircle2 className="w-4 h-4" /> Konfirmasi Pindahkan Meja Pelanggan
-                </button>
-              </div>
-            )}
-
-            {/* TAB 2: SPLIT MEJA (SPLIT BILL PER SEAT) */}
-            {tableOpMode === 'split' && (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-slate-400 font-semibold">Pilih Meja Induk Utama (Yang Memiliki Item):</label>
-                  <select
-                    value={splitSourceTable}
-                    onChange={(e) => setSplitSourceTable(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-amber-500"
-                  >
-                    {tablesGrid.filter(t => t.totalBill > 0 || t.status !== 'free').map(t => (
-                      <option key={t.id} value={t.name}>{t.name} ({t.customerName || 'Aktif'} - Rp {t.totalBill.toLocaleString('id-ID')})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-slate-400 font-semibold">Pilih Kursi (Seat) Yang Akan Di-split Tagihannya:</label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {['Seat 1', 'Seat 2', 'Seat 3', 'Seat 4'].map(s => (
-                      <button
-                        key={s}
-                        onClick={() => setSplitSelectedSeat(s)}
-                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all ${
-                          splitSelectedSeat === s ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-slate-400 font-semibold">Pilih Meja Tujuan Hasil Split Baru:</label>
-                  <select
-                    value={splitTargetTable}
-                    onChange={(e) => setSplitTargetTable(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-amber-500"
-                  >
-                    {tablesGrid.map(t => (
-                      <option key={t.id} value={t.name}>{t.name} ({t.status === 'free' ? 'Kosong' : 'Ada Tamu'})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  onClick={handleConfirmTableSplit}
-                  className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-2 flex items-center justify-center gap-2"
-                >
-                  ✂️ Konfirmasi Split Bill & Meja Baru
-                </button>
-              </div>
-            )}
-
-            {/* TAB 3: JOIN MEJA (MERGE TABLES) */}
-            {tableOpMode === 'join' && (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-slate-400 font-semibold">Pilih Meja Awal (Yang Ingin Digabungkan):</label>
-                  <select
-                    value={joinSourceTable}
-                    onChange={(e) => setJoinSourceTable(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
-                  >
-                    {tablesGrid.filter(t => t.totalBill > 0 || t.status !== 'free').map(t => (
-                      <option key={t.id} value={t.name}>{t.name} ({t.customerName || 'Aktif'} - Rp {t.totalBill.toLocaleString('id-ID')})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-slate-400 font-semibold">Pilih Meja Tujuan Utama (Penerima Tagihan Gabungan):</label>
-                  <select
-                    value={joinTargetTable}
-                    onChange={(e) => setJoinTargetTable(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
-                  >
-                    {tablesGrid.filter(t => t.name !== joinSourceTable).map(t => (
-                      <option key={t.id} value={t.name}>{t.name} ({t.customerName || 'Aktif'} - Rp {t.totalBill.toLocaleString('id-ID')})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <button
-                  onClick={handleConfirmTableJoin}
-                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-2 flex items-center justify-center gap-2"
-                >
-                  🔗 Konfirmasi Gabungkan Tagihan & Meja
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <TableOperationsModal
+        show={showTableReassignModal}
+        onClose={() => setShowTableReassignModal(false)}
+        tablesGrid={tablesGrid}
+        reassignFromTable={reassignFromTable}
+        setReassignFromTable={setReassignFromTable}
+        reassignTargetTable={reassignTargetTable}
+        setReassignTargetTable={setReassignTargetTable}
+        onConfirmReassign={handleConfirmTableReassign}
+        onConfirmSplit={(seatNum) => {
+          setSplitSelectedSeat(seatNum)
+          handleConfirmTableSplit()
+        }}
+        onConfirmJoin={(tblA, tblB) => {
+          setJoinSourceTable(tblA)
+          setJoinTargetTable(tblB)
+          handleConfirmTableJoin()
+        }}
+      />
 
       {/* --- DRINK MODIFIER MODAL WITH SEAT TAGGING & CUSTOMER PROFILE BINDING --- */}
-      {showModifierModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setShowModifierModal(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="text-base font-bold text-white flex items-center gap-2 pr-6">
-              <Coffee className="w-5 h-5 text-amber-500" /> Kustomisasi {showModifierModal.name}
-            </h3>
-
-            {/* SEAT SELECTION */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-amber-400 flex items-center gap-1">
-                <Armchair className="w-3.5 h-3.5 text-amber-500" /> Penandaan Nomor Kursi (Seat Tagging):
-              </label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {['Seat 1', 'Seat 2', 'Seat 3', 'Seat 4'].map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setModSeat(s)}
-                    className={`py-1.5 rounded-xl text-xs font-bold border transition-all ${
-                      modSeat === s ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* CUSTOMER CONTACT BINDING FOR PREFERENCE PROFILING */}
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
-              <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                <UserPlus className="w-3.5 h-3.5 text-emerald-400" /> Bind Kontak Tamu Kursi ({modSeat}):
-              </span>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={modSeatCustomerName}
-                  onChange={(e) => setModSeatCustomerName(e.target.value)}
-                  placeholder="Nama Tamu (cth: Budi)"
-                  className="bg-slate-900 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 text-white font-semibold focus:outline-none focus:border-emerald-500"
-                />
-                <input
-                  type="tel"
-                  value={modSeatCustomerPhone}
-                  onChange={(e) => setModSeatCustomerPhone(e.target.value)}
-                  placeholder="No HP / WA Tamu"
-                  className="bg-slate-900 border border-slate-800 text-xs rounded-lg px-2.5 py-1.5 text-white font-mono focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <p className="text-[9px] text-emerald-400/80">✓ Preferensi susu & gula otomatis tersimpan ke profil kontak ini.</p>
-            </div>
-
-            {/* ALLERGEN NOTES */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-rose-400 flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-500" /> Catatan Alergen / Pantangan (Opsional):
-              </label>
-              <input
-                type="text"
-                value={modAllergen}
-                onChange={(e) => setModAllergen(e.target.value)}
-                placeholder="cth: Alergi Lactose, No Truffle Oil"
-                className="bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500 text-rose-200 font-medium"
-              />
-            </div>
-
-            {/* TEMPERATURE */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-400">Suhu Minuman:</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setModTemp('Iced')}
-                  className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                    modTemp === 'Iced' ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                  }`}
-                >
-                  🧊 Iced
-                </button>
-                <button
-                  onClick={() => setModTemp('Hot')}
-                  className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                    modTemp === 'Hot' ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                  }`}
-                >
-                  ☕ Hot
-                </button>
-              </div>
-            </div>
-
-            {/* SUGAR LEVEL */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-400">Tingkat Manis / Sugar:</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['0%', '50%', '100%'] as const).map(s => (
-                  <button
-                    key={s}
-                    onClick={() => setModSugar(s)}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                      modSugar === s ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* MILK OPTION */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-400">Pilihan Susu / Dairy:</label>
-              <div className="flex flex-col gap-1.5">
-                {(['Whole Milk', 'Oat Milk (+Rp 5.000)', 'Almond Milk (+Rp 5.000)'] as const).map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setModMilk(m)}
-                    className={`p-2 rounded-xl text-xs font-bold border text-left transition-all ${
-                      modMilk === m ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={handleConfirmModifier}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-2 flex items-center justify-center gap-2"
-            >
-              <Heart className="w-4 h-4 fill-slate-950" /> Konfirmasi & Profilkan Preferensi Tamu
-            </button>
-          </div>
-        </div>
-      )}
+      <ModifierModal
+        show={!!showModifierModal}
+        onClose={() => setShowModifierModal(null)}
+        selectedItemForModifier={showModifierModal}
+        modSeatNumber={modSeat}
+        setModSeatNumber={setModSeat}
+        modSeatCustomerName={modSeatCustomerName}
+        setModSeatCustomerName={setModSeatCustomerName}
+        modSeatCustomerPhone={modSeatCustomerPhone}
+        setModSeatCustomerPhone={setModSeatCustomerPhone}
+        modAllergen={modAllergen}
+        setModAllergen={setModAllergen}
+        modTemp={modTemp}
+        setModTemp={setModTemp}
+        modSugar={modSugar}
+        setModSugar={setModSugar}
+        modMilk={modMilk}
+        setModMilk={setModMilk}
+        onConfirmModifier={handleConfirmModifier}
+      />
 
       {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP --- */}
-      {selectedRecipeBOM && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setSelectedRecipeBOM(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="flex items-center gap-3 border-b border-slate-800 pb-3 pr-8">
-              <img 
-                src={selectedRecipeBOM.image} 
-                alt={selectedRecipeBOM.name} 
-                className="w-14 h-14 rounded-xl object-cover border border-slate-700"
-              />
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                    {selectedRecipeBOM.id}
-                  </span>
-                  <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                    {selectedRecipeBOM.category}
-                  </span>
-                </div>
-                <h3 className="text-sm sm:text-base font-bold text-white mt-1">{selectedRecipeBOM.name}</h3>
-                <p className="text-[11px] text-slate-400">{selectedRecipeBOM.description}</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-amber-400 flex items-center justify-between">
-                <span className="flex items-center gap-1.5"><Layers className="w-4 h-4 text-amber-500" /> Bill of Materials (BOM Resep & Kode Inventori)</span>
-                <span className="text-[9px] font-mono text-indigo-400">STAFF ONLY</span>
-              </h4>
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
-                {selectedRecipeBOM.bomIngredients?.map((ing, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-xs text-slate-300 bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                        {ing.itemCode}
-                      </span>
-                      <span>{ing.name}</span>
-                    </div>
-                    <span className="font-mono font-bold text-amber-400">{ing.amount}</span>
-                  </div>
-                )) || <p className="text-xs text-slate-500">Resep standar pabrikasi.</p>}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
-                <ChefHat className="w-4 h-4 text-indigo-500" /> Petunjuk SOP Pembuatan / Barista Guide
-              </h4>
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
-                {selectedRecipeBOM.preparationSteps?.map((step, idx) => (
-                  <p key={idx} className="text-xs text-slate-300 leading-relaxed">
-                    {step}
-                  </p>
-                )) || <p className="text-xs text-slate-500">Gunakan petunjuk standar penyajian kafe.</p>}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSelectedRecipeBOM(null)}
-              className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg mt-1"
-            >
-              Tutup Petunjuk Resep
-            </button>
-          </div>
-        </div>
-      )}
+      <RecipeBomModal
+        selectedRecipeBOM={selectedRecipeBOM}
+        onClose={() => setSelectedRecipeBOM(null)}
+      />
 
       {/* --- QRIS PAYMENT MODAL --- */}
-      {showQRISModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 flex flex-col items-center gap-4 text-center shadow-2xl">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-amber-500" /> Pembayaran QRIS ASPI
-            </h3>
-            
-            <div className="bg-white p-4 rounded-2xl shadow-inner border border-slate-200">
-              <img 
-                src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=HFE-POS-CAFE-QRIS" 
-                alt="QRIS Code" 
-                className="w-44 h-44"
-              />
-            </div>
-
-            <p className="text-xs text-slate-400">Scan QRIS menggunakan GoPay, OVO, ShopeePay, atau Mobile Banking Anda</p>
-
-            <button
-              onClick={handleCompletePayFirstQRIS}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg"
-            >
-              ✓ Simulasi Pembayaran Sukses (Pay-First)
-            </button>
-          </div>
-        </div>
-      )}
+      <QrisModal
+        show={showQRISModal}
+        onCompletePayment={handleCompletePayFirstQRIS}
+      />
 
       {/* --- CUSTOMER TABLE RESERVATION BOOKING MODAL --- */}
-      {showReservationModal && (
-        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm sm:max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setShowReservationModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-            >
-              <X className="w-4 h-4" />
-            </button>
+      <ReservationModal
+        show={showReservationModal}
+        onClose={() => setShowReservationModal(false)}
+        hfeCompanyProfile={hfeCompanyProfile}
+        productCatalog={PRODUCT_CATALOG}
+        resDate={resDate}
+        setResDate={setResDate}
+        resTimeSlot={resTimeSlot}
+        setResTimeSlot={setResTimeSlot}
+        resArea={resArea}
+        setResArea={setResArea}
+        resPax={resPax}
+        setResPax={setResPax}
+        resCustomerName={resCustomerName}
+        setResCustomerName={setResCustomerName}
+        resCustomerPhone={resCustomerPhone}
+        setResCustomerPhone={setResCustomerPhone}
+        resNotes={resNotes}
+        setResNotes={setResNotes}
+        resPayDpNow={resPayDpNow}
+        setResPayDpNow={setResPayDpNow}
+        dpRequiredMode={dpRequiredMode}
+        dpAmountConfig={dpAmountConfig}
+        reservationPolicyMode={reservationPolicyMode}
+        reservationOrderMode={reservationOrderMode}
+        priceVisibilityMode={priceVisibilityMode}
+        resPreOrderItems={resPreOrderItems}
+        setResPreOrderItems={setResPreOrderItems}
+        onCreateReservation={handleCreateReservation}
+      />
 
-            <div className="flex items-center gap-3 border-b border-slate-800 pb-3 pr-6">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                <CalendarCheck className="w-5 h-5 text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white">Form Reservasi Meja Cafe</h3>
-                <p className="text-[11px] text-slate-400">{hfeCompanyProfile.brandName}</p>
-              </div>
-            </div>
-
-            {/* DATE & TIME SLOT PICKER */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-400" /> Tanggal Kunjungan:
-                </label>
-                <input
-                  type="date"
-                  value={resDate}
-                  onChange={(e) => setResDate(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl p-2.5 font-bold focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-indigo-400" /> Slot Jam Kunjungan:
-                </label>
-                <select
-                  value={resTimeSlot}
-                  onChange={(e) => setResTimeSlot(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="11:00 WIB">11:00 WIB (Lunch)</option>
-                  <option value="13:00 WIB">13:00 WIB (Afternoon)</option>
-                  <option value="17:00 WIB">17:00 WIB (Sunset Coffee)</option>
-                  <option value="19:00 WIB">19:00 WIB (Dinner)</option>
-                  <option value="21:00 WIB">21:00 WIB (Night Lounge)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* TABLE AREA & PAX COUNT */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-indigo-400" /> Area Tempat Duduk:
-                </label>
-                <select
-                  value={resArea}
-                  onChange={(e) => setResArea(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 text-slate-200 font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="Meja Dining Utama">Meja Dining Utama</option>
-                  <option value="Outdoor Garden (Smoking)">Outdoor Garden</option>
-                  <option value="VIP Room 1 (AC & Projector)">VIP AC Room 1</option>
-                  <option value="Bar Stool Lounge">Bar Stool Lounge</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-indigo-400" /> Jumlah Tamu (Pax):
-                </label>
-                <select
-                  value={resPax}
-                  onChange={(e) => setResPax(Number(e.target.value))}
-                  className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
-                >
-                  {[1, 2, 4, 6, 8, 10, 12].map(p => (
-                    <option key={p} value={p}>{p} Orang Tamu</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* CONTACT INFO */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-300">Data Diri Pemesan:</label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={resCustomerName}
-                  onChange={(e) => setResCustomerName(e.target.value)}
-                  placeholder="Nama Pemesan (cth: Aldi)"
-                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-semibold"
-                />
-                <input
-                  type="tel"
-                  value={resCustomerPhone}
-                  onChange={(e) => setResCustomerPhone(e.target.value)}
-                  placeholder="No WhatsApp"
-                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-mono"
-                />
-              </div>
-            </div>
-
-            {/* SPECIAL REQUEST NOTES */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Catatan Khusus (Acara/Permintaan Kursi):</label>
-              <input
-                type="text"
-                value={resNotes}
-                onChange={(e) => setResNotes(e.target.value)}
-                placeholder="cth: Acara Ulang Tahun / Baby Chair / Stop Kontak"
-                className="bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-
-            {/* PRE-ORDER MENU SECTION FOR RESERVATION */}
-            {reservationOrderMode !== 'table_only' && (
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                    <Coffee className="w-3.5 h-3.5 text-amber-500" /> Pre-Order Menu Specialty {reservationOrderMode === 'mandatory_order' ? '(Wajib Minimal 1 Item)' : '(Opsional)'}:
-                  </span>
-                  {resPreOrderItems.length > 0 && (
-                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
-                      Subtotal: Rp {resPreOrderItems.reduce((s, i) => s + (i.price * i.qty), 0).toLocaleString('id-ID')}
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-2 max-h-36 overflow-y-auto pr-1">
-                  {PRODUCT_CATALOG.map(item => {
-                    const existing = resPreOrderItems.find(i => i.itemId === item.id)
-                    const qty = existing ? existing.qty : 0
-                    return (
-                      <div key={item.id} className="bg-slate-900 p-2 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
-                        <div>
-                          <span className="font-bold text-white text-[11px]">{item.name}</span>
-                          {priceVisibilityMode === 'show_prices' && (
-                            <p className="text-[10px] text-amber-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          {qty > 0 ? (
-                            <>
-                              <button
-                                onClick={() => {
-                                  if (qty === 1) {
-                                    setResPreOrderItems(prev => prev.filter(i => i.itemId !== item.id))
-                                  } else {
-                                    setResPreOrderItems(prev => prev.map(i => i.itemId === item.id ? { ...i, qty: i.qty - 1 } : i))
-                                  }
-                                }}
-                                className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center"
-                              >
-                                -
-                              </button>
-                              <span className="font-mono font-bold text-xs text-white w-4 text-center">{qty}</span>
-                              <button
-                                onClick={() => setResPreOrderItems(prev => prev.map(i => i.itemId === item.id ? { ...i, qty: i.qty + 1 } : i))}
-                                className="w-5 h-5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center"
-                              >
-                                +
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => setResPreOrderItems(prev => [...prev, { itemId: item.id, name: item.name, price: item.price, qty: 1 }])}
-                              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded-md"
-                            >
-                              + Tambah
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* DOWN PAYMENT COMMITMENT SECTION */}
-            {dpRequiredMode && (
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-amber-400 flex items-center gap-1">
-                    <CreditCard className="w-3.5 h-3.5 text-amber-500" /> Down Payment (DP Commitment):
-                  </span>
-                  <span className="font-mono font-bold text-amber-300">Rp {dpAmountConfig.toLocaleString('id-ID')}</span>
-                </div>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 pt-1">
-                  <input
-                    type="checkbox"
-                    checked={resPayDpNow}
-                    onChange={(e) => setResPayDpNow(e.target.checked)}
-                    className="rounded bg-slate-900 border-slate-800 text-indigo-500 focus:ring-0"
-                  />
-                  <span>Bayar DP Commitment Sekarang via QRIS (Deposit HFE)</span>
-                </label>
-              </div>
-            )}
-
-            {/* APPROVAL POLICY NOTICE */}
-            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-2.5 text-[11px] text-indigo-300 flex items-center gap-2">
-              <span className="text-base">ℹ️</span>
-              <span>
-                Kebijakan Kafe: <b>{reservationPolicyMode === 'instant' ? '⚡ Instant Reserve (Langsung Disetujui)' : '⏳ Perlu Konfirmasi Admin/Kasir'}</b>.
-              </span>
-            </div>
-
-            <button
-              onClick={handleCreateReservation}
-              className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-3 rounded-xl shadow-lg mt-1 flex items-center justify-center gap-2"
-            >
-              <CalendarCheck className="w-4 h-4 text-white" /> Kirim Permohonan Reservasi Meja ➔
-            </button>
-          </div>
-        </div>
-      )}
-
+      {/* --- CUSTOMER PROFILE LOGIN MODAL --- */}
+      <LoginModal
+        show={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        loginType={loginType}
+        setLoginType={setLoginType}
+        customerPhone={customerPhone}
+        setCustomerPhone={setCustomerPhone}
+        guestName={guestName}
+        setGuestName={setGuestName}
+        loyaltyPoints={loyaltyPoints}
+        isCustomerSessionActive={isCustomerSessionActive}
+        onSaveLogin={handleSaveLogin}
+        onClearSession={handleClearSession}
+      />
     </div>
   )
 }
