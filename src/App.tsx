@@ -74,6 +74,7 @@ import {
   Globe,
   Radio,
   FileCheck,
+  Lock as LockIcon,
   ArrowRightLeft,
   Calendar,
   CalendarCheck,
@@ -966,13 +967,6 @@ export default function App() {
     }
   }
 
-  // --- DYNAMIC URL SWITCHER EFFECT ---
-  const switchDomainApp = (targetApp: PrimaryDomainApp) => {
-    setActiveApp(targetApp)
-    const newUrl = targetApp === 'cafe' ? '?app=cafe' : '?app=customer'
-    window.history.pushState({}, '', newUrl)
-  }
-
   // --- DYNAMIC TAX, SERVICE FEE & TIP CALCULATION ---
   const rawSubtotal = cart.reduce((sum, item) => {
     let itemPrice = item.price
@@ -1485,7 +1479,7 @@ export default function App() {
                   className="flex items-center gap-1 theme-customer-badge px-2.5 py-1 rounded-lg text-[11px] font-bold border border-amber-500/30 cursor-pointer shadow-sm"
                   title="Nomor Meja Terkunci dari Scan QR Meja"
                 >
-                  <Lock className="w-3 h-3" style={{ color: activeTheme.primaryAccentHex }} />
+                  <LockIcon className="w-3 h-3" style={{ color: activeTheme.primaryAccentHex }} />
                   <span className="font-mono text-xs text-amber-300 font-extrabold">{selectedTable}</span>
                   <span className="text-[9px] font-mono text-amber-400/80">({scannedSeat})</span>
                 </div>
@@ -1544,6 +1538,9 @@ export default function App() {
           </header>
 
           <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-28">
+            {/* STEP 1: KATALOG MENU VIEW */}
+            {qrStepView === 'catalog' && (
+              <>
                 {/* LANDING PAGE TABLE RESERVATION BANNER */}
                 <div className="bg-gradient-to-br from-indigo-900/40 via-slate-900 to-slate-950 border border-indigo-500/30 rounded-2xl p-4 flex flex-col gap-3 shadow-xl">
                   <div className="flex items-center justify-between">
@@ -1769,7 +1766,7 @@ export default function App() {
                     <ArrowLeft className="w-4 h-4" /> Kembali Tambah Menu
                   </button>
                   <span className="text-xs font-bold text-slate-300 font-mono flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-amber-500" /> {selectedTable} ({scannedSeat})
+                    <LockIcon className="w-3 h-3 text-amber-500" /> {selectedTable} ({scannedSeat})
                   </span>
                 </div>
 
