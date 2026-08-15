@@ -24,11 +24,13 @@ import {
   Check, 
   Tag, 
   Percent, 
-  UtensilsCrossed
+  UtensilsCrossed,
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react'
 
 // --- TYPES ---
-type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-kitchen'
+type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-kanban'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
 
@@ -66,8 +68,8 @@ interface OrderTicket {
   items: CartItem[]
   policy: PaymentPolicy
   total: number
-  status: 'placed' | 'brewing' | 'ready' | 'served'
-  timeElapsedSeconds: number
+  status: 'placed' | 'brewing' | 'ready'
+  timeElapsedMinutes: number
   createdAt: string
 }
 
@@ -95,9 +97,9 @@ export default function App() {
   const [promoCodeInput, setPromoCodeInput] = useState<string>('')
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null)
   
-  // Customer Loyalty & Wallet State (fetched via REST API)
+  // Customer Loyalty & Wallet State
   const [loyaltyPoints, setLoyaltyPoints] = useState<number>(450)
-  const [userTier, setUserTier] = useState<{ name: string; multiplier: string; perk: string; icon: string }>({
+  const [userTier] = useState({
     name: 'Kopi Barista (Gold Tier)',
     multiplier: '1.5x Multiplier',
     perk: 'Antrean Barista Prioritas & Diskon Biji Kopi 10%',
@@ -117,7 +119,7 @@ export default function App() {
   const [modMilk, setModMilk] = useState<'Whole Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)'>('Oat Milk (+Rp 5.000)')
   const [showQRISModal, setShowQRISModal] = useState<boolean>(false)
 
-  // --- KITCHEN & POS ORDERS STATE ---
+  // --- KITCHEN KANBAN ORDERS STATE ---
   const [orders, setOrders] = useState<OrderTicket[]>([
     {
       id: 'ORD-8821',
@@ -131,7 +133,7 @@ export default function App() {
       policy: 'pay-first',
       total: 86000,
       status: 'brewing',
-      timeElapsedSeconds: 180,
+      timeElapsedMinutes: 4,
       createdAt: '19:24'
     },
     {
@@ -146,13 +148,27 @@ export default function App() {
       policy: 'open-tab',
       total: 70000,
       status: 'placed',
-      timeElapsedSeconds: 450,
+      timeElapsedMinutes: 8,
       createdAt: '19:18'
+    },
+    {
+      id: 'ORD-8819',
+      table: 'MEJA-08',
+      customerName: 'Siti Rahma',
+      phone: '081599887766',
+      items: [
+        { ...PRODUCT_CATALOG[2], quantity: 2, temperature: 'Iced', sugarLevel: '0%' }
+      ],
+      policy: 'pay-first',
+      total: 70000,
+      status: 'ready',
+      timeElapsedMinutes: 12,
+      createdAt: '19:14'
     }
   ])
 
   // --- POS TABLES FLOOR PLAN STATE ---
-  const [tablesGrid, setTablesGrid] = useState<TableStatus[]>([
+  const [tablesGrid] = useState<TableStatus[]>([
     { id: 'T1', name: 'MEJA-01', status: 'free', totalBill: 0, orderCount: 0 },
     { id: 'T2', name: 'MEJA-02', status: 'free', totalBill: 0, orderCount: 0 },
     { id: 'T3', name: 'MEJA-03', status: 'free', totalBill: 0, orderCount: 0 },
@@ -238,7 +254,6 @@ export default function App() {
     if (paymentPolicy === 'pay-first') {
       setShowQRISModal(true)
     } else {
-      // Open Tab Direct Submit
       const newOrder: OrderTicket = {
         id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
         table: selectedTable,
@@ -248,12 +263,12 @@ export default function App() {
         policy: 'open-tab',
         total: finalTotal,
         status: 'placed',
-        timeElapsedSeconds: 10,
+        timeElapsedMinutes: 1,
         createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
       }
       setOrders(prev => [newOrder, ...prev])
       setCart([])
-      alert(`Pesanan Open Tab meja ${selectedTable} telah terkirim ke Barista!`)
+      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke Kanban Dapur!`)
     }
   }
 
@@ -268,24 +283,28 @@ export default function App() {
       policy: 'pay-first',
       total: finalTotal,
       status: 'brewing',
-      timeElapsedSeconds: 15,
+      timeElapsedMinutes: 1,
       createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
     }
     setOrders(prev => [newOrder, ...prev])
     setCart([])
     setLoyaltyPoints(prev => prev + Math.floor(finalTotal / 10000))
-    alert(`Pembayaran QRIS Berhasil! Pesanan meja ${selectedTable} sedang diseduh Barista.`)
+    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk kolom Brewing Kanban.`)
   }
 
-  const handleBumpKDSStatus = (orderId: string) => {
+  const handleMoveKanbanColumn = (orderId: string, targetStatus: 'placed' | 'brewing' | 'ready') => {
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
-        const nextStatus = o.status === 'placed' ? 'brewing' : o.status === 'brewing' ? 'ready' : 'served'
-        return { ...o, status: nextStatus }
+        return { ...o, status: targetStatus }
       }
       return o
     }))
   }
+
+  // Kanban Columns Helper
+  const placedOrders = orders.filter(o => o.status === 'placed')
+  const brewingOrders = orders.filter(o => o.status === 'brewing')
+  const readyOrders = orders.filter(o => o.status === 'ready')
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
@@ -331,15 +350,15 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveSurface('kds-kitchen')}
+            onClick={() => setActiveSurface('kds-kanban')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeSurface === 'kds-kitchen'
+              activeSurface === 'kds-kanban'
                 ? 'bg-amber-500 text-slate-950 shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <UtensilsCrossed className="w-3.5 h-3.5" />
-            3. Kitchen Display (KDS)
+            3. Kitchen KDS Kanban
           </button>
         </div>
       </header>
@@ -725,77 +744,166 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 3: KITCHEN DISPLAY SYSTEM (KDS) --- */}
-      {activeSurface === 'kds-kitchen' && (
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-4">
+      {/* --- SURFACE 3: KITCHEN DISPLAY KANBAN BOARD --- */}
+      {activeSurface === 'kds-kanban' && (
+        <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <UtensilsCrossed className="w-5 h-5 text-amber-500" /> Kitchen & Barista Display System (KDS)
+                <UtensilsCrossed className="w-5 h-5 text-amber-500" /> Kitchen & Barista KDS Kanban Board
               </h2>
-              <p className="text-xs text-slate-400">Real-time Order Queue (<span className="text-emerald-400 font-mono">&lt; 500ms sync</span>)</p>
+              <p className="text-xs text-slate-400">3-Column Kanban Workflow (<span className="text-emerald-400 font-mono">Placed ➔ Brewing ➔ Ready</span>)</p>
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">
-                {orders.length} Antrean Pesanan Active
+            <div className="flex items-center gap-3 text-xs">
+              <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono font-bold">
+                {orders.length} Total Antrean Active
               </span>
             </div>
           </div>
 
-          {/* KDS Order Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {orders.map(order => (
-              <div 
-                key={order.id}
-                className={`border rounded-2xl p-4 flex flex-col justify-between gap-4 shadow-xl ${
-                  order.status === 'placed' 
-                    ? 'bg-amber-950/20 border-amber-500/40' 
-                    : order.status === 'brewing'
-                    ? 'bg-indigo-950/20 border-indigo-500/40'
-                    : 'bg-emerald-950/20 border-emerald-500/40'
-                }`}
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <div>
-                    <span className="font-mono font-black text-sm text-white">{order.id}</span>
-                    <h4 className="text-xs font-bold text-amber-400">{order.table} • {order.customerName}</h4>
-                  </div>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
-                    order.status === 'placed' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                  }`}>
-                    {order.status}
-                  </span>
-                </div>
-
-                {/* Items List */}
-                <div className="flex flex-col gap-2 flex-1">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex items-start justify-between text-xs">
-                      <div>
-                        <p className="font-bold text-slate-200">{item.quantity}x {item.name}</p>
-                        {item.temperature && (
-                          <p className="text-[10px] text-amber-400/90 font-medium">
-                            {item.temperature} • {item.sugarLevel} Sugar • {item.milkOption}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* KDS Action Button */}
-                <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
-                  <span className="text-[10px] text-slate-400 font-mono">{order.createdAt}</span>
-                  <button
-                    onClick={() => handleBumpKDSStatus(order.id)}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow"
-                  >
-                    Bump Status ➔
-                  </button>
-                </div>
+          {/* 3-COLUMN KANBAN BOARD */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* COLUMN 1: PLACED */}
+            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-500" /> 1. Placed (Pesanan Masuk)
+                </h3>
+                <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-bold font-mono flex items-center justify-center border border-amber-500/30">
+                  {placedOrders.length}
+                </span>
               </div>
-            ))}
+
+              <div className="flex flex-col gap-3 flex-1">
+                {placedOrders.map(order => (
+                  <div key={order.id} className="bg-slate-950 border border-amber-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <div>
+                        <span className="font-mono font-black text-xs text-amber-400">{order.id}</span>
+                        <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+                      </div>
+                      <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                        <Clock className="w-3 h-3" /> {order.timeElapsedMinutes}m ago
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1 text-xs">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
+                          <span className="text-[10px] text-slate-400">{item.temperature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => handleMoveKanbanColumn(order.id, 'brewing')}
+                      className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 mt-1 shadow"
+                    >
+                      Mulai Seduh / Masak <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* COLUMN 2: BREWING */}
+            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-indigo-500" /> 2. Brewing (Sedang Diseduh)
+                </h3>
+                <span className="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 text-xs font-bold font-mono flex items-center justify-center border border-indigo-500/30">
+                  {brewingOrders.length}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-3 flex-1">
+                {brewingOrders.map(order => (
+                  <div key={order.id} className="bg-slate-950 border border-indigo-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <div>
+                        <span className="font-mono font-black text-xs text-indigo-400">{order.id}</span>
+                        <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+                      </div>
+                      <span className="text-[10px] text-indigo-400 font-mono flex items-center gap-1 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                        <Flame className="w-3 h-3" /> {order.timeElapsedMinutes}m active
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1 text-xs">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
+                          <span className="text-[10px] text-slate-400">{item.temperature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleMoveKanbanColumn(order.id, 'placed')}
+                        className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold py-2 px-2.5 rounded-lg"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleMoveKanbanColumn(order.id, 'ready')}
+                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
+                      >
+                        Selesai Diseduh <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* COLUMN 3: READY */}
+            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 3. Ready (Siap Diambil/Diantar)
+                </h3>
+                <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-bold font-mono flex items-center justify-center border border-emerald-500/30">
+                  {readyOrders.length}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-3 flex-1">
+                {readyOrders.map(order => (
+                  <div key={order.id} className="bg-slate-950 border border-emerald-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <div>
+                        <span className="font-mono font-black text-xs text-emerald-400">{order.id}</span>
+                        <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+                      </div>
+                      <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        <CheckCircle2 className="w-3 h-3" /> Ready
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1 text-xs">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
+                          <span className="text-[10px] text-slate-400">{item.temperature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => alert(`Tiket struk thermal order ${order.id} meja ${order.table} berhasil dicetak!`)}
+                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 border border-slate-700"
+                    >
+                      <Printer className="w-3.5 h-3.5" /> Cetak Struk Dapur
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </main>
       )}
