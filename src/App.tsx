@@ -73,7 +73,10 @@ import {
   Building,
   Globe,
   Radio,
-  FileCheck
+  FileCheck,
+  Lock,
+  ArrowRightLeft,
+  QrCode as QrIcon
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -494,8 +497,22 @@ export default function App() {
     }
   ])
 
-  // --- MOBILE QR SURFACE STATE ---
-  const [selectedTable, setSelectedTable] = useState<string>('MEJA-04')
+  // --- LOCKED PHYSICAL QR TABLE & SEAT SCANNING ENGINE ---
+  const [selectedTable, setSelectedTable] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('table') || 'MEJA-04'
+  })
+
+  const [scannedSeat, setScannedSeat] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('seat') || 'Seat 1'
+  })
+
+  // ADMIN TABLE REASSIGNMENT MODAL STATE
+  const [showTableReassignModal, setShowTableReassignModal] = useState<boolean>(false)
+  const [reassignFromTable, setReassignFromTable] = useState<string>('MEJA-04')
+  const [reassignTargetTable, setReassignTargetTable] = useState<string>('MEJA-08')
+
   const [loginType, setLoginType] = useState<CustomerLoginType>('phone')
   const [customerPhone, setCustomerPhone] = useState<string>('081298765432')
   const [guestName, setGuestName] = useState<string>('Aldi')
@@ -608,15 +625,53 @@ export default function App() {
     { id: 'T3', name: 'MEJA-03', status: 'free', totalBill: 0, orderCount: 0 },
     { id: 'T4', name: 'MEJA-04', status: 'occupied', customerName: 'Aldi', totalBill: 86000, orderCount: 2 },
     { id: 'T5', name: 'MEJA-05', status: 'free', totalBill: 0, orderCount: 0 },
+    { id: 'T8', name: 'MEJA-08', status: 'free', totalBill: 0, orderCount: 0 },
     { id: 'T12', name: 'MEJA-12', status: 'open-tab', customerName: 'Budi Santoso', totalBill: 140000, orderCount: 4 },
   ])
   const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(tablesGrid[3])
   const [posPayMethod, setPosPayMethod] = useState<'cash' | 'qris' | 'card'>('cash')
   const [posCashGiven, setPosCashGiven] = useState<string>('100000')
 
+  // --- ADMIN / KASIR TABLE REASSIGNMENT HANDLER ---
+  const handleConfirmTableReassign = () => {
+    if (reassignFromTable === reassignTargetTable) {
+      alert('Meja tujuan tidak boleh sama dengan meja asal!')
+      return
+    }
+
+    // 1. Update Orders Table assignment
+    setOrders(prev => prev.map(o => o.table === reassignFromTable ? { ...o, table: reassignTargetTable } : o))
+
+    // 2. Update Floor Plan Tables Grid
+    setTablesGrid(prev => {
+      const sourceTableObj = prev.find(t => t.name === reassignFromTable)
+      if (!sourceTableObj) return prev
+      const bill = sourceTableObj.totalBill
+      const count = sourceTableObj.orderCount
+      const custName = sourceTableObj.customerName
+
+      return prev.map(t => {
+        if (t.name === reassignFromTable) {
+          return { ...t, status: 'free', totalBill: 0, orderCount: 0, customerName: undefined }
+        }
+        if (t.name === reassignTargetTable) {
+          return { ...t, status: 'occupied', totalBill: bill, orderCount: count, customerName: custName }
+        }
+        return t
+      })
+    })
+
+    // 3. Update customer active table live
+    if (selectedTable === reassignFromTable) {
+      setSelectedTable(reassignTargetTable)
+    }
+
+    setShowTableReassignModal(false)
+    alert(`🔀 Berhasil! Pesanan pelanggan dari ${reassignFromTable} dipindahkan ke ${reassignTargetTable} oleh Staf Kafe.`)
+  }
+
   // --- HFE COMPANY PROFILE REST API SYNC HANDLERS ---
   const handleFetchHfeCompanyProfile = () => {
-    // Simulated REST API call: GET /v1/company-books/BOOK-SENOPATI-01/profile
     const mockSyncedProfile: HfeCompanyProfile = {
       ...hfeCompanyProfile,
       isLiveHfeSynced: true,
@@ -627,7 +682,6 @@ export default function App() {
   }
 
   const handlePushHfeCompanyProfile = () => {
-    // Simulated REST API call: POST /v1/company-books/BOOK-SENOPATI-01/profile
     setHfeCompanyProfile(prev => ({
       ...prev,
       isLiveHfeSynced: true,
@@ -1016,10 +1070,10 @@ export default function App() {
       {activeApp === 'customer' && (
         <div className="flex-1 flex flex-col theme-customer-container">
           
-          {/* STICKY MICRO-COMPACT INTEGRATED BRANDING & NAVIGATION CONTAINER (CONNECTED TO HFE PROFIL PT) */}
+          {/* STICKY MICRO-COMPACT INTEGRATED BRANDING & NAVIGATION CONTAINER (LOCKED QR TABLE & SEAT) */}
           <header className="border-b border-slate-800/90 backdrop-blur-md sticky top-0 z-40 px-3 py-2 flex flex-col gap-2 shadow-2xl theme-customer-header">
             
-            {/* ROW 1: CAFE BRANDING LOGO & PROFIL PT BADGE */}
+            {/* ROW 1: CAFE BRANDING LOGO & LOCKED QR TABLE BADGE */}
             <div className="flex items-center justify-between gap-2">
               
               {/* BRANDING CAFE LOGO & PROFIL PT */}
@@ -1045,21 +1099,17 @@ export default function App() {
                 </div>
               </div>
 
-              {/* TABLE SELECTOR PILL & COMPACT PROFILE BUTTON */}
+              {/* LOCKED TABLE BADGE (NO MANUAL SELECTOR FOR USER) & PROFILE BUTTON */}
               <div className="flex items-center gap-1.5">
-                {/* COMPACT TABLE PILL SELECTOR */}
-                <div className="flex items-center gap-1 theme-customer-badge px-2 py-1 rounded-lg text-[11px] font-bold">
-                  <span className="text-[9px] uppercase tracking-wider">Meja:</span>
-                  <select
-                    value={selectedTable}
-                    onChange={(e) => setSelectedTable(e.target.value)}
-                    className="bg-transparent font-mono font-bold focus:outline-none cursor-pointer text-xs"
-                    style={{ color: activeTheme.primaryAccentHex }}
-                  >
-                    {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
-                      <option key={t} value={t} className="bg-slate-950 text-slate-200">{t}</option>
-                    ))}
-                  </select>
+                {/* LOCKED TABLE PILL BADGE FROM PHYSICAL QR SCAN */}
+                <div 
+                  onClick={() => alert(`🔒 Nomor Meja ${selectedTable} (${scannedSeat}) Terkunci dari Scan QR Fisik Meja. Untuk pindah meja, silakan minta Staf/Waitress Kafe melalui Kasir.`)}
+                  className="flex items-center gap-1 theme-customer-badge px-2.5 py-1 rounded-lg text-[11px] font-bold border border-amber-500/30 cursor-pointer shadow-sm"
+                  title="Nomor Meja Terkunci dari Scan QR Meja"
+                >
+                  <Lock className="w-3 h-3" style={{ color: activeTheme.primaryAccentHex }} />
+                  <span className="font-mono text-xs text-amber-300 font-extrabold">{selectedTable}</span>
+                  <span className="text-[9px] font-mono text-amber-400/80">({scannedSeat})</span>
                 </div>
 
                 {/* COMPACT SAVED PROFILE BADGE */}
@@ -1302,7 +1352,9 @@ export default function App() {
                   >
                     <ArrowLeft className="w-4 h-4" /> Kembali Tambah Menu
                   </button>
-                  <span className="text-xs font-bold text-slate-300 font-mono">{selectedTable}</span>
+                  <span className="text-xs font-bold text-slate-300 font-mono flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-amber-500" /> {selectedTable} ({scannedSeat})
+                  </span>
                 </div>
 
                 {/* Dedicated Checkout Container */}
@@ -1601,11 +1653,14 @@ export default function App() {
                     </h2>
                     <p className="text-[11px] sm:text-xs text-slate-400">Monitoring status keterisian meja & Open Tab Billing</p>
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Free</span>
-                    <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">Occupied</span>
-                    <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Open Tab</span>
-                  </div>
+                  
+                  {/* ADMIN REASSIGN TABLE BUTTON */}
+                  <button
+                    onClick={() => setShowTableReassignModal(true)}
+                    className="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/40 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition-all"
+                  >
+                    <ArrowRightLeft className="w-4 h-4 text-indigo-400" /> 🔀 Reassign / Pindah Meja (Admin)
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
@@ -2254,6 +2309,13 @@ export default function App() {
                   </h2>
                   <p className="text-xs text-slate-400">Pengantaran Nampan Presisi Berdasarkan Penandaan Nomor Kursi & Profil Kontak Tamu (Seat 1-4)</p>
                 </div>
+
+                <button
+                  onClick={() => setShowTableReassignModal(true)}
+                  className="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/40 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
+                >
+                  <ArrowRightLeft className="w-4 h-4" /> 🔀 Reassign / Pindah Meja Tamu
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -2700,6 +2762,65 @@ export default function App() {
               className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg mt-1"
             >
               Simpan Profil & Mulai Pesan Menu ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- ADMIN TABLE REASSIGNMENT MODAL --- */}
+      {showTableReassignModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-5 flex flex-col gap-4 shadow-2xl relative">
+            <button
+              onClick={() => setShowTableReassignModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <ArrowRightLeft className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Reassign / Pindah Meja Tamu</h3>
+                <p className="text-[11px] text-slate-400">Pindahkan tagihan & pesanan ke meja baru</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-400 font-semibold">Pilih Meja Asal (Yang Ingin Dipindah):</label>
+                <select
+                  value={reassignFromTable}
+                  onChange={(e) => setReassignFromTable(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+                >
+                  {tablesGrid.filter(t => t.totalBill > 0 || t.status !== 'free').map(t => (
+                    <option key={t.id} value={t.name}>{t.name} ({t.customerName || 'Aktif'} - Rp {t.totalBill.toLocaleString('id-ID')})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-400 font-semibold">Pilih Meja Tujuan Baru:</label>
+                <select
+                  value={reassignTargetTable}
+                  onChange={(e) => setReassignTargetTable(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+                >
+                  {tablesGrid.map(t => (
+                    <option key={t.id} value={t.name}>{t.name} ({t.status === 'free' ? 'Kosong' : 'Ada Tamu'})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleConfirmTableReassign}
+              className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-3 rounded-xl shadow-lg mt-2 flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" /> Konfirmasi Pindahkan Meja Pelanggan
             </button>
           </div>
         </div>
