@@ -281,6 +281,9 @@ const PRODUCT_CATALOG: MenuItem[] = [
 ]
 
 export default function App() {
+  // --- CAFE BRANDING STATE ---
+  const [cafeBrandName, setCafeBrandName] = useState<string>('Kopitiam Senopati & Roastery')
+
   // --- SEPARATE DOMAIN / URL ROUTING ARCHITECTURE ---
   const [activeApp, setActiveApp] = useState<PrimaryDomainApp>(() => {
     const params = new URLSearchParams(window.location.search)
@@ -549,7 +552,6 @@ export default function App() {
     // Save or Update Customer Profile in CRM Matrix
     if (modSeatCustomerName.trim()) {
       const existingProfileIndex = customerProfiles.findIndex(c => c.name.toLowerCase() === modSeatCustomerName.toLowerCase() || (modSeatCustomerPhone && c.phone === modSeatCustomerPhone))
-      const prefSummary = `${modMilk.replace(' (+Rp 5.000)', '')} ${modSugar} Sugar`
       
       if (existingProfileIndex >= 0) {
         setCustomerProfiles(prev => prev.map((c, idx) => idx === existingProfileIndex ? {
@@ -764,122 +766,93 @@ export default function App() {
       {/* --- APPLICATION ROUTE 1: CUSTOMER MOBILE QR WEB APP --- */}
       {activeApp === 'customer' && (
         <div className="flex-1 flex flex-col">
-          {/* Customer App Top Banner */}
-          <header className="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
-                <Coffee className="w-5 h-5" />
+          
+          {/* STICKY MICRO-COMPACT INTEGRATED BRANDING & NAVIGATION CONTAINER (SINGLE SLEEK ELEMENT) */}
+          <header className="border-b border-slate-800/90 bg-slate-900/95 backdrop-blur-md sticky top-0 z-40 px-3 py-2 flex flex-col gap-2 shadow-2xl">
+            
+            {/* ROW 1: CAFE BRANDING, TABLE SELECTOR & COMPACT USER BADGE */}
+            <div className="flex items-center justify-between gap-2">
+              
+              {/* BRANDING CAFE & TABLE BADGE */}
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-md">
+                  <Coffee className="w-4 h-4" />
+                </div>
+                <div>
+                  <h1 className="font-bold text-xs sm:text-sm text-white tracking-tight leading-none">
+                    {cafeBrandName}
+                  </h1>
+                  <p className="text-[9px] text-slate-400 mt-0.5 font-medium">Digital QR Ordering</p>
+                </div>
               </div>
-              <div>
-                <h1 className="font-bold text-sm text-white tracking-tight flex items-center gap-1.5">
-                  Mobile Order <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">QR Menu</span>
-                </h1>
-                <p className="text-[10px] text-slate-400">Pesan langsung dari meja tanpa perlu mengantre</p>
+
+              {/* TABLE SELECTOR PILL & COMPACT PROFILE BUTTON */}
+              <div className="flex items-center gap-1.5">
+                {/* COMPACT TABLE PILL SELECTOR */}
+                <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded-lg text-amber-400 text-[11px] font-bold">
+                  <span className="text-[9px] uppercase tracking-wider text-amber-500">Meja:</span>
+                  <select
+                    value={selectedTable}
+                    onChange={(e) => setSelectedTable(e.target.value)}
+                    className="bg-transparent text-amber-300 font-mono font-bold focus:outline-none cursor-pointer text-xs"
+                  >
+                    {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
+                      <option key={t} value={t} className="bg-slate-950 text-slate-200">{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* COMPACT SAVED PROFILE BADGE */}
+                {isCustomerSessionActive ? (
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="flex items-center gap-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 px-2 py-1 rounded-lg text-[10px] font-bold text-slate-200 transition-all"
+                  >
+                    <UserCheck className="w-3 h-3 text-emerald-400" />
+                    <span className="max-w-[70px] truncate">{loginType === 'phone' ? customerPhone : guestName}</span>
+                    {loginType === 'phone' && <span className="text-amber-400 font-mono">({loyaltyPoints}p)</span>}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="bg-amber-500 text-slate-950 font-bold text-[10px] px-2 py-1 rounded-lg shadow"
+                  >
+                    Masuk
+                  </button>
+                )}
               </div>
             </div>
 
-            <button
-              onClick={() => switchDomainApp('cafe')}
-              className="text-[11px] font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-1 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800"
-            >
-              <span>⚙️ Ke Web Staf Kafe</span> <ExternalLink className="w-3 h-3 text-slate-500" />
-            </button>
+            {/* ROW 2: INTEGRATED CATEGORY NAVIGATOR PILLS (SINGLE ELEMENT CONTINUOUS SCROLL) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pt-0.5 pb-0.5 no-scrollbar">
+              {[
+                { id: 'Coffee', icon: '☕', name: 'Coffee' },
+                { id: 'Non-Coffee', icon: '🍵', name: 'Non-Coffee' },
+                { id: 'Pastry', icon: '🥐', name: 'Pastry' },
+                { id: 'Snack', icon: '🍟', name: 'Snack' }
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => scrollToCategorySection(cat.id)}
+                  className="flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap bg-slate-950 text-slate-300 hover:bg-amber-500 hover:text-slate-950 border border-slate-800 transition-all shadow-sm"
+                >
+                  <span className="text-xs">{cat.icon}</span>
+                  <span>{cat.name}</span>
+                </button>
+              ))}
+            </div>
+
           </header>
 
           <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-28">
             {/* STEP 1: KATALOG MENU VIEW */}
             {qrStepView === 'catalog' && (
               <>
-                {/* Table & Persistent Saved User Session Banner */}
-                <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 p-3.5 rounded-2xl flex items-center justify-between shadow-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xs">
-                      QR
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-medium text-amber-400 uppercase tracking-wider">Meja Ter-Scan</span>
-                      <h2 className="text-base font-bold text-white">{selectedTable}</h2>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedTable}
-                      onChange={(e) => setSelectedTable(e.target.value)}
-                      className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2 py-1.5 focus:outline-none focus:border-amber-500"
-                    >
-                      {Array.from({ length: 20 }, (_, i) => `MEJA-${String(i + 1).padStart(2, '0')}`).map(t => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* PERSISTENT SAVED GUEST SESSION BADGE */}
-                {isCustomerSessionActive ? (
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between shadow-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                        <UserCheck className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="text-xs font-bold text-white">
-                            {loginType === 'phone' ? `HP: ${customerPhone}` : `Tamu: ${guestName}`}
-                          </h3>
-                          {loginType === 'phone' && (
-                            <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.2 rounded border border-amber-500/30">
-                              {userTier.icon} {loyaltyPoints} Poin
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-slate-400">Sesi Login Tersimpan • Siap Pesan Menu</p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setShowLoginModal(true)}
-                      className="text-[10px] font-bold text-amber-400 hover:text-amber-300 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800"
-                    >
-                      Ubah
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between">
-                    <span className="text-xs text-amber-400 font-semibold">Belum masuk?</span>
-                    <button
-                      onClick={() => setShowLoginModal(true)}
-                      className="bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow"
-                    >
-                      Masuk Sekali
-                    </button>
-                  </div>
-                )}
-
-                {/* STICKY CATEGORY JUMP NAVIGATOR BAR */}
-                <div className="sticky top-[60px] z-30 bg-slate-900/95 backdrop-blur-md border border-slate-800/90 p-2 rounded-2xl flex items-center gap-1.5 overflow-x-auto shadow-xl">
-                  {[
-                    { id: 'Coffee', icon: '☕', name: 'Coffee' },
-                    { id: 'Non-Coffee', icon: '🍵', name: 'Non-Coffee' },
-                    { id: 'Pastry', icon: '🥐', name: 'Pastry' },
-                    { id: 'Snack', icon: '🍟', name: 'Snack' }
-                  ].map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => scrollToCategorySection(cat.id)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-950 text-slate-300 hover:bg-amber-500 hover:text-slate-950 border border-slate-800 transition-all shadow-sm"
-                    >
-                      <span>{cat.icon}</span>
-                      <span>{cat.name}</span>
-                    </button>
-                  ))}
-                </div>
-
                 {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS */}
                 <div className="flex flex-col gap-6 pt-1">
                   
                   {/* SECTION 1: COFFEE SHOWCASE */}
-                  <div ref={coffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <div ref={coffeeSecRef} className="flex flex-col gap-3 scroll-mt-28">
                     <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-l-4 border-amber-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
                       <h3 className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
                         <Coffee className="w-4 h-4 text-amber-500" /> ☕ ETALASE KOPI SPECIALTY & ESPRESSO
@@ -914,7 +887,7 @@ export default function App() {
                   </div>
 
                   {/* SECTION 2: NON-COFFEE SHOWCASE */}
-                  <div ref={nonCoffeeSecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <div ref={nonCoffeeSecRef} className="flex flex-col gap-3 scroll-mt-28">
                     <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/10 to-transparent border-l-4 border-emerald-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
                       <h3 className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wider flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-emerald-500" /> 🍵 ETALASE NON-COFFEE & ARTISAN MATCHA
@@ -949,7 +922,7 @@ export default function App() {
                   </div>
 
                   {/* SECTION 3: PASTRY & BAKERY SHOWCASE */}
-                  <div ref={pastrySecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <div ref={pastrySecRef} className="flex flex-col gap-3 scroll-mt-28">
                     <div className="bg-gradient-to-r from-orange-500/20 via-orange-500/10 to-transparent border-l-4 border-orange-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
                       <h3 className="text-xs sm:text-sm font-black text-orange-300 uppercase tracking-wider flex items-center gap-2">
                         <UtensilsCrossed className="w-4 h-4 text-orange-500" /> 🥐 ETALASE PASTRY & WARM BAKERY
@@ -984,7 +957,7 @@ export default function App() {
                   </div>
 
                   {/* SECTION 4: SNACK & FINGER FOODS SHOWCASE */}
-                  <div ref={snackSecRef} className="flex flex-col gap-3 scroll-mt-24">
+                  <div ref={snackSecRef} className="flex flex-col gap-3 scroll-mt-28">
                     <div className="bg-gradient-to-r from-indigo-500/20 via-indigo-500/10 to-transparent border-l-4 border-indigo-500 px-3.5 py-2 rounded-r-xl flex items-center justify-between">
                       <h3 className="text-xs sm:text-sm font-black text-indigo-300 uppercase tracking-wider flex items-center gap-2">
                         <Flame className="w-4 h-4 text-indigo-500" /> 🍟 ETALASE SNACK & SAVORY FINGER FOODS
@@ -1048,7 +1021,7 @@ export default function App() {
               </>
             )}
 
-            {/* STEP 2: DEDICATED CHECKOUT SCREEN VIEW WITH SEAT-LEVEL CONTACT BINDING */}
+            {/* STEP 2: DEDICATED CHECKOUT SCREEN VIEW */}
             {qrStepView === 'checkout' && (
               <div className="flex flex-col gap-4">
                 {/* Back to Catalog Header Button */}
@@ -1068,7 +1041,7 @@ export default function App() {
                     <ShoppingBag className="w-5 h-5 text-amber-500" /> Ringkasan Pesanan & Pelunasan Meja
                   </h3>
 
-                  {/* Items Breakdown with Seat Level & Customer Contact Profiling Badges */}
+                  {/* Items Breakdown */}
                   <div className="flex flex-col gap-2.5 divide-y divide-slate-800/80">
                     {cart.map((item, idx) => (
                       <div key={idx} className="pt-2.5 first:pt-0 flex flex-col gap-1.5 text-xs">
@@ -1563,7 +1536,7 @@ export default function App() {
             </main>
           )}
 
-          {/* STAFF SURFACE 2: KITCHEN DISPLAY SCREEN WITH SEAT-LEVEL CONTACT BINDING */}
+          {/* STAFF SURFACE 2: KITCHEN DISPLAY SCREEN */}
           {activeStaffSurface === 'kds-screen' && (
             <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
               
@@ -2062,7 +2035,7 @@ export default function App() {
             </main>
           )}
 
-          {/* STAFF SURFACE 5: DEDICATED HALAMAN KONFIGURASI CAFE & CUSTOMER PROFILING DATABASE */}
+          {/* STAFF SURFACE 5: DEDICATED HALAMAN KONFIGURASI CAFE & BRANDING SETTINGS */}
           {activeStaffSurface === 'cafe-config' && (
             <main className="flex-1 p-3 sm:p-6 max-w-5xl mx-auto w-full flex flex-col gap-6">
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
@@ -2072,15 +2045,34 @@ export default function App() {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white tracking-tight">Halaman Konfigurasi Cafe & Owner Settings</h2>
-                    <p className="text-xs text-slate-400">Pajak PB1, Service Charge, Customer CRM Profiling & HFE Category Matrix</p>
+                    <p className="text-xs text-slate-400">Nama Branding Kafe, Pajak PB1, Service Charge, & Customer CRM</p>
                   </div>
                 </div>
                 <button 
-                  onClick={() => alert('Seluruh Konfigurasi Policy Cafe Berhasil Disimpan ke Hfe Backend!')}
+                  onClick={() => alert('Seluruh Konfigurasi Policy & Branding Cafe Berhasil Disimpan ke Hfe Backend!')}
                   className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 w-full sm:w-auto justify-center"
                 >
                   <Check className="w-4 h-4" /> Simpan Seluruh Konfigurasi
                 </button>
+              </div>
+
+              {/* BRANDING CAFE SETTINGS CONTAINER */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3 shadow-lg">
+                <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+                  <Store className="w-4 h-4 text-amber-500" /> Identitas & Nama Branding Kafe (Tampil di Customer QR Web)
+                </h3>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs text-slate-400 font-semibold">Nama Outlet Kafe / Restoran:</label>
+                  <input
+                    type="text"
+                    value={cafeBrandName}
+                    onChange={(e) => setCafeBrandName(e.target.value)}
+                    className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3.5 py-2.5 font-bold focus:outline-none focus:border-amber-500"
+                    placeholder="cth: Kopitiam Senopati & Roastery"
+                  />
+                  <p className="text-[10px] text-slate-400">✓ Nama ini otomatis tampil elegan di header aplikasi pelanggan mobile QR.</p>
+                </div>
               </div>
 
               {/* CARD CUSTOMER PROFILING & SEAT-LEVEL PREFERENCE DATABASE */}
