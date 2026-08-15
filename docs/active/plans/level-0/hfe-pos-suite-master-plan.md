@@ -14,10 +14,10 @@ status: Proposed
 The **Hfe POS & Cafe Mobile Order Suite** (`glc-works/hfe-pos`) is the dedicated **Cafe & F&B Experience Layer** built for modern coffee shops, cafes, and restaurants.
 
 It provides a seamless **Dual-Surface Experience**:
-1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, browse rich visual coffee & food menus, customize modifiers (e.g. sugar level, oat milk upgrade), pay instantly via QRIS/VA, and receive real-time order status updates without installing any app.
+1. **Customer Smartphone QR Ordering (Self-Service Web App):** Customers scan a QR code at their table, view visual coffee & food menus, customize modifiers (e.g. sugar level, oat milk upgrade), pay instantly via QRIS/VA, and receive real-time order status updates without installing any app.
 2. **Barista & Cashier Touch POS (POS & Kitchen Display):** Baristas and cashiers manage table orders, print kitchen tickets, handle offline cash/QRIS checkouts, and reconcile daily shift cash drawers.
 
-All financial transactions, ingredient COGS inventory depletions (coffee beans, milk volume), biller revenue splits, and DJP taxes are delegated to the **Hfe Headless Financial Engine**.
+All **Product Master Data & Menu Catalogs** (categories, items, modifier options, prices, stock availability) are managed centrally in `Hfe` Product Service (`/v1/products`). Financial subledgers, ingredient COGS depletions, biller splits, and DJP taxes are executed by the **Hfe Headless Financial Engine**.
 
 ---
 
@@ -35,15 +35,16 @@ All financial transactions, ingredient COGS inventory depletions (coffee beans, 
 │ Mobile Self-Order    │ │ POS & Table Engine   │               │ Payment Checkout     │ │ & Barista Display    │
 └──────────────────────┘ └──────────────────────┘               └──────────────────────┘ └──────────────────────┘
                                  │
-                                 ▼ (Delegates Financial Subledger, Stock & Taxes)
+                                 ▼ (Fetches Menu & Delegates Financial Subledger/Stock)
                      ┌─────────────────────────────────────────────────────────────┐
-                     │             Hfe Headless Financial Engine Core               │
+                     │  Hfe Product Master Service & Headless Financial Engine Core│
                      └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Pillar 1: Customer QR Mobile Self-Ordering (`L1-01`)
 - **Zero App Install:** Web app loaded instantly upon scanning table QR code (`hfe-pos.togrow.id/table/{id}`).
-- **Interactive Cafe Menu:** High-res coffee & food photos, drink customizer (Ice/Hot, Sugar 0%/50%/100%, Dairy Options).
+- **Product Master Menu Fetch:** Dynamic menu rendering fetched from `Hfe` Product Service (`/v1/company-books/{book}/products`).
+- **Drink & Food Customizer:** Interactive modifiers (Ice/Hot, Sugar 0%/50%/100%, Dairy Options).
 - **Real-Time Order Tracker:** Live status tracking (Order Placed ➔ Brewing ➔ Ready for Pickup / Served).
 
 ### Pillar 2: Barista & Cashier Touch POS (`L1-02`)
@@ -58,15 +59,16 @@ All financial transactions, ingredient COGS inventory depletions (coffee beans, 
 
 ### Pillar 4: Kitchen & Barista Ticket Display (`L1-04`)
 - Real-time Kitchen Display System (KDS) showing pending drinks and food orders.
--ESC/POS thermal printer integration for printing order chits to espresso bar and kitchen.
+- ESC/POS thermal printer integration for printing order chits to espresso bar and kitchen.
 
 ---
 
 ## 3. Delegation Boundary — Engine vs Cafe Experience Layer
 
-| Concern | `hfe-pos` (Cafe Experience Layer) | `Hfe` Core (Financial Engine) |
+| Concern | `hfe-pos` (Cafe Experience Layer) | `Hfe` Core (Product Service & Financial Engine) |
 |---|---|---|
 | **Table QR Scan & Mobile Menu Web App** | ✅ Owns Customer Phone UI | ❌ Not concerned |
+| **Product Master Data & Menu Catalog** | 👁️ Consumes API & Renders UI | ✅ Central Product Master & Price Catalog |
 | **Barista Touch POS & Kitchen Display** | ✅ Owns Barista & Cashier UX | ❌ Not concerned |
 | **Ingredient COGS Depletion (Beans/Milk)**| 👁️ Tracks recipe modifiers | ✅ Posts Inventory Subledger |
 | **QRIS & VA Settlement** | ✅ Triggers payment modal | ✅ Verifies money & posts double-entry |
@@ -77,5 +79,6 @@ All financial transactions, ingredient COGS inventory depletions (coffee beans, 
 ## 4. Verification & Quality Standards
 
 - **Mobile Scan Performance:** Page load < 1 second on 4G connection; cart interaction < 30ms.
+- **Menu Sync Speed:** Menu updates in `Hfe` Product Master propagate to customer phone < 2 seconds.
 - **Kitchen Ticket Sync:** Order transmission from customer phone to Barista screen < 500ms.
 - **Hfe API Compliance:** All checkout payloads match `Hfe` OpenAPI specifications.
