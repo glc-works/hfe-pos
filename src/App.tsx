@@ -46,13 +46,15 @@ import {
   AlertTriangle,
   Zap,
   Armchair,
-  RotateCcw
+  RotateCcw,
+  HeartHandshake
 } from 'lucide-react'
 
 // --- TYPES ---
 type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-screen' | 'server-waiter' | 'checker-qc'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
+type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show on bill), 2=Include (Embedded in price)
 
 interface StationConfig {
   id: string
@@ -100,6 +102,9 @@ interface OrderTicket {
   items: CartItem[]
   policy: PaymentPolicy
   total: number
+  taxPB1Amount: number
+  serviceFeeAmount: number
+  tipAmount: number
   status: 'placed' | 'processing' | 'ready' | 'qc-passed' | 'served'
   timeElapsedMinutes: number
   createdAt: string
@@ -229,6 +234,11 @@ export default function App() {
   // --- SURFACE APP STATE ---
   const [activeSurface, setActiveSurface] = useState<SurfaceMode>('mobile-qr')
   
+  // --- OWNER DYNAMIC TAX (PB1 10%), SERVICE FEE % & TIPS ENGINE STATE ---
+  const [taxPB1Mode, setTaxPB1Mode] = useState<PB1TaxMode>(1) // 0=Off, 1=Exclude (Show), 2=Include (Embedded)
+  const [serviceFeeRate, setServiceFeeRate] = useState<number>(5) // 5% Service Charge
+  const [selectedTipAmount, setSelectedTipAmount] = useState<number>(5000) // Default Rp 5.000 Tip
+
   // --- ALI'S EX-ESB CATEGORY FILTER CHIPS STATE ---
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Semua')
 
@@ -294,6 +304,9 @@ export default function App() {
       ],
       policy: 'pay-first',
       total: 86000,
+      taxPB1Amount: 8600,
+      serviceFeeAmount: 4300,
+      tipAmount: 5000,
       status: 'placed',
       timeElapsedMinutes: 12,
       createdAt: '19:24',
@@ -310,6 +323,9 @@ export default function App() {
       ],
       policy: 'open-tab',
       total: 70000,
+      taxPB1Amount: 7000,
+      serviceFeeAmount: 3500,
+      tipAmount: 0,
       status: 'processing',
       timeElapsedMinutes: 4,
       createdAt: '19:18'
@@ -324,6 +340,9 @@ export default function App() {
       ],
       policy: 'pay-first',
       total: 70000,
+      taxPB1Amount: 7000,
+      serviceFeeAmount: 3500,
+      tipAmount: 5000,
       status: 'qc-passed',
       timeElapsedMinutes: 6,
       createdAt: '19:14'
@@ -343,7 +362,7 @@ export default function App() {
   const [posPayMethod, setPosPayMethod] = useState<'cash' | 'qris' | 'card'>('cash')
   const [posCashGiven, setPosCashGiven] = useState<string>('100000')
 
-  // --- COMPUTED CART TOTALS ---
+  // --- DYNAMIC TAX, SERVICE FEE & TIP CALCULATION ---
   const rawSubtotal = cart.reduce((sum, item) => {
     let itemPrice = item.price
     if (item.milkOption?.includes('Oat Milk') || item.milkOption?.includes('Almond Milk')) {
@@ -355,7 +374,25 @@ export default function App() {
   const promoDiscount = appliedPromo ? appliedPromo.discount : 0
   const voucherDiscount = redeemedVoucher ? 10000 : 0
   const totalDiscount = promoDiscount + voucherDiscount
-  const finalTotal = Math.max(0, rawSubtotal - totalDiscount)
+  const discountedSubtotal = Math.max(0, rawSubtotal - totalDiscount)
+
+  // Service Fee
+  const calculatedServiceFee = Math.round(discountedSubtotal * (serviceFeeRate / 100))
+
+  // Resto Tax PB1 10% Modes
+  let calculatedPB1Tax = 0
+  if (taxPB1Mode === 1) {
+    // Mode 1: Exclude (10% added on top of bill)
+    calculatedPB1Tax = Math.round(discountedSubtotal * 0.10)
+  } else if (taxPB1Mode === 2) {
+    // Mode 2: Include (Embedded in product price behind scenes)
+    calculatedPB1Tax = Math.round(discountedSubtotal - (discountedSubtotal / 1.10))
+  }
+
+  // Final Grand Total
+  const grandTotalBill = taxPB1Mode === 1
+    ? discountedSubtotal + calculatedServiceFee + calculatedPB1Tax + selectedTipAmount
+    : discountedSubtotal + calculatedServiceFee + selectedTipAmount
 
   // --- HANDLERS ---
   const handleAddToCart = (item: MenuItem) => {
@@ -435,7 +472,10 @@ export default function App() {
         phone: loginType === 'phone' ? customerPhone : undefined,
         items: [...cart],
         policy: 'open-tab',
-        total: finalTotal,
+        total: grandTotalBill,
+        taxPB1Amount: calculatedPB1Tax,
+        serviceFeeAmount: calculatedServiceFee,
+        tipAmount: selectedTipAmount,
         status: 'placed',
         timeElapsedMinutes: 1,
         createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
@@ -455,14 +495,17 @@ export default function App() {
       phone: loginType === 'phone' ? customerPhone : undefined,
       items: [...cart],
       policy: 'pay-first',
-      total: finalTotal,
+      total: grandTotalBill,
+      taxPB1Amount: calculatedPB1Tax,
+      serviceFeeAmount: calculatedServiceFee,
+      tipAmount: selectedTipAmount,
       status: 'processing',
       timeElapsedMinutes: 1,
       createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
     }
     setOrders(prev => [newOrder, ...prev])
     setCart([])
-    setLoyaltyPoints(prev => prev + Math.floor(finalTotal / 10000))
+    setLoyaltyPoints(prev => prev + Math.floor(grandTotalBill / 10000))
     alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur.`)
   }
 
@@ -525,7 +568,7 @@ export default function App() {
               <h1 className="font-bold text-sm sm:text-base tracking-tight flex items-center gap-1.5">
                 Hfe POS <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">F&B Suite</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400">Pak Pakuwon • Chef Mike • Ali ex-ESB Design</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Pajak PB1 • Service Charge • Tips</p>
             </div>
           </div>
 
@@ -762,11 +805,10 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center justify-end gap-2 mt-2">
-                      {/* ALI'S ONE-TAP RE-ORDER BUTTON */}
                       <button
                         onClick={() => handleReorderSameItem(item)}
                         className="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-slate-700"
-                        title="Pesan Lagi Kopi Yang Sama (Ali's UX Feature)"
+                        title="Pesan Lagi Kopi Yang Sama"
                       >
                         <RotateCcw className="w-3 h-3 text-amber-500" /> Re-Order
                       </button>
@@ -855,6 +897,33 @@ export default function App() {
                 </button>
               </div>
 
+              {/* OPTIONAL CUSTOMER TIPS SELECTION */}
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                <span className="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
+                  <HeartHandshake className="w-3.5 h-3.5 text-amber-500" /> Ucapkan Terima Kasih ke Staf / Barista (Tips Opsional):
+                </span>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { label: 'Tanpa Tip', val: 0 },
+                    { label: 'Rp 2.000', val: 2000 },
+                    { label: 'Rp 5.000', val: 5000 },
+                    { label: 'Rp 10.000', val: 10000 }
+                  ].map(tip => (
+                    <button
+                      key={tip.label}
+                      onClick={() => setSelectedTipAmount(tip.val)}
+                      className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                        selectedTipAmount === tip.val
+                          ? 'bg-amber-500 text-slate-950 border-amber-500'
+                          : 'bg-slate-900 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {tip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Payment Policy Selector */}
               <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2 mt-1">
                 <span className="text-[11px] font-semibold text-slate-300">Kebijakan Pembayaran Kafe:</span>
@@ -885,27 +954,61 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Total Calculation Breakdown */}
+              {/* Dynamic Tax PB1, Service Fee & Grand Total Calculation */}
               <div className="pt-2 border-t border-slate-800 flex flex-col gap-1 text-xs">
                 <div className="flex justify-between text-slate-400">
-                  <span>Subtotal:</span>
+                  <span>Subtotal Pesanan:</span>
                   <span>Rp {rawSubtotal.toLocaleString('id-ID')}</span>
                 </div>
+
                 {appliedPromo && (
                   <div className="flex justify-between text-emerald-400 font-semibold">
                     <span>Promo ({appliedPromo.code}):</span>
                     <span>-Rp {appliedPromo.discount.toLocaleString('id-ID')}</span>
                   </div>
                 )}
+
                 {redeemedVoucher && (
                   <div className="flex justify-between text-emerald-400 font-semibold">
                     <span>Voucher Points Hfe:</span>
                     <span>-Rp 10.000</span>
                   </div>
                 )}
+
+                {/* Service Fee Line */}
+                {serviceFeeRate > 0 && (
+                  <div className="flex justify-between text-slate-400">
+                    <span>Service Fee ({serviceFeeRate}%):</span>
+                    <span>+Rp {calculatedServiceFee.toLocaleString('id-ID')}</span>
+                  </div>
+                )}
+
+                {/* PB1 Resto Tax Modes Display */}
+                {taxPB1Mode === 1 && (
+                  <div className="flex justify-between text-amber-400 font-medium">
+                    <span>Pajak Restoran PB1 (10% Exclude):</span>
+                    <span>+Rp {calculatedPB1Tax.toLocaleString('id-ID')}</span>
+                  </div>
+                )}
+
+                {taxPB1Mode === 2 && (
+                  <div className="flex justify-between text-slate-400 italic text-[11px]">
+                    <span>Pajak PB1 (10% Include Dibelakang):</span>
+                    <span>[Terhitung Rp {calculatedPB1Tax.toLocaleString('id-ID')}]</span>
+                  </div>
+                )}
+
+                {/* Tips Line */}
+                {selectedTipAmount > 0 && (
+                  <div className="flex justify-between text-amber-400 font-bold">
+                    <span>Tips Staf & Barista:</span>
+                    <span>+Rp {selectedTipAmount.toLocaleString('id-ID')}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-sm font-black text-white pt-1 border-t border-slate-800">
                   <span>Total Tagihan Meja:</span>
-                  <span className="text-amber-400 font-mono">Rp {finalTotal.toLocaleString('id-ID')}</span>
+                  <span className="text-amber-400 font-mono">Rp {grandTotalBill.toLocaleString('id-ID')}</span>
                 </div>
               </div>
 
@@ -915,7 +1018,7 @@ export default function App() {
                 className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-1"
               >
                 {paymentPolicy === 'pay-first' ? (
-                  <> <CreditCard className="w-4 h-4" /> Bayar QRIS & Kirim Dapur (Rp {finalTotal.toLocaleString('id-ID')}) </>
+                  <> <CreditCard className="w-4 h-4" /> Bayar QRIS & Kirim Dapur (Rp {grandTotalBill.toLocaleString('id-ID')}) </>
                 ) : (
                   <> <CheckCircle2 className="w-4 h-4" /> Tambah ke Open Tab Meja </>
                 )}
@@ -925,7 +1028,7 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 2: BARISTA & CASHIER TOUCH POS WITH ALI'S VISUAL COLOR BAR --- */}
+      {/* --- SURFACE 2: BARISTA & CASHIER TOUCH POS WITH OWNER TAX & SERVICE FEE SETTINGS --- */}
       {activeSurface === 'barista-pos' && (
         <main className="flex-1 p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto w-full">
           
@@ -960,7 +1063,6 @@ export default function App() {
                       : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  {/* ALI'S VISUAL STATUS COLOR BAR ON LEFT EDGE */}
                   <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${
                     table.status === 'occupied' ? 'bg-amber-500' : table.status === 'open-tab' ? 'bg-indigo-500' : 'bg-emerald-500'
                   }`} />
@@ -986,27 +1088,41 @@ export default function App() {
               ))}
             </div>
 
-            {/* Quick Catalog Grid for Walk-In / Cashier Direct Order */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
-              <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-amber-500" /> Katalog Kasir Touchscreen (Pesanan Walk-In / Takeaway)
+            {/* OWNER TAX PB1 & SERVICE FEE POLICY SETTINGS PANEL */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
+              <h3 className="text-xs font-bold text-amber-400 flex items-center gap-2">
+                <Settings className="w-4 h-4 text-amber-500" /> Pengaturan Kebijakan Pajak PB1 & Service Fee Owner Kafe
               </h3>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {PRODUCT_CATALOG.map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      if (selectedPOSTable) {
-                        setTablesGrid(prev => prev.map(t => t.id === selectedPOSTable.id ? { ...t, status: 'open-tab', totalBill: t.totalBill + item.price, orderCount: t.orderCount + 1 } : t))
-                      }
-                    }}
-                    className="bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left p-2.5 rounded-xl flex flex-col justify-between h-20 transition-all"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* PB1 Tax Selector */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
+                  <label className="text-[11px] text-slate-400 font-semibold">Mode Pajak Restoran (PB1 10%):</label>
+                  <select
+                    value={taxPB1Mode}
+                    onChange={(e) => setTaxPB1Mode(Number(e.target.value) as PB1TaxMode)}
+                    className="bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold rounded-lg p-2 focus:outline-none"
                   >
-                    <span className="font-bold text-xs text-slate-200 line-clamp-1">{item.name}</span>
-                    <span className="text-[11px] font-mono font-bold text-amber-400">Rp {item.price.toLocaleString('id-ID')}</span>
-                  </button>
-                ))}
+                    <option value={0}>0 = Non-Aktif (Tax 0%)</option>
+                    <option value={1}>1 = Mode Exclude (Tampil di Struk Tagihan)</option>
+                    <option value={2}>2 = Mode Include (Dibukukan Dibelakang Harga)</option>
+                  </select>
+                </div>
+
+                {/* Service Fee Selector */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
+                  <label className="text-[11px] text-slate-400 font-semibold">Persentase Service Charge (Fee):</label>
+                  <select
+                    value={serviceFeeRate}
+                    onChange={(e) => setServiceFeeRate(Number(e.target.value))}
+                    className="bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold rounded-lg p-2 focus:outline-none"
+                  >
+                    <option value={0}>0% (Tanpa Service Charge)</option>
+                    <option value={5}>5% Service Charge</option>
+                    <option value={7}>7% Service Charge</option>
+                    <option value={10}>10% Service Charge</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -1248,7 +1364,6 @@ export default function App() {
                             <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
                           </div>
 
-                          {/* PAKUWON'S OVERDUE TIMER ALERT BADGE (>10 MINS) */}
                           <span className={`text-[10px] font-mono flex items-center gap-1 px-2 py-0.5 rounded border font-bold ${
                             isOverdue
                               ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
@@ -1259,7 +1374,6 @@ export default function App() {
                           </span>
                         </div>
 
-                        {/* Clickable Menu Items for BOM Recipe & CHEF MIKE'S SEAT / ALLERGEN BADGES */}
                         <div className="flex flex-col gap-1.5 text-xs">
                           {order.items.map((item, idx) => (
                             <div 
@@ -1286,7 +1400,6 @@ export default function App() {
                                 </span>
                               </div>
 
-                              {/* CHEF MIKE'S ALLERGEN WARNING BADGE */}
                               {item.allergenNotes && (
                                 <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 w-fit">
                                   <AlertTriangle className="w-3 h-3 text-rose-500" /> Alergen/Kustom: {item.allergenNotes}
