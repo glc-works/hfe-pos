@@ -29,11 +29,18 @@ import {
   ArrowLeft,
   ChefHat,
   Banknote,
-  Receipt
+  Receipt,
+  List,
+  Kanban,
+  BookOpen,
+  SlidersHorizontal,
+  FileText,
+  Layers,
+  X
 } from 'lucide-react'
 
 // --- TYPES ---
-type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-kanban'
+type SurfaceMode = 'mobile-qr' | 'barista-pos' | 'kds-screen'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
 
@@ -45,6 +52,8 @@ interface MenuItem {
   image: string
   description: string
   hasModifiers?: boolean
+  bomIngredients?: { name: string; amount: string }[]
+  preparationSteps?: string[]
 }
 
 interface CartItem extends MenuItem {
@@ -76,20 +85,134 @@ interface OrderTicket {
   createdAt: string
 }
 
-// --- MOCK PRODUCT MASTER DATA (REST API /v1/products) ---
+// --- MOCK PRODUCT MASTER DATA WITH BOM & PREPARATION SOP ---
 const PRODUCT_CATALOG: MenuItem[] = [
-  { id: 'PRD-01', name: 'Espresso Aren Latte', category: 'Coffee', price: 28000, image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=400&q=80', description: 'Double espresso dengan gula aren organik dan susu segar', hasModifiers: true },
-  { id: 'PRD-02', name: 'Spanish Latte', category: 'Coffee', price: 32000, image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80', description: 'Rich espresso blended dengan condensed milk dan velvety foam', hasModifiers: true },
-  { id: 'PRD-03', name: 'Japanese Cold Brew V60', category: 'Coffee', price: 35000, image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80', description: 'Single-origin beans diseduh V60 langsung ke atas es batu', hasModifiers: true },
-  { id: 'PRD-04', name: 'Matcha Oat Latte', category: 'Non-Coffee', price: 34000, image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&q=80', description: 'Uji Matcha Jepang premium dicampur susu gandum Oatside', hasModifiers: true },
-  { id: 'PRD-05', name: 'Croissant Butter Paris', category: 'Pastry', price: 25000, image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80', description: 'Flaky pastry mentega Prancis panggang hangat' },
-  { id: 'PRD-06', name: 'Truffle French Fries', category: 'Snack', price: 38000, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80', description: 'Kentang goreng renyah minyak truffle dan taburan keju parmesan' },
+  { 
+    id: 'PRD-01', 
+    name: 'Espresso Aren Latte', 
+    category: 'Coffee', 
+    price: 28000, 
+    image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=400&q=80', 
+    description: 'Double espresso dengan gula aren organik dan susu segar', 
+    hasModifiers: true,
+    bomIngredients: [
+      { name: 'Houseblend Arabica Beans', amount: '18 gram' },
+      { name: 'Oatside Oat Milk / Fresh Milk', amount: '150 ml' },
+      { name: 'Liquid Organic Aren Syrup', amount: '20 ml' },
+      { name: 'Ice Cubes', amount: '120 gram' }
+    ],
+    preparationSteps: [
+      '1. Grinding 18g biji kopi Arabica Houseblend ke portafilter double shot.',
+      '2. Tamping rata & ekstraksi espresso 36ml yield dalam durasi 26-28 detik.',
+      '3. Tuang 20ml Sirup Aren Organik ke dasar gelas saji.',
+      '4. Masukkan es batu 120g dan tuang 150ml Susu Oat / Fresh Milk.',
+      '5. Tuangkan double shot espresso di lapisan paling atas (layering visual).'
+    ]
+  },
+  { 
+    id: 'PRD-02', 
+    name: 'Spanish Latte', 
+    category: 'Coffee', 
+    price: 32000, 
+    image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80', 
+    description: 'Rich espresso blended dengan condensed milk dan velvety foam', 
+    hasModifiers: true,
+    bomIngredients: [
+      { name: 'Espresso Beans Single Origin', amount: '18 gram' },
+      { name: 'Sweetened Condensed Milk', amount: '25 ml' },
+      { name: 'Fresh Milk Steamed/Cold', amount: '140 ml' }
+    ],
+    preparationSteps: [
+      '1. Campur 25ml kental manis ke gelas saji.',
+      '2. Ekstraksi double shot espresso (36ml).',
+      '3. Foam susu segar hingga microfoam creamy (65°C untuk Hot / Cold froth untuk Iced).',
+      '4. Aduk rata sebelum disajikan.'
+    ]
+  },
+  { 
+    id: 'PRD-03', 
+    name: 'Japanese Cold Brew V60', 
+    category: 'Coffee', 
+    price: 35000, 
+    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80', 
+    description: 'Single-origin beans diseduh V60 langsung ke atas es batu', 
+    hasModifiers: true,
+    bomIngredients: [
+      { name: 'Single Origin Filter Beans (Ethiopia/Gayo)', amount: '15 gram' },
+      { name: 'Air Panas (92°C)', amount: '150 ml' },
+      { name: 'Ice Cubes Server', amount: '100 gram' }
+    ],
+    preparationSteps: [
+      '1. Giling 15g kopi medium-coarse filter grind.',
+      '2. Masukkan 100g es batu ke dalam server V60.',
+      '3. Pouring bloom 30ml selama 45 detik, dilanjutkan pour melingkar hingga total 150ml air.'
+    ]
+  },
+  { 
+    id: 'PRD-04', 
+    name: 'Matcha Oat Latte', 
+    category: 'Non-Coffee', 
+    price: 34000, 
+    image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400&q=80', 
+    description: 'Uji Matcha Jepang premium dicampur susu gandum Oatside', 
+    hasModifiers: true,
+    bomIngredients: [
+      { name: 'Uji Matcha Powder Premium', amount: '6 gram' },
+      { name: 'Air Hangat (80°C)', amount: '30 ml' },
+      { name: 'Oatside Oat Milk', amount: '160 ml' }
+    ],
+    preparationSteps: [
+      '1. Whisk 6g bubuk Matcha Uji dengan 30ml air hangat 80°C hingga terlarut sempurna.',
+      '2. Tuang 160ml Susu Oatside dingin dan es batu ke gelas.',
+      '3. Tuangkan konsentrat matcha di bagian atas.'
+    ]
+  },
+  { 
+    id: 'PRD-05', 
+    name: 'Croissant Butter Paris', 
+    category: 'Pastry', 
+    price: 25000, 
+    image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80', 
+    description: 'Flaky pastry mentega Prancis panggang hangat',
+    bomIngredients: [
+      { name: 'Pre-baked Butter Croissant', amount: '1 pcs' },
+      { name: 'French Salted Butter', amount: '10 gram' }
+    ],
+    preparationSteps: [
+      '1. Masukkan croissant ke oven salamander / air fryer suhu 180°C selama 3 menit.',
+      '2. Sajikan hangat di atas piring pastry kayu dengan rincian butter pad di samping.'
+    ]
+  },
+  { 
+    id: 'PRD-06', 
+    name: 'Truffle French Fries', 
+    category: 'Snack', 
+    price: 38000, 
+    image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80', 
+    description: 'Kentang goreng renyah minyak truffle dan taburan keju parmesan',
+    bomIngredients: [
+      { name: 'Shoestring French Fries', amount: '180 gram' },
+      { name: 'White Truffle Oil', amount: '5 ml' },
+      { name: 'Grated Parmesan Cheese', amount: '15 gram' },
+      { name: 'Parsley Flakes', amount: '2 gram' }
+    ],
+    preparationSteps: [
+      '1. Goreng kentang di deep fryer suhu 175°C selama 4 menit hingga golden crispy.',
+      '2. Tiriskan, toss dalam mixing bowl dengan 5ml White Truffle Oil & garam.',
+      '3. Plating di keranjang saji, taburi 15g keju parmesan serut dan parsley flakes.'
+    ]
+  },
 ]
 
 export default function App() {
   // --- SURFACE APP STATE ---
-  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('barista-pos')
+  const [activeSurface, setActiveSurface] = useState<SurfaceMode>('kds-screen')
   
+  // --- KDS VIEW & SORTING STATE ---
+  const [kdsViewMode, setKdsViewMode] = useState<'kanban' | 'list'>('kanban')
+  const [kdsSortBy, setKdsSortBy] = useState<'time-desc' | 'time-asc' | 'category'>('time-desc')
+  const [selectedRecipeBOM, setSelectedRecipeBOM] = useState<MenuItem | null>(null)
+
   // --- MOBILE QR SURFACE STATE ---
   const [selectedTable, setSelectedTable] = useState<string>('MEJA-04')
   const [loginType, setLoginType] = useState<CustomerLoginType>('phone')
@@ -274,7 +397,7 @@ export default function App() {
       }
       setOrders(prev => [newOrder, ...prev])
       setCart([])
-      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke Kanban Dapur!`)
+      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur!`)
     }
   }
 
@@ -295,7 +418,7 @@ export default function App() {
     setOrders(prev => [newOrder, ...prev])
     setCart([])
     setLoyaltyPoints(prev => prev + Math.floor(finalTotal / 10000))
-    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk kolom 'In Progress' Kanban Dapur.`)
+    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur.`)
   }
 
   const handlePOSCheckoutTable = () => {
@@ -314,10 +437,16 @@ export default function App() {
     }))
   }
 
-  // Standard Kanban Columns Filtering
-  const placedOrders = orders.filter(o => o.status === 'placed')
-  const processingOrders = orders.filter(o => o.status === 'processing')
-  const readyOrders = orders.filter(o => o.status === 'ready')
+  // --- KDS SORTING LOGIC ---
+  const sortedOrders = [...orders].sort((a, b) => {
+    if (kdsSortBy === 'time-desc') return b.timeElapsedMinutes - a.timeElapsedMinutes
+    if (kdsSortBy === 'time-asc') return a.timeElapsedMinutes - b.timeElapsedMinutes
+    return a.items[0]?.category.localeCompare(b.items[0]?.category || '') || 0
+  })
+
+  const placedOrders = sortedOrders.filter(o => o.status === 'placed')
+  const processingOrders = sortedOrders.filter(o => o.status === 'processing')
+  const readyOrders = sortedOrders.filter(o => o.status === 'ready')
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
@@ -363,15 +492,15 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveSurface('kds-kanban')}
+            onClick={() => setActiveSurface('kds-screen')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeSurface === 'kds-kanban'
+              activeSurface === 'kds-screen'
                 ? 'bg-amber-500 text-slate-950 shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <UtensilsCrossed className="w-3.5 h-3.5" />
-            3. Kitchen KDS Kanban
+            3. Kitchen KDS Screen
           </button>
         </div>
       </header>
@@ -856,174 +985,369 @@ export default function App() {
         </main>
       )}
 
-      {/* --- SURFACE 3: KITCHEN DISPLAY KANBAN BOARD (STANDAR MAKANAN & MINUMAN) --- */}
-      {activeSurface === 'kds-kanban' && (
+      {/* --- SURFACE 3: KITCHEN DISPLAY KANBAN & LIST SCREEN WITH SORTING & RECIPE BOM --- */}
+      {activeSurface === 'kds-screen' && (
         <main className="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+          
+          {/* KDS HEADER WITH VIEW SWITCHER & SORTING CONTROLS */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <UtensilsCrossed className="w-5 h-5 text-amber-500" /> Kitchen KDS Kanban Board (Makanan & Minuman)
+                <UtensilsCrossed className="w-5 h-5 text-amber-500" /> Kitchen KDS Monitor (Makanan & Minuman)
               </h2>
-              <p className="text-xs text-slate-400">Standar Monitor Dapur & Barista (<span className="text-emerald-400 font-mono">Incoming ➔ In Progress ➔ Ready</span>)</p>
+              <p className="text-xs text-slate-400">Klik item pesanan untuk melihat **Bill of Materials (BOM) & Petunjuk SOP Pembuatan**</p>
             </div>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono font-bold">
-                {orders.length} Total Pesanan Aktif
-              </span>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              {/* View Switcher (Kanban vs List) */}
+              <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button
+                  onClick={() => setKdsViewMode('kanban')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    kdsViewMode === 'kanban' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400'
+                  }`}
+                >
+                  <Kanban className="w-3.5 h-3.5" /> Kanban View
+                </button>
+                <button
+                  onClick={() => setKdsViewMode('list')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    kdsViewMode === 'list' ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400'
+                  }`}
+                >
+                  <List className="w-3.5 h-3.5" /> List View
+                </button>
+              </div>
+
+              {/* Sorting Selector */}
+              <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-slate-400">Sortir:</span>
+                <select
+                  value={kdsSortBy}
+                  onChange={(e) => setKdsSortBy(e.target.value as any)}
+                  className="bg-transparent text-amber-400 font-bold focus:outline-none"
+                >
+                  <option value="time-desc">Waktu Terlama (Priority)</option>
+                  <option value="time-asc">Waktu Terbaru</option>
+                  <option value="category">Kategori (Kopi/Pastry)</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* 3-COLUMN KANBAN BOARD (STANDAR UNIVERSAL MAKANAN & MINUMAN) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* COLUMN 1: PLACED / INCOMING */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-500" /> 1. Incoming (Pesanan Masuk)
-                </h3>
-                <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-bold font-mono flex items-center justify-center border border-amber-500/30">
-                  {placedOrders.length}
-                </span>
-              </div>
+          {/* VIEW MODE 1: KANBAN BOARD */}
+          {kdsViewMode === 'kanban' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* COLUMN 1: INCOMING */}
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500" /> 1. Incoming ({placedOrders.length})
+                  </h3>
+                </div>
 
-              <div className="flex flex-col gap-3 flex-1">
-                {placedOrders.map(order => (
-                  <div key={order.id} className="bg-slate-950 border border-amber-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <div>
-                        <span className="font-mono font-black text-xs text-amber-400">{order.id}</span>
-                        <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
-                      </div>
-                      <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                        <Clock className="w-3 h-3" /> {order.timeElapsedMinutes}m ago
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5 text-xs">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-1.5 rounded-lg">
-                          <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
-                          <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                            {item.category}
-                          </span>
+                <div className="flex flex-col gap-3">
+                  {placedOrders.map(order => (
+                    <div key={order.id} className="bg-slate-950 border border-amber-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                        <div>
+                          <span className="font-mono font-black text-xs text-amber-400">{order.id}</span>
+                          <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
                         </div>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => handleMoveKanbanColumn(order.id, 'processing')}
-                      className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 mt-1 shadow"
-                    >
-                      <ChefHat className="w-4 h-4" /> Proses Pesanan <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* COLUMN 2: IN PROGRESS (SEDANG DIPROSES) */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
-                  <ChefHat className="w-4 h-4 text-indigo-500" /> 2. In Progress (Sedang Diproses)
-                </h3>
-                <span className="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 text-xs font-bold font-mono flex items-center justify-center border border-indigo-500/30">
-                  {processingOrders.length}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-3 flex-1">
-                {processingOrders.map(order => (
-                  <div key={order.id} className="bg-slate-950 border border-indigo-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <div>
-                        <span className="font-mono font-black text-xs text-indigo-400">{order.id}</span>
-                        <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+                        <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                          <Clock className="w-3 h-3" /> {order.timeElapsedMinutes}m ago
+                        </span>
                       </div>
-                      <span className="text-[10px] text-indigo-400 font-mono flex items-center gap-1 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                        <Flame className="w-3 h-3" /> {order.timeElapsedMinutes}m active
-                      </span>
-                    </div>
 
-                    <div className="flex flex-col gap-1.5 text-xs">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-1.5 rounded-lg">
-                          <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
-                          <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
-                            {item.category}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                      {/* Clickable Menu Items for BOM Recipe Drawer */}
+                      <div className="flex flex-col gap-1.5 text-xs">
+                        {order.items.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => setSelectedRecipeBOM(item)}
+                            className="flex items-center justify-between bg-slate-900/80 p-2 rounded-lg hover:border-amber-500/50 border border-transparent cursor-pointer transition-all"
+                          >
+                            <div>
+                              <p className="font-bold text-slate-200 flex items-center gap-1">
+                                {item.quantity}x {item.name} <BookOpen className="w-3 h-3 text-amber-500 ml-1 inline" />
+                              </p>
+                              {item.temperature && (
+                                <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                              {item.category}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
 
-                    <div className="flex gap-2">
                       <button
-                        onClick={() => handleMoveKanbanColumn(order.id, 'placed')}
-                        className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold py-2 px-2.5 rounded-lg"
+                        onClick={() => handleMoveKanbanColumn(order.id, 'processing')}
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
                       >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleMoveKanbanColumn(order.id, 'ready')}
-                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
-                      >
-                        Selesai Diproses <ArrowRight className="w-3.5 h-3.5" />
+                        <ChefHat className="w-4 h-4" /> Proses Pesanan <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* COLUMN 3: READY (SIAP DIANTAR / DIAKSELERASI) */}
-            <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 3. Ready (Siap Diantar/Diambil)
-                </h3>
-                <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-bold font-mono flex items-center justify-center border border-emerald-500/30">
-                  {readyOrders.length}
-                </span>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex flex-col gap-3 flex-1">
-                {readyOrders.map(order => (
-                  <div key={order.id} className="bg-slate-950 border border-emerald-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                      <div>
-                        <span className="font-mono font-black text-xs text-emerald-400">{order.id}</span>
-                        <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+              {/* COLUMN 2: IN PROGRESS */}
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                    <ChefHat className="w-4 h-4 text-indigo-500" /> 2. In Progress ({processingOrders.length})
+                  </h3>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {processingOrders.map(order => (
+                    <div key={order.id} className="bg-slate-950 border border-indigo-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                        <div>
+                          <span className="font-mono font-black text-xs text-indigo-400">{order.id}</span>
+                          <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+                        </div>
+                        <span className="text-[10px] text-indigo-400 font-mono flex items-center gap-1 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                          <Flame className="w-3 h-3" /> {order.timeElapsedMinutes}m active
+                        </span>
                       </div>
-                      <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        <CheckCircle2 className="w-3 h-3" /> Ready
-                      </span>
+
+                      <div className="flex flex-col gap-1.5 text-xs">
+                        {order.items.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => setSelectedRecipeBOM(item)}
+                            className="flex items-center justify-between bg-slate-900/80 p-2 rounded-lg hover:border-indigo-500/50 border border-transparent cursor-pointer transition-all"
+                          >
+                            <div>
+                              <p className="font-bold text-slate-200 flex items-center gap-1">
+                                {item.quantity}x {item.name} <BookOpen className="w-3 h-3 text-indigo-400 ml-1 inline" />
+                              </p>
+                              {item.temperature && (
+                                <p className="text-[10px] text-slate-400">{item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}</p>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                              {item.category}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleMoveKanbanColumn(order.id, 'placed')}
+                          className="bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold py-2 px-2.5 rounded-lg"
+                        >
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleMoveKanbanColumn(order.id, 'ready')}
+                          className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 shadow"
+                        >
+                          Selesai Diproses <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COLUMN 3: READY */}
+              <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 3. Ready ({readyOrders.length})
+                  </h3>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {readyOrders.map(order => (
+                    <div key={order.id} className="bg-slate-950 border border-emerald-500/40 rounded-xl p-3.5 flex flex-col gap-3 shadow-lg">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                        <div>
+                          <span className="font-mono font-black text-xs text-emerald-400">{order.id}</span>
+                          <h4 className="text-xs font-bold text-white">{order.table} • {order.customerName}</h4>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                          <CheckCircle2 className="w-3 h-3" /> Ready
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 text-xs">
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-2 rounded-lg">
+                            <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
+                            <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                              {item.category}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => alert(`Tiket struk thermal order ${order.id} meja ${order.table} dicetak!`)}
+                        className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 border border-slate-700"
+                      >
+                        <Printer className="w-3.5 h-3.5" /> Cetak Struk Dapur
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* VIEW MODE 2: LIST VIEW */}
+          {kdsViewMode === 'list' && (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-xl">
+              <div className="grid grid-cols-6 text-xs font-bold text-slate-400 border-b border-slate-800 pb-2 px-3">
+                <span>ID Tiket</span>
+                <span>Meja / Customer</span>
+                <span>Item Pesanan (Klik untuk BOM)</span>
+                <span>Durasi Antre</span>
+                <span>Status KDS</span>
+                <span className="text-right">Aksi</span>
+              </div>
+
+              <div className="flex flex-col gap-2 divide-y divide-slate-800/60">
+                {sortedOrders.map(order => (
+                  <div key={order.id} className="pt-2 first:pt-0 grid grid-cols-6 items-center text-xs px-3">
+                    <span className="font-mono font-bold text-amber-400">{order.id}</span>
+                    <div>
+                      <p className="font-bold text-white">{order.table}</p>
+                      <p className="text-[11px] text-slate-400">{order.customerName}</p>
                     </div>
 
-                    <div className="flex flex-col gap-1.5 text-xs">
+                    <div className="flex flex-col gap-1">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-1.5 rounded-lg">
-                          <span className="font-bold text-slate-200">{item.quantity}x {item.name}</span>
-                          <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                            {item.category}
-                          </span>
-                        </div>
+                        <span 
+                          key={idx} 
+                          onClick={() => setSelectedRecipeBOM(item)}
+                          className="font-semibold text-slate-200 hover:text-amber-400 cursor-pointer flex items-center gap-1"
+                        >
+                          {item.quantity}x {item.name} <BookOpen className="w-3 h-3 text-amber-500 inline" />
+                        </span>
                       ))}
                     </div>
 
-                    <button
-                      onClick={() => alert(`Tiket struk thermal order ${order.id} meja ${order.table} dicetak!`)}
-                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 border border-slate-700"
-                    >
-                      <Printer className="w-3.5 h-3.5" /> Cetak Struk Dapur
-                    </button>
+                    <span className="font-mono text-slate-300">{order.timeElapsedMinutes} menit</span>
+
+                    <div>
+                      <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border ${
+                        order.status === 'placed' 
+                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                          : order.status === 'processing'
+                          ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+                          : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      {order.status === 'placed' && (
+                        <button
+                          onClick={() => handleMoveKanbanColumn(order.id, 'processing')}
+                          className="bg-amber-500 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs"
+                        >
+                          Proses ➔
+                        </button>
+                      )}
+                      {order.status === 'processing' && (
+                        <button
+                          onClick={() => handleMoveKanbanColumn(order.id, 'ready')}
+                          className="bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs"
+                        >
+                          Selesai ➔
+                        </button>
+                      )}
+                      {order.status === 'ready' && (
+                        <button
+                          onClick={() => alert(`Struk ${order.id} dicetak!`)}
+                          className="bg-slate-800 text-slate-200 font-bold px-3 py-1 rounded-lg text-xs border border-slate-700"
+                        >
+                          Print Struk
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
+          )}
 
-          </div>
         </main>
+      )}
+
+      {/* --- RECIPE BOM & PREPARATION SOP DRAWER POPUP --- */}
+      {selectedRecipeBOM && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 flex flex-col gap-4 shadow-2xl relative">
+            <button
+              onClick={() => setSelectedRecipeBOM(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+              <img 
+                src={selectedRecipeBOM.image} 
+                alt={selectedRecipeBOM.name} 
+                className="w-14 h-14 rounded-xl object-cover border border-slate-700"
+              />
+              <div>
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                  {selectedRecipeBOM.category}
+                </span>
+                <h3 className="text-base font-bold text-white mt-0.5">{selectedRecipeBOM.name}</h3>
+                <p className="text-xs text-slate-400">{selectedRecipeBOM.description}</p>
+              </div>
+            </div>
+
+            {/* Bill of Materials (BOM Ingredients) */}
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-amber-500" /> Bill of Materials (BOM / Resep Bahan Baku)
+              </h4>
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
+                {selectedRecipeBOM.bomIngredients?.map((ing, idx) => (
+                  <div key={idx} className="flex justify-between text-xs text-slate-300">
+                    <span>• {ing.name}</span>
+                    <span className="font-mono font-bold text-amber-400">{ing.amount}</span>
+                  </div>
+                )) || <p className="text-xs text-slate-500">Resep standar pabrikasi.</p>}
+              </div>
+            </div>
+
+            {/* Preparation SOP Steps */}
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-indigo-400 flex items-center gap-1.5">
+                <ChefHat className="w-4 h-4 text-indigo-500" /> Petunjuk SOP Pembuatan / Barista Guide
+              </h4>
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                {selectedRecipeBOM.preparationSteps?.map((step, idx) => (
+                  <p key={idx} className="text-xs text-slate-300 leading-relaxed">
+                    {step}
+                  </p>
+                )) || <p className="text-xs text-slate-500">Gunakan petunjuk standar penyajian kafe.</p>}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedRecipeBOM(null)}
+              className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg mt-1"
+            >
+              Tutup Petunjuk Resep
+            </button>
+          </div>
+        </div>
       )}
 
       {/* --- DRINK MODIFIER MODAL --- */}
