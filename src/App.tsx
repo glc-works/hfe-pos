@@ -74,8 +74,10 @@ import {
   Globe,
   Radio,
   FileCheck,
-  Lock,
   ArrowRightLeft,
+  Calendar,
+  CalendarCheck,
+  MapPin,
   QrCode as QrIcon
 } from 'lucide-react'
 
@@ -86,6 +88,22 @@ type KdsViewModeType = 'kanban' | 'list' | 'workorder'
 type CustomerLoginType = 'phone' | 'guest-name'
 type PaymentPolicy = 'pay-first' | 'open-tab'
 type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
+
+export interface TableReservation {
+  id: string
+  customerName: string
+  phone: string
+  tableArea: string
+  paxCount: number
+  reservationDate: string
+  timeSlot: string
+  dpAmount: number
+  dpStatus: 'unpaid' | 'paid_qris'
+  approvalPolicy: 'instant' | 'manual_review'
+  status: 'pending' | 'confirmed' | 'seated' | 'cancelled'
+  specialNotes?: string
+  createdAt: string
+}
 
 export interface HfeCompanyProfile {
   companyBookId: string
@@ -522,6 +540,54 @@ export default function App() {
   const [reassignFromTable, setReassignFromTable] = useState<string>('MEJA-04')
   const [reassignTargetTable, setReassignTargetTable] = useState<string>('MEJA-08')
 
+  // --- TABLE RESERVATION ENGINE & POLICY STATE ---
+  const [reservationPolicyMode, setReservationPolicyMode] = useState<'instant' | 'manual_review'>('manual_review')
+  const [dpRequiredMode, setDpRequiredMode] = useState<boolean>(true)
+  const [dpAmountConfig, setDpAmountConfig] = useState<number>(50000)
+
+  const [showReservationModal, setShowReservationModal] = useState<boolean>(false)
+  const [resDate, setResDate] = useState<string>('2026-08-16')
+  const [resTimeSlot, setResTimeSlot] = useState<string>('19:00 WIB')
+  const [resArea, setResArea] = useState<string>('Outdoor Garden (Smoking)')
+  const [resPax, setResPax] = useState<number>(4)
+  const [resCustomerName, setResCustomerName] = useState<string>('Aldi Pratama')
+  const [resCustomerPhone, setResCustomerPhone] = useState<string>('081298765432')
+  const [resNotes, setResNotes] = useState<string>('Ulang Tahun (Minta Baby Chair 1 pcs)')
+  const [resPayDpNow, setResPayDpNow] = useState<boolean>(true)
+
+  const [reservations, setReservations] = useState<TableReservation[]>([
+    {
+      id: 'RSV-901',
+      customerName: 'Dian Sastro',
+      phone: '081122334455',
+      tableArea: 'VIP Room 1 (AC)',
+      paxCount: 6,
+      reservationDate: '2026-08-16',
+      timeSlot: '18:30 WIB',
+      dpAmount: 100000,
+      dpStatus: 'paid_qris',
+      approvalPolicy: 'manual_review',
+      status: 'pending',
+      specialNotes: 'Meeting Bisnis & Minta Colokan Listrik',
+      createdAt: '18:30'
+    },
+    {
+      id: 'RSV-900',
+      customerName: 'Bambang Tri',
+      phone: '081999888777',
+      tableArea: 'Meja Dining Utama',
+      paxCount: 2,
+      reservationDate: '2026-08-16',
+      timeSlot: '20:00 WIB',
+      dpAmount: 50000,
+      dpStatus: 'paid_qris',
+      approvalPolicy: 'instant',
+      status: 'confirmed',
+      specialNotes: 'Anniversary Dinner',
+      createdAt: '15:10'
+    }
+  ])
+
   const [loginType, setLoginType] = useState<CustomerLoginType>('phone')
   const [customerPhone, setCustomerPhone] = useState<string>('081298765432')
   const [guestName, setGuestName] = useState<string>('Aldi')
@@ -779,6 +845,52 @@ export default function App() {
 
     setShowTableReassignModal(false)
     alert(`🔗 Sukses! Meja ${joinSourceTable} berhasil digabungkan dengan ${joinTargetTable}! Total Tagihan Gabungan: Rp ${combinedBill.toLocaleString('id-ID')}.`)
+  }
+
+  // --- RESERVATION ENGINE HANDLERS ---
+  const handleCreateReservation = () => {
+    if (!resCustomerName.trim() || !resCustomerPhone.trim()) {
+      alert('Nama dan Nomor HP Pemesan Wajib diisi!')
+      return
+    }
+
+    const finalDpAmount = (dpRequiredMode && resPayDpNow) ? dpAmountConfig : 0
+    const initialStatus = reservationPolicyMode === 'instant' ? 'confirmed' : 'pending'
+
+    const newReservation: TableReservation = {
+      id: `RSV-${Math.floor(100 + Math.random() * 900)}`,
+      customerName: resCustomerName,
+      phone: resCustomerPhone,
+      tableArea: resArea,
+      paxCount: resPax,
+      reservationDate: resDate,
+      timeSlot: resTimeSlot,
+      dpAmount: finalDpAmount,
+      dpStatus: finalDpAmount > 0 ? 'paid_qris' : 'unpaid',
+      approvalPolicy: reservationPolicyMode,
+      status: initialStatus,
+      specialNotes: resNotes.trim() || undefined,
+      createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    }
+
+    setReservations([newReservation, ...reservations])
+    setShowReservationModal(false)
+
+    if (initialStatus === 'confirmed') {
+      alert(`🎉 Reservasi Instan Berhasil Disetujui! Direservasikan untuk ${resCustomerName} (${resDate} @ ${resTimeSlot}). DP Rp ${finalDpAmount.toLocaleString('id-ID')} Terposting ke Ledger Deposit HFE!`)
+    } else {
+      alert(`⏳ Permohonan Reservasi Terkirim! Status: Menunggu Konfirmasi Staf/Kasir Kafe. Notifikasi akan dikirim via WA ${resCustomerPhone}.`)
+    }
+  }
+
+  const handleApproveReservation = (id: string) => {
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'confirmed' } : r))
+    alert(`✓ Reservasi ${id} Disetujui! Meja resmi dibooking di sistem.`)
+  }
+
+  const handleRejectReservation = (id: string) => {
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r))
+    alert(`❌ Reservasi ${id} Dibatalkan.`)
   }
 
   // --- HFE COMPANY PROFILE REST API SYNC HANDLERS ---
@@ -1223,6 +1335,16 @@ export default function App() {
                   <span className="text-[9px] font-mono text-amber-400/80">({scannedSeat})</span>
                 </div>
 
+                {/* RESERVATION BUTTON */}
+                <button
+                  onClick={() => setShowReservationModal(true)}
+                  className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-[10px] px-2 py-1 rounded-lg shadow flex items-center gap-1 transition-all"
+                  title="Reservasi Slot Meja Cafe"
+                >
+                  <Calendar className="w-3 h-3 text-white" />
+                  <span>Reservasi</span>
+                </button>
+
                 {/* COMPACT SAVED PROFILE BADGE */}
                 {isCustomerSessionActive ? (
                   <button
@@ -1267,9 +1389,37 @@ export default function App() {
           </header>
 
           <main className="flex-1 max-w-md w-full mx-auto p-3 sm:p-4 flex flex-col gap-4 pb-28">
-            {/* STEP 1: KATALOG MENU VIEW */}
-            {qrStepView === 'catalog' && (
-              <>
+                {/* LANDING PAGE TABLE RESERVATION BANNER */}
+                <div className="bg-gradient-to-br from-indigo-900/40 via-slate-900 to-slate-950 border border-indigo-500/30 rounded-2xl p-4 flex flex-col gap-3 shadow-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-bold text-xs">
+                        📅
+                      </span>
+                      <div>
+                        <h3 className="text-xs font-bold text-white tracking-tight">Reservasi Slot Meja Cafe & VIP Room</h3>
+                        <p className="text-[10px] text-slate-400">Jamin slot tempat duduk untuk acara dinner / meeting</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded border border-indigo-500/30 uppercase">
+                      {reservationPolicyMode === 'instant' ? '⚡ INSTANT BOOK' : '⏳ CONFIRMATION'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5 text-[10px] text-slate-300">
+                    <span className="bg-slate-950/80 px-2 py-1 rounded border border-slate-800 flex items-center justify-center gap-1">🍃 Outdoor</span>
+                    <span className="bg-slate-950/80 px-2 py-1 rounded border border-slate-800 flex items-center justify-center gap-1">❄️ VIP AC</span>
+                    <span className="bg-slate-950/80 px-2 py-1 rounded border border-slate-800 flex items-center justify-center gap-1">🅿️ Free Valet</span>
+                  </div>
+
+                  <button
+                    onClick={() => setShowReservationModal(true)}
+                    className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-2.5 rounded-xl shadow flex items-center justify-center gap-2 transition-all"
+                  >
+                    <CalendarCheck className="w-4 h-4 text-white" /> Pilih Slot Jam & Reservasi Meja ➔
+                  </button>
+                </div>
+
                 {/* CONTINUOUS SMOOTH SCROLL CATALOG SECTIONS */}
                 <div className="flex flex-col gap-6 pt-1">
                   
@@ -2717,6 +2867,149 @@ export default function App() {
                 </div>
               </div>
 
+              {/* CARD 1.7: TABLE RESERVATION ENGINE POLICY & DP SETTINGS */}
+              <div className="bg-slate-900 border border-indigo-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
+                        <CalendarCheck className="w-4 h-4 text-indigo-400" /> Kebijakan Reservasi Meja & Down Payment (DP Commitment)
+                      </h3>
+                      <span className="text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30 uppercase">
+                        {reservationPolicyMode === 'instant' ? '⚡ INSTANT' : '⏳ MANUAL REVIEW'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Atur persetujuan reservasi meja (Otomatis vs Manual Review) dan nominal DP jaminan tempat.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* APPROVAL POLICY SWITCHER */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-300">Kebijakan Persetujuan Reservasi:</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setReservationPolicyMode('manual_review')}
+                        className={`p-2.5 rounded-xl text-xs font-bold border text-left flex flex-col gap-0.5 transition-all ${
+                          reservationPolicyMode === 'manual_review'
+                            ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400'
+                            : 'bg-slate-950 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>⏳ Perlu Konfirmasi Admin</span>
+                        <span className="text-[9px] font-normal text-slate-400">Kasir/Admin harus klik Approve dulu</span>
+                      </button>
+
+                      <button
+                        onClick={() => setReservationPolicyMode('instant')}
+                        className={`p-2.5 rounded-xl text-xs font-bold border text-left flex flex-col gap-0.5 transition-all ${
+                          reservationPolicyMode === 'instant'
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                            : 'bg-slate-950 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <span>⚡ Instant Reserve</span>
+                        <span className="text-[9px] font-normal text-slate-400">Langsung auto-confirm slot meja</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* DP COMMITMENT CONFIG */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-300">Nominal Down Payment (DP Commitment Opsional):</label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setDpRequiredMode(!dpRequiredMode)}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                          dpRequiredMode ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-950 text-slate-400 border-slate-800'
+                        }`}
+                      >
+                        {dpRequiredMode ? '✓ Wajib DP' : 'Tanpa DP'}
+                      </button>
+
+                      {dpRequiredMode && (
+                        <select
+                          value={dpAmountConfig}
+                          onChange={(e) => setDpAmountConfig(Number(e.target.value))}
+                          className="flex-1 bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2 focus:outline-none focus:border-indigo-500"
+                        >
+                          <option value={25000}>Rp 25.000 / Reservasi</option>
+                          <option value={50000}>Rp 50.000 / Reservasi</option>
+                          <option value={100000}>Rp 100.000 / Reservasi</option>
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* RESERVATION LIST TABLE FOR STAFF / OWNER MANAGER */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <CalendarCheck className="w-4 h-4 text-indigo-400" /> Daftar Permohonan Reservasi Meja ({reservations.length})
+                    </span>
+                    <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
+                      {reservations.filter(r => r.status === 'pending').length} Pending
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2.5">
+                    {reservations.map(res => (
+                      <div key={res.id} className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-amber-400">{res.id}</span>
+                            <h4 className="font-bold text-white text-sm">{res.customerName} ({res.phone})</h4>
+                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                              res.status === 'confirmed'
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : res.status === 'pending'
+                                ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                            }`}>
+                              {res.status}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 mt-1">
+                            <span>📅 {res.reservationDate} @ {res.timeSlot}</span>
+                            <span>📍 {res.tableArea} ({res.paxCount} Pax)</span>
+                            {res.dpAmount > 0 && (
+                              <span className="text-emerald-400 font-mono font-bold">DP: Rp {res.dpAmount.toLocaleString('id-ID')} (QRIS Paid)</span>
+                            )}
+                          </div>
+
+                          {res.specialNotes && (
+                            <p className="text-[10px] text-slate-400 italic mt-0.5">Catatan: "{res.specialNotes}"</p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                          {res.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => handleApproveReservation(res.id)}
+                                className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow"
+                              >
+                                ✓ Approve
+                              </button>
+                              <button
+                                onClick={() => handleRejectReservation(res.id)}
+                                className="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 font-bold text-xs px-3 py-1.5 rounded-lg"
+                              >
+                                ❌ Reject
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* CARD 2: THEME STYLESHEET CUSTOMIZER ENGINE (AI EXPORT & IMPORT) */}
               <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
@@ -3418,6 +3711,166 @@ export default function App() {
               className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg"
             >
               ✓ Simulasi Pembayaran Sukses (Pay-First)
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- CUSTOMER TABLE RESERVATION BOOKING MODAL --- */}
+      {showReservationModal && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm sm:max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowReservationModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-3 pr-6">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <CalendarCheck className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Form Reservasi Meja Cafe</h3>
+                <p className="text-[11px] text-slate-400">{hfeCompanyProfile.brandName}</p>
+              </div>
+            </div>
+
+            {/* DATE & TIME SLOT PICKER */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-400" /> Tanggal Kunjungan:
+                </label>
+                <input
+                  type="date"
+                  value={resDate}
+                  onChange={(e) => setResDate(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl p-2.5 font-bold focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-indigo-400" /> Slot Jam Kunjungan:
+                </label>
+                <select
+                  value={resTimeSlot}
+                  onChange={(e) => setResTimeSlot(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="11:00 WIB">11:00 WIB (Lunch)</option>
+                  <option value="13:00 WIB">13:00 WIB (Afternoon)</option>
+                  <option value="17:00 WIB">17:00 WIB (Sunset Coffee)</option>
+                  <option value="19:00 WIB">19:00 WIB (Dinner)</option>
+                  <option value="21:00 WIB">21:00 WIB (Night Lounge)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* TABLE AREA & PAX COUNT */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-indigo-400" /> Area Tempat Duduk:
+                </label>
+                <select
+                  value={resArea}
+                  onChange={(e) => setResArea(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 text-slate-200 font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="Meja Dining Utama">Meja Dining Utama</option>
+                  <option value="Outdoor Garden (Smoking)">Outdoor Garden</option>
+                  <option value="VIP Room 1 (AC & Projector)">VIP AC Room 1</option>
+                  <option value="Bar Stool Lounge">Bar Stool Lounge</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-indigo-400" /> Jumlah Tamu (Pax):
+                </label>
+                <select
+                  value={resPax}
+                  onChange={(e) => setResPax(Number(e.target.value))}
+                  className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+                >
+                  {[1, 2, 4, 6, 8, 10, 12].map(p => (
+                    <option key={p} value={p}>{p} Orang Tamu</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* CONTACT INFO */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-slate-300">Data Diri Pemesan:</label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={resCustomerName}
+                  onChange={(e) => setResCustomerName(e.target.value)}
+                  placeholder="Nama Pemesan (cth: Aldi)"
+                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-semibold"
+                />
+                <input
+                  type="tel"
+                  value={resCustomerPhone}
+                  onChange={(e) => setResCustomerPhone(e.target.value)}
+                  placeholder="No WhatsApp"
+                  className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-mono"
+                />
+              </div>
+            </div>
+
+            {/* SPECIAL REQUEST NOTES */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-300">Catatan Khusus (Acara/Permintaan Kursi):</label>
+              <input
+                type="text"
+                value={resNotes}
+                onChange={(e) => setResNotes(e.target.value)}
+                placeholder="cth: Acara Ulang Tahun / Baby Chair / Stop Kontak"
+                className="bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            {/* DOWN PAYMENT COMMITMENT SECTION */}
+            {dpRequiredMode && (
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-amber-400 flex items-center gap-1">
+                    <CreditCard className="w-3.5 h-3.5 text-amber-500" /> Down Payment (DP Commitment):
+                  </span>
+                  <span className="font-mono font-bold text-amber-300">Rp {dpAmountConfig.toLocaleString('id-ID')}</span>
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 pt-1">
+                  <input
+                    type="checkbox"
+                    checked={resPayDpNow}
+                    onChange={(e) => setResPayDpNow(e.target.checked)}
+                    className="rounded bg-slate-900 border-slate-800 text-indigo-500 focus:ring-0"
+                  />
+                  <span>Bayar DP Commitment Sekarang via QRIS (Deposit HFE)</span>
+                </label>
+              </div>
+            )}
+
+            {/* APPROVAL POLICY NOTICE */}
+            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-2.5 text-[11px] text-indigo-300 flex items-center gap-2">
+              <span className="text-base">ℹ️</span>
+              <span>
+                Kebijakan Kafe: <b>{reservationPolicyMode === 'instant' ? '⚡ Instant Reserve (Langsung Disetujui)' : '⏳ Perlu Konfirmasi Admin/Kasir'}</b>.
+              </span>
+            </div>
+
+            <button
+              onClick={handleCreateReservation}
+              className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-3 rounded-xl shadow-lg mt-1 flex items-center justify-center gap-2"
+            >
+              <CalendarCheck className="w-4 h-4 text-white" /> Kirim Permohonan Reservasi Meja ➔
             </button>
           </div>
         </div>
