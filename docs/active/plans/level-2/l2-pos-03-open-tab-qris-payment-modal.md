@@ -12,13 +12,15 @@ status: Proposed
 # Level 2 Implementation Plan: Policy-Based Payment Checkout & QRIS Modal
 
 ## 1. Outcome
-Delivers the payment checkout modal (`src/checkout/`) supporting Pay-First (pre-paid QRIS/VA) and Open Tab (post-paid table bill) checkout flows with dynamic ASPI QR code rendering.
+## 1. Outcome
+Delivers the payment checkout modal component (`src/components/modals/QrisModal.tsx`) supporting Pay-First (pre-paid QRIS/VA) and Open Tab (post-paid table bill) checkout flows with dynamic ASPI QR code rendering.
 
 ## 2. Scope
-- Create `src/checkout/payment-modal.js`:
+- Deliver `src/components/modals/QrisModal.tsx` and payment evaluation logic:
   - Policy Evaluator (`Pay-First` vs `Open Tab`).
   - Dynamic QRIS Display Modal with real-time payment polling/webhook listener.
-  - Open Tab Settlement Summary Screen.
+  - Open Tab Settlement Summary Screen with Tax (PB1) and Service Fee breakdowns.
 
 ## 3. Verification Plan
 - QRIS modal display & payment status transition test.
+

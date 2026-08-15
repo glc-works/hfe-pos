@@ -12,13 +12,18 @@ status: Proposed
 # Level 2 Implementation Plan: Kitchen Display System (KDS) & Thermal Ticket Printer
 
 ## 1. Outcome
-Delivers a Kitchen Display System screen (`src/kds/`) and ESC/POS thermal printing module for baristas and kitchen staff.
+## 1. Outcome
+Delivers a Kitchen Display System view (`src/views/KdsKanbanView.tsx`) and ESC/POS thermal printing module for baristas and kitchen staff.
 
 ## 2. Scope
-- Create `src/kds/index.html` & `src/kds/kds.js`:
-  - KDS Order Card Queue with color-coded preparation timers (Green < 5m, Yellow < 10m, Red > 10m).
-  - Status Bump Buttons (`Brewing` ➔ `Ready`).
-  - ESC/POS Web USB / Raw Network Thermal Receipt Printer Helper.
+- Deliver `src/views/KdsKanbanView.tsx` and associated sub-components:
+  - KDS Order Card Queue with Kanban, List, and Work Order modes (`src/components/kds/KdsKanbanGrid.tsx`).
+  - Color-coded preparation timers (Green < 5m, Yellow < 10m, Red > 10m).
+  - Status Bump Buttons (`Brewing` ➔ `Ready` ➔ `QC Passed` ➔ `Served`).
+  - Recipe BOM & SOP Drawer modal (`src/components/modals/RecipeBomModal.tsx`).
+  - ESC/POS Web USB / Raw Network Thermal Receipt Printer Helper (`src/services/thermalPrinter.ts`).
 
 ## 3. Verification Plan
 - KDS ticket render & bump state test.
+- Recipe BOM modal drawer interaction test.
+

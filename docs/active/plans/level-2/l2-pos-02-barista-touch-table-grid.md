@@ -12,17 +12,20 @@ status: Proposed
 # Level 2 Implementation Plan: Barista Touch POS Station & Table Floor Plan Grid
 
 ## 1. Outcome
-Delivers a Barista Touch POS interface (`src/pos/`) for cashiers and baristas to view active table occupancy, open/close billing tabs, enter manual walk-in orders, and perform cash drawer float reconciliations.
+## 1. Outcome
+Delivers a Barista Touch POS station view (`src/views/BaristaPosView.tsx`) for cashiers and baristas to view active table occupancy, open/close billing tabs, enter manual walk-in orders, and perform cash drawer float reconciliations.
 
 ## 2. Scope
-- Create `src/pos/index.html` & `src/pos/pos.js`:
-  - Visual Table Floor Plan Grid (Table 1-20 status: Free, Occupied, Open Tab).
-  - Touch-Optimized Walk-In Quick Catalog Grid.
-  - Cashier Shift Drawer Modal (`1010-Cash Drawer` float opening/closing count input).
+- Deliver `src/views/BaristaPosView.tsx` and associated sub-components:
+  - Visual Table Floor Plan Grid (`src/components/pos/TableFloorPlanGrid.tsx` for Table 1-20 status: Free, Occupied, Open Tab).
+  - Touch-Optimized Walk-In Quick Catalog Grid (`src/components/pos/TouchQuickCatalog.tsx`).
+  - Table Operations Modal (`src/components/modals/TableOperationsModal.tsx` for table transfer, merge, and tab closing).
+  - Cashier Shift Drawer Modal (`src/components/modals/ShiftDrawerModal.tsx` for float opening/closing count input).
 
 ## 3. Explicit Exclusions
 - Financial subledgers are delegated to `Hfe` REST endpoints.
 
 ## 4. Verification Plan
 - Touch interaction response < 30ms.
-- Table status toggle test.
+- Table status toggle & shift float input test.
+
