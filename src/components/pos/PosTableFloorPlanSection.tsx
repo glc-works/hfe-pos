@@ -173,23 +173,53 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     )
   }
 
-  // GRID & COMPACT VIEWS: UNIFIED FIXED-SLOT MASTER GRID
+  // GRID & COMPACT VIEWS: PROPORTIONAL TETRIS MASTER GRID
   const renderZoneCard = (group: typeof groupedZones[0]) => {
     const totalTables = group.tables.length
     const occupiedCount = group.tables.filter(t => t.status !== 'free').length
     const totalZoneSales = group.tables.reduce((sum, t) => sum + (t.totalBill || 0), 0)
+    const isSingleZoneView = activeZoneId !== 'all'
+    const isVipZone = group.zone.id === 'vip-private'
 
-    // Master Fixed-Slot Grid Container:
-    // Compact: 2 slots (Mobile) -> 4 slots (Tablet) -> 6 slots (POS Landscape)
-    // Expand:  1 slot (Mobile)  -> 2 slots (Tablet) -> 4 slots (POS Landscape)
-    const masterGridClass = viewMode === 'compact'
-      ? (isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6')
-      : (isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4')
+    // Proportional Container Tetris Slot Span (Anti-Empty Space):
+    // 6 tables (Outdoor/Indoor) -> 6 slots (full row)
+    // 4 tables (Poolside/Rooftop) -> 4 slots
+    // 2 tables / VIP (VIP Rooms) -> 2 slots (pairs with 4-slot zone: 4 + 2 = 6!)
+    let zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6'
+    if (!isSingleZoneView) {
+      if (totalTables <= 2 || isVipZone) {
+        zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-2'
+      } else if (totalTables === 3 || totalTables === 4) {
+        zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-4'
+      } else {
+        zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6'
+      }
+    }
+
+    // Internal Table Cards Grid matching the container's allocated width:
+    let internalGridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-6'
+    if (isSingleZoneView) {
+      internalGridClass = viewMode === 'compact'
+        ? (isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6')
+        : (isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4')
+    } else if (totalTables <= 2 || isVipZone) {
+      internalGridClass = isVipZone && viewMode !== 'compact'
+        ? 'grid-cols-1'
+        : 'grid-cols-1 sm:grid-cols-2'
+    } else if (totalTables === 3 || totalTables === 4) {
+      internalGridClass = viewMode === 'compact'
+        ? 'grid-cols-2 sm:grid-cols-4'
+        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+    } else {
+      internalGridClass = viewMode === 'compact'
+        ? (isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6')
+        : (isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4')
+    }
 
     return (
       <div
         key={group.zone.id}
-        className="w-full bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 flex flex-col gap-2.5 shadow-sm"
+        className={`${zoneColSpanClass} bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 flex flex-col justify-between gap-2.5 shadow-sm`}
       >
         {/* ZONE MICRO-HEADER WITH METRICS (CLEAN 1-ROW DEFENSIVE TRUNCATION) */}
         <div className="flex items-center justify-between gap-2 px-1 min-w-0">
@@ -215,8 +245,8 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
           </div>
         </div>
 
-        {/* FIXED-SLOT TABLE CARDS GRID */}
-        <div className={`grid gap-2 sm:gap-2.5 ${masterGridClass}`}>
+        {/* PROPORTIONALLY PACKED FIXED-SLOT TABLE CARDS GRID */}
+        <div className={`grid gap-2 sm:gap-2.5 ${internalGridClass}`}>
           {group.tables.map((table) => {
             const isUnpaid = (table.status === 'open-tab' || table.status === 'occupied') && table.totalBill > 0
             const isPaid = table.customerName?.includes('(Lunas)') || (table.status === 'occupied' && table.totalBill === 0)
@@ -423,7 +453,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
   }
 
   return (
-    <div className="flex flex-col gap-3.5 pb-20">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pb-20 grid-flow-dense items-start">
       {groupedZones.map(renderZoneCard)}
     </div>
   )
