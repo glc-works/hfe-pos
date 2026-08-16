@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { X, Users, Divide, CheckCircle2, Split, CreditCard, Banknote, QrCode, Sparkles } from 'lucide-react'
 import { CartItem } from '../../types/pos'
+import { PriceTag } from '../../ui/PriceTag'
 
 export interface DynamicSplitBillModalProps {
   isOpen: boolean
@@ -77,9 +78,10 @@ export const DynamicSplitBillModal: React.FC<DynamicSplitBillModalProps> = ({
             </div>
             <div>
               <h4 className="text-sm font-black text-white">🍽️ Split Bill Dinamis Granular</h4>
-              <span className="text-[10px] font-mono text-amber-400">
-                Total Tagihan: Rp {totalBill.toLocaleString('id-ID')}
-              </span>
+              <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                <span>Total Tagihan:</span>
+                <PriceTag amount={totalBill} variant="accent" size="xs" />
+              </div>
             </div>
           </div>
           <button
