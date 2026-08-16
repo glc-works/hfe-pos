@@ -202,22 +202,11 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     }
 
     // INTERNAL TABLE CARDS GRID:
-    // A. Grid Mode: Mathematical Adaptive Factor Columns (Anti-Empty Space & Maximum Spaciousness)
-    //    - 6-table zone: 3 columns x 2 rows (3x2 = 6 tables, 0 remainder, spacious 33.3% width!)
-    //    - 4-table zone: 4 columns x 1 row (4x1 = 4 tables, 0 remainder)
-    //    - 2-table / VIP: 2 columns x 1 row (2x1 = 2 tables, 0 remainder)
-    //    - 8-table zone: 4 columns x 2 rows (4x2 = 8 tables, 0 remainder)
-    // B. Compact Mode: Dense Tetris Internal Columns
+    // A. Grid Mode: Strict 4-Slot Column Canvas (grid-cols-4)
+    //    All zones render across a strict 4-column canvas with uniform 1x1 cards (25% width) and 2x1 VIP cards!
+    // B. Compact Mode: Strict 6-Slot Column Canvas (Dense Tetris Packing)
     let internalGridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-    if (!isCompact) {
-      if (totalTables <= 2 || isVipZone) {
-        internalGridClass = 'grid-cols-1 sm:grid-cols-2'
-      } else if (totalTables === 5 || totalTables === 6) {
-        internalGridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-      } else if (totalTables === 3 || totalTables === 4 || totalTables >= 7) {
-        internalGridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-      }
-    } else {
+    if (isCompact) {
       if (isSingleZoneView) {
         internalGridClass = isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6'
       } else if (isVipZone || totalTables <= 2) {
@@ -276,10 +265,10 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             const displayTableName = table.name.replace(/^(OUT|IND|POOL|ROOF)-/i, '')
 
             // Fixed-Slot Allocation:
-            // Standard Table: 1 Slot
-            // VIP Table: 1 Slot in 2-column VIP zone, 2 Slots in multi-column grid
+            // Standard Table: 1 Slot (25% width in Grid View)
+            // VIP Table: 2 Slots in Grid View (50% width `col-span-2`), 1 Slot in Compact Desktop
             const slotSpanClass = isVip
-              ? (isCompact ? (isMobile ? 'col-span-2' : 'col-span-1') : (totalTables <= 2 ? 'col-span-1' : 'col-span-1 sm:col-span-2'))
+              ? (isCompact ? (isMobile ? 'col-span-2' : 'col-span-1') : 'col-span-1 sm:col-span-2')
               : 'col-span-1'
 
             return (
