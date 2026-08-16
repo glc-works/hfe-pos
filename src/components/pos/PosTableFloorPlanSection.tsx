@@ -181,11 +181,11 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     const isSingleZoneView = activeZoneId !== 'all'
     const isVipZone = group.zone.id === 'vip-private'
 
-    // Proportional Container 2D Tetris Slot Span (Anti-Empty Space & Vertical RowSpan):
-    // 6 tables (Outdoor/Indoor) -> col-span-6 row-span-1 (full row)
-    // 4 tables (Poolside/Rooftop) -> col-span-4 row-span-1
+    // Proportional Container 2D Tetris Slot Span (Anti-Empty Space & Symmetric 3x2 Pairing):
+    // 6 tables (Outdoor/Indoor) -> col-span-3 row-span-2 h-full (3x2 tables = 6, pairs 3 + 3 = 6!)
+    // 4 tables (Poolside/Rooftop) -> col-span-4 row-span-1 (all 4 tables in 1 row)
     // Tall VIP Zone (2 tables stacked) -> col-span-2 row-span-2 h-full
-    // (Result: Poolside sits at Row 1, Rooftop slips into Row 2 directly below Poolside!)
+    // (Result: Outdoor & Indoor pair 3+3=6 on Rows 1-2, VIP & Poolside/Rooftop pair 2+4=6 on Rows 3-4!)
     let zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6 lg:row-span-1'
     if (!isSingleZoneView) {
       if (isVipZone || totalTables <= 2) {
@@ -193,7 +193,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       } else if (totalTables === 3 || totalTables === 4) {
         zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-4 lg:row-span-1'
       } else {
-        zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6 lg:row-span-1'
+        zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-3 lg:row-span-2 h-full'
       }
     }
 
@@ -207,13 +207,10 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       // In VIP tall zone, tables stack vertically in 1 column (2 rows tall)
       internalGridClass = 'grid-cols-1'
     } else if (totalTables === 3 || totalTables === 4) {
-      internalGridClass = viewMode === 'compact'
-        ? 'grid-cols-2 sm:grid-cols-4'
-        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+      internalGridClass = 'grid-cols-2 sm:grid-cols-4'
     } else {
-      internalGridClass = viewMode === 'compact'
-        ? (isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6')
-        : (isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4')
+      // 6-table zone: 3 columns x 2 rows = 6 tables (Zero empty cells!)
+      internalGridClass = 'grid-cols-2 sm:grid-cols-3'
     }
 
     return (
