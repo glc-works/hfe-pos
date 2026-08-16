@@ -181,18 +181,19 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     const isSingleZoneView = activeZoneId !== 'all'
     const isVipZone = group.zone.id === 'vip-private'
 
-    // Proportional Container Tetris Slot Span (Anti-Empty Space):
-    // 6 tables (Outdoor/Indoor) -> 6 slots (full row)
-    // 4 tables (Poolside/Rooftop) -> 4 slots
-    // 2 tables / VIP (VIP Rooms) -> 2 slots (pairs with 4-slot zone: 4 + 2 = 6!)
-    let zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6'
+    // Proportional Container 2D Tetris Slot Span (Anti-Empty Space & Vertical RowSpan):
+    // 6 tables (Outdoor/Indoor) -> col-span-6 row-span-1 (full row)
+    // 4 tables (Poolside/Rooftop) -> col-span-4 row-span-1
+    // Tall VIP Zone (2 tables stacked) -> col-span-2 row-span-2 h-full
+    // (Result: Poolside sits at Row 1, Rooftop slips into Row 2 directly below Poolside!)
+    let zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6 lg:row-span-1'
     if (!isSingleZoneView) {
-      if (totalTables <= 2 || isVipZone) {
-        zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-2'
+      if (isVipZone || totalTables <= 2) {
+        zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-2 lg:row-span-2 h-full'
       } else if (totalTables === 3 || totalTables === 4) {
-        zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-4'
+        zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-4 lg:row-span-1'
       } else {
-        zoneColSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6'
+        zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6 lg:row-span-1'
       }
     }
 
@@ -202,10 +203,9 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       internalGridClass = viewMode === 'compact'
         ? (isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6')
         : (isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4')
-    } else if (totalTables <= 2 || isVipZone) {
-      internalGridClass = isVipZone && viewMode !== 'compact'
-        ? 'grid-cols-1'
-        : 'grid-cols-1 sm:grid-cols-2'
+    } else if (isVipZone || totalTables <= 2) {
+      // In VIP tall zone, tables stack vertically in 1 column (2 rows tall)
+      internalGridClass = 'grid-cols-1'
     } else if (totalTables === 3 || totalTables === 4) {
       internalGridClass = viewMode === 'compact'
         ? 'grid-cols-2 sm:grid-cols-4'
@@ -219,7 +219,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     return (
       <div
         key={group.zone.id}
-        className={`${zoneColSpanClass} bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 flex flex-col justify-between gap-2.5 shadow-sm`}
+        className={`${zoneSpanClass} bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 flex flex-col justify-between gap-2.5 shadow-sm`}
       >
         {/* ZONE MICRO-HEADER WITH METRICS (CLEAN 1-ROW DEFENSIVE TRUNCATION) */}
         <div className="flex items-center justify-between gap-2 px-1 min-w-0">
