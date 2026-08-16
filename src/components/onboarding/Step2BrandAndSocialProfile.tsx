@@ -95,6 +95,52 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
           />
         </div>
 
+        {/* WiFi Access Policy Selector */}
+        <div className="md:col-span-2">
+          <label className="block text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1.5 flex items-center gap-1.5">
+            <Wifi className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            Kebijakan Akses WiFi Pelanggan
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => onChange({ wifiAccessPolicy: 'always_visible' })}
+              className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                (data.wifiAccessPolicy || 'after_payment') === 'always_visible'
+                  ? 'bg-amber-600 text-white border-amber-600 shadow'
+                  : 'bg-amber-500/5 text-amber-950 dark:text-amber-100 border-amber-900/20 hover:bg-amber-500/10'
+              }`}
+            >
+              <span>🌐</span>
+              <span>Selalu Terbuka</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange({ wifiAccessPolicy: 'after_payment' })}
+              className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                (data.wifiAccessPolicy || 'after_payment') === 'after_payment'
+                  ? 'bg-amber-600 text-white border-amber-600 shadow'
+                  : 'bg-amber-500/5 text-amber-950 dark:text-amber-100 border-amber-900/20 hover:bg-amber-500/10'
+              }`}
+            >
+              <span>🔒</span>
+              <span>Buka Setelah Bayar</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange({ wifiAccessPolicy: 'disabled' })}
+              className={`px-3 py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                data.wifiAccessPolicy === 'disabled'
+                  ? 'bg-amber-600 text-white border-amber-600 shadow'
+                  : 'bg-amber-500/5 text-amber-950 dark:text-amber-100 border-amber-900/20 hover:bg-amber-500/10'
+              }`}
+            >
+              <span>🚫</span>
+              <span>Nonaktifkan WiFi</span>
+            </button>
+          </div>
+        </div>
+
         {/* WiFi SSID */}
         <div>
           <label className="block text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1 flex items-center gap-1.5">
@@ -103,10 +149,11 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
           </label>
           <input
             type="text"
+            disabled={data.wifiAccessPolicy === 'disabled'}
             value={data.wifiSsid}
             onChange={(e) => onChange({ wifiSsid: e.target.value })}
             placeholder="Artisan_Guest_WiFi"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-amber-900/20 bg-amber-500/5 focus:bg-amber-500/10 focus:border-amber-600 focus:outline-none text-amber-950 dark:text-amber-100"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-amber-900/20 bg-amber-500/5 focus:bg-amber-500/10 focus:border-amber-600 focus:outline-none text-amber-950 dark:text-amber-100 disabled:opacity-50"
           />
         </div>
 
@@ -118,10 +165,11 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
           </label>
           <input
             type="text"
+            disabled={data.wifiAccessPolicy === 'disabled'}
             value={data.wifiPassword}
             onChange={(e) => onChange({ wifiPassword: e.target.value })}
             placeholder="kopiuenak2026"
-            className="w-full px-3 py-2 text-sm rounded-lg border border-amber-900/20 bg-amber-500/5 focus:bg-amber-500/10 focus:border-amber-600 focus:outline-none text-amber-950 dark:text-amber-100"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-amber-900/20 bg-amber-500/5 focus:bg-amber-500/10 focus:border-amber-600 focus:outline-none text-amber-950 dark:text-amber-100 disabled:opacity-50"
           />
         </div>
       </div>

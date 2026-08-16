@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import {
   ShoppingBag, Contact, Minus, Plus, AlertTriangle, HeartHandshake,
-  CreditCard, CheckCircle2, Ticket, QrCode, Banknote, Edit3, Receipt
+  CreditCard, CheckCircle2, Ticket, QrCode, Banknote, Edit3, Receipt,
+  Wifi, Copy, Check
 } from 'lucide-react'
-import { CartItem, PaymentPolicy, PB1TaxMode, CafeThemeConfig, Voucher } from '../../types/pos'
+import { CartItem, PaymentPolicy, PB1TaxMode, CafeThemeConfig, Voucher, HfeCompanyProfile } from '../../types/pos'
 import { VoucherSelectionDrawer } from '../pos/VoucherSelectionDrawer'
 import { PayFirstPaymentSection } from './PayFirstPaymentSection'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
@@ -14,6 +15,8 @@ export interface CustomerCheckoutViewProps {
   scannedSeat: string
   activeTheme: CafeThemeConfig
   cart: CartItem[]
+  hfeCompanyProfile?: HfeCompanyProfile
+  hasPaidOrder?: boolean
   promoCodeInput: string
   setPromoCodeInput: (val: string) => void
   appliedPromo: { code: string; discount: number } | null
@@ -39,6 +42,8 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
   scannedSeat,
   activeTheme,
   cart,
+  hfeCompanyProfile,
+  hasPaidOrder = false,
   promoCodeInput,
   setPromoCodeInput,
   appliedPromo,
@@ -67,6 +72,17 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
   const [itemNotes, setItemNotes] = useState<Record<number, string>>({})
   const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null)
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState<boolean>(false)
+  const [copiedWifi, setCopiedWifi] = useState<boolean>(false)
+
+  const wifiSsid = hfeCompanyProfile?.storefrontInfo?.wifiSsid || 'Kopitiam_Senopati_Guest'
+  const wifiPassword = hfeCompanyProfile?.storefrontInfo?.wifiPassword || 'kopiuenak2026'
+  const wifiAccessPolicy = hfeCompanyProfile?.storefrontInfo?.wifiAccessPolicy || 'after_payment'
+
+  const handleCopyWifi = (pass: string) => {
+    navigator.clipboard?.writeText(pass)
+    setCopiedWifi(true)
+    setTimeout(() => setCopiedWifi(false), 2500)
+  }
 
   const isLight = activeTheme.mode === 'light'
   const textColor = activeTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
@@ -104,6 +120,53 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 📶 WIFI ACCESS CELEBRATION BANNER */}
+      {wifiAccessPolicy !== 'disabled' && (wifiAccessPolicy === 'always_visible' || hasPaidOrder) && (
+        <div 
+          className="border rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-sm animate-fadeIn"
+          style={{
+            backgroundColor: isLight ? '#f0fdf4' : 'rgba(16, 185, 129, 0.08)',
+            borderColor: isLight ? '#86efac' : 'rgba(16, 185, 129, 0.3)'
+          }}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
+              <Wifi className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase font-bold tracking-wider font-mono text-emerald-600 dark:text-emerald-400">
+                📶 Akses WiFi Kafe Terbuka
+              </span>
+              <p className="text-xs font-semibold truncate" style={{ color: textColor }}>
+                SSID: <strong className="font-mono">{wifiSsid}</strong> • Password: <strong className="font-mono text-amber-500">{wifiPassword}</strong>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleCopyWifi(wifiPassword)}
+            className="text-xs font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all active:scale-95 shrink-0 self-end sm:self-auto shadow-sm"
+            style={{
+              backgroundColor: copiedWifi ? '#10b981' : (isLight ? '#ffffff' : '#0f172a'),
+              borderColor: isLight ? '#86efac' : 'rgba(16, 185, 129, 0.4)',
+              color: copiedWifi ? '#ffffff' : (isLight ? '#15803d' : '#34d399')
+            }}
+          >
+            {copiedWifi ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Tersalin!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Salin Password</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Dedicated Checkout Container */}
       <div 
         className="theme-customer-card border rounded-2xl p-4 flex flex-col gap-4 shadow-xl"

@@ -26,9 +26,11 @@ export const TeamRosterSection: React.FC = () => {
   const getRoleBadge = (role: StaffRole) => {
     switch (role) {
       case 'owner':
-        return { label: 'Owner / Manager', emoji: '👑', icon: Crown, color: 'bg-amber-600/20 text-amber-800 dark:text-amber-200 border-amber-600/30' }
+        return { label: 'Owner / Direktur', emoji: '👑', icon: Crown, color: 'bg-amber-600/20 text-amber-800 dark:text-amber-200 border-amber-600/30' }
+      case 'store_manager':
+        return { label: 'Store Manager', emoji: '👔', icon: Shield, color: 'bg-teal-500/20 text-teal-800 dark:text-teal-200 border-teal-500/30' }
       case 'cashier':
-        return { label: 'Cashier', emoji: '💵', icon: Landmark, color: 'bg-blue-500/20 text-blue-800 dark:text-blue-200 border-blue-500/30' }
+        return { label: 'Kasir & Front-Desk', emoji: '💵', icon: Landmark, color: 'bg-blue-500/20 text-blue-800 dark:text-blue-200 border-blue-500/30' }
       case 'barista':
         return { label: 'Barista', emoji: '☕', icon: Coffee, color: 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 border-emerald-500/30' }
       case 'chef':
@@ -37,6 +39,12 @@ export const TeamRosterSection: React.FC = () => {
         return { label: 'Server / Waiter', emoji: '🍽️', icon: Footprints, color: 'bg-purple-500/20 text-purple-800 dark:text-purple-200 border-purple-500/30' }
       case 'checker_qc':
         return { label: 'Checker QC', emoji: '📋', icon: ClipboardCheck, color: 'bg-indigo-500/20 text-indigo-800 dark:text-indigo-200 border-indigo-500/30' }
+      case 'sommelier':
+        return { label: 'Sommelier', emoji: '🍷', icon: UtensilsCrossed, color: 'bg-rose-500/20 text-rose-800 dark:text-rose-200 border-rose-500/30' }
+      case 'courier':
+        return { label: 'Kurir Toko', emoji: '🛵', icon: Footprints, color: 'bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-500/30' }
+      case 'warehouse_keeper':
+        return { label: 'Petugas Gudang', emoji: '📦', icon: Landmark, color: 'bg-stone-500/20 text-stone-800 dark:text-stone-200 border-stone-500/30' }
       default:
         return { label: role, emoji: '👤', icon: Users, color: 'bg-gray-500/20 text-gray-800 border-gray-500/30' }
     }
@@ -54,7 +62,7 @@ export const TeamRosterSection: React.FC = () => {
             </h3>
           </div>
           <p className="text-xs text-amber-800/80 dark:text-amber-300/80">
-            Kelola peran tim kasir, barcode PIN aktivasi tablet, & pembatasan modul surface.
+            Kelola 10 preset role operasional tim kasir, barcode PIN aktivasi tablet, & pembatasan modul surface.
           </p>
         </div>
 
@@ -62,7 +70,7 @@ export const TeamRosterSection: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsPinModalOpen(true)}
-            className="text-xs font-bold px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-950 dark:text-amber-100 border border-amber-900/20 transition-all flex items-center gap-1.5"
+            className="text-xs font-bold px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-950 dark:text-amber-100 border border-amber-900/20 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             Aktivasi PIN Tablet
@@ -71,7 +79,7 @@ export const TeamRosterSection: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsInviteModalOpen(true)}
-            className="text-xs font-bold px-4 py-2 rounded-xl bg-amber-600 text-white hover:bg-amber-700 shadow-md transition-all flex items-center gap-1.5"
+            className="text-xs font-bold px-4 py-2 rounded-xl bg-amber-600 text-white hover:bg-amber-700 shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             Undang Staf Baru
@@ -96,12 +104,16 @@ export const TeamRosterSection: React.FC = () => {
               onChange={(e) => setCurrentStaffRole(e.target.value as StaffRole)}
               className="text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-900/20 bg-amber-500/10 text-amber-950 dark:text-amber-100 focus:outline-none"
             >
-              <option value="owner">👑 Owner / Manager</option>
-              <option value="cashier">💵 Cashier</option>
+              <option value="owner">👑 Owner / Direktur</option>
+              <option value="store_manager">👔 Store Manager</option>
+              <option value="cashier">💵 Kasir & Front-Desk</option>
               <option value="barista">☕ Barista</option>
               <option value="chef">👨‍🍳 Kitchen Chef</option>
               <option value="waiter">🍽️ Server / Waiter</option>
               <option value="checker_qc">📋 Checker QC</option>
+              <option value="sommelier">🍷 Sommelier</option>
+              <option value="courier">🛵 Kurir Toko</option>
+              <option value="warehouse_keeper">📦 Petugas Gudang</option>
             </select>
           </div>
         </div>

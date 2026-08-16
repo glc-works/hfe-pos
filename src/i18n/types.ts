@@ -59,6 +59,10 @@ export interface TranslationDictionary {
     noProductsFound: string
     noProductsSub: string
     addToCart: string
+    tablesCount: string
+    seatsCount: string
+    occupiedCount: string
+    minSpendLabel: string
   }
   cart: {
     cashierCart: string

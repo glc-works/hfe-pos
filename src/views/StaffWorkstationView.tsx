@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Coffee, BadgeCheck, Footprints, Clock, CheckCircle2, AlertCircle, ArrowRight, RefreshCw } from 'lucide-react'
 import { OrderTicket, ViewportModeType } from '../types/pos'
+import { useViewport } from '../context/ViewportContext'
 
 export interface StaffWorkstationViewProps {
   orders?: OrderTicket[]
@@ -15,7 +16,8 @@ export const StaffWorkstationView: React.FC<StaffWorkstationViewProps> = ({
   activeSubRole: initialRole = 'barista',
   viewportMode = 'responsive'
 }) => {
-  const isMobile = viewportMode === 'mobile'
+  const { isMobile: isContextMobile } = useViewport()
+  const isMobile = viewportMode === 'mobile' || isContextMobile
   const [activeRole, setActiveRole] = useState<'barista' | 'checker' | 'server'>(initialRole)
   const [filterQuery, setFilterQuery] = useState<string>('')
 

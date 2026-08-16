@@ -12,7 +12,7 @@ status: Proposed
 # Level 2 Implementation Plan: Customer Contacts Management View, Contact Detail Modal, Kasbon Limit & WA Alerting Engine
 
 ## 1. Outcome
-Delivers the Customer Contact Master & CRM module (`src/views/CustomerContactsView.tsx`, `src/components/contacts/`, `src/hooks/useCustomerContacts.ts`) supporting customer directory search, quick customer registration, contact detail management with Kasbon debt limit setting, allergen profiling, and WhatsApp direct alerting integrated with HCB Core REST APIs per [`POS-API-MAPPING.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/standards/POS-API-MAPPING.md).
+Delivers the Customer Contact Master & CRM module (`src/views/CustomerContactsView.tsx`, `src/components/contacts/`, `src/hooks/useCustomerContacts.ts`) supporting customer directory search, quick customer registration, contact detail management with Kasbon debt limit setting, allergen profiling, and zero-cost 1-tap WhatsApp Click-to-Chat alerting integrated with HCB Core REST APIs per [`POS-API-MAPPING.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/standards/POS-API-MAPPING.md).
 
 ## 2. Scope
 
@@ -29,27 +29,36 @@ Delivers the Customer Contact Master & CRM module (`src/views/CustomerContactsVi
   - Kasbon credit limit setting (`Kasbon Limit: Rp 1.000.000`) & current debt balance.
   - Dietary Allergen Flags (`Lactose`, `Nuts`, `Gluten`, `Seafood`).
   - Concierge Notes (*"Prefers window seat, Anniversary July 24"*).
-  - `"📞 WhatsApp Direct Alert"` button to send digital receipt or promo links directly to customer's WA.
+  - `"📱 Kirim Struk via WhatsApp"` button generating 1-tap direct `wa.me` Click-to-Chat URL (Zero-Cost WhatsApp integration).
 
-### Phase C: Customer Session State Hook (`src/hooks/useCustomerContacts.ts`)
+### Phase C: Merchant Settings for Kasbon Policy (`src/views/CafeSettingsView.tsx` & `useMerchantConfig.ts`)
+- Configurable Kasbon Over-Limit Policy in Merchant Settings:
+  - `'strict_block'` — Cashier cannot proceed if transaction exceeds customer credit limit.
+  - `'manager_override_pin'` — Cashier receives warning, allows Manager to unlock with 6-digit PIN.
+  - `'allow_unlimited'` — Soft warning only, allows credit extension.
+
+### Phase D: Customer Session State Hook (`src/hooks/useCustomerContacts.ts`)
 - Implement `useCustomerContacts()` hook:
-  - Manages contact list, active contact selection, search query filtering, and Kasbon credit limit updates.
+  - Manages contact list, active contact selection, search query filtering, Kasbon credit limit updates, and `generateWhatsAppReceiptUrl(contact, orderTicket)`.
 
-### Phase D: Hfe REST API Transport Integration (`src/services/hfeCoreApi.ts`)
+### Phase E: Hfe REST API Transport Integration (`src/services/hfeCoreApi.ts`)
 - Add API client endpoints:
   - `fetchContacts(bookId, search)` ➔ `GET /v1/company-books/{book}/contacts`
   - `createContact(bookId, payload)` ➔ `POST /v1/company-books/{book}/contacts`
   - `updateContact(bookId, contactId, payload)` ➔ `PUT /v1/company-books/{book}/contacts/{id}`
 
-### Phase E: Vitest Unit Testing (`src/tests/customerContacts.test.ts`)
+### Phase F: Vitest Unit Testing (`src/tests/customerContacts.test.ts`)
 - Unit test coverage:
-  - Verifies contact search filtering.
-  - Verifies Kasbon limit updates and allergen flag binding.
+  - Verifies contact search filtering and allergen tags.
+  - Verifies Kasbon limit calculation and Merchant Overlimit policy behavior.
+  - Verifies WhatsApp Click-to-Chat URL generation format.
 
 ## 3. Explicit Exclusions
-- Does not modify HCB server-side tenant security models; operates strictly within Experience Layer UI components and REST API transport layer.
+- Does not use paid third-party WhatsApp BSP / Cloud API; relies exclusively on standard client-side `wa.me` Click-to-Chat protocol.
+- Operates strictly within Experience Layer UI components and REST API transport layer.
 
 ## 4. Verification Plan
 - Unit tests pass clean with 100% assertion success (`npm run test`).
-- All new files stay under 300 lines (`python3 scripts/check-modularity.py`).
+- All new files stay under 500 lines (`python3 scripts/check-modularity.py`).
 - TypeScript typecheck passes clean (`npm run typecheck`).
+

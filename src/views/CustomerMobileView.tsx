@@ -233,6 +233,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
           hfeCompanyProfile={hfeCompanyProfile}
           selectedTable={selectedTable}
           scannedSeat={scannedSeat}
+          hasPaidOrder={hasActiveOpenBill || relevantTableOrders.length > 0}
           activeTheme={activeTheme}
           isCustomerSessionActive={isCustomerSessionActive}
           loginType={loginType}
@@ -353,6 +354,8 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
                 selectedTable={selectedTable}
                 scannedSeat={scannedSeat}
                 cart={cart}
+                hfeCompanyProfile={hfeCompanyProfile}
+                hasPaidOrder={hasActiveOpenBill || relevantTableOrders.length > 0}
                 activeTheme={activeTheme}
                 promoCodeInput={promoCodeInput}
                 setPromoCodeInput={setPromoCodeInput}
@@ -439,6 +442,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
           scannedSeat={scannedSeat}
           tableStatus={currentTableData}
           tableOrders={relevantTableOrders}
+          hfeCompanyProfile={hfeCompanyProfile}
           onAddMoreItems={() => {
             setShowActiveOpenBillDrawer(false)
             setQrStepView('catalog')

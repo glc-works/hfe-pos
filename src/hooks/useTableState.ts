@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { TableStatus, TableReservation, OrderTicket, PosPayMethod } from '../types/pos'
+import { TableStatus, TableReservation, OrderTicket, PosPayMethod, PropertyZoneConfig, PropertyZoneId } from '../types/pos'
+import { PROPERTY_ZONES, INITIAL_TABLES } from '../data/mockData'
 
 export interface UseTableStateOptions {
   orders: OrderTicket[]
@@ -10,20 +11,29 @@ export interface UseTableStateOptions {
 export function useTableState(options: UseTableStateOptions) {
   const { orders, setOrders, hfeCompanyProfile } = options
 
+  // Multi-Zone & Dynamic Property Zone State (Customizable by Owner)
+  const [propertyZones, setPropertyZones] = useState<PropertyZoneConfig[]>(PROPERTY_ZONES)
+  const [selectedZoneId, setSelectedZoneId] = useState<PropertyZoneId>('all')
+
+  const updateZoneName = (id: string, newName: string) => {
+    setPropertyZones(prev => prev.map(z => z.id === id ? { ...z, name: newName } : z))
+  }
+
+  const addCustomZone = (newZone: PropertyZoneConfig) => {
+    setPropertyZones(prev => {
+      if (prev.some(z => z.id === newZone.id)) {
+        return prev.map(z => z.id === newZone.id ? newZone : z)
+      }
+      return [...prev, newZone]
+    })
+  }
+
   // Tables Grid & Active Selection State
-  const [tablesGrid, setTablesGrid] = useState<TableStatus[]>([
-    { id: 'T1', name: 'MEJA-01', status: 'free', totalBill: 0, orderCount: 0 },
-    { id: 'T2', name: 'MEJA-02', status: 'free', totalBill: 0, orderCount: 0 },
-    { id: 'T3', name: 'MEJA-03', status: 'free', totalBill: 0, orderCount: 0 },
-    { id: 'T4', name: 'MEJA-04', status: 'occupied', customerName: 'Aldi', totalBill: 86000, orderCount: 2 },
-    { id: 'T5', name: 'MEJA-05', status: 'free', totalBill: 0, orderCount: 0 },
-    { id: 'T8', name: 'MEJA-08', status: 'free', totalBill: 0, orderCount: 0 },
-    { id: 'T12', name: 'MEJA-12', status: 'open-tab', customerName: 'Budi Santoso', totalBill: 140000, orderCount: 4 }
-  ])
+  const [tablesGrid, setTablesGrid] = useState<TableStatus[]>(INITIAL_TABLES)
 
   const [selectedTable, setSelectedTable] = useState<string>(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    return urlParams.get('table') || 'MEJA-04'
+    return urlParams.get('table') || 'OUT-04'
   })
 
   const [scannedSeat, setScannedSeat] = useState<string>(() => {
@@ -31,7 +41,9 @@ export function useTableState(options: UseTableStateOptions) {
     return urlParams.get('seat') || 'Seat 1'
   })
 
-  const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(tablesGrid[3])
+  const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(() => {
+    return INITIAL_TABLES.find(t => t.status === 'occupied') || INITIAL_TABLES[0] || null
+  })
   const [posPayMethod, setPosPayMethod] = useState<PosPayMethod>('cash')
   const [posCashGiven, setPosCashGiven] = useState<string>('100000')
 
@@ -363,6 +375,12 @@ export function useTableState(options: UseTableStateOptions) {
     setResPayDpNow,
     reservations,
     setReservations,
+    propertyZones,
+    setPropertyZones,
+    selectedZoneId,
+    setSelectedZoneId,
+    updateZoneName,
+    addCustomZone,
     handleConfirmTableReassign,
     handleConfirmTableSplit,
     handleConfirmTableJoin,
@@ -372,3 +390,4 @@ export function useTableState(options: UseTableStateOptions) {
     handlePOSCheckoutTable
   }
 }
+

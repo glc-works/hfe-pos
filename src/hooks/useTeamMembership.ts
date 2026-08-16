@@ -12,6 +12,7 @@ export interface AccessControlEvaluator {
 export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
   switch (role) {
     case 'owner':
+    case 'store_manager':
       return {
         canAccessSettings: true,
         canAccessPos: true,
@@ -27,6 +28,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
       }
     case 'barista':
     case 'chef':
+    case 'checker_qc':
       return {
         canAccessSettings: false,
         canAccessPos: false,
@@ -34,17 +36,25 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessShiftReconcile: false,
       }
     case 'waiter':
+    case 'courier':
       return {
         canAccessSettings: false,
         canAccessPos: true,
         canAccessKds: false,
         canAccessShiftReconcile: false,
       }
-    case 'checker_qc':
+    case 'sommelier':
       return {
         canAccessSettings: false,
-        canAccessPos: false,
+        canAccessPos: true,
         canAccessKds: true,
+        canAccessShiftReconcile: false,
+      }
+    case 'warehouse_keeper':
+      return {
+        canAccessSettings: true,
+        canAccessPos: false,
+        canAccessKds: false,
         canAccessShiftReconcile: false,
       }
     default:

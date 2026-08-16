@@ -100,6 +100,64 @@ It binds all contributors, automated coding agents, and subagents operating on `
 - **Dual-Port Validation (Port 5173 vs Port 4173)**: All UI workflows must be validated on both **Port 5173 (DevMode simulated canvas)** and **Port 4173 (Vite standalone production preview)** to ensure zero discrepancy between simulator frames and native responsive viewports.
 - **Automated Runtime Verification**: Directly inspect DOM computed dimensions, scroll container hierarchy, and visual element bounds.
 
+### Rule 14: Component Taxonomy & Domain Coherence Invariant
+- **Atomic Scale**: Components are organized across 4 atomic layers: Atoms/Primitives (`src/ui/`), Molecules (Inputs, Quantity Modals, Badges), Organisms (`src/components/<domain>/`), and Screen Views (`src/views/`).
+- **Feature-Sliced Domain Bounded Folders**: Components **MUST** be placed in their respective business domain folders (`auth/`, `pos/`, `tables/`, `customer/`, `customer-portal/`, `kds/`, `settings/`, `notifications/`). Arbitrary technical folder grouping is prohibited.
+- **Container vs Presentational Separation**: Smart View components own Context subscriptions (`useMerchantConfig`, `useViewport`) and state routing; leaf components receive pure props and emit event callbacks.
+- **Gestalt Common Region**: Business processes must be bounded in unified card regions (`bg-slate-900 border border-slate-800 rounded-2xl`).
+
+### Rule 15: Global Ecosystem Governance with Scoped Tenant Storefront Overrides
+- **Centralized Ledger & Security**: Financial GL mappings, TigerBeetle posting rules, and cashier authorization are strictly governed from Hfe Core.
+- **Scoped Tenant Customization**: Merchants have sovereign control over public storefront touchpoints (Landing Page & QR Order View) to customize brand story, hero banners, social links, menu layout modes, WiFi access policies, and receipt footers via `MerchantStorefrontCustomizerModal`.
+- **Fail-Safe Reset Invariant**: All merchant overrides must support a 1-tap fail-safe reset back to default Hfe Ecosystem global settings.
+
+### Rule 16: Mathematical Proportion, Golden Ratio & 8-Point Spatial Grid Invariant
+- **Golden Ratio Desktop Split ($61.8\% : 38.2\%$):** Dual-pane desktop and landscape layouts must strictly follow the Golden Section ($\approx 61.8\%$ / `lg:col-span-8` content explorer vs $\approx 38.2\%$ / `lg:col-span-4` cart checkout).
+- **8-Point & 4-Point Spatial Grid**: Spacing, margins, paddings, and radii must be exact multiples of 4px/8px ($4, 8, 12, 16, 24, 32, 48\text{px}$).
+- **Modular Typographic Scale**: Font sizes follow a geometric scale ($r = 1.125 \dots 1.200$) with strict `font-mono` enforcement on all monetary amounts, quantities, table codes, and PINs.
+
+### Rule 17: Browser-to-Native App Parity Invariant (Zero-Web-Artifacts Standard)
+- **Zero Browser Glitches**: The web application must be indistinguishable from a native desktop/iPad app:
+  - `overscroll-behavior-y: none` to eliminate rubber-banding pull-to-refresh.
+  - `-webkit-tap-highlight-color: transparent` to eliminate tap gray boxes.
+  - `touch-action: manipulation` to remove 300ms double-tap latency.
+  - `select-none` on all UI chrome, action bars, and speed keys.
+- **Haptic Tactility**: Interactive elements must trigger instant active feedback (`active:scale-[0.97]` `<16ms`).
+- **Spring Sheet Physics**: Drawers and modals use Apple HIG spring transitions (`cubic-bezier(0.16, 1, 0.3, 1)`).
+
+### Rule 18: Hfe Core Endpoints & Universal Accounting Truth Invariant
+- **Single Source of Financial Truth**: All cash drawer movements, retail orders, tax accruals, and hotel guest room charges MUST post to the immutable General Ledger in Hfe Core (`glc-works/headless-company-books`) via `financial_kernel::posting::PostingService`.
+- **Double-Entry Balance Standard ($\sum \text{Debit} = \sum \text{Credit}$)**:
+  - Debit: `GL 1101 (Cash on Hand)`, `GL 1104 (Bank QRIS / EDC Clearing)`, `GL 1105 (Room Folio AR)`
+  - Credit: `GL 4101 (F&B / Retail Sales Revenue)`
+  - Credit: `GL 2102 (PB1 Restaurant Tax Payable 10%)`
+  - Debit/Credit: `GL 5101 (Cash / Inventory Reconciliation Variance)`
+- **Mandatory Idempotency Header**: Every transaction creation request MUST carry an `X-Idempotency-Key` (UUID v4) header.
+- **Fail-Closed SDK Port**: `HfePosFinancialPort` enforces fail-closed production cutover with mathematical debit/credit balance verification.
+
+### Rule 19: Mission-Critical Data Handling, Offline Persistence & Conflict Resolution
+- **IndexedDB Disk Persistence**: All financial events and mutations are persisted to IndexedDB disk storage before UI confirmation to survive sudden power cuts and OS terminations.
+- **Browser Unload Guard**: Active `navigator.storage.persist()` and `beforeunload` guards prevent accidental tab closure during pending offline sync.
+- **Financial Truth Precedes Physical Inventory**: Paid customer orders are never voided or reversed; inventory shortages are posted to GL Inventory Variance (`GL 5101`).
+- **Conflict Resolution Workflow**: Pricing drifts resolve via historical `priceSnapshot`; table collisions resolve into sub-tabs (`IND-01-B`); dead-letter intents route to Manager Resolution Drawer.
+
+### Rule 20: The 4 Core Experience Pillars & Contextual Spotlight Governance
+- **The 4 Official Experience Pillars**:
+  - **`POS` (Cashier & Barista Workstation)**: iPad / Tablet Landscape (1024px+) & Desktop PC. Full Spotlight (`⌘K`) + Workstation Shortcuts (`F1-F12`, `Esc`, `Enter`, Numpad).
+  - **`CARD` (Customer Member Passbook)**: Smartphones & Tablets. Apple Wallet pass, stamps, event tickets wallet, past e-receipts. Member ID lookup at POS. Shortcuts disabled on mobile pass.
+  - **`BOARD` (Public Storefront & Landing Page)**: Desktop Browsers & Smartphones. Hero brand story, announcement bar, event ticket showcase, and Public Spotlight Search (`⌘K` / `/`).
+  - **`ORDER` (Dine-in Customer QR Space)**: Customer Mobile Smartphone (360px – 430px). In-page touch filter bar, WiFi unlock banner. Shortcuts 100% disabled for single-thumb touch ergonomics.
+
+### Rule 21: State Management Separation & Universal Component Reuse Protocol
+- **Client/UI State vs Server State Separation**:
+  - Ephemeral UI states (Cart items, open drawers, language, theme, viewport) are managed via React Context (`useMerchantConfig`, `useViewport`, `useLanguage`).
+  - Asynchronous remote entities (Product catalog, active shift, guest folios, ledger settings) are managed via TanStack Query (`networkMode: 'offlineFirst'`, IndexedDB persister, optimistic mutations `<16ms`).
+  - High-volume catalogs (1,000+ SKUs) and journal logs enforce TanStack Virtual DOM virtualization for 60 FPS scrolling.
+- **Unified React Aria Components (RAC) Headless Foundation**:
+  - Modals, Drawers, Popovers, Tabs, Long-press gestures, and precision Numpad inputs are 100% powered by `react-aria-components` primitives styled with Tailwind and Hfe design tokens.
+- **Anti-Duplication Protocol**:
+  - All screens MUST consume shared presentational atoms from `@/ui` (`<PriceTag>`, `<Badge>`, `<Button>`, `<Drawer>`, `<Modal>`) and polymorphic organisms from `@/components/shared` (`<ProductCard variant="...">`, `<TableCard variant="...">`). Zero ad-hoc modal/drawer HTML markup in smart views.
+
 ---
 
 ## 3. Compliance Matrix
@@ -109,13 +167,21 @@ It binds all contributors, automated coding agents, and subagents operating on `
 | Modularity | `< 500 lines` per file | `python3 scripts/check-modularity.py` |
 | Idempotency | `UUID v4` on POSTs | `src/tests/idempotency.test.ts` |
 | Manifest | Valids against HCB v1 schema | `python3 scripts/validate-connector.py` |
+| Standards Auditor | 100% Compliant (Pillars I-IV, 4 Experience Pillars) | `python3 scripts/audit-hfe-ui-standards.py` |
 | Type Safety | `0` TypeScript errors | `npx tsc --noEmit` |
 | Viewport Shell | `h-[100dvh]` root & 1 scroll owner | `src/tests/viewportShell.test.ts` |
 | Data Authority | 3-Tier Upstream Resolution Gate | Peer Review & Precedence Audit |
 | Multi-Device Stress | 360px - 1280px zero clipping | Step 2 Multi-Point Self-Audit |
 | Apple HIG / NN/g Microcopy | Zero-parentheses CTAs & 100% i18n | Lint & UI Heuristic Audit |
 | Browser Device Switch Inspection | Dual-port 5173 & 4173 validation across 360px–1440px | Pre-Delivery Browser Inspection Gate |
-| Local CI | `0` exit code | `./scripts/ci-local.sh` |
+| Component Taxonomy & DDD | 4-tier atomic scale & domain folders | Architectural Modularity Audit |
+| Global Governance & Storefront Overrides | Scoped merchant customization & 1-tap reset | `src/tests/merchantStorefrontCustomization.test.ts` |
+| Golden Ratio & 8-Point Spatial Grid | 61.8%:38.2% split & 8pt spacing rhythm | `POS-DESIGN-SPEC-001.md` / Visual Audit |
+| Native App Web Parity | Zero-web-artifacts (`overscroll-none`, `tap-transparent`) | `src/index.css` & Visual Audit |
+| Hfe Endpoints & Accounting Truth | Balanced GL debit/credit & Idempotency Key | `src/tests/hfePosFinancialPortCutover.test.ts` |
+| Data Handling & Conflict Resolution | IndexedDB disk queue & GL Variance | `src/services/financial/OfflineIntentQueue.ts` |
+| 4 Experience Pillars & Headless RAC | POS, CARD, BOARD, ORDER & React Aria Components | `scripts/audit-hfe-ui-standards.py` |
+| Local CI | `0` exit code (7/7 steps) | `./scripts/ci-local.sh` |
 
 
 

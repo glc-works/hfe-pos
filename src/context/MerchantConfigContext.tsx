@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useRef, ReactNode } from 'react'
-import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact } from '../types/pos'
+import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig } from '../types/pos'
 import { BUILTIN_THEMES } from '../data/mockData'
 import { MARKETPLACE_THEMES } from '../data/marketplaceThemesData'
 import { DEFAULT_AVAILABLE_VOUCHERS } from '../components/pos/VoucherCard'
 import { INITIAL_PARTNER_CONTACTS } from '../data/mockContacts'
+import { DEFAULT_STOREFRONT_CUSTOMIZATION } from '../data/defaultStorefrontCustomization'
 
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
 
@@ -22,13 +23,18 @@ export interface MerchantConfigContextType {
   deleteSavedTheme: (name: string) => void
   allAvailableThemes: CafeThemeConfig[]
 
-  // 3. RUNTIME APP & VIEWPORT
+  // 3. STOREFRONT CUSTOMIZATION (LANDING PAGE & QR ORDER)
+  storefrontConfig: StorefrontCustomizationConfig
+  updateStorefrontConfig: (delta: Partial<StorefrontCustomizationConfig>) => void
+  resetStorefrontConfig: () => void
+
+  // 4. RUNTIME APP & VIEWPORT
   activeApp: PrimaryDomainApp | 'cfd'
   setActiveApp: (app: PrimaryDomainApp | 'cfd') => void
   viewportMode: ViewportModeType
   setViewportMode: (mode: ViewportModeType) => void
 
-  // 4. VOUCHERS & PROMO MANAGEMENT (SSOT)
+  // 5. VOUCHERS & PROMO MANAGEMENT (SSOT)
   vouchers: Voucher[]
   partnerContacts: PartnerContact[]
   addVoucher: (voucher: Voucher) => void
@@ -37,7 +43,7 @@ export interface MerchantConfigContextType {
   toggleVoucherStatus: (code: string) => void
   addPartnerContact: (contact: PartnerContact) => void
 
-  // 5. MOCK RESEED / RESET TRIGGER
+  // 6. MOCK RESEED / RESET TRIGGER
   onResetMockState?: () => void
   setOnResetMockState: (fn: () => void) => void
 }
@@ -84,7 +90,17 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
     }
   })
 
-  // 4. Vouchers & Partner Contacts (SSOT)
+  // 4. Storefront Customization (Landing Page & QR Order)
+  const [storefrontConfig, setStorefrontConfigState] = useState<StorefrontCustomizationConfig>(() => {
+    try {
+      const stored = localStorage.getItem('hfe_storefront_customization')
+      return stored ? { ...DEFAULT_STOREFRONT_CUSTOMIZATION, ...JSON.parse(stored) } : DEFAULT_STOREFRONT_CUSTOMIZATION
+    } catch {
+      return DEFAULT_STOREFRONT_CUSTOMIZATION
+    }
+  })
+
+  // 5. Vouchers & Partner Contacts (SSOT)
   const [vouchers, setVouchers] = useState<Voucher[]>(() => {
     try {
       const stored = localStorage.getItem('hfe_merchant_vouchers')
@@ -103,11 +119,11 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
     }
   })
 
-  // 5. Runtime App & Viewport
+  // 6. Runtime App & Viewport
   const [activeApp, setActiveApp] = useState<PrimaryDomainApp | 'cfd'>(() => {
     if (typeof window !== 'undefined') {
       const p = new URLSearchParams(window.location.search).get('app') as PrimaryDomainApp
-      if (p && ['landing', 'customer', 'cafe', 'cfd', 'design-system'].includes(p)) {
+      if (p && ['landing', 'customer', 'cafe', 'cfd', 'design-system', 'customer-portal'].includes(p)) {
         return p
       }
     }
@@ -118,6 +134,29 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   const resetHandlerRef = useRef<(() => void) | null>(null)
 
   // --- SINGLE DOOR MUTATORS ---
+  const updateStorefrontConfig = (delta: Partial<StorefrontCustomizationConfig>) => {
+    setStorefrontConfigState(prev => {
+      const updated = {
+        ...prev,
+        ...delta,
+        socialLinks: {
+          ...prev.socialLinks,
+          ...(delta.socialLinks || {})
+        }
+      }
+      try {
+        localStorage.setItem('hfe_storefront_customization', JSON.stringify(updated))
+      } catch {}
+      return updated
+    })
+  }
+
+  const resetStorefrontConfig = () => {
+    setStorefrontConfigState(DEFAULT_STOREFRONT_CUSTOMIZATION)
+    try {
+      localStorage.setItem('hfe_storefront_customization', JSON.stringify(DEFAULT_STOREFRONT_CUSTOMIZATION))
+    } catch {}
+  }
   const setPaymentPolicy = (policy: PaymentPolicy) => {
     setPaymentPolicyState(policy)
     try {
@@ -228,6 +267,9 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
         saveCustomTheme,
         deleteSavedTheme,
         allAvailableThemes,
+        storefrontConfig,
+        updateStorefrontConfig,
+        resetStorefrontConfig,
         activeApp,
         setActiveApp,
         viewportMode,

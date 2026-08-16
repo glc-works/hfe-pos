@@ -16,6 +16,7 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   whatsappOrder: '6281298765432',
   wifiSsid: 'Artisan_Guest_WiFi',
   wifiPassword: 'kopiuenak2026',
+  wifiAccessPolicy: 'after_payment',
   pb1TaxMode: 1,
   initialKasFloat: 500000,
 }

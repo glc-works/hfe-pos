@@ -19,6 +19,7 @@ export interface PosCartSectionProps {
   onOpenDirectQtyModal: (item: CartItem, index: number) => void
   onCheckout: () => void
   onOpenSplitPayment?: () => void
+  onSwitchToCatalog?: () => void
 }
 
 export const PosCartSection: React.FC<PosCartSectionProps> = ({
@@ -34,7 +35,8 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   onUpdateQty,
   onOpenDirectQtyModal,
   onCheckout,
-  onOpenSplitPayment
+  onOpenSplitPayment,
+  onSwitchToCatalog
 }) => {
   const { t, formatPrice } = useTranslation()
   const cashGivenNum = parseFloat(posCashGiven) || 0
@@ -75,38 +77,67 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col justify-between shadow-2xl h-full">
-      <div className="flex flex-col gap-3">
-        {/* HEADER KERANJANG */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <ShoppingBag className="w-4 h-4 text-indigo-400" /> {t.cart.cashierCart}
-          </h3>
+    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
+      {/* HEADER KERANJANG (PINNED TOP) */}
+      <div className="shrink-0 flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <ShoppingBag className="w-4 h-4 text-indigo-400" /> {t.cart.cashierCart}
+        </h3>
+        <div className="flex items-center gap-2">
+          {onSwitchToCatalog && (
+            <button
+              type="button"
+              onClick={onSwitchToCatalog}
+              className="text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
+              title="Tambah Menu ke Keranjang"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Tambah Menu</span>
+            </button>
+          )}
           {selectedPOSTable && (
             <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-500/30">
               {selectedPOSTable.name}
             </span>
           )}
         </div>
+      </div>
 
-        {/* DAFTAR ITEM KERANJANG */}
-        <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
-          {cartItems.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 text-xs flex flex-col items-center gap-2">
-              <Coffee className="w-8 h-8 opacity-40" /> {t.cart.emptyCartTitle}
+      {/* DAFTAR ITEM KERANJANG (INTERNAL SCROLL OWNER) */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 my-1.5 flex flex-col gap-2">
+        {cartItems.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center py-6 text-center text-slate-500 text-xs gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-amber-400/80">
+              <Coffee className="w-5 h-5" />
             </div>
-          ) : (
-            cartItems.map((item, idx) => (
-              <div key={idx} className="bg-slate-950 border border-slate-800/80 rounded-xl p-2.5 flex items-center justify-between gap-2">
+            <div className="flex flex-col gap-0.5">
+              <span className="font-bold text-slate-300">{t.cart.emptyCartTitle}</span>
+              <span className="text-[10px] text-slate-500">Pilih menu dari katalog atau shortcut favorit</span>
+            </div>
+            {onSwitchToCatalog && (
+              <button
+                type="button"
+                onClick={onSwitchToCatalog}
+                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Buka Katalog Menu</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            {cartItems.map((item, idx) => (
+              <div key={idx} className="bg-slate-950 border border-slate-800/80 rounded-xl p-2 flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <h5 className="text-xs font-bold text-slate-200 truncate">{item.name}</h5>
-                  <p className="text-[11px] text-slate-400 font-mono whitespace-nowrap shrink-0">{formatPrice(item.price)}</p>
+                  <p className="text-[10px] text-slate-400 font-mono whitespace-nowrap shrink-0">{formatPrice(item.price)}</p>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => onOpenDirectQtyModal(item, idx)}
-                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-xs rounded-lg border border-slate-700 flex items-center gap-1 transition-all whitespace-nowrap shrink-0"
+                    className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono font-bold text-xs rounded-lg border border-slate-700 flex items-center gap-1 transition-all whitespace-nowrap shrink-0"
                   >
                     <Calculator className="w-3 h-3 text-slate-400 shrink-0" /> {item.quantity}x
                   </button>
@@ -126,13 +157,24 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                   </button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+
+            {onSwitchToCatalog && (
+              <button
+                type="button"
+                onClick={onSwitchToCatalog}
+                className="w-full py-1.5 border border-dashed border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/5 rounded-xl text-slate-400 hover:text-amber-400 font-bold text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-98 mt-1"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Tambah Menu Lainnya</span>
+              </button>
+            )}
+          </>
+        )}
       </div>
 
-      {/* RINGKASAN SUB-TOTAL & METODE BAYAR */}
-      <div className="border-t border-slate-800 pt-3 mt-4 flex flex-col gap-3">
+      {/* RINGKASAN SUB-TOTAL & METODE BAYAR (PINNED BOTTOM) */}
+      <div className="shrink-0 border-t border-slate-800 pt-2 flex flex-col gap-2">
         <div className="flex justify-between text-xs text-slate-400">
           <span>{t.cart.subtotal}</span>
           <span className="font-mono text-slate-200 whitespace-nowrap shrink-0">{formatPrice(subtotal)}</span>
@@ -315,7 +357,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setPosCashGiven(grandTotal.toString())}
-                className={`py-1.5 px-1 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap truncate ${
+                className={`py-1.5 px-0.5 font-mono text-[9px] sm:text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${
                   cashGivenNum === grandTotal && grandTotal > 0
                     ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-md'
                     : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
@@ -323,35 +365,55 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               >
                 {t.cart.exactCash}
               </button>
-              {['20000', '50000', '100000', '200000'].map((preset) => {
-                const isSelected = posCashGiven === preset
-                const displayLabel = `${parseInt(preset) / 1000}k`
-                return (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setPosCashGiven(preset)}
-                    className={`py-1.5 px-1 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap truncate ${
-                      isSelected
-                        ? 'bg-indigo-500 text-white border-indigo-400 font-extrabold shadow-md'
-                        : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
-                    }`}
-                  >
-                    {displayLabel}
-                  </button>
-                )
-              })}
+              {(() => {
+                const dynamicPresets: string[] = []
+                if (!grandTotal || grandTotal <= 0) {
+                  dynamicPresets.push('20000', '50000', '100000', '200000')
+                } else {
+                  const set = new Set<number>()
+                  if (grandTotal % 10000 !== 0) set.add(Math.ceil(grandTotal / 10000) * 10000)
+                  if (grandTotal < 50000) set.add(50000)
+                  if (grandTotal < 100000) set.add(100000)
+                  if (grandTotal < 150000 && grandTotal > 50000) set.add(150000)
+                  if (grandTotal < 200000) set.add(200000)
+                  if (grandTotal < 500000 && grandTotal > 200000) set.add(500000)
+                  const sorted = Array.from(set).filter(n => n > grandTotal).sort((a, b) => a - b).slice(0, 4)
+                  dynamicPresets.push(...sorted.map(n => n.toString()))
+                }
+                while (dynamicPresets.length < 4) {
+                  dynamicPresets.push((grandTotal + 50000).toString())
+                }
+                return dynamicPresets.slice(0, 4).map((preset) => {
+                  const isSelected = posCashGiven === preset
+                  const val = parseInt(preset) || 0
+                  const displayLabel = val >= 1000 ? `${val / 1000}k` : `${val}`
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setPosCashGiven(preset)}
+                      className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${
+                        isSelected
+                          ? 'bg-indigo-500 text-white border-indigo-400 font-extrabold shadow-md'
+                          : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
+                      }`}
+                    >
+                      {displayLabel}
+                    </button>
+                  )
+                })
+              })()}
             </div>
 
             {/* INPUT NOMINAL UANG TUNAI MANUAL */}
             <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 shadow-inner">
-              <span className="text-xs font-mono font-bold text-slate-400">Rp</span>
+              <span className="text-xs font-mono font-bold text-slate-400 shrink-0">Rp</span>
               <input
                 type="number"
                 value={posCashGiven}
                 onChange={(e) => setPosCashGiven(e.target.value)}
                 placeholder="0"
-                className="bg-transparent w-full text-xs font-mono font-bold text-white placeholder-slate-600 focus:outline-none"
+                className="bg-transparent w-full text-xs font-mono font-bold text-white placeholder-slate-600 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 

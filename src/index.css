@@ -53,10 +53,53 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
+  button, input, select, textarea, a {
+    touch-action: manipulation;
+  }
+
+  /* TABULAR FIGURES & NUMERIC PRESENTATION STANDARD */
+  .font-mono, [data-tabular="true"], td, th {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "rlig" 1, "calt" 1;
+  }
+}
+
+/* SAFE-AREA INSETS FOR IPHONE NOTCH & DYNAMIC ISLAND */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* CUSTOM NATIVE APP INTERNAL SCROLLBAR (CHROME, SAFARI, FIREFOX, OPERA) */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
 }
 
 @keyframes fadeIn {

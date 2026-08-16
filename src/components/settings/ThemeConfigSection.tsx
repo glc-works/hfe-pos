@@ -15,12 +15,14 @@ import {
   Plus,
   Trash2,
   Layers,
-  Code
+  Code,
+  Store
 } from 'lucide-react'
 import { CafeThemeConfig } from '../../types/pos'
 import { MarketplaceThemeGallery } from './MarketplaceThemeGallery'
 import { SaveCustomThemeModal } from './SaveCustomThemeModal'
 import { AiThemePromptModal } from './AiThemePromptModal'
+import { MerchantStorefrontCustomizerModal } from './MerchantStorefrontCustomizerModal'
 
 export interface ThemeConfigSectionProps {
   builtinThemes: CafeThemeConfig[]
@@ -52,6 +54,7 @@ export const ThemeConfigSection: React.FC<ThemeConfigSectionProps> = ({
   const [filterMode, setFilterMode] = useState<'all' | 'light' | 'dark'>('all')
   const [showAiModal, setShowAiModal] = useState<boolean>(false)
   const [showSaveModal, setShowSaveModal] = useState<boolean>(false)
+  const [showStorefrontModal, setShowStorefrontModal] = useState<boolean>(false)
   const [newTemplateName, setNewTemplateName] = useState<string>('')
   const [showAdvancedJson, setShowAdvancedJson] = useState<boolean>(false)
   const [copiedJson, setCopiedJson] = useState<boolean>(false)
@@ -150,18 +153,25 @@ export const ThemeConfigSection: React.FC<ThemeConfigSectionProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setShowStorefrontModal(true)}
+            className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Store className="w-3.5 h-3.5 text-indigo-400" /> Studio Toko (Landing/QR)
+          </button>
           <button
             type="button"
             onClick={() => setShowSaveModal(true)}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-amber-400" /> Simpan Template
+            <Plus className="w-3.5 h-3.5 text-amber-400" /> Simpan
           </button>
           <button
             type="button"
             onClick={() => setShowAiModal(true)}
-            className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+            className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5" /> AI Theming
           </button>
@@ -445,6 +455,13 @@ export const ThemeConfigSection: React.FC<ThemeConfigSectionProps> = ({
 
       {/* AI THEME PROMPT MODAL */}
       <AiThemePromptModal show={showAiModal} onClose={() => setShowAiModal(false)} onApplyTheme={handleSelectTheme} />
+
+      {/* STOREFRONT STUDIO CUSTOMIZER MODAL */}
+      <MerchantStorefrontCustomizerModal
+        isOpen={showStorefrontModal}
+        onClose={() => setShowStorefrontModal(false)}
+        initialTab="theme"
+      />
     </div>
   )
 }

@@ -58,7 +58,11 @@ export const enTranslations: TranslationDictionary = {
     availableSkus: 'Available Items',
     noProductsFound: 'No products found',
     noProductsSub: 'Try adjusting your search query or category filter.',
-    addToCart: 'Add to Cart'
+    addToCart: 'Add to Cart',
+    tablesCount: 'Tables',
+    seatsCount: 'Seats',
+    occupiedCount: 'Occupied',
+    minSpendLabel: 'Min Spend'
   },
   cart: {
     cashierCart: 'Cashier Cart',

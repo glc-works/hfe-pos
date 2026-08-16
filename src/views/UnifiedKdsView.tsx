@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { OrderTicket, StationConfig, KdsViewModeType, MenuItem, ViewportModeType } from '../types/pos'
 import { FineDiningCourseMatrix, TableCourseOrder } from '../components/kds/FineDiningCourseMatrix'
+import { useViewport } from '../context/ViewportContext'
 
 const DEFAULT_FINE_DINING_ORDERS: TableCourseOrder[] = [
   {
@@ -89,7 +90,8 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
   initialFineDiningMode = false,
   viewportMode = 'responsive'
 }) => {
-  const isMobile = viewportMode === 'mobile'
+  const { isMobile: isContextMobile } = useViewport()
+  const isMobile = viewportMode === 'mobile' || isContextMobile
   const [isFineDiningActive, setIsFineDiningActive] = useState<boolean>(initialFineDiningMode)
   const [courseOrders, setCourseOrders] = useState<TableCourseOrder[]>(DEFAULT_FINE_DINING_ORDERS)
 

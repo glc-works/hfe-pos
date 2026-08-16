@@ -253,9 +253,107 @@ All business legality, product master data, financial postings, inventory deplet
 
 ---
 
+### 3.5. Customer Portal & Digital Member Card (`src/views/CustomerPortalView.tsx`)
+
+#### A. Fetch Member Card Passbook
+- **HTTP Method & URI:** `GET /v1/company-books/{book}/contacts/{contact_id}/card`
+- **Response Shape:**
+  ```json
+  {
+    "cardNumber": "CUST-8829-01",
+    "customerName": "Michael Chandra",
+    "tier": "Gold",
+    "pointsBalance": 2450,
+    "stampCount": 8,
+    "stampMax": 10,
+    "barcodeData": "CUST-8829-01-GOLD",
+    "qrData": "HFE-PASS:CUST-8829-01:GOLD"
+  }
+  ```
+
+#### B. Submit Private Feedback & Rating
+- **HTTP Method & URI:** `POST /v1/company-books/{book}/contacts/{contact_id}/feedback`
+- **Payload Shape:**
+  ```json
+  {
+    "contactId": "CUST-8829-01",
+    "rating": 5,
+    "category": "food_quality",
+    "comments": "Kopi V60 Flores mantap sekali, barista ramah!"
+  }
+  ```
+
+---
+
+### 3.6. Event Ticketing & Workshop Class Booking (`src/components/landing/EventTicketPurchaseModal.tsx`)
+
+#### Purchase Event / Masterclass Ticket
+- **HTTP Method & URI:** `POST /v1/company-books/{book}/events/{event_id}/tickets`
+- **Payload Shape:**
+  ```json
+  {
+    "ticketCode": "TKT-EVT-WORKSHOP-02-8829",
+    "participantName": "Michael Chandra",
+    "participantPhone": "081234567890",
+    "quantity": 2,
+    "totalAmountPaid": 500000,
+    "paymentMethod": "QRIS"
+  }
+  ```
+
+---
+
+### 3.7. Hotel Resto Multi-Zone & Room Charge Folio (`src/components/pos/RoomChargeModal.tsx`)
+
+#### Charge Bill to Guest Room Folio
+- **HTTP Method & URI:** `POST /v1/company-books/{book}/folios/charge`
+- **Payload Shape:**
+  ```json
+  {
+    "roomNumber": "402",
+    "guestName": "Pak Gunawan",
+    "orderId": "ORD-2026-0816-092",
+    "amount": 750000
+  }
+  ```
+
+---
+
+### 3.8. ESG Sustainability Reporting (`src/components/insights/EsgReportModal.tsx`)
+
+#### Fetch Aggregate ESG Sustainability Report
+- **HTTP Method & URI:** `GET /v1/company-books/{book}/esg/report`
+- **Response Shape:**
+  ```json
+  {
+    "environmental": {
+      "paperlessAdoptionRatePercent": 92.2,
+      "thermalPaperSheetsSaved": 4830,
+      "carbonCo2SavedKg": 96.6,
+      "byocSingleUseCupsSaved": 1240,
+      "surplusFoodRescuedPortions": 380
+    },
+    "social": {
+      "totalEmployeeTipsDistributedRp": 18450000,
+      "averageTipPerStaffRp": 1537500,
+      "allergenIncidentRatePercent": 0,
+      "guestSatisfactionScore": 4.83
+    },
+    "governance": {
+      "pb1TaxComplianceRp": 48200000,
+      "shiftBlindCountAccuracyPercent": 99.4,
+      "auditTrailIntegrityStatus": "COMPLIANT"
+    }
+  }
+  ```
+
+---
+
 ## 4. Cross-Reference in Architecture Documents
 
 This document binds all Level 2 implementation plans:
 - Cross-referenced in [`POS-ENG-STD-001.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/standards/POS-ENG-STD-001.md)
 - Cross-referenced in [`ARCHITECTURE.md`](file:///Users/aldi/claudefiles/hfe-pos/ARCHITECTURE.md)
-- Cross-referenced in [`l2-pos-05-app-monolith-decomposing-and-testing.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/plans/level-2/l2-pos-05-app-monolith-decomposing-and-testing.md)
+- Cross-referenced in [`HFE-POS-PENTA-EXPERIENCE.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/standards/HFE-POS-PENTA-EXPERIENCE.md)
+- Cross-referenced in [`l2-pos-47-customer-card-and-member-portal.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/plans/level-2/l2-pos-47-customer-card-and-member-portal.md)
+

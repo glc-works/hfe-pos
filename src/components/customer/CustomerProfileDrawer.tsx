@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { 
   X, Award, Coins, Ticket, History, LogOut, ChevronRight,
-  Camera, Sparkles, ArrowLeft, RefreshCw, CheckCircle2, MapPin
+  Camera, Sparkles, ArrowLeft, RefreshCw, CheckCircle2, MapPin, CreditCard
 } from 'lucide-react'
 import { CustomerLoginType } from '../../types/pos'
 import { VoucherCard, Voucher } from '../pos/VoucherCard'
@@ -73,7 +73,7 @@ export const CustomerProfileDrawer: React.FC<CustomerProfileDrawerProps> = ({
   loyaltyPoints,
   onLogout
 }) => {
-  const { vouchers, customerTheme } = useMerchantConfig()
+  const { vouchers, customerTheme, setActiveApp } = useMerchantConfig()
   const activeVouchers = vouchers.filter(v => v.isActive !== false)
   const [activeTab, setActiveTab] = useState<'profile' | 'vouchers' | 'history'>('profile')
   const [showAvatarPicker, setShowAvatarPicker] = useState<boolean>(false)
@@ -260,6 +260,29 @@ export const CustomerProfileDrawer: React.FC<CustomerProfileDrawerProps> = ({
 
             {/* PROFILE MENU ACTIONS (INTERAKTIF & BISA DIKLIK) */}
             <div className="flex flex-col gap-2.5">
+              {/* TOMBOL MEMBER PASS DIGITAL CARD */}
+              <button
+                type="button"
+                onClick={() => {
+                  onClose()
+                  setActiveApp('customer-portal')
+                }}
+                className="w-full border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 rounded-2xl p-3.5 flex items-center justify-between text-left transition-all group shadow"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-400 group-hover:text-amber-300">
+                      Kartu Digital & Member Portal
+                    </h4>
+                    <p className="text-[10px]" style={{ color: secondaryTextColor }}>Apple Wallet Passbook, Stamp Card, E-Tickets</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+
               {/* TOMBOL VOUCHER */}
               <button
                 type="button"

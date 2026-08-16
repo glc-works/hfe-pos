@@ -3,6 +3,8 @@ import { Sparkles, TrendingUp, Package, DollarSign, Crown, ShieldCheck, ArrowRig
 import { HfeInsightWidget } from '../components/insights/HfeInsightWidget'
 import { MenuItem, OrderTicket, TableStatus, ViewportModeType } from '../types/pos'
 
+import { OwnerReportCenterSection } from '../components/insights/OwnerReportCenterSection'
+
 export interface HfeInsightsViewProps {
   productCatalog: MenuItem[]
   orders: OrderTicket[]
@@ -55,7 +57,10 @@ export const HfeInsightsView: React.FC<HfeInsightsViewProps> = ({
         )}
       </div>
 
-      {/* 2. FULL ENGINE INSIGHTS DASHBOARD */}
+      {/* 2. 👑 OWNER REPORT & INTELLIGENCE CENTER */}
+      <OwnerReportCenterSection />
+
+      {/* 3. FULL ENGINE INSIGHTS DASHBOARD */}
       <HfeInsightWidget
         variant="full"
         productCatalog={productCatalog}

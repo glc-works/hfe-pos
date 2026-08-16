@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { 
   X, Coffee, Utensils, Clock, CheckCircle2, Plus, Receipt, 
-  Store, Globe, Calendar, Wifi, MapPin, ExternalLink, ChevronRight, ChevronDown, Sparkles, MessageCircle, Instagram, Share2, Check 
+  Store, Globe, Calendar, Wifi, Lock, Copy, MapPin, ExternalLink, ChevronRight, ChevronDown, Sparkles, MessageCircle, Instagram, Share2, Check 
 } from 'lucide-react'
 import { HfeCompanyProfile } from '../../types/pos'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
+import { MerchantSocialAndHoursSection } from './MerchantSocialAndHoursSection'
 
 export interface MerchantDetailDrawerProps {
   isOpen: boolean
@@ -12,6 +13,7 @@ export interface MerchantDetailDrawerProps {
   hfeCompanyProfile: HfeCompanyProfile
   selectedTable: string
   scannedSeat: string
+  hasPaidOrder?: boolean
   onAddMoreItems: () => void
   onOpenReservationModal?: () => void
   onSwitchToLandingPage?: () => void
@@ -20,24 +22,9 @@ export interface MerchantDetailDrawerProps {
 const TABLE_LIVE_SESSION_MOCK = {
   sessionId: 'SES-MEJA-04-88',
   openedAt: 'Hari ini, 14:15 WIB',
-  duration: '45 Menit',
-  status: 'active',
   rounds: [
-    {
-      roundNo: 1,
-      time: '14:20',
-      items: [
-        { name: 'Caffe Latte (Less Ice)', qty: 2, price: 38000, status: 'brewing', kitchenNote: 'Barista Station' },
-        { name: 'Truffle French Fries', qty: 1, price: 35000, status: 'cooking', kitchenNote: 'Kitchen Fryer' }
-      ]
-    },
-    {
-      roundNo: 2,
-      time: '14:40',
-      items: [
-        { name: 'Pain au Chocolat', qty: 1, price: 32000, status: 'served', kitchenNote: 'Pastry Display' }
-      ]
-    }
+    { roundNo: 1, time: '14:20', items: [{ name: 'Caffe Latte (Less Ice)', qty: 2, price: 38000, status: 'brewing' }, { name: 'Truffle French Fries', qty: 1, price: 35000, status: 'cooking' }] },
+    { roundNo: 2, time: '14:40', items: [{ name: 'Pain au Chocolat', qty: 1, price: 32000, status: 'served' }] }
   ],
   subtotal: 143000,
   serviceFee: 7150,
@@ -58,6 +45,7 @@ export const MerchantDetailDrawer: React.FC<MerchantDetailDrawerProps> = ({
   hfeCompanyProfile,
   selectedTable,
   scannedSeat,
+  hasPaidOrder = false,
   onAddMoreItems,
   onOpenReservationModal,
   onSwitchToLandingPage
@@ -66,6 +54,17 @@ export const MerchantDetailDrawer: React.FC<MerchantDetailDrawerProps> = ({
   const [activeTab, setActiveTab] = useState<'session' | 'profile'>('session')
   const [showHoursSchedule, setShowHoursSchedule] = useState<boolean>(false)
   const [copiedShareLink, setCopiedShareLink] = useState<boolean>(false)
+  const [copiedWifi, setCopiedWifi] = useState<boolean>(false)
+
+  const wifiSsid = hfeCompanyProfile.storefrontInfo?.wifiSsid || 'Kopitiam_Senopati_Guest'
+  const wifiPassword = hfeCompanyProfile.storefrontInfo?.wifiPassword || 'kopiuenak2026'
+  const wifiAccessPolicy = hfeCompanyProfile.storefrontInfo?.wifiAccessPolicy || 'after_payment'
+
+  const handleCopyWifi = (pass: string) => {
+    navigator.clipboard?.writeText(pass)
+    setCopiedWifi(true)
+    setTimeout(() => setCopiedWifi(false), 2500)
+  }
 
   const isLight = customerTheme.mode === 'light'
   const textColor = customerTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
@@ -255,10 +254,7 @@ export const MerchantDetailDrawer: React.FC<MerchantDetailDrawerProps> = ({
             </div>
 
             {/* BILL SUMMARY */}
-            <div 
-              className="border rounded-2xl p-3.5 flex flex-col gap-2 shadow"
-              style={{ backgroundColor: subCardBg, borderColor: subCardBorder }}
-            >
+            <div className="border rounded-2xl p-3.5 flex flex-col gap-2 shadow" style={{ backgroundColor: subCardBg, borderColor: subCardBorder }}>
               <div className="flex items-center justify-between text-xs" style={{ color: secondaryTextColor }}>
                 <span>Subtotal Meja:</span>
                 <span className="font-mono" style={{ color: textColor }}>Rp {TABLE_LIVE_SESSION_MOCK.subtotal.toLocaleString('id-ID')}</span>
@@ -276,10 +272,7 @@ export const MerchantDetailDrawer: React.FC<MerchantDetailDrawerProps> = ({
             {/* ADD ROUND BUTTON */}
             <button
               type="button"
-              onClick={() => {
-                onClose()
-                onAddMoreItems()
-              }}
+              onClick={() => { onClose(); onAddMoreItems() }}
               className="w-full h-12 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all touch-manipulation active:scale-[0.98]"
               style={{ backgroundColor: customerTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}
             >
@@ -301,122 +294,23 @@ export const MerchantDetailDrawer: React.FC<MerchantDetailDrawerProps> = ({
                 <span className="text-[10px] uppercase font-bold tracking-wider flex items-center gap-1 font-mono text-amber-500">
                   <Sparkles className="w-3 h-3 text-amber-500" /> Specialty Coffee & Roastery
                 </span>
-
-                {/* COMPACT EXPANDABLE OPERATING HOURS PILL (GOOGLE MAPS BENCHMARK) */}
-                <button
-                  type="button"
-                  onClick={() => setShowHoursSchedule(!showHoursSchedule)}
-                  className="text-[10px] text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 transition-all touch-manipulation"
-                  title="Sentuh untuk lihat jadwal buka 7 hari"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Buka • 07:00 - 23:30</span>
-                  <ChevronDown className={`w-3 h-3 transition-transform ${showHoursSchedule ? 'rotate-180' : ''}`} />
-                </button>
               </div>
 
-              {/* EXPANDABLE 7-DAY SCHEDULE ACCORDION */}
-              {showHoursSchedule && (
-                <div 
-                  className="border rounded-xl p-2.5 flex flex-col gap-1 text-[11px] font-mono animate-fadeIn"
-                  style={{ backgroundColor: modalBg, borderColor: subCardBorder }}
-                >
-                  <span className="text-[10px] uppercase tracking-wider font-sans font-bold mb-0.5" style={{ color: secondaryTextColor }}>
-                    Jadwal Jam Operasional Outlet:
-                  </span>
-                  {WEEKLY_HOURS_SCHEDULE.map((schedule, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`flex items-center justify-between px-2 py-1 rounded-lg ${
-                        schedule.isToday 
-                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 font-bold border border-amber-500/30' 
-                          : ''
-                      }`}
-                      style={!schedule.isToday ? { color: secondaryTextColor } : undefined}
-                    >
-                      <span>{schedule.day} {schedule.isToday && '👈 (Hari Ini)'}</span>
-                      <span>{schedule.hours}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-1.5 text-xs" style={{ color: secondaryTextColor }}>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span style={{ color: textColor }}>Jl. Senopati Raya No. 42, Kebayoran Baru, Jakarta Selatan</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Wifi className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                  <span>WiFi: <strong className="font-mono" style={{ color: textColor }}>Kopitiam_Guest</strong> (Pass: <strong className="text-amber-500 font-mono">kopijuara</strong>)</span>
-                </div>
-              </div>
-
-              {/* UNIFIED 1-ROW SOCIAL MEDIA & SHARE BAR (GRID 4 COLS) */}
-              <div className="pt-2.5 border-t grid grid-cols-4 gap-1.5" style={{ borderColor: subCardBorder }}>
-                {/* 1. INSTAGRAM */}
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="border text-[11px] font-bold py-2 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-1 transition-all touch-manipulation active:scale-95"
-                  style={{ backgroundColor: modalBg, borderColor: subCardBorder, color: textColor }}
-                  title="Kunjungi Instagram @kopitiam.senopati"
-                >
-                  <Instagram className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span className="text-[10px]">Instagram</span>
-                </a>
-
-                {/* 2. WHATSAPP */}
-                <a
-                  href="https://wa.me/6281234567890"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="border text-[11px] font-bold py-2 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-1 transition-all touch-manipulation active:scale-95"
-                  style={{ backgroundColor: modalBg, borderColor: subCardBorder, color: textColor }}
-                  title="Chat WhatsApp Cafe"
-                >
-                  <MessageCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span className="text-[10px]">WhatsApp</span>
-                </a>
-
-                {/* 3. GOOGLE MAPS LOKASI */}
-                <button
-                  type="button"
-                  onClick={() => alert('Membuka Google Maps lokasi Kopitiam Senopati...')}
-                  className="border text-[11px] font-bold py-2 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-1 transition-all touch-manipulation active:scale-95"
-                  style={{ backgroundColor: modalBg, borderColor: subCardBorder, color: textColor }}
-                  title="Pin Lokasi Google Maps"
-                >
-                  <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span className="text-[10px]">Lokasi</span>
-                </button>
-
-                {/* 4. SHARE LANDING PAGE (PALING PENTING) */}
-                <button
-                  type="button"
-                  onClick={handleShareLandingPage}
-                  className="border text-[11px] font-bold py-2 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-1 transition-all touch-manipulation active:scale-95 shadow"
-                  style={{
-                    backgroundColor: copiedShareLink ? '#10b981' : customerTheme.primaryAccentHex,
-                    color: isLight ? '#ffffff' : '#020617',
-                    borderColor: customerTheme.primaryAccentHex
-                  }}
-                  title="Bagikan Landing Page Merchant"
-                >
-                  {copiedShareLink ? (
-                    <>
-                      <Check className="w-4 h-4 shrink-0" />
-                      <span className="text-[10px]">Tersalin!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="w-4 h-4 shrink-0" />
-                      <span className="text-[10px]">Bagikan</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <MerchantSocialAndHoursSection
+                modalBg={modalBg}
+                subCardBorder={subCardBorder}
+                secondaryTextColor={secondaryTextColor}
+                textColor={textColor}
+                customerTheme={customerTheme}
+                isLight={isLight}
+                wifiAccessPolicy={wifiAccessPolicy}
+                wifiSsid={wifiSsid}
+                wifiPassword={wifiPassword}
+                hasPaidOrder={hasPaidOrder}
+                weeklySchedule={WEEKLY_HOURS_SCHEDULE}
+                onShareLandingPage={handleShareLandingPage}
+                copiedShareLink={copiedShareLink}
+              />
             </div>
 
             {/* ACTION BUTTON 1: PINDAH KE LANDING PAGE */}

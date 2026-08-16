@@ -58,7 +58,11 @@ export const idTranslations: TranslationDictionary = {
     availableSkus: 'Menu Tersedia',
     noProductsFound: 'Tidak ada produk ditemukan',
     noProductsSub: 'Coba ubah kata kunci pencarian atau ganti filter kategori.',
-    addToCart: 'Tambah ke Keranjang'
+    addToCart: 'Tambah ke Keranjang',
+    tablesCount: 'Meja',
+    seatsCount: 'Kursi',
+    occupiedCount: 'Terisi',
+    minSpendLabel: 'Min Belanja'
   },
   cart: {
     cashierCart: 'Keranjang Kasir',
@@ -84,7 +88,7 @@ export const idTranslations: TranslationDictionary = {
     exactCashPaid: 'Uang Pas (Lunas)',
     changeReturn: 'Kembalian Pelanggan:',
     splitBill: 'Split',
-    processPayment: 'Process Payment ➔',
+    processPayment: 'Bayar Sekarang ➔',
     openMobileCart: 'Buka Keranjang / Bayar',
     mobileCartTitle: 'Keranjang Kasir Mobile'
   },

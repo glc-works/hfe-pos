@@ -12,7 +12,15 @@ export function useHfeSync() {
     address: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
     hfeLedgerApiEndpoint: 'https://api.company-books.hfe.internal/v1',
     isLiveHfeSynced: true,
-    lastSyncedAt: '19:30'
+    lastSyncedAt: '19:30',
+    storefrontInfo: {
+      tagline: 'Artisan Specialty Coffee & Fresh Pastry',
+      storyDescription: 'Pelopor kopi artisan dengan biji nusantara pilihan sejak 2020.',
+      operatingHours: 'Senin - Minggu: 07:00 - 22:00 WIB',
+      wifiSsid: 'Kopitiam_Senopati_Guest',
+      wifiPassword: 'kopiuenak2026',
+      wifiAccessPolicy: 'after_payment'
+    }
   })
 
   const [hfeBranchMode, setHfeBranchMode] = useState<'dimensional' | 'multi_book' | 'sub_account'>('dimensional')

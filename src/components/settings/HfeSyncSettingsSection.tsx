@@ -1,5 +1,5 @@
 import React from 'react'
-import { Building, Radio, RefreshCw, Building2, Store, Globe, FileCheck, Database, Check, CheckCircle2 } from 'lucide-react'
+import { Building, Radio, RefreshCw, Building2, Store, Globe, FileCheck, Database, Check, CheckCircle2, Wifi, KeyRound } from 'lucide-react'
 import { HfeCompanyProfile } from '../../types/pos'
 
 export interface HfeSyncSettingsSectionProps {
@@ -25,6 +25,20 @@ export const HfeSyncSettingsSection: React.FC<HfeSyncSettingsSectionProps> = ({
   handleFetchHfeCompanyProfile,
   handlePushHfeCompanyProfile
 }) => {
+  const storefrontInfo = hfeCompanyProfile.storefrontInfo || {}
+  const wifiPolicy = storefrontInfo.wifiAccessPolicy || 'after_payment'
+  const wifiSsid = storefrontInfo.wifiSsid || ''
+  const wifiPassword = storefrontInfo.wifiPassword || ''
+
+  const updateStorefront = (partial: Partial<NonNullable<HfeCompanyProfile['storefrontInfo']>>) => {
+    setHfeCompanyProfile(prev => ({
+      ...prev,
+      storefrontInfo: {
+        ...prev.storefrontInfo,
+        ...partial
+      }
+    }))
+  }
   return (
     <>
       {/* CARD 1: HFE COMPANY / PROFIL PT LEGAL ENTITY REST API INTEGRATION */}
@@ -120,6 +134,101 @@ export const HfeSyncSettingsSection: React.FC<HfeSyncSettingsSectionProps> = ({
           >
             <Check className="w-3.5 h-3.5" /> Push & Sync ke HFE Core
           </button>
+        </div>
+      </div>
+
+      {/* CARD 2: PENGATURAN AKSES WIFI PELANGGAN & STOREFRONT OUTLET */}
+      <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                <Wifi className="w-4 h-4 text-amber-400" /> Kebijakan Akses WiFi Pelanggan & Storefront
+              </h3>
+              <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 uppercase">
+                {wifiPolicy}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Atur visibilitas kredensial WiFi tamu pada Customer Mobile QR, Struk Digital, & Modal Bill Meja.
+            </p>
+          </div>
+        </div>
+
+        {/* WIFI ACCESS POLICY PILL SELECTOR */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-semibold text-slate-300">
+            Pilih Kebijakan Akses WiFi:
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <button
+              type="button"
+              onClick={() => updateStorefront({ wifiAccessPolicy: 'always_visible' })}
+              className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                wifiPolicy === 'always_visible'
+                  ? 'bg-amber-500/20 border-amber-500 text-amber-300 ring-1 ring-amber-500'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              }`}
+            >
+              <span>🌐</span>
+              <span>Selalu Terbuka</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => updateStorefront({ wifiAccessPolicy: 'after_payment' })}
+              className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                wifiPolicy === 'after_payment'
+                  ? 'bg-amber-500/20 border-amber-500 text-amber-300 ring-1 ring-amber-500'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              }`}
+            >
+              <span>🔒</span>
+              <span>Buka Setelah Bayar</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => updateStorefront({ wifiAccessPolicy: 'disabled' })}
+              className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                wifiPolicy === 'disabled'
+                  ? 'bg-amber-500/20 border-amber-500 text-amber-300 ring-1 ring-amber-500'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+              }`}
+            >
+              <span>🚫</span>
+              <span>Nonaktifkan WiFi</span>
+            </button>
+          </div>
+        </div>
+
+        {/* SSID & PASSWORD INPUTS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+              <Wifi className="w-3.5 h-3.5 text-amber-400" /> SSID / Nama WiFi Pelanggan:
+            </label>
+            <input
+              type="text"
+              disabled={wifiPolicy === 'disabled'}
+              value={wifiSsid}
+              onChange={(e) => updateStorefront({ wifiSsid: e.target.value })}
+              className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3.5 py-2.5 font-mono focus:outline-none focus:border-amber-500 disabled:opacity-40"
+              placeholder="cth: Kopitiam_Senopati_Guest"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" /> Password WiFi Pelanggan:
+            </label>
+            <input
+              type="text"
+              disabled={wifiPolicy === 'disabled'}
+              value={wifiPassword}
+              onChange={(e) => updateStorefront({ wifiPassword: e.target.value })}
+              className="bg-slate-950 border border-slate-800 text-amber-400 text-xs rounded-xl px-3.5 py-2.5 font-mono focus:outline-none focus:border-amber-500 disabled:opacity-40"
+              placeholder="cth: kopiuenak2026"
+            />
+          </div>
         </div>
       </div>
 

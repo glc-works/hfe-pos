@@ -1,6 +1,6 @@
 // --- HFE POS CORE DOMAIN TYPES ---
 
-export type PrimaryDomainApp = 'landing' | 'customer' | 'cafe' | 'design-system'
+export type PrimaryDomainApp = 'landing' | 'customer' | 'cafe' | 'design-system' | 'customer-portal'
 export type StaffSurfaceMode = 'barista-pos' | 'kds-screen' | 'checker-qc' | 'server-waiter' | 'cafe-config' | 'retail-pos' | 'scan-go' | 'fine-dining-kds' | 'sommelier' | 'maitre-d'
  | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights'
 export type KdsViewModeType = 'kanban' | 'list' | 'workorder'
@@ -39,6 +39,8 @@ export interface TableReservation {
   createdAt: string
 }
 
+export type WifiAccessPolicy = 'always_visible' | 'after_payment' | 'disabled'
+
 export interface HfeCompanyProfile {
   companyBookId: string
   ptLegalName: string
@@ -67,6 +69,7 @@ export interface HfeCompanyProfile {
     operatingHours?: string  // e.g. "Senin - Minggu: 07:00 - 22:00 WIB"
     wifiSsid?: string        // e.g. "Kopitiam_Guest_Free"
     wifiPassword?: string    // e.g. "kopiuenak2026"
+    wifiAccessPolicy?: WifiAccessPolicy // e.g. "always_visible" | "after_payment" | "disabled"
     heroBannerUrl?: string   // High res cafe interior photo
   }
 }
@@ -151,6 +154,44 @@ export interface Order extends OrderTicket {
   discountAmount?: number
 }
 
+export type PropertyZoneId = 'all' | 'outdoor-garden' | 'indoor-ac' | 'vip-private' | 'poolside-cabana' | 'rooftop-skybar' | string
+
+export interface PropertyZoneConfig {
+  id: string
+  name: string
+  icon?: string
+  tablePrefix?: string
+  totalTables?: number
+  hasDedicatedServiceStaff?: boolean
+  defaultMinSpend?: number
+  minSpend?: number
+}
+
+export interface HotelGuestFolio {
+  roomNumber: string
+  guestName: string
+  checkInDate: string
+  checkOutDate: string
+  status: 'checked_in' | 'checked_out'
+  creditLimit: number
+  currentBalance: number
+  glAccountReceivable: string
+  folioId?: string
+}
+
+export interface RoomChargeSettlementPayload {
+  roomNumber: string
+  guestName: string
+  tableNumber?: string
+  subtotal: number
+  taxPB1: number
+  serviceFee?: number
+  grandTotal: number
+  staffPin: string
+  signatureDataUrl?: string
+  notes?: string
+}
+
 export interface TableStatus {
   id: string
   name: string
@@ -159,10 +200,47 @@ export interface TableStatus {
   totalBill: number
   orderCount: number
   orderIds?: string[]
+  zoneId?: PropertyZoneId
+  seatedDurationMinutes?: number
+  minSpend?: number
+  pax?: number
+  seatedGuests?: number
+  maxCapacity?: number
 }
 
 export type TableInfo = TableStatus
 
+
+export type MemberTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
+
+export interface CustomerPreferences {
+  favoriteDrink?: string
+  preferredMilk?: 'Whole Milk' | 'Fresh Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)' | string
+  preferredSugar?: '0%' | '50%' | '100%' | string
+  dietaryNotes?: string
+  vehiclePlateNumber?: string
+  deliveryAddress?: string
+  allergens?: ('lactose' | 'nuts' | 'gluten' | 'seafood' | 'eggs')[]
+  paperlessReceipts?: boolean
+  ecoPointsEarned?: number
+}
+
+export interface DigitalMemberCardData {
+  cardNumber: string
+  customerName: string
+  phone: string
+  tier: MemberTier
+  pointsBalance: number
+  stampCount: number
+  stampMax: number
+  joinedDate: string
+  expiryDate?: string
+  barcodeData: string
+  qrData: string
+  brandName: string
+  logoUrl?: string
+  allergens?: ('lactose' | 'nuts' | 'gluten' | 'seafood' | 'eggs')[]
+}
 
 export interface CustomerProfile {
   id: string
@@ -173,9 +251,13 @@ export interface CustomerProfile {
   preferredMilk: string
   preferredSugar: string
   allergenAlert?: string
-  allergenFlags?: ('lactose' | 'nuts' | 'gluten' | 'seafood')[]
+  allergenFlags?: ('lactose' | 'nuts' | 'gluten' | 'seafood' | 'eggs')[]
   totalVisits: number
   loyaltyTier: string
+  pointsBalance?: number
+  stampCount?: number
+  stampMax?: number
+  preferences?: CustomerPreferences
 
   // 👤 Customer Personal Social Handles & Birthday Trigger
   instagramHandle?: string   // e.g. "@aldi_pratama"
@@ -210,6 +292,39 @@ export interface CafeThemeConfig {
   mode?: 'light' | 'dark'
   targetScope?: 'customer' | 'merchant' | 'both'
   customCssOverrides?: string
+}
+
+export interface StorefrontSocialLinks {
+  instagram?: string
+  whatsapp?: string
+  tiktok?: string
+  googleMapsUrl?: string
+  website?: string
+}
+
+export type QrMenuLayoutMode = 'grid_2col' | 'list_compact' | 'story_cards'
+
+export interface StorefrontCustomizationConfig {
+  // 1. Landing Page Studio
+  heroHeadline: string
+  heroTagline: string
+  heroBannerUrl: string
+  announcementBarText: string
+  announcementBarActive: boolean
+  ctaOrderText: string
+  ctaReserveText: string
+  brandStoryText: string
+  operatingHoursText: string
+  socialLinks: StorefrontSocialLinks
+
+  // 2. QR Order Customer Space Studio
+  greetingMessage: string
+  qrBannerUrl: string
+  qrMenuLayout: QrMenuLayoutMode
+  wifiAccessPolicy: WifiAccessPolicy
+  enableAllergenBadges: boolean
+  enableDigitalReceiptSharing: boolean
+  receiptCustomFooter: string
 }
 
 // --- STORE ONBOARDING & PRESET POLICY TYPES ---
@@ -247,12 +362,23 @@ export interface OnboardingData {
   whatsappOrder: string
   wifiSsid: string
   wifiPassword: string
+  wifiAccessPolicy?: WifiAccessPolicy
   pb1TaxMode: PB1TaxMode
   initialKasFloat: number
 }
 
 // --- TEAM MEMBERSHIP & RBAC TYPES ---
-export type StaffRole = 'owner' | 'cashier' | 'barista' | 'chef' | 'waiter' | 'checker_qc'
+export type StaffRole = 
+  | 'owner' 
+  | 'store_manager' 
+  | 'cashier' 
+  | 'barista' 
+  | 'chef' 
+  | 'waiter' 
+  | 'checker_qc' 
+  | 'sommelier' 
+  | 'courier' 
+  | 'warehouse_keeper'
 
 export interface TeamMember {
   id: string
@@ -264,6 +390,39 @@ export interface TeamMember {
   invitedAt: string
   activatedAt?: string
 }
+
+// --- EVENT TICKETING & WORKSHOP CLASS BOOKING TYPES ---
+export interface EventTicketItem {
+  id: string
+  title: string
+  category: 'music_event' | 'workshop_class' | 'sports_class' | 'seminar'
+  date: string
+  time: string
+  location: string
+  price: number
+  quotaTotal: number
+  quotaRemaining: number
+  instructorName?: string
+  description: string
+  bannerUrl?: string
+  includedBenefits?: string[]
+}
+
+export interface PurchasedEventTicket {
+  ticketCode: string
+  eventId: string
+  eventTitle: string
+  participantName: string
+  participantPhone: string
+  participantEmail?: string
+  quantity: number
+  totalAmountPaid: number
+  paymentMethod: string
+  purchasedAt: string
+  qrBarcodeData: string
+  status: 'valid' | 'used' | 'cancelled'
+}
+
 
 export interface InviteStaffPayload {
   name: string
@@ -307,5 +466,34 @@ export interface Voucher {
   isActive?: boolean
 }
 
+// --- NOTIFICATION CENTER & SERVICE TICKETING TYPES (L2-POS-49) ---
+export type NotificationCategory = 'operational' | 'tickets' | 'feedback' | 'safety_allergen' | 'financial_shifts' | 'system'
+
+export interface HfeNotification {
+  id: string
+  title: string
+  message: string
+  category: NotificationCategory
+  timestamp: string
+  isRead: boolean
+  priority?: 'low' | 'normal' | 'high' | 'urgent'
+  actionUrl?: string
+  tableNumber?: string
+  metadata?: Record<string, any>
+}
+
+export interface ServiceTicket {
+  id: string
+  tableNumber: string
+  type: 'bill_request' | 'waiter_call' | 'water_refill' | 'clean_table' | 'sommelier_advice'
+  status: 'open' | 'in_progress' | 'resolved'
+  createdAt: string
+  resolvedAt?: string
+  assignedStaffName?: string
+  notes?: string
+}
+
+// --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---
+export * from './identity'
 
 

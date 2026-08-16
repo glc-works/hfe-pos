@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { LanguageProvider } from './context/LanguageContext'
 import { MerchantConfigProvider, useMerchantConfig } from './context/MerchantConfigContext'
+import { NotificationProvider } from './context/NotificationContext'
 import { ViewportProvider } from './context/ViewportContext'
 import { FloatKit } from './components/dev/FloatKit'
 import { StaffSubNavigator } from './components/common/StaffSubNavigator'
@@ -23,6 +24,7 @@ import { MaitreDView } from './views/MaitreDView'
 import { CustomerContactsView } from './views/CustomerContactsView'
 import { ComponentShowcaseView } from './views/ComponentShowcaseView'
 import { HfeInsightsView } from './views/HfeInsightsView'
+import { CustomerPortalView } from './views/CustomerPortalView'
 
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
@@ -403,15 +405,18 @@ function AppMain() {
           </div>
         )}
 
+        {config.activeApp === 'customer-portal' && (
+          <CustomerPortalView
+            hfeCompanyProfile={sync.hfeCompanyProfile}
+            onBackToMenu={() => config.setActiveApp('customer')}
+            onBackToLanding={() => config.setActiveApp('landing')}
+          />
+        )}
+
         {config.activeApp === 'design-system' && <ComponentShowcaseView />}
       </div>
 
       {/* DEV-ONLY FLOATING QUICK SETTINGS (AUTOMATICALLY STRIPPED IN PROD) */}
-      <FloatKit
-        activeStaffSurface={activeStaffSurface}
-        setActiveStaffSurface={setActiveStaffSurface}
-      />
-
       <GlobalModals
         showLoginModal={showLoginModal}
         setShowLoginModal={setShowLoginModal}
@@ -425,7 +430,22 @@ function AppMain() {
         setCustomerProfiles={setCustomerProfiles}
         setQrStepView={setQrStepView}
       />
+
+      {/* FLOATKIT DEV PACK (RENDERED AT VERY END TO GUARANTEE ZERO DOM-ORDER INTERFERENCE) */}
+      <FloatKit
+        activeStaffSurface={activeStaffSurface}
+        setActiveStaffSurface={setActiveStaffSurface}
+      />
     </div>
+  )
+}
+
+function ViewportConsumerWrapper({ children }: { children: React.ReactNode }) {
+  const config = useMerchantConfig()
+  return (
+    <ViewportProvider viewportMode={config.viewportMode}>
+      {children}
+    </ViewportProvider>
   )
 }
 
@@ -433,9 +453,11 @@ export default function App() {
   return (
     <LanguageProvider>
       <MerchantConfigProvider>
-        <ViewportProvider viewportMode="responsive">
-          <AppMain />
-        </ViewportProvider>
+        <NotificationProvider>
+          <ViewportConsumerWrapper>
+            <AppMain />
+          </ViewportConsumerWrapper>
+        </NotificationProvider>
       </MerchantConfigProvider>
     </LanguageProvider>
   )

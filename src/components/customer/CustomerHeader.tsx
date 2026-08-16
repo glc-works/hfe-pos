@@ -8,6 +8,7 @@ export interface CustomerHeaderProps {
   hfeCompanyProfile: HfeCompanyProfile
   selectedTable: string
   scannedSeat: string
+  hasPaidOrder?: boolean
   activeTheme: CafeThemeConfig
   isCustomerSessionActive: boolean
   loginType: 'phone' | 'guest-name'
@@ -44,6 +45,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
   hfeCompanyProfile,
   selectedTable,
   scannedSeat,
+  hasPaidOrder = false,
   activeTheme,
   isCustomerSessionActive,
   loginType,
@@ -84,7 +86,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
   return (
     <>
       <header 
-        className="shrink-0 z-30 border-b backdrop-blur-xl px-3.5 pt-2 pb-2.5 flex flex-col gap-2.5 transition-all theme-customer-header"
+        className="shrink-0 z-30 border-b backdrop-blur-xl px-3.5 pt-[max(env(safe-area-inset-top,8px),8px)] pb-2.5 flex flex-col gap-2.5 transition-all theme-customer-header"
         style={{ 
           backgroundColor: `${headerBg}`, 
           borderColor,
@@ -239,6 +241,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
         hfeCompanyProfile={hfeCompanyProfile}
         selectedTable={selectedTable}
         scannedSeat={scannedSeat}
+        hasPaidOrder={hasPaidOrder}
         onAddMoreItems={() => setShowMerchantDrawer(false)}
         onOpenReservationModal={() => {
           setShowMerchantDrawer(false)

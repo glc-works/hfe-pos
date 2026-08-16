@@ -1,4 +1,4 @@
-import { CafeThemeConfig, MenuItem, TableInfo, Order, CustomerProfile, StationConfig, HfeCompanyProfile } from '../types/pos'
+import { CafeThemeConfig, MenuItem, TableInfo, Order, CustomerProfile, StationConfig, HfeCompanyProfile, PropertyZoneConfig, HotelGuestFolio } from '../types/pos'
 
 export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
   companyBookId: 'BOOK-CAFE-HQ-88',
@@ -8,7 +8,15 @@ export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
   taxIdNpwp: '01.234.567.8-012.000',
   nibPermit: '9120001234567',
   address: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
-  hfeLedgerApiEndpoint: 'https://api.hfe.internal/v1/company-books/BOOK-CAFE-HQ-88'
+  hfeLedgerApiEndpoint: 'https://api.hfe.internal/v1/company-books/BOOK-CAFE-HQ-88',
+  storefrontInfo: {
+    tagline: 'Artisan Specialty Coffee & Fresh Pastry',
+    storyDescription: 'Pelopor kopi artisan dengan biji nusantara pilihan sejak 2020.',
+    operatingHours: 'Senin - Minggu: 07:00 - 22:00 WIB',
+    wifiSsid: 'Kopitiam_Senopati_Guest',
+    wifiPassword: 'kopiuenak2026',
+    wifiAccessPolicy: 'after_payment'
+  }
 }
 
 export { BUILTIN_THEMES } from './themePresetsData'
@@ -261,16 +269,96 @@ export const PRODUCT_CATALOG: MenuItem[] = [
   }
 ]
 
-export const INITIAL_TABLES: TableInfo[] = [
-  { id: 'TBL-01', name: 'MEJA-01', status: 'free', totalBill: 0, orderCount: 0, orderIds: [] },
-  { id: 'TBL-02', name: 'MEJA-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [] },
-  { id: 'TBL-03', name: 'MEJA-03', status: 'free', totalBill: 0, orderCount: 0, orderIds: [] },
-  { id: 'TBL-04', name: 'MEJA-04', status: 'occupied', customerName: 'Aldi (QR)', totalBill: 63000, orderCount: 2, orderIds: ['ORD-8801'] },
-  { id: 'TBL-05', name: 'MEJA-05', status: 'free', totalBill: 0, orderCount: 0, orderIds: [] },
-  { id: 'TBL-06', name: 'MEJA-06', status: 'free', totalBill: 0, orderCount: 0, orderIds: [] },
-  { id: 'TBL-07', name: 'MEJA-07', status: 'free', totalBill: 0, orderCount: 0, orderIds: [] },
-  { id: 'TBL-08', name: 'MEJA-08', status: 'occupied', customerName: 'Chef Mike', totalBill: 120000, orderCount: 3, orderIds: ['ORD-8802'] },
+export const PROPERTY_ZONES: PropertyZoneConfig[] = [
+  { id: 'all', name: 'Semua Area', icon: '🏢', tablePrefix: 'ALL', totalTables: 22, hasDedicatedServiceStaff: false },
+  { id: 'outdoor-garden', name: 'Outdoor Garden', icon: '🌿', tablePrefix: 'OUT', totalTables: 6, hasDedicatedServiceStaff: true },
+  { id: 'indoor-ac', name: 'Indoor AC Dining', icon: '❄️', tablePrefix: 'IND', totalTables: 6, hasDedicatedServiceStaff: true },
+  { id: 'vip-private', name: 'VIP Private Rooms', icon: '👑', tablePrefix: 'VIP', totalTables: 2, hasDedicatedServiceStaff: true, defaultMinSpend: 2500000, minSpend: 2500000 },
+  { id: 'poolside-cabana', name: 'Poolside Cabana', icon: '🏊', tablePrefix: 'POOL', totalTables: 4, hasDedicatedServiceStaff: true },
+  { id: 'rooftop-skybar', name: 'Rooftop Sky Bar', icon: '🍸', tablePrefix: 'ROOF', totalTables: 4, hasDedicatedServiceStaff: true }
 ]
+
+export const MOCK_HOTEL_GUEST_FOLIOS: HotelGuestFolio[] = [
+  {
+    roomNumber: '402',
+    guestName: 'Bambang Soeprapto',
+    checkInDate: '2026-08-14',
+    checkOutDate: '2026-08-18',
+    status: 'checked_in',
+    creditLimit: 5000000,
+    currentBalance: 1250000,
+    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
+    folioId: 'FOLIO-402-8821'
+  },
+  {
+    roomNumber: '305',
+    guestName: 'Jessica Tanuwidjaja',
+    checkInDate: '2026-08-15',
+    checkOutDate: '2026-08-19',
+    status: 'checked_in',
+    creditLimit: 3000000,
+    currentBalance: 450000,
+    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
+    folioId: 'FOLIO-305-7712'
+  },
+  {
+    roomNumber: '501',
+    guestName: 'Michael Alexander',
+    checkInDate: '2026-08-12',
+    checkOutDate: '2026-08-17',
+    status: 'checked_in',
+    creditLimit: 10000000,
+    currentBalance: 3200000,
+    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
+    folioId: 'FOLIO-501-9901'
+  },
+  {
+    roomNumber: '208',
+    guestName: 'Siti Rahmawati',
+    checkInDate: '2026-08-10',
+    checkOutDate: '2026-08-14',
+    status: 'checked_out',
+    creditLimit: 0,
+    currentBalance: 0,
+    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
+    folioId: 'FOLIO-208-6610'
+  }
+]
+
+export const INITIAL_TABLES: TableInfo[] = [
+  // 🌿 Outdoor Garden Zone (OUT-01 .. OUT-06)
+  { id: 'TBL-OUT-01', name: 'OUT-01', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'outdoor-garden', pax: 4, maxCapacity: 4 },
+  { id: 'TBL-OUT-02', name: 'OUT-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'outdoor-garden', pax: 2, maxCapacity: 2 },
+  { id: 'TBL-OUT-03', name: 'OUT-03', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'outdoor-garden', pax: 4, maxCapacity: 4 },
+  { id: 'TBL-OUT-04', name: 'OUT-04', status: 'occupied', customerName: 'Aldi (QR)', totalBill: 86000, orderCount: 2, orderIds: ['ORD-8801'], zoneId: 'outdoor-garden', seatedDurationMinutes: 45, pax: 4, maxCapacity: 4, seatedGuests: 3 },
+  { id: 'TBL-OUT-05', name: 'OUT-05', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'outdoor-garden', pax: 6, maxCapacity: 6 },
+  { id: 'TBL-OUT-06', name: 'OUT-06', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'outdoor-garden', pax: 4, maxCapacity: 4 },
+
+  // ❄️ Indoor AC Dining Zone (IND-01 .. IND-06)
+  { id: 'TBL-IND-01', name: 'IND-01', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'indoor-ac', pax: 2, maxCapacity: 2 },
+  { id: 'TBL-IND-02', name: 'IND-02', status: 'occupied', customerName: 'Chef Mike', totalBill: 120000, orderCount: 3, orderIds: ['ORD-8802'], zoneId: 'indoor-ac', seatedDurationMinutes: 25, pax: 4, maxCapacity: 4, seatedGuests: 4 },
+  { id: 'TBL-IND-03', name: 'IND-03', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'indoor-ac', pax: 4, maxCapacity: 4 },
+  { id: 'TBL-IND-04', name: 'IND-04', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'indoor-ac', pax: 4, maxCapacity: 4 },
+  { id: 'TBL-IND-05', name: 'IND-05', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'indoor-ac', pax: 6, maxCapacity: 6 },
+  { id: 'TBL-IND-06', name: 'IND-06', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'indoor-ac', pax: 8, maxCapacity: 8 },
+
+  // 👑 VIP Private Rooms (VIP-01 .. VIP-02 with min spend Rp 2.500.000)
+  { id: 'TBL-VIP-01', name: 'VIP-01', status: 'occupied', customerName: 'Drs. H. Bambang Soeprapto', totalBill: 1850000, orderCount: 5, orderIds: ['ORD-VIP-01'], zoneId: 'vip-private', minSpend: 2500000, seatedDurationMinutes: 75, pax: 10, maxCapacity: 10, seatedGuests: 8 },
+  { id: 'TBL-VIP-02', name: 'VIP-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'vip-private', minSpend: 2500000, pax: 12, maxCapacity: 12 },
+
+  // 🏊 Poolside Cabana Zone (POOL-01 .. POOL-04)
+  { id: 'TBL-POOL-01', name: 'POOL-01', status: 'occupied', customerName: 'Jessica Wong (Cabana)', totalBill: 245000, orderCount: 3, orderIds: ['ORD-POOL-01'], zoneId: 'poolside-cabana', seatedDurationMinutes: 30, pax: 4, maxCapacity: 4, seatedGuests: 2 },
+  { id: 'TBL-POOL-02', name: 'POOL-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'poolside-cabana', pax: 4, maxCapacity: 4 },
+  { id: 'TBL-POOL-03', name: 'POOL-03', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'poolside-cabana', pax: 4, maxCapacity: 4 },
+  { id: 'TBL-POOL-04', name: 'POOL-04', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'poolside-cabana', pax: 6, maxCapacity: 6 },
+
+  // 🍸 Rooftop Sky Bar Zone (ROOF-01 .. ROOF-04)
+  { id: 'TBL-ROOF-01', name: 'ROOF-01', status: 'occupied', customerName: 'Kevin Sanjaya (Sunset)', totalBill: 480000, orderCount: 4, orderIds: ['ORD-ROOF-01'], zoneId: 'rooftop-skybar', seatedDurationMinutes: 50, pax: 4, maxCapacity: 4, seatedGuests: 3 },
+  { id: 'TBL-ROOF-02', name: 'ROOF-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'rooftop-skybar', pax: 2, maxCapacity: 2 },
+  { id: 'TBL-ROOF-03', name: 'ROOF-03', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'rooftop-skybar', pax: 4, maxCapacity: 4 },
+  { id: 'TBL-ROOF-04', name: 'ROOF-04', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'rooftop-skybar', pax: 6, maxCapacity: 6 }
+]
+
 
 export const INITIAL_ORDERS: Order[] = [
   {

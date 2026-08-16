@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import {
   X, Receipt, Plus, QrCode, Bell, Coffee, Utensils, CheckCircle2,
-  Clock, ShieldCheck, Sparkles, ChevronRight, AlertCircle
+  Clock, ShieldCheck, Sparkles, ChevronRight, AlertCircle, Wifi, Copy, Check
 } from 'lucide-react'
-import { OrderTicket, TableStatus } from '../../types/pos'
+import { OrderTicket, TableStatus, HfeCompanyProfile } from '../../types/pos'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
+import { useNotification } from '../../context/NotificationContext'
 
 export interface ActiveOpenBillDrawerProps {
   isOpen: boolean
@@ -13,6 +14,7 @@ export interface ActiveOpenBillDrawerProps {
   scannedSeat?: string
   tableStatus?: TableStatus | null
   tableOrders?: OrderTicket[]
+  hfeCompanyProfile?: HfeCompanyProfile
   onAddMoreItems: () => void
   onOpenSettlementQRIS: () => void
   onCallWaiterForBill?: () => void
@@ -25,12 +27,26 @@ export const ActiveOpenBillDrawer: React.FC<ActiveOpenBillDrawerProps> = ({
   scannedSeat = 'Seat 1',
   tableStatus,
   tableOrders = [],
+  hfeCompanyProfile,
   onAddMoreItems,
   onOpenSettlementQRIS,
   onCallWaiterForBill
 }) => {
   const { customerTheme } = useMerchantConfig()
+  const { createServiceTicket } = useNotification()
   const [waiterCalled, setWaiterCalled] = useState<boolean>(false)
+  const [waterCalled, setWaterCalled] = useState<boolean>(false)
+  const [copiedWifi, setCopiedWifi] = useState<boolean>(false)
+
+  const wifiSsid = hfeCompanyProfile?.storefrontInfo?.wifiSsid || 'Kopitiam_Senopati_Guest'
+  const wifiPassword = hfeCompanyProfile?.storefrontInfo?.wifiPassword || 'kopiuenak2026'
+  const wifiAccessPolicy = hfeCompanyProfile?.storefrontInfo?.wifiAccessPolicy || 'after_payment'
+
+  const handleCopyWifi = (pass: string) => {
+    navigator.clipboard?.writeText(pass)
+    setCopiedWifi(true)
+    setTimeout(() => setCopiedWifi(false), 2500)
+  }
 
   const isLight = customerTheme.mode === 'light'
   const textColor = customerTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
@@ -56,8 +72,23 @@ export const ActiveOpenBillDrawer: React.FC<ActiveOpenBillDrawerProps> = ({
 
   const handleCallWaiter = () => {
     setWaiterCalled(true)
+    createServiceTicket({
+      tableNumber: selectedTable,
+      type: 'bill_request',
+      notes: `Permintaan tagihan fisik & kasir (${scannedSeat})`
+    })
     onCallWaiterForBill?.()
     setTimeout(() => setWaiterCalled(false), 5000)
+  }
+
+  const handleCallWaterRefill = () => {
+    setWaterCalled(true)
+    createServiceTicket({
+      tableNumber: selectedTable,
+      type: 'water_refill',
+      notes: `Permintaan refill air minum (${scannedSeat})`
+    })
+    setTimeout(() => setWaterCalled(false), 5000)
   }
 
   const getStatusBadge = (status?: string) => {
@@ -134,6 +165,53 @@ export const ActiveOpenBillDrawer: React.FC<ActiveOpenBillDrawerProps> = ({
             </p>
           </div>
         </div>
+
+        {/* 📶 WIFI ACCESS CELEBRATION BANNER */}
+        {wifiAccessPolicy !== 'disabled' && (wifiAccessPolicy === 'always_visible' || relevantOrders.length > 0 || (tableStatus?.totalBill || 0) > 0) && (
+          <div 
+            className="border rounded-2xl p-3 flex items-center justify-between gap-2.5 shadow-sm animate-fadeIn"
+            style={{
+              backgroundColor: isLight ? '#f0fdf4' : 'rgba(16, 185, 129, 0.08)',
+              borderColor: isLight ? '#86efac' : 'rgba(16, 185, 129, 0.3)'
+            }}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
+                <Wifi className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase font-bold tracking-wider font-mono text-emerald-600 dark:text-emerald-400">
+                  📶 Akses WiFi Kafe Terbuka
+                </span>
+                <p className="text-xs font-semibold truncate" style={{ color: textColor }}>
+                  SSID: <strong className="font-mono">{wifiSsid}</strong> • Password: <strong className="font-mono text-amber-500">{wifiPassword}</strong>
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleCopyWifi(wifiPassword)}
+              className="text-xs font-bold px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all active:scale-95 shrink-0 shadow-sm"
+              style={{
+                backgroundColor: copiedWifi ? '#10b981' : (isLight ? '#ffffff' : '#0f172a'),
+                borderColor: isLight ? '#86efac' : 'rgba(16, 185, 129, 0.4)',
+                color: copiedWifi ? '#ffffff' : (isLight ? '#15803d' : '#34d399')
+              }}
+            >
+              {copiedWifi ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Tersalin!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Salin Password</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* ORDER ROUNDS BREAKDOWN */}
         <div className="flex flex-col gap-2.5 max-h-[36vh] overflow-y-auto no-scrollbar">
@@ -253,18 +331,28 @@ export const ActiveOpenBillDrawer: React.FC<ActiveOpenBillDrawerProps> = ({
             <ChevronRight className="w-4 h-4 shrink-0" />
           </button>
 
-          {/* 3. CALL CASHIER / PAY AT CASHIER */}
-          <button
-            type="button"
-            onClick={handleCallWaiter}
-            className="w-full py-2.5 rounded-2xl border text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-            style={{ backgroundColor: subCardBg, borderColor: subCardBorder, color: secondaryTextColor }}
-          >
-            <Bell className={`w-3.5 h-3.5 ${waiterCalled ? 'text-emerald-500' : 'text-amber-500'}`} />
-            <span>
-              {waiterCalled ? '✓ Pramusaji Sedang Menuju Meja Anda' : 'Panggil Kasir / Minta Tagihan Cetak Fisik'}
-            </span>
-          </button>
+          {/* 3. CALL WAITER FOR WATER REFILL */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleCallWaterRefill}
+              className="py-2.5 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+              style={{ backgroundColor: subCardBg, borderColor: subCardBorder, color: secondaryTextColor }}
+            >
+              <Utensils className={`w-3.5 h-3.5 ${waterCalled ? 'text-sky-400' : 'text-sky-500'}`} />
+              <span className="truncate">{waterCalled ? '✓ Refill Dikirim' : 'Refill Air'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCallWaiter}
+              className="py-2.5 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+              style={{ backgroundColor: subCardBg, borderColor: subCardBorder, color: secondaryTextColor }}
+            >
+              <Bell className={`w-3.5 h-3.5 ${waiterCalled ? 'text-emerald-500' : 'text-amber-500'}`} />
+              <span className="truncate">{waiterCalled ? '✓ Menuju Meja' : 'Panggil Kasir'}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,7 +1,22 @@
-import React from 'react'
-import { Users, Store, BookOpen, Camera, ArrowRightLeft, ChevronDown } from 'lucide-react'
+import React, { useState } from 'react'
+import {
+  Users,
+  Store,
+  BookOpen,
+  Camera,
+  ArrowRightLeft,
+  ChevronDown,
+  Bell,
+  Search,
+  LayoutGrid,
+  Grid,
+  List,
+  Check
+} from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useViewport } from '../../context/ViewportContext'
+import { useNotification } from '../../context/NotificationContext'
+import { PropertyZoneConfig, PropertyZoneId, TableStatus } from '../../types/pos'
 
 export interface PosCommandHeaderProps {
   posModeTab: 'tables' | 'catalog'
@@ -11,6 +26,25 @@ export interface PosCommandHeaderProps {
   onOpenGuestBinding: () => void
   onOpenScanner: () => void
   onOpenTableOps: () => void
+  onOpenNotifications?: () => void
+  onOpenSpotlight?: () => void
+  // Tier 2: Table Props
+  propertyZones?: PropertyZoneConfig[]
+  activeZoneId?: PropertyZoneId
+  onSelectZone?: (id: PropertyZoneId) => void
+  tableStatusFilter?: 'all' | 'unpaid' | 'paid' | 'available'
+  setTableStatusFilter?: (filter: 'all' | 'unpaid' | 'paid' | 'available') => void
+  unpaidCount?: number
+  availableCount?: number
+  tablesGrid?: TableStatus[]
+  // Tier 2: Catalog Props
+  categories?: string[]
+  selectedCategory?: string
+  setSelectedCategory?: (cat: string) => void
+  catalogSkuCount?: number
+  // View Density Preference
+  viewMode?: 'grid' | 'compact' | 'list'
+  setViewMode?: (mode: 'grid' | 'compact' | 'list') => void
 }
 
 export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
@@ -20,88 +54,413 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   onOpenAppDrawer,
   onOpenGuestBinding,
   onOpenScanner,
-  onOpenTableOps
+  onOpenTableOps,
+  onOpenNotifications,
+  onOpenSpotlight,
+  propertyZones = [],
+  activeZoneId = 'all',
+  onSelectZone,
+  tableStatusFilter = 'all',
+  setTableStatusFilter,
+  unpaidCount = 0,
+  availableCount = 0,
+  tablesGrid = [],
+  categories = [],
+  selectedCategory = 'all',
+  setSelectedCategory,
+  catalogSkuCount = 0,
+  viewMode = 'grid',
+  setViewMode
 }) => {
   const { t } = useTranslation()
   const { isMobile } = useViewport()
+  const { unreadCount, openServiceTicketsCount } = useNotification()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const totalAlerts = unreadCount + openServiceTicketsCount
+
+  const currentZone = propertyZones.find(z => z.id === activeZoneId) || propertyZones[0]
+  const scopedTables = activeZoneId === 'all'
+    ? tablesGrid
+    : tablesGrid.filter(t => (t.zoneId || (t.name.startsWith('OUT') ? 'outdoor-garden' : t.name.startsWith('IND') ? 'indoor-ac' : t.name.startsWith('VIP') ? 'vip-private' : t.name.startsWith('POOL') ? 'poolside-cabana' : t.name.startsWith('ROOF') ? 'rooftop-skybar' : 'indoor-ac')) === activeZoneId)
+
+  const scopedTotal = scopedTables.length
+  const scopedUnpaid = scopedTables.filter(t => (t.status === 'open-tab' || t.status === 'occupied') && t.totalBill > 0).length
+  const scopedAvailable = scopedTables.filter(t => t.status === 'free').length
 
   return (
-    <header className="bg-slate-900 border border-slate-800 rounded-2xl p-1.5 sm:p-2 flex items-center justify-between gap-1.5 sm:gap-2 shadow-md shrink-0 select-none">
-      {/* 1. LEFT: SINGLE-DOOR APP SUITE LAUNCHER */}
-      <button
-        type="button"
-        onClick={onOpenAppDrawer}
-        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-500/20 via-slate-800 to-slate-800 hover:from-amber-500/30 hover:to-slate-750 border border-amber-500/40 hover:border-amber-400/80 rounded-xl text-white transition-all shadow-sm group shrink-0"
-        title="Buka 5 Core App Suites (Dapur KDS, Insights, Gudang, Pengaturan)"
-      >
-        <div className="w-5 h-5 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-          <Store className="w-3.5 h-3.5 stroke-[2.5]" />
-        </div>
-        <span className="text-xs font-black text-white truncate">
-          Kasir POS
-        </span>
-        <ChevronDown className="w-3 h-3 text-amber-400 group-hover:translate-y-0.5 transition-transform shrink-0" />
-      </button>
+    <header className="bg-slate-900 border border-slate-800 rounded-2xl shadow-lg shrink-0 select-none overflow-hidden flex flex-col z-20">
+      {/* TIER 1: GLOBAL COMMAND & IDENTITY BAR (42px) */}
+      <div className="px-2.5 py-1.5 flex items-center justify-between gap-2 h-11">
+        {/* 1. LEFT: SINGLE-DOOR APP SUITE LAUNCHER & OUTLET IDENTITY */}
+        <button
+          type="button"
+          onClick={onOpenAppDrawer}
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500/20 via-slate-800 to-slate-800 hover:from-amber-500/30 border border-amber-500/40 rounded-xl text-white transition-all shadow-sm group shrink-0 cursor-pointer"
+          title="Buka 5 Core App Suites (Dapur KDS, Insights, Gudang, Pengaturan)"
+        >
+          <div className="w-4 h-4 rounded-md bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0 shadow-sm">
+            <Store className="w-2.5 h-2.5 stroke-[2.5]" />
+          </div>
+          <span className="text-xs font-black text-white truncate max-w-[100px] sm:max-w-[130px]">
+            Kasir POS
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <ChevronDown className="w-3 h-3 text-amber-400 group-hover:translate-y-0.5 transition-transform shrink-0" />
+        </button>
 
-      {/* 2. CENTER: VIEW SWITCHER (PETA MEJA / KATALOG MENU) */}
-      <div className="flex items-center gap-1 bg-slate-950 p-0.5 sm:p-1 rounded-xl border border-slate-800 shrink-0">
-        {enableTableFloorPlan && (
+        {/* 2. CENTER: MASTER CUSTOM TABS (PETA MEJA / KATALOG MENU) */}
+        <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-xl border border-slate-800 shrink-0">
+          {enableTableFloorPlan && (
+            <button
+              type="button"
+              onClick={() => setPosModeTab('tables')}
+              className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer ${
+                posModeTab === 'tables' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>{isMobile ? 'Meja' : 'Peta Meja'}</span>
+            </button>
+          )}
+
           <button
             type="button"
-            onClick={() => setPosModeTab('tables')}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-              posModeTab === 'tables' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+            onClick={() => setPosModeTab('catalog')}
+            className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer ${
+              posModeTab === 'catalog' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Users className="w-3.5 h-3.5 shrink-0" />
-            <span>{isMobile ? 'Meja' : 'Peta Meja'}</span>
+            <BookOpen className="w-3.5 h-3.5 shrink-0" />
+            <span>{isMobile ? 'Menu' : 'Katalog Menu'}</span>
           </button>
-        )}
+        </div>
 
-        <button
-          type="button"
-          onClick={() => setPosModeTab('catalog')}
-          className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
-            posModeTab === 'catalog' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <BookOpen className="w-3.5 h-3.5 shrink-0" />
-          <span>{isMobile ? 'Menu' : 'Katalog Menu'}</span>
-        </button>
-      </div>
+        {/* 3. RIGHT: UNIVERSAL ACTION SHORTCUT BUTTONS (100% INVARIANT) */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {onOpenSpotlight && (
+            <button
+              type="button"
+              onClick={onOpenSpotlight}
+              className="p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-800 text-amber-400 border border-slate-800 hover:border-amber-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+              title="Pencarian Cepat Spotlight (⌘K / Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden md:inline text-[11px]">Cari</span>
+              <kbd className="hidden md:inline-flex px-1 py-0.2 bg-slate-800 border border-slate-700 rounded text-[9px] font-mono text-slate-400 font-bold">⌘K</kbd>
+            </button>
+          )}
 
-      {/* 3. RIGHT: ACTION SHORTCUT BUTTONS (ICON-ONLY ON MOBILE TO PREVENT TEXT CLIPPING) */}
-      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-        <button
-          type="button"
-          onClick={onOpenGuestBinding}
-          className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm whitespace-nowrap active:scale-95"
-          title="Sambut Tamu & Alokasi Meja"
-        >
-          <Users className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          {!isMobile && <span>Sambut Tamu</span>}
-        </button>
+          {onOpenNotifications && (
+            <button
+              type="button"
+              onClick={onOpenNotifications}
+              className={`relative p-1 sm:px-2 sm:py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 border cursor-pointer ${
+                totalAlerts > 0
+                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/40'
+                  : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
+              }`}
+              title="Pusat Notifikasi & Service Request"
+            >
+              <Bell className="w-3.5 h-3.5 shrink-0" />
+              {totalAlerts > 0 && (
+                <span className="min-w-[14px] h-3.5 px-0.5 rounded-full bg-rose-500 text-white font-mono text-[8px] font-black flex items-center justify-center shadow">
+                  {totalAlerts}
+                </span>
+              )}
+            </button>
+          )}
 
-        <button
-          type="button"
-          onClick={onOpenScanner}
-          className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-950 hover:bg-slate-800 text-emerald-400 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm whitespace-nowrap active:scale-95"
-          title="Scan Barcode Produk SKU"
-        >
-          <Camera className="w-3.5 h-3.5 shrink-0" />
-          {!isMobile && <span>Scan</span>}
-        </button>
-
-        {posModeTab === 'tables' && (
           <button
             type="button"
-            onClick={onOpenTableOps}
-            className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm whitespace-nowrap active:scale-95"
-            title="Split / Pindah / Gabung Meja"
+            onClick={onOpenScanner}
+            className="p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-800 text-emerald-400 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+            title="Scan Barcode Produk SKU"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            {!isMobile && <span>Split / Join</span>}
+            <Camera className="w-3.5 h-3.5 shrink-0" />
           </button>
+
+          <button
+            type="button"
+            onClick={onOpenGuestBinding}
+            className="hidden sm:flex p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl text-xs font-bold transition-all items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+            title="Sambut Tamu & Alokasi Meja"
+          >
+            <Users className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="hidden lg:inline text-[11px]">Sambut</span>
+          </button>
+        </div>
+      </div>
+
+      {/* HAIRLINE DIVIDER */}
+      <div className="border-t border-slate-800/80 w-full" />
+
+      {/* TIER 2: LOCAL CONTEXTUAL GROUPING & VIEW PREFERENCE STRIP (36px) */}
+      <div className="px-2.5 py-1 flex items-center justify-between gap-2 bg-slate-950/40 h-10 relative">
+        {/* TAB 1: PETA MEJA CONTEXTUAL STRIP */}
+        {posModeTab === 'tables' && (
+          <>
+            {/* LEFT: TOUCH-FRIENDLY AREA DROPDOWN */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-indigo-500/20 to-slate-800 hover:from-indigo-500/30 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
+              >
+                <span>{currentZone?.icon || '📍'}</span>
+                <span className="truncate max-w-[120px] sm:max-w-[150px]">{currentZone?.name || 'Semua Area'}</span>
+                <span className="text-[10px] font-mono bg-indigo-500/40 px-1.5 py-0.2 rounded-full text-white font-bold">
+                  {scopedTotal}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-y-0.5 transition-transform" />
+              </button>
+
+              {isDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
+                    <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold border-b border-slate-800/80">
+                      Pilih Lantai / Zona Area
+                    </div>
+                    {propertyZones.map((zone) => {
+                      const isSelected = activeZoneId === zone.id
+                      const count = zone.id === 'all'
+                        ? tablesGrid.length
+                        : tablesGrid.filter(t => (t.zoneId || (t.name.startsWith('OUT') ? 'outdoor-garden' : t.name.startsWith('IND') ? 'indoor-ac' : t.name.startsWith('VIP') ? 'vip-private' : t.name.startsWith('POOL') ? 'poolside-cabana' : t.name.startsWith('ROOF') ? 'rooftop-skybar' : 'indoor-ac')) === zone.id).length
+
+                      return (
+                        <button
+                          key={zone.id}
+                          type="button"
+                          onClick={() => {
+                            if (onSelectZone) onSelectZone(zone.id)
+                            setIsDropdownOpen(false)
+                          }}
+                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-2 text-left touch-manipulation cursor-pointer ${
+                            isSelected
+                              ? 'bg-indigo-500 text-white font-black shadow-md'
+                              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm">{zone.icon || '📍'}</span>
+                            <span className="truncate">{zone.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                              isSelected ? 'bg-indigo-400/40 text-white' : 'bg-slate-800 text-slate-400'
+                            }`}>
+                              {count} Meja
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* RIGHT: 3-SEGMENT STATUS PILLS (SEMUA, TAGIHAN, KOSONG) + PINDAH MEJA + VIEW SWITCHER */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              {setTableStatusFilter && (
+                <div className="flex items-center gap-1 bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80">
+                  {/* 1. SEMUA MEJA (RESET FILTER) */}
+                  <button
+                    type="button"
+                    onClick={() => setTableStatusFilter('all')}
+                    className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
+                      tableStatusFilter === 'all'
+                        ? 'bg-indigo-500 text-white font-black shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                    title="Tampilkan Semua Meja (Reset Filter)"
+                  >
+                    <span>Semua</span>
+                    <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
+                      tableStatusFilter === 'all' ? 'bg-indigo-400/40 text-white' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {scopedTotal}
+                    </span>
+                  </button>
+
+                  {/* 2. TAGIHAN */}
+                  <button
+                    type="button"
+                    onClick={() => setTableStatusFilter('unpaid')}
+                    className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
+                      tableStatusFilter === 'unpaid'
+                        ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                        : 'text-amber-400 hover:bg-amber-500/10'
+                    }`}
+                    title="Filter Meja Belum Lunas"
+                  >
+                    <span>⏳ Tagihan</span>
+                    <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
+                      tableStatusFilter === 'unpaid' ? 'bg-slate-950 text-amber-400' : 'bg-amber-400/20 text-amber-300'
+                    }`}>
+                      {scopedUnpaid}
+                    </span>
+                  </button>
+
+                  {/* 3. KOSONG */}
+                  <button
+                    type="button"
+                    onClick={() => setTableStatusFilter('available')}
+                    className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
+                      tableStatusFilter === 'available'
+                        ? 'bg-emerald-500 text-slate-950 font-black shadow-sm'
+                        : 'text-emerald-400 hover:bg-emerald-500/10'
+                    }`}
+                    title="Filter Meja Kosong"
+                  >
+                    <span>🟢 Kosong</span>
+                    <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
+                      tableStatusFilter === 'available' ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-400/20 text-emerald-300'
+                    }`}>
+                      {scopedAvailable}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={onOpenTableOps}
+                className="p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-850 text-indigo-300 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+                title="Operasi Meja (Pindah Meja / Gabung Tagihan)"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="hidden sm:inline text-[11px]">Pindah</span>
+              </button>
+
+              {setViewMode && (
+                <div className="hidden sm:flex items-center gap-0.5 bg-slate-950 p-0.5 rounded-xl border border-slate-800 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1 rounded-lg text-xs font-bold transition-all ${
+                      viewMode === 'grid' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                    title="Grid View"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('compact')}
+                    className={`p-1 rounded-lg text-xs font-bold transition-all ${
+                      viewMode === 'compact' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                    title="Compact View"
+                  >
+                    <Grid className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    className={`p-1 rounded-lg text-xs font-bold transition-all ${
+                      viewMode === 'list' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                    title="List View"
+                  >
+                    <List className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* TAB 2: KATALOG MENU CONTEXTUAL STRIP */}
+        {posModeTab === 'catalog' && (
+          <>
+            {/* LEFT: TOUCH-FRIENDLY CATEGORY DROPDOWN */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-amber-500/20 to-slate-800 hover:from-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
+              >
+                <span>☕</span>
+                <span className="truncate max-w-[120px] sm:max-w-[150px] capitalize">
+                  {selectedCategory === 'all' ? 'Semua Menu' : selectedCategory}
+                </span>
+                <span className="text-[10px] font-mono bg-amber-500/30 px-1.5 py-0.2 rounded-full text-white font-bold">
+                  {catalogSkuCount} SKU
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-amber-400 group-hover:translate-y-0.5 transition-transform" />
+              </button>
+
+              {isDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                  <div className="absolute top-full left-0 mt-1.5 w-60 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
+                    <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold border-b border-slate-800/80">
+                      Pilih Kategori Menu
+                    </div>
+                    {categories.map((cat) => {
+                      const isSelected = selectedCategory === cat
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            if (setSelectedCategory) setSelectedCategory(cat)
+                            setIsDropdownOpen(false)
+                          }}
+                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all flex items-center justify-between gap-2 text-left touch-manipulation cursor-pointer ${
+                            isSelected
+                              ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                          }`}
+                        >
+                          <span>{cat === 'all' ? '✨ Semua Kategori' : cat}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* RIGHT: VIEW MODE BUTTONS: GRID / COMPACT / LIST */}
+            {setViewMode && (
+              <div className="flex items-center gap-0.5 bg-slate-950 p-0.5 rounded-xl border border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1 rounded-lg text-xs font-bold transition-all ${
+                    viewMode === 'grid' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('compact')}
+                  className={`p-1 rounded-lg text-xs font-bold transition-all ${
+                    viewMode === 'compact' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Compact View"
+                >
+                  <Grid className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`p-1 rounded-lg text-xs font-bold transition-all ${
+                    viewMode === 'list' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="List View"
+                >
+                  <List className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </header>
