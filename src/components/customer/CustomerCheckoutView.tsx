@@ -9,6 +9,7 @@ import { VoucherSelectionDrawer } from '../pos/VoucherSelectionDrawer'
 import { PayFirstPaymentSection } from './PayFirstPaymentSection'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useTranslation } from '../../context/LanguageContext'
+import { PriceTag } from '../../ui/PriceTag'
 
 export interface CustomerCheckoutViewProps {
   selectedTable: string
@@ -209,17 +210,39 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
                   </div>
                   
                   {item.temperature && (
-                    <p className="text-[11px] mt-0.5" style={{ color: secondaryTextColor }}>
-                      {item.temperature} • Sugar {item.sugarLevel} • {item.milkOption}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      <span
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+                        style={{ backgroundColor: subCardBg, color: secondaryTextColor, borderColor: subCardBorder }}
+                      >
+                        {item.temperature}
+                      </span>
+                      {item.sugarLevel && (
+                        <span
+                          className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+                          style={{ backgroundColor: subCardBg, color: secondaryTextColor, borderColor: subCardBorder }}
+                        >
+                          Gula: {item.sugarLevel}
+                        </span>
+                      )}
+                      {item.milkOption && (
+                        <span
+                          className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+                          style={{ backgroundColor: subCardBg, color: secondaryTextColor, borderColor: subCardBorder }}
+                        >
+                          {item.milkOption}
+                        </span>
+                      )}
+                    </div>
                   )}
-                  
-                  <p 
-                    className="text-xs font-mono font-bold mt-1"
-                    style={{ color: activeTheme.primaryAccentHex }}
-                  >
-                    Rp {(item.price * item.quantity).toLocaleString('id-ID')}
-                  </p>
+
+                  <div className="mt-1">
+                    <PriceTag
+                      amount={item.price * item.quantity}
+                      size="sm"
+                      variant="accent"
+                    />
+                  </div>
                 </div>
                 
                 {/* COMPACT STEPPER BUTTONS */}
