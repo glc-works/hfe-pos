@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { LanguageProvider } from './context/LanguageContext'
 import { MerchantConfigProvider, useMerchantConfig } from './context/MerchantConfigContext'
-import { DevModePack } from './components/dev/DevModePack'
+import { ViewportProvider } from './context/ViewportContext'
+import { FloatKit } from './components/dev/FloatKit'
 import { StaffSubNavigator } from './components/common/StaffSubNavigator'
 import { GlobalModals } from './components/modals/GlobalModals'
 import { useHfeSync } from './hooks/useHfeSync'
@@ -200,8 +201,8 @@ function AppMain() {
         ${effectiveTheme.customCssOverrides || ''}
       `}</style>
 
-      {/* DEVMODE PACK — PURE SHORTCUT CONSUMER OF SINGLE DOOR CONFIG */}
-      <DevModePack>
+      {/* PURE NATIVE VIEWPORT APPLICATION CONTAINER */}
+      <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full relative">
         {config.activeApp === 'landing' && (
           <LandingView
             hfeCompanyProfile={sync.hfeCompanyProfile}
@@ -274,7 +275,7 @@ function AppMain() {
         )}
 
         {config.activeApp === 'cafe' && (
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden">
             {activeStaffSurface !== 'barista-pos' && activeStaffSurface !== 'retail-pos' && (
               <StaffSubNavigator
                 activeStaffSurface={activeStaffSurface}
@@ -403,7 +404,13 @@ function AppMain() {
         )}
 
         {config.activeApp === 'design-system' && <ComponentShowcaseView />}
-      </DevModePack>
+      </div>
+
+      {/* DEV-ONLY FLOATING QUICK SETTINGS (AUTOMATICALLY STRIPPED IN PROD) */}
+      <FloatKit
+        activeStaffSurface={activeStaffSurface}
+        setActiveStaffSurface={setActiveStaffSurface}
+      />
 
       <GlobalModals
         showLoginModal={showLoginModal}
@@ -426,7 +433,9 @@ export default function App() {
   return (
     <LanguageProvider>
       <MerchantConfigProvider>
-        <AppMain />
+        <ViewportProvider viewportMode="responsive">
+          <AppMain />
+        </ViewportProvider>
       </MerchantConfigProvider>
     </LanguageProvider>
   )

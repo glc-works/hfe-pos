@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import { ViewportModeType } from '../types/pos'
 
 export interface ViewportContextValue {
@@ -24,9 +24,26 @@ export const ViewportProvider: React.FC<ViewportProviderProps> = ({
   viewportMode,
   children
 }) => {
-  const isMobile = viewportMode === 'mobile'
-  const isTablet = viewportMode === 'tablet-portrait' || viewportMode === 'tablet-landscape' || viewportMode === 'tablet'
-  const isDesktop = viewportMode === 'responsive'
+  const [windowWidth, setWindowWidth] = useState<number>(() => {
+    return typeof window !== 'undefined' ? window.innerWidth : 1200
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isPhysicallyMobile = windowWidth < 768
+  const isPhysicallyTablet = windowWidth >= 768 && windowWidth < 1024
+  const isPhysicallyDesktop = windowWidth >= 1024
+
+  const isMobile = viewportMode === 'mobile' || (viewportMode === 'responsive' && isPhysicallyMobile)
+  const isTablet = viewportMode === 'tablet-portrait' || viewportMode === 'tablet-landscape' || viewportMode === 'tablet' || (viewportMode === 'responsive' && isPhysicallyTablet)
+  const isDesktop = viewportMode === 'responsive' ? isPhysicallyDesktop : false
 
   return (
     <ViewportContext.Provider value={{ viewportMode, isMobile, isTablet, isDesktop }}>

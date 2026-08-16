@@ -29,6 +29,14 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
 10. **Apple HIG & Nielsen Norman Microcopy & Interaction Standard (Verb-First & Zero-Parentheses Invariant).**
    - *Action Button Wording:* CTAs must strictly use concise, direct verbs (e.g. `+ Tambah Menu Lainnya`, `Kirim Pesanan ke Dapur ➔`, `Bayar Sekarang ➔`). Zero parentheses `(...)` for secondary navigation or mode explanations inside action buttons. Secondary explanations belong in cards, badges, or helper text.
    - *Multi-Language (i18n) Purity:* Zero hardcoded UI strings in JSX. All button labels, headings, badges, and warnings must be bound through `useTranslation()` (`t.*`).
+11. **Mandatory Live Browser Inspection & Multi-Device Switcher Verification Protocol (Self-Inspect & Switch Modes Invariant).**
+   - *Active Device Switching:* Before delivering or certifying any UI fix, the agent MUST inspect the live rendering across all primary hardware profiles:
+     - **Compact Mobile (360px – 390px):** Verify zero text truncation, zero button overflow, flat header bottoms, and sticky floating cart visibility.
+     - **Tablet Portrait (768px):** Verify proper 2/3 column distribution and drawer expansion.
+     - **Tablet Landscape / Desktop (1024px – 1440px):** Verify responsive grid, dual-pane POS layout (catalog left + cart right), and absence of mobile overlays.
+   - *Dual-Port Validation (DevMode vs Standalone Production Preview):*
+     - Always audit on **Port 5173 (DevMode)** AND **Port 4173 (Vite Production Preview)** to guarantee zero drift between simulated frames and real responsive environments.
+   - *Automated Browser Self-Inspection:* Inspect computed bounding boxes, scroll container ownership, and layout reflows directly in browser runtime before declaring victory.
 
 ## Slot Reservation Rules
 
@@ -56,11 +64,11 @@ Whenever the USER provides a review, feedback, or POV evaluation:
 
 For every execution or coding task, agents MUST execute the closed verification loop before handover:
 1. **Step 1: Implement:** Apply changes according to standards, architecture, and heuristics.
-2. **Step 2: Multi-Point Self-Audit (Must Test 360px, 390px, 768px & 1280px Viewports):**
+2. **Step 2: Multi-Point Self-Audit & Live Browser Device Inspection (Must Test 360px, 390px, 768px & 1280px Viewports on Both Ports 5173 & 4173):**
    - *Boundary & Clipping Audit:* Check bottom buffer, floating docks, drawer safe-areas, and flat header borders (`border-radius: 0`).
    - *Scroll & ScrollSpy Audit:* Verify single scroll owner, scroll runway, 1-tap tab transitions, and view-transition scroll reset (`top: 0`).
    - *Typography Collision Audit:* Check long labels and wide monetary amounts on 360px screens to prevent overlap or awkward button wrapping.
-   - *Standalone vs DevMode Check:* Verify identical behavior in pure standalone (`!isDevMode`) and simulated frames.
+   - *Standalone vs DevMode Check:* Verify identical behavior in pure standalone (`!isDevMode` / Port 4173) and simulated frames (Port 5173).
    - *Theme & Typography Contrast:* Verify legibility in both Light and Dark modes.
 3. **Step 3: Autonomous Auto-Repair:** Fix all discovered gaps immediately in-flight without waiting for user reports.
 4. **Step 4: Local CI Gate Verification:** Run `./scripts/ci-local.sh` and ensure exit code `0` (Modularity, TypeScript, 100% Tests, Build).

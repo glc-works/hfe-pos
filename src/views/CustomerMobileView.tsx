@@ -339,6 +339,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
                 setShowReservationModal={setShowReservationModal}
                 handleReorderSameItem={handleReorderSameItem}
                 handleAddToCart={handleAddToCart}
+                handleUpdateQty={handleUpdateQty}
                 onOpenModifierSheet={(item) => setSelectedModifierItem(item)}
                 setQrStepView={setQrStepView}
                 categoryRefs={categoryRefsMap}

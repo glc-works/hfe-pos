@@ -336,9 +336,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       </main>
 
       {/* MOBILE FLOATING BOTTOM CART BAR (SMARTPHONE 390PX VIEW DOCK - ABSOLUTELY PINNED TO MOBILE FRAME) */}
-      {((activeTableCartItems.length > 0 && grandTotal > 0) || (selectedPOSTable && selectedPOSTable.totalBill > 0)) && (
+      {isMobile && ((activeTableCartItems.length > 0 && grandTotal > 0) || (selectedPOSTable && selectedPOSTable.totalBill > 0)) && (
         <div 
-          className="absolute bottom-0 inset-x-0 z-40 px-3.5 pt-4 pb-[max(env(safe-area-inset-bottom,16px),16px)] flex justify-center pointer-events-none lg:hidden animate-slideUp"
+          className="absolute bottom-0 inset-x-0 z-40 px-3.5 pt-4 pb-[max(env(safe-area-inset-bottom,16px),16px)] flex justify-center pointer-events-none animate-slideUp"
           style={{
             background: 'linear-gradient(to top, rgba(2, 6, 23, 0.98) 70%, rgba(2, 6, 23, 0.85) 85%, transparent 100%)'
           }}

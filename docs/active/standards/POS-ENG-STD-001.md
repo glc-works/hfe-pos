@@ -87,13 +87,18 @@ It binds all contributors, automated coding agents, and subagents operating on `
 ### Rule 11: Multi-Device Viewport Stress-Testing & Non-Clipping Governance
 - **Narrow Viewport Audit (360px – 390px)**: All components must be stress-tested on compact mobile widths (iPhone SE / Galaxy compact) to guarantee zero horizontal scrollbar leaks, zero text jamming/collisions, and clean button wrapping.
 - **Flat Header Bottom Invariant**: Fixed and sticky app headers must strictly use flat bottom edges (`border-radius: 0`) with subtle `border-b` dividers to prevent floating rounded corners from clipping and obscuring scrolled content underneath.
-- **Defensive Monetary & Label Layout**: Pricing totals and long descriptions must employ flex items-baseline layout with explicit text truncation and font-size scaling (`text-xs sm:text-sm`, `font-mono text-base sm:text-lg`).
-- **View-Transition Scroll Reset**: Every route, tab, or view state change (e.g. `qrStepView: catalog ➔ checkout`) must immediately and programmatically reset the scroll container to `top: 0`.
-
 ### Rule 12: Apple HIG & Nielsen Norman Microcopy & Interaction Standard
 - **Action Button Microcopy (Verb-First & Zero-Parentheses Invariant)**: Every interactive button and CTA must strictly use direct, concise, action-oriented verbs (e.g. `+ Tambah Menu Lainnya`, `Kirim Pesanan ke Dapur ➔`, `Bayar Sekarang ➔`). **Cramming conversational explanations or navigation hints inside parentheses `(...)` in button labels is strictly forbidden.** Secondary explanations belong in helper text, informational cards, or pill badges above the button.
 - **Multi-Language (i18n) Purity Invariant**: Hardcoding raw UI strings directly in JSX without localization binding is strictly prohibited. All customer and cashier facing buttons, headers, error states, and legal warnings **MUST** be bound through `useTranslation()` (`t.*`) in `src/i18n/translations.ts`.
 - **Touch Target & Ergonomics (Apple HIG 44px)**: All primary interactive targets must maintain a minimum height/width of 44px with `touch-manipulation` and tactile active scale transitions (`active:scale-[0.98]`).
+
+### Rule 13: Mandatory Live Browser Inspection & Multi-Device Switcher Protocol
+- **Active Browser Multi-Device Switching**: Contributors and agents must directly inspect the live UI across all primary hardware viewport modes before finalizing delivery:
+  - **Compact Mobile (360px – 390px)**: Audit iPhone SE & compact screens for zero text truncation, zero button overflow, flat header bottoms, and sticky floating cart visibility.
+  - **Tablet Portrait (768px)**: Audit 2/3 column layout and touch drawer expansion.
+  - **Tablet Landscape / Desktop (1024px – 1440px)**: Audit responsive grid, dual-pane POS workstation layout (catalog left + cart right), and absence of mobile floating overlays.
+- **Dual-Port Validation (Port 5173 vs Port 4173)**: All UI workflows must be validated on both **Port 5173 (DevMode simulated canvas)** and **Port 4173 (Vite standalone production preview)** to ensure zero discrepancy between simulator frames and native responsive viewports.
+- **Automated Runtime Verification**: Directly inspect DOM computed dimensions, scroll container hierarchy, and visual element bounds.
 
 ---
 
@@ -109,7 +114,9 @@ It binds all contributors, automated coding agents, and subagents operating on `
 | Data Authority | 3-Tier Upstream Resolution Gate | Peer Review & Precedence Audit |
 | Multi-Device Stress | 360px - 1280px zero clipping | Step 2 Multi-Point Self-Audit |
 | Apple HIG / NN/g Microcopy | Zero-parentheses CTAs & 100% i18n | Lint & UI Heuristic Audit |
+| Browser Device Switch Inspection | Dual-port 5173 & 4173 validation across 360px–1440px | Pre-Delivery Browser Inspection Gate |
 | Local CI | `0` exit code | `./scripts/ci-local.sh` |
+
 
 
 

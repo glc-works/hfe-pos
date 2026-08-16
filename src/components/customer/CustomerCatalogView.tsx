@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Plus, RotateCcw, Search, X, Sparkles } from 'lucide-react'
+import { Plus, Minus, RotateCcw, Search, X, Sparkles } from 'lucide-react'
 import { MenuItem, CafeThemeConfig, HfeCompanyProfile, CartItem, OrderTicket } from '../../types/pos'
 import { getCategoryIcon } from './CustomerHeader'
 
@@ -19,6 +19,7 @@ export interface CustomerCatalogViewProps {
   setShowReservationModal: (show: boolean) => void
   handleReorderSameItem: (item: MenuItem) => void
   handleAddToCart: (item: MenuItem) => void
+  handleUpdateQty?: (index: number, newQty: number) => void
   onOpenModifierSheet?: (item: MenuItem) => void
   setQrStepView: (step: 'catalog' | 'checkout') => void
   categoryRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>
@@ -29,11 +30,13 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
   activeTheme,
   priceVisibilityMode,
   customerAppDisplayMode,
+  cart,
   previousOrders,
   searchQuery,
   setSearchQuery,
   handleReorderSameItem,
   handleAddToCart,
+  handleUpdateQty,
   onOpenModifierSheet,
   categoryRefs
 }) => {
@@ -50,7 +53,7 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
     return productCatalog.filter(
       item =>
         item.name.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
         item.category.toLowerCase().includes(q)
     )
   }, [productCatalog, searchQuery])
@@ -84,87 +87,162 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
 
   const renderProductList = (items: MenuItem[]) => (
     <div className="grid grid-cols-1 gap-3">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className="theme-customer-card p-3.5 flex gap-3.5 transition-all shadow-sm hover:shadow-md rounded-2xl border"
-          style={{ borderColor: cardBorderColor, backgroundColor: activeTheme.cardBgHex }}
-        >
-          <img
-            src={item.image}
-            alt={item.name}
-            loading="lazy"
-            className="w-20 h-20 rounded-xl object-cover border shrink-0 shadow-inner"
-            style={{ borderColor: cardBorderColor }}
-          />
-          <div className="flex-1 flex flex-col justify-between min-w-0">
-            <div>
-              <div className="flex items-center justify-between gap-2 min-w-0">
-                <h4
-                  className="font-bold text-sm truncate tracking-tight"
-                  style={{ color: textColor }}
+      {items.map((item) => {
+        const cartItemIndex = cart.findIndex((c) => c.id === item.id || c.name === item.name)
+        const cartQty = cart
+          .filter((c) => c.id === item.id || c.name === item.name)
+          .reduce((sum, c) => sum + c.quantity, 0)
+
+        return (
+          <div
+            key={item.id}
+            className={`theme-customer-card p-3.5 flex gap-3.5 transition-all shadow-sm hover:shadow-md rounded-2xl border ${
+              cartQty > 0 ? 'ring-1 ring-emerald-500/40' : ''
+            }`}
+            style={{ borderColor: cardBorderColor, backgroundColor: activeTheme.cardBgHex }}
+          >
+            {/* PRODUCT IMAGE WITH FLOATING CART COUNT BADGE */}
+            <div className="relative shrink-0">
+              <img
+                src={item.image}
+                alt={item.name}
+                loading="lazy"
+                className="w-20 h-20 rounded-xl object-cover border shrink-0 shadow-inner"
+                style={{ borderColor: cardBorderColor }}
+              />
+              {cartQty > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-1.5 text-[10px] font-mono font-black px-2 py-0.5 rounded-full shadow-lg border animate-scaleIn flex items-center gap-0.5"
+                  style={{
+                    backgroundColor: '#10b981',
+                    color: '#020617',
+                    borderColor: '#6ee7b7'
+                  }}
+                  title={`${cartQty} porsi sudah ada di keranjang`}
                 >
-                  {item.name}
-                </h4>
-                {priceVisibilityMode === 'show_prices' ? (
-                  <span
-                    className="text-xs font-bold font-mono whitespace-nowrap shrink-0"
-                    style={{ color: activeTheme.primaryAccentHex }}
-                  >
-                    Rp {item.price.toLocaleString('id-ID')}
-                  </span>
-                ) : (
-                  <span
-                    className="text-[10px] font-bold font-mono px-2 py-0.5 rounded border whitespace-nowrap shrink-0"
-                    style={{ color: secondaryTextColor, borderColor: cardBorderColor }}
-                  >
-                    🏷️ Kontak Barista
-                  </span>
-                )}
-              </div>
-              <p
-                className="text-[11px] line-clamp-1 mt-0.5 leading-relaxed"
-                style={{ color: secondaryTextColor }}
-              >
-                {item.description}
-              </p>
-            </div>
-            <div className="flex items-center justify-end gap-2 mt-2">
-              {customerAppDisplayMode === 'full_ordering' ? (
-                <>
-                  {hasPreviousOrders && (
-                    <button
-                      type="button"
-                      onClick={() => handleReorderSameItem(item)}
-                      className="hover:opacity-80 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border transition-all touch-manipulation"
-                      style={{ color: textColor, borderColor: cardBorderColor }}
-                    >
-                      <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (shouldOpenItemModifierModal(item) && onOpenModifierSheet) {
-                        onOpenModifierSheet(item)
-                      } else {
-                        handleAddToCart(item)
-                      }
-                    }}
-                    className="theme-customer-btn-primary text-xs font-bold px-3.5 py-1.5 rounded-xl flex items-center gap-1 shadow-sm hover:shadow transition-all whitespace-nowrap shrink-0 touch-manipulation active:scale-[0.98]"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Tambah
-                  </button>
-                </>
-              ) : (
-                <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 font-bold whitespace-nowrap shrink-0">
-                  📖 Buku Menu (View Only)
+                  {cartQty}x
                 </span>
               )}
             </div>
+            <div className="flex-1 flex flex-col justify-between min-w-0">
+              <div>
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <h4
+                    className="font-bold text-sm truncate tracking-tight"
+                    style={{ color: textColor }}
+                  >
+                    {item.name}
+                  </h4>
+                  {priceVisibilityMode === 'show_prices' ? (
+                    <span
+                      className="text-xs font-bold font-mono whitespace-nowrap shrink-0"
+                      style={{ color: activeTheme.primaryAccentHex }}
+                    >
+                      Rp {item.price.toLocaleString('id-ID')}
+                    </span>
+                  ) : (
+                    <span
+                      className="text-[10px] font-bold font-mono px-2 py-0.5 rounded border whitespace-nowrap shrink-0"
+                      style={{ color: secondaryTextColor, borderColor: cardBorderColor }}
+                    >
+                      🏷️ Kontak Barista
+                    </span>
+                  )}
+                </div>
+                <p
+                  className="text-[11px] line-clamp-1 mt-0.5 leading-relaxed"
+                  style={{ color: secondaryTextColor }}
+                >
+                  {item.description}
+                </p>
+              </div>
+              <div className="flex items-center justify-end gap-2 mt-2">
+                {customerAppDisplayMode === 'full_ordering' ? (
+                  <div className="flex items-center gap-2">
+                    {hasPreviousOrders && (
+                      <button
+                        type="button"
+                        onClick={() => handleReorderSameItem(item)}
+                        className="hover:opacity-80 text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 border transition-all touch-manipulation"
+                        style={{ color: textColor, borderColor: cardBorderColor }}
+                      >
+                        <RotateCcw className="w-3 h-3 text-slate-400" /> Re-Order
+                      </button>
+                    )}
+                    {cartQty > 0 ? (
+                      <div
+                        className="flex items-center rounded-xl p-0.5 shadow-sm border"
+                        style={{
+                          backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                          borderColor: cardBorderColor
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (handleUpdateQty && cartItemIndex >= 0) {
+                              handleUpdateQty(cartItemIndex, cartQty - 1)
+                            }
+                          }}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center font-black active:scale-95 transition-all shadow-sm"
+                          style={{
+                            backgroundColor: isLight ? '#ffffff' : '#1e293b',
+                            color: textColor
+                          }}
+                          title="Kurangi 1 porsi"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span
+                          className="px-2 font-mono font-black text-xs min-w-[24px] text-center"
+                          style={{ color: '#10b981' }}
+                        >
+                          {cartQty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (shouldOpenItemModifierModal(item) && onOpenModifierSheet) {
+                              onOpenModifierSheet(item)
+                            } else {
+                              handleAddToCart(item)
+                            }
+                          }}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center font-black active:scale-95 transition-all shadow text-slate-950"
+                          style={{
+                            backgroundColor: '#10b981'
+                          }}
+                          title="Tambah 1 porsi lagi"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (shouldOpenItemModifierModal(item) && onOpenModifierSheet) {
+                            onOpenModifierSheet(item)
+                          } else {
+                            handleAddToCart(item)
+                          }
+                        }}
+                        className="theme-customer-btn-primary text-xs font-bold px-3.5 py-1.5 rounded-xl flex items-center gap-1 shadow-sm hover:shadow transition-all whitespace-nowrap shrink-0 touch-manipulation active:scale-[0.98]"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Tambah
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 font-bold whitespace-nowrap shrink-0">
+                    📖 Buku Menu (View Only)
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 
