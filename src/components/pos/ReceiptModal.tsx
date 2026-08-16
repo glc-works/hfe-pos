@@ -1,0 +1,84 @@
+import React from 'react'
+import { X, Printer, Send, CheckCircle2, ShieldCheck, Share2 } from 'lucide-react'
+import { ReceiptData, formatThermalReceiptText } from '../../services/receiptPrinter'
+
+export interface ReceiptModalProps {
+  show: boolean
+  onClose: () => void
+  receiptData: ReceiptData | null
+  onSendWhatsAppReceipt?: (phone: string) => void
+}
+
+export const ReceiptModal: React.FC<ReceiptModalProps> = ({
+  show,
+  onClose,
+  receiptData,
+  onSendWhatsAppReceipt
+}) => {
+  if (!show || !receiptData) return null
+
+  const receiptText = formatThermalReceiptText(receiptData)
+
+  const handlePrintPhysical = () => {
+    window.print()
+  }
+
+  const handleWaShare = () => {
+    const defaultPhone = '6281298765432'
+    if (onSendWhatsAppReceipt) {
+      onSendWhatsAppReceipt(defaultPhone)
+    } else {
+      const waMsg = encodeURIComponent(`*STRUK PELUNASAN DIGITAL*\n${receiptText}`)
+      window.open(`https://wa.me/${defaultPhone}?text=${waMsg}`, '_blank')
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-4 sm:p-6 flex flex-col gap-4 shadow-2xl animate-in zoom-in-95 duration-200">
+        
+        {/* HEADER MODAL */}
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <h3 className="text-sm font-bold text-white">Struk Pelunasan Pembayaran</h3>
+          </div>
+          <button type="button" onClick={onClose} className="p-1 text-slate-400 hover:text-white bg-slate-800 rounded-xl">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* PRINTER RECEIPT PREVIEW (58mm / 80mm Thermal Layout) */}
+        <div className="bg-white text-slate-950 font-mono text-[11px] p-4 rounded-2xl border border-slate-300 shadow-inner overflow-y-auto max-h-80 select-all leading-tight">
+          <pre className="whitespace-pre-wrap font-mono">{receiptText}</pre>
+        </div>
+
+        {/* HCB INTEGRITY BADGE */}
+        {receiptData.sha256Hash && (
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-2.5 flex items-center gap-2 text-emerald-400 text-xs">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <span className="truncate">Terverifikasi Jurnal HCB: <strong>{receiptData.sha256Hash.substring(0, 12)}...</strong></span>
+          </div>
+        )}
+
+        {/* BUTTON ACTIONS */}
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <button
+            type="button"
+            onClick={handleWaShare}
+            className="py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all"
+          >
+            <Send className="w-4 h-4 text-emerald-400" /> Kirim Struk WA
+          </button>
+          <button
+            type="button"
+            onClick={handlePrintPhysical}
+            className="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md"
+          >
+            <Printer className="w-4 h-4" /> Cetak Thermal (ESC/POS)
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

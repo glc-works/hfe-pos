@@ -1,6 +1,7 @@
 import React from 'react'
 import { HfeCompanyProfile, MenuItem } from '../../types/pos'
 import { X, CalendarCheck, Calendar, Clock, MapPin, Users, CreditCard, Coffee } from 'lucide-react'
+import { useMerchantConfig } from '../../context/MerchantConfigContext'
 
 interface ReservationModalProps {
   show: boolean
@@ -63,50 +64,66 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
   setResPreOrderItems,
   onCreateReservation
 }) => {
+  const { customerTheme } = useMerchantConfig()
+  const isLight = customerTheme.mode === 'light'
+  const textColor = customerTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
+  const secondaryTextColor = customerTheme.secondaryTextColorHex || (isLight ? '#64748b' : '#94a3b8')
+  const modalBg = isLight ? '#ffffff' : '#0f172a'
+  const cardBorder = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'
+  const subCardBg = isLight ? '#f8fafc' : 'rgba(2,6,23,0.7)'
+  const subCardBorder = isLight ? '#e2e8f0' : '#1e293b'
+  const inputBg = isLight ? '#ffffff' : '#020617'
+  const inputBorder = isLight ? '#cbd5e1' : '#334155'
+
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm sm:max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+      <div 
+        className="border rounded-3xl max-w-sm sm:max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-slideUp"
+        style={{ backgroundColor: modalBg, borderColor: cardBorder }}
+      >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg bg-slate-100 dark:bg-slate-800"
         >
           <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-3 border-b border-slate-800 pb-3 pr-6">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-            <CalendarCheck className="w-5 h-5 text-indigo-400" />
+        <div className="flex items-center gap-3 border-b pb-3 pr-6" style={{ borderColor: cardBorder }}>
+          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500">
+            <CalendarCheck className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Form Reservasi Meja Cafe</h3>
-            <p className="text-[11px] text-slate-400">{hfeCompanyProfile.brandName}</p>
+            <h3 className="text-base font-bold" style={{ color: textColor }}>Form Reservasi Meja Cafe</h3>
+            <p className="text-[11px]" style={{ color: secondaryTextColor }}>{hfeCompanyProfile.brandName}</p>
           </div>
         </div>
 
         {/* DATE & TIME SLOT PICKER */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-indigo-400" /> Tanggal Kunjungan:
+            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: textColor }}>
+              <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Tanggal Kunjungan:
             </label>
             <input
               type="date"
               value={resDate}
               onChange={(e) => setResDate(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl p-2.5 font-bold focus:outline-none focus:border-indigo-500"
+              className="text-xs rounded-xl p-2.5 font-bold focus:outline-none focus:border-indigo-500 border"
+              style={{ backgroundColor: inputBg, color: textColor, borderColor: inputBorder }}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-indigo-400" /> Slot Jam Kunjungan:
+            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: textColor }}>
+              <Clock className="w-3.5 h-3.5 text-indigo-500" /> Slot Jam Kunjungan:
             </label>
             <select
               value={resTimeSlot}
               onChange={(e) => setResTimeSlot(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+              className="font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500 border text-amber-500"
+              style={{ backgroundColor: inputBg, borderColor: inputBorder }}
             >
               <option value="11:00 WIB">11:00 WIB (Lunch)</option>
               <option value="13:00 WIB">13:00 WIB (Afternoon)</option>
@@ -120,13 +137,14 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
         {/* TABLE AREA & PAX COUNT */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-indigo-400" /> Area Tempat Duduk:
+            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: textColor }}>
+              <MapPin className="w-3.5 h-3.5 text-indigo-500" /> Area Tempat Duduk:
             </label>
             <select
               value={resArea}
               onChange={(e) => setResArea(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-200 font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+              className="font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500 border"
+              style={{ backgroundColor: inputBg, color: textColor, borderColor: inputBorder }}
             >
               <option value="Meja Dining Utama">Meja Dining Utama</option>
               <option value="Outdoor Garden (Smoking)">Outdoor Garden</option>
@@ -136,13 +154,14 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-indigo-400" /> Jumlah Tamu (Pax):
+            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: textColor }}>
+              <Users className="w-3.5 h-3.5 text-indigo-500" /> Jumlah Tamu (Pax):
             </label>
             <select
               value={resPax}
               onChange={(e) => setResPax(Number(e.target.value))}
-              className="bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500"
+              className="font-mono font-bold text-xs rounded-xl p-2.5 focus:outline-none focus:border-indigo-500 border text-amber-500"
+              style={{ backgroundColor: inputBg, borderColor: inputBorder }}
             >
               {[1, 2, 4, 6, 8, 10, 12].map(p => (
                 <option key={p} value={p}>{p} Orang Tamu</option>
@@ -153,46 +172,52 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
 
         {/* CONTACT INFO */}
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-slate-300">Data Diri Pemesan:</label>
+          <label className="text-xs font-semibold" style={{ color: textColor }}>Data Diri Pemesan:</label>
           <div className="grid grid-cols-2 gap-2">
             <input
               type="text"
               value={resCustomerName}
               onChange={(e) => setResCustomerName(e.target.value)}
               placeholder="Nama Pemesan (cth: Aldi)"
-              className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-semibold"
+              className="text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-semibold border"
+              style={{ backgroundColor: inputBg, color: textColor, borderColor: inputBorder }}
             />
             <input
               type="tel"
               value={resCustomerPhone}
               onChange={(e) => setResCustomerPhone(e.target.value)}
               placeholder="No WhatsApp"
-              className="bg-slate-950 border border-slate-800 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-mono"
+              className="text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 font-mono border"
+              style={{ backgroundColor: inputBg, color: textColor, borderColor: inputBorder }}
             />
           </div>
         </div>
 
         {/* SPECIAL REQUEST NOTES */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-300">Catatan Khusus (Acara/Permintaan Kursi):</label>
+          <label className="text-xs font-semibold" style={{ color: textColor }}>Catatan Khusus (Acara/Permintaan Kursi):</label>
           <input
             type="text"
             value={resNotes}
             onChange={(e) => setResNotes(e.target.value)}
             placeholder="cth: Acara Ulang Tahun / Baby Chair / Stop Kontak"
-            className="bg-slate-950 border border-slate-800 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500"
+            className="text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 border"
+            style={{ backgroundColor: inputBg, color: textColor, borderColor: inputBorder }}
           />
         </div>
 
         {/* PRE-ORDER MENU SECTION FOR RESERVATION */}
         {reservationOrderMode !== 'table_only' && (
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2.5">
+          <div 
+            className="border rounded-xl p-3 flex flex-col gap-2.5"
+            style={{ backgroundColor: subCardBg, borderColor: subCardBorder }}
+          >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+              <span className="text-xs font-bold text-amber-500 flex items-center gap-1.5">
                 <Coffee className="w-3.5 h-3.5 text-amber-500" /> Pre-Order Menu Specialty {reservationOrderMode === 'mandatory_order' ? '(Wajib Minimal 1 Item)' : '(Opsional)'}:
               </span>
               {resPreOrderItems.length > 0 && (
-                <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                <span className="text-[10px] font-mono text-emerald-500 font-bold">
                   Subtotal: Rp {resPreOrderItems.reduce((s, i) => s + (i.price * i.qty), 0).toLocaleString('id-ID')}
                 </span>
               )}
@@ -203,11 +228,15 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                 const existing = resPreOrderItems.find(i => i.itemId === item.id)
                 const qty = existing ? existing.qty : 0
                 return (
-                  <div key={item.id} className="bg-slate-900 p-2 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+                  <div 
+                    key={item.id} 
+                    className="p-2 rounded-lg border flex items-center justify-between text-xs"
+                    style={{ backgroundColor: modalBg, borderColor: subCardBorder }}
+                  >
                     <div>
-                      <span className="font-bold text-white text-[11px]">{item.name}</span>
+                      <span className="font-bold text-[11px]" style={{ color: textColor }}>{item.name}</span>
                       {priceVisibilityMode === 'show_prices' && (
-                        <p className="text-[10px] text-amber-400 font-mono">Rp {item.price.toLocaleString('id-ID')}</p>
+                        <p className="text-[10px] text-amber-500 font-mono">Rp {item.price.toLocaleString('id-ID')}</p>
                       )}
                     </div>
 
@@ -222,11 +251,12 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                                 setResPreOrderItems(prev => prev.map(i => i.itemId === item.id ? { ...i, qty: i.qty - 1 } : i))
                               }
                             }}
-                            className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center"
+                            className="w-5 h-5 rounded border font-bold text-xs flex items-center justify-center"
+                            style={{ backgroundColor: subCardBg, color: textColor, borderColor: subCardBorder }}
                           >
                             -
                           </button>
-                          <span className="font-mono font-bold text-xs text-white w-4 text-center">{qty}</span>
+                          <span className="font-mono font-bold text-xs w-4 text-center" style={{ color: textColor }}>{qty}</span>
                           <button
                             onClick={() => setResPreOrderItems(prev => prev.map(i => i.itemId === item.id ? { ...i, qty: i.qty + 1 } : i))}
                             className="w-5 h-5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center"
@@ -237,7 +267,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                       ) : (
                         <button
                           onClick={() => setResPreOrderItems(prev => [...prev, { itemId: item.id, name: item.name, price: item.price, qty: 1 }])}
-                          className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded-md"
+                          className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 border border-amber-500/30 text-[10px] font-bold px-2 py-1 rounded-md"
                         >
                           + Tambah
                         </button>
@@ -252,20 +282,23 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
 
         {/* DOWN PAYMENT COMMITMENT SECTION */}
         {dpRequiredMode && (
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+          <div 
+            className="border rounded-xl p-3 flex flex-col gap-2"
+            style={{ backgroundColor: subCardBg, borderColor: subCardBorder }}
+          >
             <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-amber-400 flex items-center gap-1">
+              <span className="font-semibold text-amber-500 flex items-center gap-1">
                 <CreditCard className="w-3.5 h-3.5 text-amber-500" /> Down Payment (DP Commitment):
               </span>
-              <span className="font-mono font-bold text-amber-300">Rp {dpAmountConfig.toLocaleString('id-ID')}</span>
+              <span className="font-mono font-bold text-amber-500">Rp {dpAmountConfig.toLocaleString('id-ID')}</span>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 pt-1">
+            <label className="flex items-center gap-2 cursor-pointer text-xs pt-1" style={{ color: textColor }}>
               <input
                 type="checkbox"
                 checked={resPayDpNow}
                 onChange={(e) => setResPayDpNow(e.target.checked)}
-                className="rounded bg-slate-900 border-slate-800 text-indigo-500 focus:ring-0"
+                className="rounded text-indigo-500 focus:ring-0"
               />
               <span>Bayar DP Commitment Sekarang via QRIS (Deposit HFE)</span>
             </label>
@@ -273,7 +306,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
         )}
 
         {/* APPROVAL POLICY NOTICE */}
-        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-2.5 text-[11px] text-indigo-300 flex items-center gap-2">
+        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-2.5 text-[11px] text-indigo-500 flex items-center gap-2">
           <span className="text-base">ℹ️</span>
           <span>
             Kebijakan Kafe: <b>{reservationPolicyMode === 'instant' ? '⚡ Instant Reserve (Langsung Disetujui)' : '⏳ Perlu Konfirmasi Admin/Kasir'}</b>.
@@ -282,7 +315,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
 
         <button
           onClick={onCreateReservation}
-          className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-3 rounded-xl shadow-lg mt-1 flex items-center justify-center gap-2"
+          className="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-3 rounded-xl shadow-lg mt-1 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
         >
           <CalendarCheck className="w-4 h-4 text-white" /> Kirim Permohonan Reservasi Meja ➔
         </button>

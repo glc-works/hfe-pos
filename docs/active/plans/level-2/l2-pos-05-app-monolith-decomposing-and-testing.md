@@ -31,11 +31,16 @@ Decomposes the 4,299-line monolithic `src/App.tsx` into clean, maintainable doma
 - `src/hooks/useHfeSync.ts` — Hfe Core Company Book sync status, multi-branch outlet state, and offline IndexedDB buffer listener.
 
 ### Phase C: Hfe REST API Transport Layer (`src/services/hfeApi.ts`)
-- Implement typed API client targeting `Hfe` Core endpoints (`http://localhost:8080/v1/company-books/{book}/...`):
-  - `fetchProductCatalog(bookId: string)` ➔ `GET /v1/company-books/{book}/products`
-  - `submitCheckoutTransaction(payload: CheckoutPayload)` ➔ `POST /v1/company-books/{book}/transactions`
-  - Client-side UUID generator for mandatory `X-Idempotency-Key` headers on all transaction POSTs.
-  - Graceful fallback to local mock data & IndexedDB buffer when Hfe API is offline.
+- Implement typed API client targeting `Hfe` Core endpoints strictly per [`POS-API-MAPPING.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/standards/POS-API-MAPPING.md):
+  - Table Resolution: `GET /v1/company-books/{book}/tables/{id}`
+  - Contact Resolution: `POST /v1/company-books/{book}/contacts/resolve`
+  - Product Catalog: `GET /v1/company-books/{book}/products`
+  - Transaction Submission: `POST /v1/company-books/{book}/transactions`
+  - Loyalty Check & Claim: `GET /v1/company-books/{book}/contacts/{id}/loyalty` and `POST /v1/loyalty/vouchers/claim`
+  - QRIS Generation: `POST /v1/company-books/{book}/payments/qris/generate`
+  - KDS Status Bump: `PATCH /v1/company-books/{book}/kds/orders/{order_id}/bump`
+- Client-side UUID v4 generator for mandatory `X-Idempotency-Key` headers on all transaction POSTs.
+- Graceful fallback to local mock data & IndexedDB buffer when Hfe API is offline.
 
 ### Phase D: Automated Test Harness (`Vitest`)
 - Add `vitest` and `@testing-library/react` to `package.json`.
