@@ -273,8 +273,8 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
               <div
                 key={table.id}
                 onClick={() => handleTableClick(table)}
-                className={`${slotSpanClass} border rounded-2xl p-2.5 flex flex-col justify-center gap-1.5 ${
-                  isCompact ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[110px] sm:min-h-[118px]'
+                className={`${slotSpanClass} border rounded-2xl p-2.5 flex flex-col justify-between gap-1 ${
+                  isCompact ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[104px] sm:min-h-[110px]'
                 } transition-all cursor-pointer relative overflow-hidden group ${
                   selectedPOSTable?.id === table.id
                     ? 'ring-2 ring-indigo-500 bg-indigo-500/20 border-indigo-500 shadow-lg'
@@ -356,58 +356,56 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
                       {/* ROW 1: HEADER (ID LEFT • UTILISATION CENTER • TIMER RIGHT) */}
                       <div className="flex items-center justify-between gap-1 min-w-0">
                         <div className="flex items-center gap-1.5 min-w-0 truncate">
-                          {isVip && <Crown className="w-4 h-4 text-amber-400 shrink-0" />}
-                          <span className="font-mono font-black text-sm sm:text-base text-white whitespace-nowrap">
+                          {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                          <span className="font-mono font-black text-xs sm:text-sm text-white whitespace-nowrap">
                             {isVip ? table.name : displayTableName}
                           </span>
-                          <span className="font-mono font-bold text-xs text-amber-300 shrink-0">
+                          <span className="font-mono font-bold text-[11px] text-amber-300 shrink-0">
                             👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
                           </span>
                         </div>
 
                         {/* RIGHT: TIMER */}
                         {table.seatedDurationMinutes ? (
-                          <div className={`flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                          <div className={`flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0 ${
                             table.seatedDurationMinutes > 40
                               ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                               : 'bg-slate-800 text-slate-300 border border-slate-700'
                           }`}>
-                            <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                            <Clock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
                             <span>{table.seatedDurationMinutes}m</span>
                           </div>
                         ) : null}
                       </div>
 
-                      {/* ROW 2: GUEST & MENU COUNT */}
-                      <div className="flex items-center justify-between gap-2 my-0.5 min-w-0">
-                        <span className="text-[11px] font-medium text-slate-200 truncate">
+                      {/* ROW 2: GUEST NAME & MENU GLYPH / VIP COMPACT PROGRESS */}
+                      <div className="flex items-center justify-between gap-1.5 min-w-0">
+                        <span className="text-[11px] font-medium text-slate-200 truncate flex-1 min-w-0">
                           {table.customerName || t.pos?.walkInGuest || (language === 'en' ? 'Walk-In' : 'Tamu Walk-In')}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded shrink-0">
-                          🍽️ {table.orderCount || 2} Menu
-                        </span>
+                        {minSpendProgress !== null ? (
+                          <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded shrink-0">
+                            👑 {minSpendProgress}%
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.2 rounded shrink-0">
+                            🍽️ {table.orderCount || 2}
+                          </span>
+                        )}
                       </div>
 
-                      {/* VIP MIN SPEND BAR (IF CONFIGURED) */}
-                      {minSpendProgress !== null && table.minSpend && (
-                        <div className="flex flex-col gap-1 my-0.5">
-                          <div className="flex items-center justify-between text-[9px] font-mono">
-                            <span className="text-amber-400/90 font-bold">
-                              👑 {minSpendProgress}% {minSpendShortfall > 0 ? `(Sisa ${formatPrice(minSpendShortfall)})` : '(Lolos)'}
-                            </span>
-                            <span className="text-slate-400">{formatPrice(table.minSpend)}</span>
-                          </div>
-                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-300 ${minSpendProgress >= 100 ? 'bg-emerald-400' : 'bg-amber-400'}`}
-                              style={{ width: `${Math.min(100, minSpendProgress)}%` }}
-                            />
-                          </div>
+                      {/* VIP INTEGRATED MICRO PROGRESS BAR (1px SLIM) */}
+                      {minSpendProgress !== null && (
+                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden -my-0.5">
+                          <div
+                            className={`h-full transition-all duration-300 ${minSpendProgress >= 100 ? 'bg-emerald-400' : 'bg-amber-400'}`}
+                            style={{ width: `${Math.min(100, minSpendProgress)}%` }}
+                          />
                         </div>
                       )}
 
-                      {/* ROW 3: FOOTER (TICKET / DINE-IN • TOTAL PRICE) */}
-                      <div className="pt-1.5 border-t border-slate-800/60 flex items-center justify-between gap-2 min-w-0">
+                      {/* ROW 3: FOOTER (TICKET / DINE-IN • TOTAL PRICE TABULAR) */}
+                      <div className="pt-1 border-t border-slate-800/60 flex items-center justify-between gap-2 min-w-0">
                         <span className="text-[10px] font-mono text-slate-400 truncate">
                           {table.orderIds?.[0] || 'Dine-In'}
                         </span>
