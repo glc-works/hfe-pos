@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { X, Building2, FileText, CheckCircle2, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react'
+import { PriceTag } from '../../ui/PriceTag'
 
 export interface CorporateAccount {
   id: string
@@ -126,9 +127,9 @@ export const CorporateInvoiceModal: React.FC<CorporateInvoiceModalProps> = ({
                 <span>Term of Payment:</span>
                 <span className="text-indigo-300 font-bold">{selectedCorp.paymentTermDays} Hari (Net 30)</span>
               </div>
-              <div className="flex justify-between text-slate-400 pt-1 border-t border-slate-800">
+              <div className="flex justify-between items-center text-slate-400 pt-1 border-t border-slate-800">
                 <span>Total Tagihan Hari Ini:</span>
-                <span className="text-amber-400 font-black">Rp {totalAmount.toLocaleString('id-ID')}</span>
+                <PriceTag amount={totalAmount} variant="accent" size="sm" />
               </div>
             </div>
 
