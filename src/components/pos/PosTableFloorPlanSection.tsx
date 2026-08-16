@@ -173,7 +173,9 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     )
   }
 
-  // GRID & COMPACT VIEWS: PROPORTIONAL TETRIS MASTER GRID
+  // GRID & COMPACT VIEWS: SEPARATED SPATIAL ENGINES
+  const isCompact = viewMode === 'compact'
+
   const renderZoneCard = (group: typeof groupedZones[0]) => {
     const totalTables = group.tables.length
     const occupiedCount = group.tables.filter(t => t.status !== 'free').length
@@ -181,13 +183,15 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     const isSingleZoneView = activeZoneId !== 'all'
     const isVipZone = group.zone.id === 'vip-private'
 
-    // Proportional Container 2D Tetris Slot Span (Anti-Empty Space & Symmetric 3x2 Pairing):
-    // 6 tables (Outdoor/Indoor) -> col-span-3 row-span-2 h-full (3x2 tables = 6, pairs 3 + 3 = 6!)
-    // 4 tables (Poolside/Rooftop) -> col-span-4 row-span-1 (all 4 tables in 1 row)
-    // Tall VIP Zone (2 tables stacked) -> col-span-2 row-span-2 h-full
-    // (Result: Outdoor & Indoor pair 3+3=6 on Rows 1-2, VIP & Poolside/Rooftop pair 2+4=6 on Rows 3-4!)
-    let zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-6 lg:row-span-1'
-    if (!isSingleZoneView) {
+    // ZONE CONTAINER SPAN:
+    // A. Compact Mode (6-Slot Tetris Density):
+    //    6-table -> col-span-3 row-span-2 h-full (3+3=6)
+    //    4-table -> col-span-4 row-span-1
+    //    2-table / VIP -> col-span-2 row-span-2 h-full (2+4=6)
+    // B. Grid Mode (Spacious 4-Col Layout):
+    //    Each zone is full width (w-full), rendering tables across 4 generous columns!
+    let zoneSpanClass = 'w-full'
+    if (isCompact && !isSingleZoneView) {
       if (isVipZone || totalTables <= 2) {
         zoneSpanClass = 'col-span-1 sm:col-span-2 lg:col-span-2 lg:row-span-2 h-full'
       } else if (totalTables === 3 || totalTables === 4) {
@@ -197,26 +201,26 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       }
     }
 
-    // Internal Table Cards Grid matching the container's allocated width:
-    let internalGridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-6'
-    if (isSingleZoneView) {
-      internalGridClass = viewMode === 'compact'
-        ? (isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6')
-        : (isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4')
-    } else if (isVipZone || totalTables <= 2) {
-      // In VIP tall zone, tables stack vertically in 1 column (2 rows tall)
-      internalGridClass = 'grid-cols-1'
-    } else if (totalTables === 3 || totalTables === 4) {
-      internalGridClass = 'grid-cols-2 sm:grid-cols-4'
-    } else {
-      // 6-table zone: 3 columns x 2 rows = 6 tables (Zero empty cells!)
-      internalGridClass = 'grid-cols-2 sm:grid-cols-3'
+    // INTERNAL TABLE CARDS GRID:
+    // A. Grid Mode: Spacious 4-Column Layout (grid-cols-4)
+    // B. Compact Mode: Dense Tetris Internal Columns (3 cols, 4 cols, or 6 cols)
+    let internalGridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+    if (isCompact) {
+      if (isSingleZoneView) {
+        internalGridClass = isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6'
+      } else if (isVipZone || totalTables <= 2) {
+        internalGridClass = 'grid-cols-1'
+      } else if (totalTables === 3 || totalTables === 4) {
+        internalGridClass = 'grid-cols-2 sm:grid-cols-4'
+      } else {
+        internalGridClass = 'grid-cols-2 sm:grid-cols-3'
+      }
     }
 
     return (
       <div
         key={group.zone.id}
-        className={`${zoneSpanClass} bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 flex flex-col justify-between gap-2.5 shadow-sm`}
+        className={`${zoneSpanClass} bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between gap-2.5 shadow-sm`}
       >
         {/* ZONE MICRO-HEADER WITH METRICS (CLEAN 1-ROW DEFENSIVE TRUNCATION) */}
         <div className="flex items-center justify-between gap-2 px-1 min-w-0">
@@ -242,8 +246,8 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
           </div>
         </div>
 
-        {/* PROPORTIONALLY PACKED FIXED-SLOT TABLE CARDS GRID */}
-        <div className={`grid gap-2 sm:gap-2.5 ${internalGridClass}`}>
+        {/* TABLE CARDS GRID */}
+        <div className={`grid gap-2.5 sm:gap-3 ${internalGridClass}`}>
           {group.tables.map((table) => {
             const isUnpaid = (table.status === 'open-tab' || table.status === 'occupied') && table.totalBill > 0
             const isPaid = table.customerName?.includes('(Lunas)') || (table.status === 'occupied' && table.totalBill === 0)
@@ -258,23 +262,20 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
 
             // Simplified clean table number for display
             const displayTableName = table.name.replace(/^(OUT|IND|POOL|ROOF)-/i, '')
-            const isCompact = viewMode === 'compact'
 
             // Fixed-Slot Allocation:
             // Standard Table: 1 Slot
-            // VIP Table: 2 Slots (Full width on compact mobile, 2 slots on tablet/desktop)
+            // VIP Table: 2 Slots in Grid View (spacious 2-column) or Compact Mobile
             const slotSpanClass = isVip
-              ? (isCompact
-                  ? 'col-span-2'
-                  : 'col-span-1 sm:col-span-2')
+              ? (isCompact ? (isMobile ? 'col-span-2' : 'col-span-1') : 'col-span-1 sm:col-span-2')
               : 'col-span-1'
 
             return (
               <div
                 key={table.id}
                 onClick={() => handleTableClick(table)}
-                className={`${slotSpanClass} border rounded-2xl p-2.5 flex flex-col justify-between gap-1 ${
-                  isCompact ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[104px] sm:min-h-[110px]'
+                className={`${slotSpanClass} border rounded-2xl p-3 flex flex-col justify-between gap-1.5 ${
+                  isCompact ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[114px] sm:min-h-[122px]'
                 } transition-all cursor-pointer relative overflow-hidden group ${
                   selectedPOSTable?.id === table.id
                     ? 'ring-2 ring-indigo-500 bg-indigo-500/20 border-indigo-500 shadow-lg'
@@ -447,8 +448,12 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     )
   }
 
-  return (
+  return isCompact ? (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pb-20 grid-flow-dense items-start">
+      {groupedZones.map(renderZoneCard)}
+    </div>
+  ) : (
+    <div className="flex flex-col gap-3.5 pb-20">
       {groupedZones.map(renderZoneCard)}
     </div>
   )

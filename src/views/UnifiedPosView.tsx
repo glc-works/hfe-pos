@@ -88,7 +88,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
 
   const [reassignFromTable, setReassignFromTable] = useState('OUT-04')
   const [reassignTargetTable, setReassignTargetTable] = useState('IND-01')
-  const [viewMode, setViewMode] = useState<'grid' | 'compact' | 'list'>('compact')
+  const [viewMode, setViewMode] = useState<'grid' | 'compact' | 'list'>('grid')
   const [pinnedItemIds, setPinnedItemIds] = useState<string[]>(() => productCatalog.slice(0, 12).map((i) => i.id))
   const pinnedFavorites = useMemo(() => productCatalog.filter((item) => pinnedItemIds.includes(item.id)), [productCatalog, pinnedItemIds])
 
