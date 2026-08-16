@@ -127,6 +127,7 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
 
 ## Agent Budget & Verification
 
+- **Branch Naming Standard:** Use `agy/<tier>-<issue>-<slug>` branches (e.g. `agy/s-51-unified-wave-upgrade`). New branches start from the declared remote base, never an unchecked local `main`.
 - `XS`: <10k tokens, `S`: 10-30k tokens, `M`: 30-75k tokens, `L`: 75-150k tokens.
 - Verification evidence requires explicit test outputs, console checks, and visual proof before declaring victory.
 
