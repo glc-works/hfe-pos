@@ -342,18 +342,18 @@ export const INITIAL_TABLES: TableInfo[] = [
   { id: 'TBL-IND-05', name: 'IND-05', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'indoor-ac', pax: 6, maxCapacity: 6 },
   { id: 'TBL-IND-06', name: 'IND-06', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'indoor-ac', pax: 8, maxCapacity: 8 },
 
-  // 👑 VIP Private Rooms (VIP-01 .. VIP-02 with min spend Rp 2.500.000)
-  { id: 'TBL-VIP-01', name: 'VIP-01', status: 'occupied', customerName: 'Drs. H. Bambang Soeprapto', totalBill: 1850000, orderCount: 5, orderIds: ['ORD-VIP-01'], zoneId: 'vip-private', minSpend: 2500000, seatedDurationMinutes: 75, pax: 10, maxCapacity: 10, seatedGuests: 8 },
-  { id: 'TBL-VIP-02', name: 'VIP-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'vip-private', minSpend: 2500000, pax: 12, maxCapacity: 12 },
+  // 👑 VIP Private Rooms (VIP-01 .. VIP-02 with min spend Rp 2.500.000.000)
+  { id: 'TBL-VIP-01', name: 'VIP-01', status: 'occupied', customerName: 'Drs. H. Bambang Soeprapto', totalBill: 1850000000, orderCount: 5, orderIds: ['ORD-VIP-01'], zoneId: 'vip-private', minSpend: 2500000000, seatedDurationMinutes: 75, pax: 10, maxCapacity: 10, seatedGuests: 8 },
+  { id: 'TBL-VIP-02', name: 'VIP-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'vip-private', minSpend: 2500000000, pax: 12, maxCapacity: 12 },
 
   // 🏊 Poolside Cabana Zone (POOL-01 .. POOL-04)
-  { id: 'TBL-POOL-01', name: 'POOL-01', status: 'occupied', customerName: 'Jessica Wong (Cabana)', totalBill: 245000, orderCount: 3, orderIds: ['ORD-POOL-01'], zoneId: 'poolside-cabana', seatedDurationMinutes: 30, pax: 4, maxCapacity: 4, seatedGuests: 2 },
+  { id: 'TBL-POOL-01', name: 'POOL-01', status: 'occupied', customerName: 'Jessica Wong (Cabana)', totalBill: 24500000, orderCount: 3, orderIds: ['ORD-POOL-01'], zoneId: 'poolside-cabana', seatedDurationMinutes: 30, pax: 4, maxCapacity: 4, seatedGuests: 2 },
   { id: 'TBL-POOL-02', name: 'POOL-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'poolside-cabana', pax: 4, maxCapacity: 4 },
   { id: 'TBL-POOL-03', name: 'POOL-03', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'poolside-cabana', pax: 4, maxCapacity: 4 },
   { id: 'TBL-POOL-04', name: 'POOL-04', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'poolside-cabana', pax: 6, maxCapacity: 6 },
 
   // 🍸 Rooftop Sky Bar Zone (ROOF-01 .. ROOF-04)
-  { id: 'TBL-ROOF-01', name: 'ROOF-01', status: 'occupied', customerName: 'Kevin Sanjaya (Sunset)', totalBill: 480000, orderCount: 4, orderIds: ['ORD-ROOF-01'], zoneId: 'rooftop-skybar', seatedDurationMinutes: 50, pax: 4, maxCapacity: 4, seatedGuests: 3 },
+  { id: 'TBL-ROOF-01', name: 'ROOF-01', status: 'occupied', customerName: 'Kevin Sanjaya (Sunset)', totalBill: 48000000, orderCount: 4, orderIds: ['ORD-ROOF-01'], zoneId: 'rooftop-skybar', seatedDurationMinutes: 50, pax: 4, maxCapacity: 4, seatedGuests: 3 },
   { id: 'TBL-ROOF-02', name: 'ROOF-02', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'rooftop-skybar', pax: 2, maxCapacity: 2 },
   { id: 'TBL-ROOF-03', name: 'ROOF-03', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'rooftop-skybar', pax: 4, maxCapacity: 4 },
   { id: 'TBL-ROOF-04', name: 'ROOF-04', status: 'free', totalBill: 0, orderCount: 0, orderIds: [], zoneId: 'rooftop-skybar', pax: 6, maxCapacity: 6 }

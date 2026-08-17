@@ -66,10 +66,10 @@ describe('L2-POS-45 Module A: Multi-Zone Property Table & Dynamic Custom Naming 
   it('calculates VIP minimum spend progress and threshold completion accurately', () => {
     const vipTable = INITIAL_TABLES.find((t) => t.id === 'TBL-VIP-01')
     expect(vipTable).toBeDefined()
-    expect(vipTable?.minSpend).toBe(2500000)
-    expect(vipTable?.totalBill).toBe(1850000)
+    expect(vipTable?.minSpend).toBe(2500000000)
+    expect(vipTable?.totalBill).toBe(1850000000)
 
-    const minSpend = vipTable?.minSpend || 2500000
+    const minSpend = vipTable?.minSpend || 2500000000
     const currentBill = vipTable?.totalBill || 0
     const progressPercent = Math.min(100, Math.round((currentBill / minSpend) * 100))
     const isMinSpendMet = currentBill >= minSpend
@@ -78,12 +78,12 @@ describe('L2-POS-45 Module A: Multi-Zone Property Table & Dynamic Custom Naming 
     expect(isMinSpendMet).toBe(false)
 
     // When VIP guest adds more items exceeding min spend
-    const additionalBill = 800000
+    const additionalBill = 800000000
     const updatedBill = currentBill + additionalBill
     const updatedProgress = Math.min(100, Math.round((updatedBill / minSpend) * 100))
     const updatedIsMet = updatedBill >= minSpend
 
-    expect(updatedBill).toBe(2650000)
+    expect(updatedBill).toBe(2650000000)
     expect(updatedProgress).toBe(100)
     expect(updatedIsMet).toBe(true)
   })
