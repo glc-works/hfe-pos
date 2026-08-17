@@ -154,9 +154,11 @@ To ensure complete mathematical synergy with our 2-digit segmented naming conven
 
 - **Backend Repository (`headless-company-books`)**:
   - Contains **Produk 1 (HFE Core Engine)**.
+  - **Single Source of Truth (SSOT)** for all Canonical Master Business Scenarios (`docs/active/scenarios/`).
   - Master Orchestrator: `python3 scripts/hfe-rad0.py`
 - **Frontend Repository (`hfe-pos`)**:
   - Contains **HFE-X Platform (Produk 2..5: POS, ORDER, BOARD, CARD + Rebuilt BOOK)**.
+  - Contains Thin Markdown Pointer Stubs and Frontend-Specific UI Interaction Scenarios.
   - Master Orchestrator: `python3 scripts/hfex-rad0.py`
 
 ---
@@ -343,3 +345,9 @@ To prevent noisy, informal, or raw proprietary data from polluting the scenario 
 2. **Generalization & Persona Assignment**: Replaces private PII with canonical test entities (e.g. Nusantara Food Group).
 3. **4-Quadrant Parameterization**: Defines test cases across Empty (Q1), Short (Q2), Long/Billion IDR (Q3), and Partial/Multi-State (Q4).
 4. **Formal L2 Specification & Pairing**: Formats into standard YAML frontmatter and registers paired backend/frontend proofs.
+
+### 12.5 Single Source of Truth (SSOT) Scenario Repository Governance
+To eliminate stale documentation and dual-maintenance drift across repositories:
+1. **`headless-company-books` is the Sole Master SSOT**: All canonical scenario definitions, YAML frontmatters, and 360° pairing matrices are exclusively authored and maintained in `docs/active/scenarios/` of `headless-company-books`.
+2. **`hfe-pos` Uses Thin Markdown Links**: The scenario directory in `hfe-pos` contains lightweight pointers referencing the master scenarios in `headless-company-books` plus pure frontend UI interaction scenarios.
+3. **Automated Cross-Repo Parity Sentinel**: `python3 scripts/hfe-rad0.py` and `python3 scripts/hfex-rad0.py` automatically verify link resolution integrity (0 broken links).
