@@ -37,19 +37,27 @@ Sebelum menulis kode atau melakukan integrasi database, lakukan **Audit 4-Dimens
 
 ---
 
-## 🛍️ PILAR 2: PENERJEMAHAN KEMAMPUAN KE STORE (*App Store & Marketplace Authoring*)
+## 🛍️ PILAR 2: PENERJEMAHAN KEMAMPUAN KE STORE & PENDAFTARAN HUB (*App Store & Hub Registration*)
 
-Setiap konektor wajib memiliki entri katalog di Connect Hub Store (`src/components/core/hub/`):
+Setiap konektor wajib didaftarkan dan dipajang di Connect Hub Marketplace (`src/components/core/hub/`):
 
+### 1. Struktur Kartu Store yang Diturunkan dari API
 1. **Headline Proposisi Nilai**: Masalah bisnis utama yang diselesaikan.
 2. **Badge Kemampuan Nyata (*Derived Feature Badges*)**:
-   - `[⚡ Auto Bank Clearing]`: Jika API memiliki endpoint aturan bank.
-   - `[🔁 B2B Subscriptions]`: Jika API memiliki endpoint tagihan berulang.
-   - `[🏬 Multi-Branch Outlets]`: Jika API memiliki dimensi cabang/departemen.
-   - `[🎨 Custom PDF Branding]`: Jika API memiliki kustomisasi logo & tema faktur.
-   - `[🏭 Asset Depreciation]`: Jika API memiliki register aset tetap.
+   - `[⚡ Auto Bank Clearing]`: Jika API memiliki endpoint aturan bank (`/BankRules`).
+   - `[🔁 B2B Subscriptions]`: Jika API memiliki endpoint tagihan berulang (`/RepeatingInvoices`).
+   - `[🏬 Multi-Branch Outlets]`: Jika API memiliki dimensi cabang/departemen (`/TrackingCategories`).
+   - `[🎨 Custom PDF Branding]`: Jika API memiliki kustomisasi logo & tema faktur (`/BrandingThemes`).
+   - `[🏭 Asset Depreciation]`: Jika API memiliki register aset tetap (`/Assets`).
 3. **Kisah Use Case Bisnis**: Target profil merchant yang paling diuntungkan.
-4. **Izin Akses Minimal (*Least-Privilege Scopes*)**: Cantumkan hak akses RBAC minimum yang dibutuhkan (misal: `['ledger:post', 'accounts:read']`).
+4. **Izin Akses Minimal (*Least-Privilege Scopes*)**: Cantumkan hak akses RBAC minimum (misal: `['ledger:post', 'accounts:read']`).
+
+### 2. Checklist 5 Langkah Pendaftaran Konektor ke Connect Hub
+- [ ] **Langkah 1**: Tambahkan entri metadata konektor di `src/components/core/hub/connectorsData.ts` (slug, name, category, region, icon, summary, derivedBadges, requiredScopes).
+- [ ] **Langkah 2**: Daftarkan kolom input kredensial modal di `src/components/core/hub/ConnectorInstallModal.tsx` (ClientId, ClientSecret, ApiKey, WebhookSecret).
+- [ ] **Langkah 3**: Daftarkan webhook listener di `src/components/core/hub/WebhookRelayPanel.tsx` untuk pengujian tanda tangan HMAC-SHA256.
+- [ ] **Langkah 4**: Tambahkan slug konektor ke array `requiredSlugs` di `src/tests/connectorInstallModal.test.ts` sebagai pengawal anti-regresi.
+- [ ] **Langkah 5**: Jalankan `python3 scripts/hfex-rad0.py` untuk memvalidasi lolosnya Pilar 5 (*Connector Manifest Parity Gate*).
 
 ---
 
