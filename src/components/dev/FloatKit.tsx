@@ -180,6 +180,8 @@ export const FloatKit: React.FC<FloatKitProps> = ({
                     <div className="grid grid-cols-3 gap-1.5">
                       {[
                         { id: 'barista-pos', label: '🏪 Kasir' },
+                        { id: 'hfe-agent-town', label: '🎮 World.Hfeit' },
+                        { id: 'hfe-company-book', label: '📚 Books' },
                         { id: 'kds-screen', label: '🍳 Dapur' },
                         { id: 'checker-qc', label: '🔍 Checker' },
                         { id: 'server-waiter', label: '🍽️ Server' },

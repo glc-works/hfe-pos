@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Badge, Card } from '../../ui';
+import { useMerchantConfig } from '../../context/MerchantConfigContext';
+import { StaffSurfaceMode } from '../../types/pos';
 
 export type SimulationMode = 'none' | 'snapshot' | 'live';
 export type PlaybackSpeed = '1x' | '5x' | 'turbo';
@@ -10,6 +12,11 @@ interface ScenarioStep {
   actionDesc: string;
   targetPillar: string;
   highlightSelector?: string;
+}
+
+interface ScenarioPlayerWidgetProps {
+  activeStaffSurface?: StaffSurfaceMode;
+  setActiveStaffSurface?: (surface: StaffSurfaceMode) => void;
 }
 
 const MASTER_13_ACTS: ScenarioStep[] = [
@@ -28,7 +35,11 @@ const MASTER_13_ACTS: ScenarioStep[] = [
   { stepIndex: 13, actTitle: 'Act 13: Seed-to-Cup Conglomerate', actionDesc: 'Manufaktur BOM Roasting + Kebun Gayo 50 Ha PSAK 69', targetPillar: 'BOOK' },
 ];
 
-export const ScenarioPlayerWidget: React.FC = () => {
+export const ScenarioPlayerWidget: React.FC<ScenarioPlayerWidgetProps> = ({
+  activeStaffSurface,
+  setActiveStaffSurface,
+}) => {
+  const { activeApp, setActiveApp } = useMerchantConfig();
   const [isOpen, setIsOpen] = useState(false);
   const [activeMode, setActiveMode] = useState<SimulationMode>('live');
   const [speed, setSpeed] = useState<PlaybackSpeed>('5x');
@@ -125,6 +136,69 @@ export const ScenarioPlayerWidget: React.FC = () => {
                     {s}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* 1-Click Surface & App Switcher */}
+            <div className="space-y-1.5 pt-1">
+              <div className="text-[10px] text-slate-400 font-mono flex items-center justify-between">
+                <span>🌐 Ganti Layar / Surface:</span>
+                <span className="text-amber-400 font-bold">{activeApp?.toUpperCase()}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveApp('cafe');
+                    if (setActiveStaffSurface) setActiveStaffSurface('hfe-agent-town');
+                  }}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-left flex items-center gap-1.5 ${
+                    activeApp === 'cafe' && activeStaffSurface === 'hfe-agent-town'
+                      ? 'bg-amber-500 text-slate-950 shadow ring-2 ring-amber-400 font-black'
+                      : 'bg-slate-800/90 hover:bg-slate-700 text-amber-300'
+                  }`}
+                >
+                  <span>🎮</span> World.Hfeit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveApp('cafe');
+                    if (setActiveStaffSurface) setActiveStaffSurface('barista-pos');
+                  }}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-left flex items-center gap-1.5 ${
+                    activeApp === 'cafe' && activeStaffSurface !== 'hfe-agent-town' && activeStaffSurface !== 'hfe-company-book'
+                      ? 'bg-emerald-600 text-white shadow font-black'
+                      : 'bg-slate-800/90 hover:bg-slate-700 text-slate-200'
+                  }`}
+                >
+                  <span>☕</span> Kasir & POS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveApp('customer')}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-left flex items-center gap-1.5 ${
+                    activeApp === 'customer'
+                      ? 'bg-blue-600 text-white shadow font-black'
+                      : 'bg-slate-800/90 hover:bg-slate-700 text-slate-200'
+                  }`}
+                >
+                  <span>📱</span> Tamu QR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveApp('cafe');
+                    if (setActiveStaffSurface) setActiveStaffSurface('hfe-company-book');
+                  }}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-left flex items-center gap-1.5 ${
+                    activeApp === 'cafe' && activeStaffSurface === 'hfe-company-book'
+                      ? 'bg-purple-600 text-white shadow font-black'
+                      : 'bg-slate-800/90 hover:bg-slate-700 text-purple-300'
+                  }`}
+                >
+                  <span>📚</span> Company Books
+                </button>
               </div>
             </div>
 
