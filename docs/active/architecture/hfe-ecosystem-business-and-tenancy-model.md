@@ -163,7 +163,7 @@ To achieve our **Target 0 Downtime (99.999% SLA)** and dynamically scale nodes a
 
 ## 9. The Master End-to-End Lifecycle Scenario (`SCN-FULL-ECOSYSTEM-01`)
 
-The following real-world scenario connects all 6 products across both repositories and all 5 expansion stages:
+The following real-world scenario connects all 6 products across both repositories, the 5-stage expansion roadmap, and the complete Seed-to-Cup conglomerate journey:
 
 ### Act 1: Genesis & The Humble Food Cart (Produk 4: Hfeit BOARD)
 - **Actor**: Mas Budi launches a roadside coffee cart ("Warung Kopi Budi").
@@ -214,3 +214,10 @@ The following real-world scenario connects all 6 products across both repositori
 ### Act 12: Hong Kong Regional Hub & Greater Bay Cross-Border Trade (Stage 5)
 - **Event**: Establishment of **HFE IT Hong Kong Ltd.** to serve North Asia.
 - **Execution**: Integration with **HKMA Faster Payment System (FPS)** and IRD Profits Tax. HFE Core handles multi-currency cross-border trade settlements across HKD, SGD, MYR, IDR, and USD seamlessly with automatic intercompany eliminations.
+
+### Act 13: The "Seed-to-Cup" Conglomerate Evolution (Nusantara Coffee Group)
+This act demonstrates how a single tenant scales through the full multi-product, multi-company, and multi-country capability matrix:
+1. **Phase 1 (BSD Cafe - Merchant Suite on Singapore Node)**: Mas Budi opens a cafe in BSD using only the Merchant Suite (`POS`, `ORDER`, `CARD`). He does not use formal double-entry bookkeeping (`BOOK`) yet, tracking only daily cash shifts on Singapore Server Node `SIN-CELL-01`.
+2. **Phase 2 (Roasting Factory - The Aha! Moment & BOOK Activation)**: Budi builds a coffee roasting factory (PT Nusantara Sangrai) to supply his cafe and sell wholesale. Facing manufacturing complexity (green bean shrinkage, gas costs, wholesale receivables), Budi upgrades to **`BOOK`** (`Hfeit:BOARD,MERCHANT,CARD,BOOK`), unlocking Bill of Materials (BOM) inventory assembly and double-entry general ledger.
+3. **Phase 3 (Indonesian Data Sovereignty Mandate & Live Zero-Downtime Migration)**: Indonesian regulators (UU PDP / BI) mandate on-soil data residency. HFE commissions the Jakarta Server Node (`ap-southeast-3` / `JKT-CELL-01`). HFE Core executes a **Live Shard Dual-Write Migration** moving Budi's BSD Cafe and Roasting Factory books from Singapore to Jakarta with $<1\text{ms}$ atomic routing flip and 0 dropped cashier carts.
+4. **Phase 4 (Singapore Global Trading & 50-Ha Gayo Plantation)**: Budi incorporates **Nusantara Coffee Global Pte. Ltd.** in Singapore via Sleek (hosted on Singapore Node) for container exports to Tokyo/London, and acquires a **50-Ha Coffee Plantation in Gayo** (hosted on Jakarta Node under PSAK 69 Biological Asset Accounting). Budi manages his entire seed-to-cup empire across **POS, BOOK, 4 Companies, and 2 Countries** from a single HFE-X console!
