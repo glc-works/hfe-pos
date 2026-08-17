@@ -2,17 +2,7 @@
 
 const DEFAULT_BASE_URL = 'http://localhost:8080'
 
-export interface BarcodeLookupResponse {
-  barcode: string
-  productId: string
-  name: string
-  category: string
-  retailPrice: number
-  wholesalePrice: number
-  wholesaleMinQty: number
-  uom: 'Pcs' | 'Pack' | 'Karton' | 'Dus'
-  stockLevel: number
-}
+import { BarcodeLookupResponse, lookupBarcode } from './hfeCoreApi'
 
 export interface KasbonReceivablesResponse {
   contactId: string
@@ -78,73 +68,7 @@ export interface VipGuestHistory {
   lastVisitDate: string
 }
 
-/**
- * POST /v1/company-books/{book}/barcodes/lookup
- */
-export async function lookupBarcode(
-  barcodeString: string,
-  bookId: string = 'BOOK-CAFE-HQ-88',
-  baseUrl: string = DEFAULT_BASE_URL
-): Promise<BarcodeLookupResponse | null> {
-  try {
-    const res = await fetch(`${baseUrl}/v1/company-books/${bookId}/barcodes/lookup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ barcode: barcodeString })
-    })
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
-    return await res.json()
-  } catch {
-    // Mock barcode database lookup fallback
-    const MOCK_BARCODES: Record<string, BarcodeLookupResponse> = {
-      '8999901': {
-        barcode: '8999901',
-        productId: 'RET-001',
-        name: 'Minyak Goreng Rose Brand 1L',
-        category: 'Sembako',
-        retailPrice: 22000,
-        wholesalePrice: 19500,
-        wholesaleMinQty: 40,
-        uom: 'Karton',
-        stockLevel: 120
-      },
-      '8999902': {
-        barcode: '8999902',
-        productId: 'RET-002',
-        name: 'Beras Pandan Wangi 5kg',
-        category: 'Sembako',
-        retailPrice: 78000,
-        wholesalePrice: 72000,
-        wholesaleMinQty: 10,
-        uom: 'Pack',
-        stockLevel: 45
-      },
-      '8999903': {
-        barcode: '8999903',
-        productId: 'RET-003',
-        name: 'Gula Pasir Gulaku 1kg',
-        category: 'Sembako',
-        retailPrice: 17500,
-        wholesalePrice: 15800,
-        wholesaleMinQty: 24,
-        uom: 'Karton',
-        stockLevel: 80
-      },
-      '8999904': {
-        barcode: '8999904',
-        productId: 'RET-004',
-        name: 'Indomie Goreng Original 85g',
-        category: 'Mie Instant',
-        retailPrice: 3200,
-        wholesalePrice: 2850,
-        wholesaleMinQty: 40,
-        uom: 'Karton',
-        stockLevel: 400
-      }
-    }
-    return MOCK_BARCODES[barcodeString] || null
-  }
-}
+
 
 /**
  * GET /v1/company-books/{book}/contacts/{id}/receivables

@@ -8,10 +8,11 @@
   "icon": "🛒",
   "description": "Point of Sale & Retail Cashier Connector integrating cashier transactions, split biller fees, QRIS/VA settlement, and automated stock subledgers into Headless Company Books.",
   "permissions": [
-    "subledger.post_transaction",
-    "biller.create_split",
-    "tax.calculate_ppn",
-    "inventory.sync_stock"
+    "accounting.post",
+    "payments.process",
+    "inventory.read",
+    "contacts.manage",
+    "subledger.post_transaction"
   ],
   "monetization": {
     "pricing_model": "transaction_fee",
@@ -21,6 +22,7 @@
   "endpoints": {
     "checkout_settle": "/v1/pos/checkout",
     "shift_reconcile": "/v1/pos/shifts/reconcile",
-    "catalog_sync": "/v1/pos/products/sync"
+    "catalog_sync": "/v1/pos/products/sync",
+    "settlements_multi_tender": "/v1/company-books/{book}/settlements/multi-tender"
   }
 }

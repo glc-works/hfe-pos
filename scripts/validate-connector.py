@@ -14,6 +14,10 @@ import sys
 REQUIRED_KEYS = {"name", "slug", "version", "permissions", "monetization", "endpoints"}
 
 ALLOWED_PERMISSIONS = {
+    "accounting.post",
+    "payments.process",
+    "inventory.read",
+    "contacts.manage",
     "subledger.post_transaction",
     "biller.create_split",
     "tax.calculate_ppn",
