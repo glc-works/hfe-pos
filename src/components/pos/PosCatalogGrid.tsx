@@ -47,7 +47,7 @@ export const PosCatalogGrid: React.FC<PosCatalogGridProps> = ({
   onUpdateQty,
   viewMode = 'grid'
 }) => {
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
 
   return (
     <div className="flex flex-col gap-2.5 select-none">
@@ -60,7 +60,7 @@ export const PosCatalogGrid: React.FC<PosCatalogGridProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t.pos?.searchPlaceholder || 'Cari nama menu, kopi, pastry, atau SKU...'}
+            placeholder={language === 'en' ? 'Search menu name, coffee, pastry, or ID...' : 'Cari nama menu, kopi, pastry, atau ID...'}
             className="w-full pl-9 pr-8 py-2 bg-slate-950/80 border border-slate-800 focus:border-amber-500/60 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none transition-all font-medium"
           />
           {searchQuery && (
