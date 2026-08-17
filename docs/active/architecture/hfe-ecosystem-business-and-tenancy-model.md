@@ -311,3 +311,35 @@ graph TD
 - `--env local`: Runs against localhost (`http://127.0.0.1:8080`) for rapid pre-commit validation.
 - `--env staging`: Runs against real multi-region cloud infrastructure (`https://api.staging.hfeit.com`) across Singapore (`ap-southeast-1`) and Jakarta (`ap-southeast-3`) with real network latency and live failover tests.
 - `--env production`: Runs non-destructive synthetic canary audits in live production.
+
+---
+
+## 12. Hierarchical Scenario Tree, 360° Pairing Matrix, Smart Failure Caching & Curated Ingestion
+
+### 12.1 Arbitrary Depth Scenario Tree (L0 ──► L1 ──► L2 .. LN)
+All business scenarios live in `docs/active/scenarios/` following the 2-digit segmented lineage format (`01-01-01-slug.md`):
+- **`level-0/`**: Master Grand Ecosystem Lifecycles (`00-master-hfe-ecosystem-lifecycle.md`).
+- **`level-1/`**: Subsystem Domain Lifecycles (`01-01-fnb-o2o-retail-lifecycle.md`, `01-02-manufacturing-assembly-bom.md`).
+- **`level-2/`**: Executable Test Scenarios (`01-01-01-bsd-cafe-pos-offline-splitbill.md`).
+
+### 12.2 The 360-Degree Scenario-to-Test Pairing Matrix
+Every Level 2 scenario document explicitly binds its deterministic verification footprint in its YAML frontmatter:
+1. **Presets Injected**: `coa_template`, `business_policy`, `tax_profile`.
+2. **Public Endpoints Tested**: OpenAPI 3.1 operations.
+3. **Backend Proofs Required**: Ignored integration proofs.
+4. **Frontend Vitest Suites**: Component UI tests.
+5. **Invariant Assertion Gates**: Posting $Debits == Credits$, UUID isolation, DOM bounding-box overlap gates.
+
+### 12.3 Deterministic Incremental Failure Caching & Smart Re-Run (`--failed` / `-F`)
+The master runner maintains an execution state ledger in `.radar/e2e_state.json`. When a developer executes:
+```bash
+python3 scripts/e2e-master-runner.py --failed
+```
+The runner instantly skips all green scenarios and re-executes only previously failed scenarios in sub-second latency.
+
+### 12.4 The 4-Step Feedback Curation & Normalization Gate
+To prevent noisy, informal, or raw proprietary data from polluting the scenario repository, all real-world user feedback must pass the 4-step curation filter:
+1. **Domain Essence Extraction**: Strips emotional noise and extracts the underlying architectural invariant.
+2. **Generalization & Persona Assignment**: Replaces private PII with canonical test entities (e.g. Nusantara Food Group).
+3. **4-Quadrant Parameterization**: Defines test cases across Empty (Q1), Short (Q2), Long/Billion IDR (Q3), and Partial/Multi-State (Q4).
+4. **Formal L2 Specification & Pairing**: Formats into standard YAML frontmatter and registers paired backend/frontend proofs.
