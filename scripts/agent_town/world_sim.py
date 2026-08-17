@@ -88,13 +88,15 @@ class WorldSimulator:
         hours_mode: str = "default",
         drama_rate: float = 0.35,
         novel: bool = False,
-        seed: int = 42
+        seed: int = 42,
+        db_mode: str = "memory"
     ):
         self.days = days
         self.speed = speed
         self.hours_mode = hours_mode
         self.drama_rate = drama_rate
         self.novel = novel
+        self.db_mode = db_mode
         self.rng = random.Random(seed)
 
         self.open_hour, self.close_hour = 7, 22
@@ -230,6 +232,7 @@ class WorldSimulator:
             "speed": self.speed,
             "hours_mode": self.hours_mode,
             "drama_rate": self.drama_rate,
+            "db_mode": self.db_mode,
             "total_orders": self.total_orders,
             "total_revenue": self.total_revenue,
             "tax_collected": self.total_tax,
@@ -263,7 +266,9 @@ def print_cli_summary(t: Dict[str, Any]):
     print("\n" + "=" * 78)
     print(" 🏙️  WORLD.HFEIT — MASTER SIMULATION TELEMETRY")
     print("=" * 78)
+    db_label = "🗄️ PostgreSQL Live Database" if t.get('db_mode') == 'live' else "⚡ Hermetic In-Memory Sandbox"
     print(f" • Periode:             {t.get('days_simulated')} Hari (Mode Kecepatan: {t.get('speed', 'warp').upper()})")
+    print(f" • Database Target:     {db_label}")
     print(f" • Jam Operasional:     {t.get('hours_mode')} | Drama Rate: {t.get('drama_rate')}")
     print("-" * 78)
     print(" 📊 RINGKASAN KOMERSIAL:")
@@ -297,6 +302,7 @@ def main():
     parser.add_argument("--speed", choices=["slow", "fast", "warp"], default="warp", help="Speed: slow, fast, warp")
     parser.add_argument("--hours", type=str, default="default", help="Operating hours: default, 24h, or <open>-<close>")
     parser.add_argument("--drama-rate", type=float, default=0.35, help="Drama probability rate (0.0 to 1.0, default: 0.35)")
+    parser.add_argument("--db", choices=["memory", "live"], default="memory", help="Database backend: memory (fast in-memory) or live (PostgreSQL)")
     parser.add_argument("--novel", action="store_true", help="Print full literary narrative novel chapters with dialogues")
     parser.add_argument("--fuzz", action="store_true", help="Run Property-Based Fuzzer & Chaos Invariant Stress Test")
     parser.add_argument("--iterations", type=int, default=10000, help="Number of fuzzing iterations (default: 10000)")
@@ -318,7 +324,7 @@ def main():
             with open(STATE_FILE, "r", encoding="utf-8") as f:
                 telemetry = json.load(f)
         except Exception:
-            sim = WorldSimulator(days=args.days, speed=args.speed, hours_mode=args.hours, drama_rate=args.drama_rate, novel=args.novel)
+            sim = WorldSimulator(days=args.days, speed=args.speed, hours_mode=args.hours, drama_rate=args.drama_rate, novel=args.novel, db_mode=args.db)
             telemetry = sim.run()
     else:
         sim = WorldSimulator(
@@ -326,7 +332,8 @@ def main():
             speed=args.speed,
             hours_mode=args.hours,
             drama_rate=args.drama_rate,
-            novel=args.novel
+            novel=args.novel,
+            db_mode=args.db
         )
         telemetry = sim.run()
 

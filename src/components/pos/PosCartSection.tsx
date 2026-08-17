@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, Building2 } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
+import { useMerchantConfig } from '../../context/MerchantConfigContext'
+import { getCountryCashPresets } from '../../utils/countryCashDenominations'
 
 export interface PosCartSectionProps {
   cartItems: CartItem[]
@@ -38,7 +40,11 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   onOpenSplitPayment,
   onSwitchToCatalog
 }) => {
-  const { t, formatPrice } = useTranslation()
+  const { t, formatPrice, language } = useTranslation()
+  const { merchantTheme } = useMerchantConfig()
+  const currency = (merchantTheme as any)?.currency || (language === 'en' ? 'USD' : 'IDR')
+  const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'SGD' ? 'S$' : currency === 'MYR' ? 'RM' : currency === 'JPY' ? '¥' : 'Rp'
+  const cashPresets = getCountryCashPresets(grandTotal, currency, language)
   const cashGivenNum = parseFloat(posCashGiven) || 0
   const changeAmount = Math.max(0, cashGivenNum - grandTotal)
 
@@ -365,49 +371,28 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               >
                 {t.cart.exactCash}
               </button>
-              {(() => {
-                const dynamicPresets: string[] = []
-                if (!grandTotal || grandTotal <= 0) {
-                  dynamicPresets.push('20000', '50000', '100000', '200000')
-                } else {
-                  const set = new Set<number>()
-                  if (grandTotal % 10000 !== 0) set.add(Math.ceil(grandTotal / 10000) * 10000)
-                  if (grandTotal < 50000) set.add(50000)
-                  if (grandTotal < 100000) set.add(100000)
-                  if (grandTotal < 150000 && grandTotal > 50000) set.add(150000)
-                  if (grandTotal < 200000) set.add(200000)
-                  if (grandTotal < 500000 && grandTotal > 200000) set.add(500000)
-                  const sorted = Array.from(set).filter(n => n > grandTotal).sort((a, b) => a - b).slice(0, 4)
-                  dynamicPresets.push(...sorted.map(n => n.toString()))
-                }
-                while (dynamicPresets.length < 4) {
-                  dynamicPresets.push((grandTotal + 50000).toString())
-                }
-                return dynamicPresets.slice(0, 4).map((preset) => {
-                  const isSelected = posCashGiven === preset
-                  const val = parseInt(preset) || 0
-                  const displayLabel = val >= 1000 ? `${val / 1000}k` : `${val}`
-                  return (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setPosCashGiven(preset)}
-                      className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${
-                        isSelected
-                          ? 'bg-indigo-500 text-white border-indigo-400 font-extrabold shadow-md'
-                          : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
-                      }`}
-                    >
-                      {displayLabel}
-                    </button>
-                  )
-                })
-              })()}
+              {cashPresets.map((preset) => {
+                const isSelected = cashGivenNum === preset.value
+                return (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() => setPosCashGiven(preset.value.toString())}
+                    className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${
+                      isSelected
+                        ? 'bg-indigo-500 text-white border-indigo-400 font-extrabold shadow-md'
+                        : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                )
+              })}
             </div>
 
             {/* INPUT NOMINAL UANG TUNAI MANUAL */}
             <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 shadow-inner">
-              <span className="text-xs font-mono font-bold text-slate-400 shrink-0">Rp</span>
+              <span className="text-xs font-mono font-bold text-slate-400 shrink-0">{currencySymbol}</span>
               <input
                 type="number"
                 value={posCashGiven}
