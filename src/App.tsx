@@ -26,6 +26,7 @@ import { ComponentShowcaseView } from './views/ComponentShowcaseView'
 import { HfeInsightsView } from './views/HfeInsightsView'
 import { ConnectHubAdminView } from './views/ConnectHubAdminView'
 import { CustomerPortalView } from './views/CustomerPortalView'
+import { CompanyBookView } from './views/CompanyBookView'
 
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
@@ -347,6 +348,10 @@ function AppMain() {
             )}
 
             {activeStaffSurface === 'hfe-connect-hub' && <ConnectHubAdminView />}
+
+            {activeStaffSurface === 'hfe-company-book' && (
+              <CompanyBookView bookId={sync.hfeCompanyProfile.companyBookId} />
+            )}
 
             {activeStaffSurface === 'cafe-config' && (
               <CafeSettingsView

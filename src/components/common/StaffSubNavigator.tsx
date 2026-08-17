@@ -10,7 +10,8 @@ import {
   Store,
   Warehouse,
   ShieldCheck,
-  Globe
+  Globe,
+  BookOpen
 } from 'lucide-react'
 import { StaffAppDrawerModal } from './StaffAppDrawerModal'
 
@@ -30,6 +31,7 @@ const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; icon: React.ReactN
   'sommelier': { name: 'Sommelier Wine', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-red-600' },
   'maitre-d': { name: "Maître d' VIP", icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-yellow-500' },
   'hfe-insights': { name: '📈 HFE Insights', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-gradient-to-r from-amber-400 to-purple-600' },
+  'hfe-company-book': { name: '📚 Company Books (Ledger)', icon: <BookOpen className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
   'warehouse-mgmt': { name: 'Gudang & Stok', icon: <Warehouse className="w-3.5 h-3.5" />, color: 'bg-amber-600' },
   'branch-mgmt': { name: 'Multi-Cabang', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
   'cafe-config': { name: 'Owner Settings', icon: <Settings className="w-3.5 h-3.5" />, color: 'bg-slate-600' },
@@ -120,6 +122,18 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
               }`}
             >
               <Globe className="w-3.5 h-3.5" /> Connect Hub
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStaffSurface('hfe-company-book')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeStaffSurface === 'hfe-company-book'
+                  ? 'bg-emerald-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" /> Buku Kas &amp; Ledger
             </button>
 
             <button

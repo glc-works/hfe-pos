@@ -12,7 +12,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Check,
-  Globe
+  Globe,
+  BookOpen
 } from 'lucide-react'
 import { StaffSurfaceMode } from '../../types/pos'
 
@@ -53,6 +54,15 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
     icon: <Sparkles className="w-6 h-6" />,
     color: 'from-amber-500 via-orange-600 to-purple-700',
     badge: 'AI Live 99.8%'
+  },
+  {
+    id: 'hfe-company-book',
+    name: '📚 Company Books & Financial Ledger',
+    subtitle: 'Buku besar akuntansi, Bagan Akun SAK, Neraca, Laba Rugi, & Kepatuhan Pajak Resto PB1',
+    features: ['Chart of Accounts SAK', 'TigerBeetle Double-Entry', 'Balance Sheet & P&L', 'Pajak Resto PB1 & e-Billing'],
+    icon: <BookOpen className="w-6 h-6" />,
+    color: 'from-emerald-600 via-teal-700 to-slate-900',
+    badge: 'Pillar 6 BOOK'
   },
   {
     id: 'hfe-connect-hub',
@@ -131,7 +141,7 @@ export const StaffAppDrawerModal: React.FC<StaffAppDrawerModalProps> = ({
               <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
                 HFE Commerce Suite — Workstations &amp; Connect Hub
                 <span className="text-[10px] font-mono font-bold bg-amber-500 text-slate-950 px-2 py-0.2 rounded-full">
-                  6 Suites
+                  {FIVE_CORE_APPS.length} Suites
                 </span>
               </h2>
               <p className="text-xs text-slate-400">Pusat aplikasi terpadu operasional kasir, produksi dapur, ekosistem &amp; manajemen</p>

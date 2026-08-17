@@ -12,13 +12,13 @@ describe('Embedded In-App Interactive Scalar API Docs (Pillar 0 CORE)', () => {
   it('should conform to OpenAPI 3.1 specification invariants', () => {
     expect(OPENAPI_SPEC_VERSION).toBe('3.1.0')
     expect(TOTAL_OPENAPI_DOMAINS).toBe(44)
-    expect(TOTAL_OPENAPI_ENDPOINTS).toBe(466)
+    expect(TOTAL_OPENAPI_ENDPOINTS).toBe(494)
     expect(OPENAPI_DOMAINS.length).toBe(44)
   })
 
   it('should calculate total indexed endpoints across all 44 domains', () => {
     const totalCount = OPENAPI_DOMAINS.reduce((acc, domain) => acc + domain.endpointCount, 0)
-    expect(totalCount).toBe(466)
+    expect(totalCount).toBe(494)
   })
 
   it('should include core domain endpoints with required OIDC auth and idempotency', () => {

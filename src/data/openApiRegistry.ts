@@ -24,7 +24,7 @@ export interface OpenApiDomain {
 }
 
 export const OPENAPI_SPEC_VERSION = '3.1.0'
-export const TOTAL_OPENAPI_ENDPOINTS = 466
+export const TOTAL_OPENAPI_ENDPOINTS = 494
 export const TOTAL_OPENAPI_DOMAINS = 44
 
 export const OPENAPI_DOMAINS: OpenApiDomain[] = [

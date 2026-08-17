@@ -3,12 +3,13 @@ import { FIVE_CORE_APPS } from '../components/common/StaffAppDrawerModal'
 
 describe('Core Apps Consolidation & Modular Features Suite (L2-POS-36)', () => {
   it('should consolidate the system into cohesive Core Workstation Apps including Connect Hub', () => {
-    expect(FIVE_CORE_APPS.length).toBe(6)
+    expect(FIVE_CORE_APPS.length).toBe(7)
 
     const appIds = FIVE_CORE_APPS.map((a) => a.id)
     expect(appIds).toContain('barista-pos')
     expect(appIds).toContain('kds-screen')
     expect(appIds).toContain('hfe-insights')
+    expect(appIds).toContain('hfe-company-book')
     expect(appIds).toContain('hfe-connect-hub')
     expect(appIds).toContain('warehouse-mgmt')
     expect(appIds).toContain('cafe-config')
