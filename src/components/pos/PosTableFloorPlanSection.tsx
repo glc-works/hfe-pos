@@ -176,6 +176,210 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
   // GRID & COMPACT VIEWS: SEPARATED SPATIAL ENGINES
   const isCompact = viewMode === 'compact'
 
+  const renderTableCard = (table: TableStatus, isCompactMode: boolean, isContinuousGrid = false) => {
+    const isUnpaid = (table.status === 'open-tab' || table.status === 'occupied') && table.totalBill > 0
+    const isPaid = table.customerName?.includes('(Lunas)') || (table.status === 'occupied' && table.totalBill === 0)
+    const isAvailable = table.status === 'free'
+    const isVip = table.zoneId === 'vip-private' || !!table.minSpend
+    const minSpendShortfall = table.minSpend && table.minSpend > 0
+      ? Math.max(0, table.minSpend - table.totalBill)
+      : 0
+    const minSpendProgress = table.minSpend && table.minSpend > 0
+      ? Math.round((table.totalBill / table.minSpend) * 100)
+      : null
+
+    const zoneIcon = table.zoneId === 'outdoor-garden' ? '🌿'
+      : table.zoneId === 'indoor-ac' ? '❄️'
+      : table.zoneId === 'vip-private' ? '👑'
+      : table.zoneId === 'poolside-cabana' ? '🏊'
+      : '🍸'
+
+    // Simplified clean table number for display
+    const displayTableName = isContinuousGrid
+      ? `${zoneIcon} ${table.name}`
+      : table.name.replace(/^(OUT|IND|POOL|ROOF)-/i, '')
+
+    // Fixed-Slot Allocation:
+    // Standard Table: 1 Slot (25% width in Grid View)
+    // VIP Table: 2 Slots in Grid View (50% width `col-span-2`), 1 Slot in Compact Desktop
+    const slotSpanClass = isVip
+      ? (isCompactMode ? (isMobile ? 'col-span-2' : 'col-span-1') : 'col-span-1 sm:col-span-2')
+      : 'col-span-1'
+
+    return (
+      <div
+        key={table.id}
+        onClick={() => handleTableClick(table)}
+        className={`${slotSpanClass} border rounded-2xl p-3 flex flex-col justify-between gap-1.5 ${
+          isCompactMode ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[114px] sm:min-h-[122px]'
+        } transition-all cursor-pointer relative overflow-hidden group ${
+          selectedPOSTable?.id === table.id
+            ? 'ring-2 ring-indigo-500 bg-indigo-500/20 border-indigo-500 shadow-lg'
+            : isUnpaid
+            ? 'bg-amber-500/10 border-amber-500/60 hover:border-amber-400'
+            : isPaid
+            ? 'bg-indigo-500/10 border-indigo-500/50 hover:border-indigo-400'
+            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+        }`}
+      >
+        {/* ========================================================================= */}
+        {/* CASE A: COMPACT VIEW (FIBONACCI 2-ROW SOLID GRAVITY - ZERO VOID HOLE)     */}
+        {/* ========================================================================= */}
+        {isCompactMode ? (
+          !isAvailable ? (
+            <>
+              {/* ROW 1: TABLE ID (LEFT) & UTILISATION (RIGHT) — EXACTLY 2 ELEMENTS */}
+              <div className="flex items-center justify-between gap-1 min-w-0">
+                <div className="flex items-center gap-1 min-w-0">
+                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                  <span className="font-mono font-black text-xs sm:text-[13px] text-white whitespace-nowrap">
+                    {isVip ? table.name : displayTableName}
+                  </span>
+                </div>
+
+                {/* RIGHT ANCHOR: HEADCOUNT UTILISATION */}
+                <span className="font-mono font-bold text-xs text-amber-300 shrink-0">
+                  👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
+                </span>
+              </div>
+
+              {/* ROW 2: FULL WIDTH MONETARY LINE (EXACTLY 1 ELEMENT — ZERO CLIPPING) */}
+              <div className="pt-1 border-t border-slate-800/70 flex items-center justify-center min-w-0">
+                <span className={`font-mono font-black text-xs sm:text-sm tabular-nums whitespace-nowrap text-center ${
+                  isUnpaid ? 'text-amber-400' : 'text-emerald-400'
+                }`}>
+                  {table.totalBill > 0 ? formatPrice(table.totalBill) : (language === 'en' ? 'PAID' : 'LUNAS')}
+                </span>
+              </div>
+
+              {/* VIP EXECUTIVE GOLD PILL (IF MIN SPEND CONFIGURED) */}
+              {table.minSpend && (
+                <div className={`text-[9px] sm:text-[10px] font-mono font-bold rounded px-1.5 py-0.5 text-center mt-0.5 whitespace-nowrap truncate ${
+                  minSpendShortfall > 0
+                    ? 'text-amber-400 bg-amber-500/15 border border-amber-500/30'
+                    : 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/30'
+                }`}>
+                  {minSpendShortfall > 0
+                    ? `👑 ${minSpendProgress}% • Sisa ${formatPrice(minSpendShortfall)}`
+                    : `👑 Lolos Min Spend (${minSpendProgress}%)`}
+                </div>
+              )}
+            </>
+          ) : (
+            /* EMPTY TABLE (COMPACT: SOLID 2-ROW BALANCED MONAD) */
+            <>
+              <div className="flex items-center justify-between gap-1 min-w-0">
+                <div className="flex items-center gap-1 min-w-0">
+                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />}
+                  <span className="font-mono font-black text-xs sm:text-[13px] text-white whitespace-nowrap">
+                    {isVip ? table.name : displayTableName}
+                  </span>
+                </div>
+                <span className="text-xs text-slate-400 font-mono font-medium">
+                  👥 {table.maxCapacity || table.pax || 4}
+                </span>
+              </div>
+              <div className="text-center text-[10px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors py-0.5">
+                + {language === 'en' ? 'Available' : 'Kosong'}
+              </div>
+            </>
+          )
+        ) : (
+          /* ========================================================================= */
+          /* CASE B: FULL GRID VIEW (RICH OPERATIONAL DATA & COMPOSITE FIBONACCI FLOW) */
+          /* ========================================================================= */
+          !isAvailable ? (
+            <>
+              {/* ROW 1: HEADER (ID LEFT • UTILISATION CENTER • TIMER RIGHT) */}
+              <div className="flex items-center justify-between gap-1 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0 truncate">
+                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                  <span className="font-mono font-black text-xs sm:text-sm text-white whitespace-nowrap">
+                    {isVip ? table.name : displayTableName}
+                  </span>
+                  <span className="font-mono font-bold text-[11px] text-amber-300 shrink-0">
+                    👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
+                  </span>
+                </div>
+
+                {/* RIGHT: TIMER */}
+                {table.seatedDurationMinutes ? (
+                  <div className={`flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0 ${
+                    table.seatedDurationMinutes > 40
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-slate-800 text-slate-300 border border-slate-700'
+                  }`}>
+                    <Clock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                    <span>{table.seatedDurationMinutes}m</span>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* ROW 2: GUEST NAME & MENU GLYPH / VIP COMPACT PROGRESS */}
+              <div className="flex items-center justify-between gap-1.5 min-w-0">
+                <span className="text-[11px] font-medium text-slate-200 truncate flex-1 min-w-0">
+                  {table.customerName || t.pos?.walkInGuest || (language === 'en' ? 'Walk-In' : 'Tamu Walk-In')}
+                </span>
+                {minSpendProgress !== null ? (
+                  <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded shrink-0">
+                    👑 {minSpendProgress}%
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.2 rounded shrink-0">
+                    🍽️ {table.orderCount || 2}
+                  </span>
+                )}
+              </div>
+
+              {/* VIP INTEGRATED MICRO PROGRESS BAR (1px SLIM) */}
+              {minSpendProgress !== null && (
+                <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden -my-0.5">
+                  <div
+                    className={`h-full transition-all duration-300 ${minSpendProgress >= 100 ? 'bg-emerald-400' : 'bg-amber-400'}`}
+                    style={{ width: `${Math.min(100, minSpendProgress)}%` }}
+                  />
+                </div>
+              )}
+
+              {/* ROW 3: FOOTER (TICKET / DINE-IN • TOTAL PRICE TABULAR) */}
+              <div className="pt-1 border-t border-slate-800/60 flex items-center justify-between gap-2 min-w-0">
+                <span className="text-[10px] font-mono text-slate-400 truncate">
+                  {table.orderIds?.[0] || 'Dine-In'}
+                </span>
+                <span className={`font-mono font-black text-xs sm:text-sm tabular-nums whitespace-nowrap shrink-0 ${
+                  isUnpaid ? 'text-amber-400' : 'text-emerald-400'
+                }`}>
+                  {table.totalBill > 0 ? formatPrice(table.totalBill) : (language === 'en' ? 'PAID' : 'LUNAS')}
+                </span>
+              </div>
+            </>
+          ) : (
+            /* EMPTY TABLE (FULL VIEW: SOLID CENTER MONAD) */
+            <>
+              <div className="flex items-center justify-between gap-1 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  {isVip && <Crown className="w-4 h-4 text-amber-400/60 shrink-0" />}
+                  <span className="font-mono font-black text-sm sm:text-base text-white whitespace-nowrap">
+                    {isVip ? table.name : displayTableName}
+                  </span>
+                </div>
+                <span className="text-xs text-slate-400 font-mono font-medium">
+                  👥 {table.maxCapacity || table.pax || 4}
+                </span>
+              </div>
+
+              <div className="flex flex-col items-center justify-center py-1.5 text-center">
+                <span className="text-[11px] text-slate-400 font-mono group-hover:text-emerald-400 transition-colors">
+                  + {language === 'en' ? 'Open Table' : 'Buka Meja'}
+                </span>
+              </div>
+            </>
+          )
+        )}
+      </div>
+    )
+  }
+
   const renderZoneCard = (group: typeof groupedZones[0]) => {
     const totalTables = group.tables.length
     const occupiedCount = group.tables.filter(t => t.status !== 'free').length
@@ -183,13 +387,6 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     const isSingleZoneView = activeZoneId !== 'all'
     const isVipZone = group.zone.id === 'vip-private'
 
-    // ZONE CONTAINER SPAN:
-    // A. Compact Mode (6-Slot Tetris Density):
-    //    6-table -> col-span-3 row-span-2 h-full (3+3=6)
-    //    4-table -> col-span-4 row-span-1
-    //    2-table / VIP -> col-span-2 row-span-2 h-full (2+4=6)
-    // B. Grid Mode (Spacious 4-Col Layout):
-    //    Each zone is full width (w-full), rendering tables across 4 generous columns!
     let zoneSpanClass = 'w-full'
     if (isCompact && !isSingleZoneView) {
       if (isVipZone || totalTables <= 2) {
@@ -201,10 +398,6 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       }
     }
 
-    // INTERNAL TABLE CARDS GRID:
-    // A. Grid Mode: Strict 4-Slot Column Canvas (grid-cols-4)
-    //    All zones render across a strict 4-column canvas with uniform 1x1 cards (25% width) and 2x1 VIP cards!
-    // B. Compact Mode: Strict 6-Slot Column Canvas (Dense Tetris Packing)
     let internalGridClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
     if (isCompact) {
       if (isSingleZoneView) {
@@ -223,7 +416,6 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
         key={group.zone.id}
         className={`${zoneSpanClass} bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between gap-2.5 shadow-sm`}
       >
-        {/* ZONE MICRO-HEADER WITH METRICS (CLEAN 1-ROW DEFENSIVE TRUNCATION) */}
         <div className="flex items-center justify-between gap-2 px-1 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0 truncate">
             <span className="text-sm shrink-0">{group.zone.icon || '🏢'}</span>
@@ -247,213 +439,35 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
           </div>
         </div>
 
-        {/* TABLE CARDS GRID */}
         <div className={`grid gap-2.5 sm:gap-3 ${internalGridClass}`}>
-          {group.tables.map((table) => {
-            const isUnpaid = (table.status === 'open-tab' || table.status === 'occupied') && table.totalBill > 0
-            const isPaid = table.customerName?.includes('(Lunas)') || (table.status === 'occupied' && table.totalBill === 0)
-            const isAvailable = table.status === 'free'
-            const isVip = table.zoneId === 'vip-private' || !!table.minSpend
-            const minSpendShortfall = table.minSpend && table.minSpend > 0
-              ? Math.max(0, table.minSpend - table.totalBill)
-              : 0
-            const minSpendProgress = table.minSpend && table.minSpend > 0
-              ? Math.round((table.totalBill / table.minSpend) * 100)
-              : null
-
-            // Simplified clean table number for display
-            const displayTableName = table.name.replace(/^(OUT|IND|POOL|ROOF)-/i, '')
-
-            // Fixed-Slot Allocation:
-            // Standard Table: 1 Slot (25% width in Grid View)
-            // VIP Table: 2 Slots in Grid View (50% width `col-span-2`), 1 Slot in Compact Desktop
-            const slotSpanClass = isVip
-              ? (isCompact ? (isMobile ? 'col-span-2' : 'col-span-1') : 'col-span-1 sm:col-span-2')
-              : 'col-span-1'
-
-            return (
-              <div
-                key={table.id}
-                onClick={() => handleTableClick(table)}
-                className={`${slotSpanClass} border rounded-2xl p-3 flex flex-col justify-between gap-1.5 ${
-                  isCompact ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[114px] sm:min-h-[122px]'
-                } transition-all cursor-pointer relative overflow-hidden group ${
-                  selectedPOSTable?.id === table.id
-                    ? 'ring-2 ring-indigo-500 bg-indigo-500/20 border-indigo-500 shadow-lg'
-                    : isUnpaid
-                    ? 'bg-amber-500/10 border-amber-500/60 hover:border-amber-400'
-                    : isPaid
-                    ? 'bg-indigo-500/10 border-indigo-500/50 hover:border-indigo-400'
-                    : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                {/* ========================================================================= */}
-                {/* CASE A: COMPACT VIEW (FIBONACCI 2-ROW SOLID GRAVITY - ZERO VOID HOLE)     */}
-                {/* ========================================================================= */}
-                {isCompact ? (
-                  !isAvailable ? (
-                    <>
-                      {/* ROW 1: TABLE ID (LEFT) & UTILISATION (RIGHT) — EXACTLY 2 ELEMENTS */}
-                      <div className="flex items-center justify-between gap-1 min-w-0">
-                        <div className="flex items-center gap-1 min-w-0">
-                          {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                          <span className="font-mono font-black text-xs sm:text-[13px] text-white whitespace-nowrap">
-                            {isVip ? table.name : displayTableName}
-                          </span>
-                        </div>
-
-                        {/* RIGHT ANCHOR: HEADCOUNT UTILISATION */}
-                        <span className="font-mono font-bold text-xs text-amber-300 shrink-0">
-                          👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
-                        </span>
-                      </div>
-
-                      {/* ROW 2: FULL WIDTH MONETARY LINE (EXACTLY 1 ELEMENT — ZERO CLIPPING) */}
-                      <div className="pt-1 border-t border-slate-800/70 flex items-center justify-center min-w-0">
-                        <span className={`font-mono font-black text-xs sm:text-sm tabular-nums whitespace-nowrap text-center ${
-                          isUnpaid ? 'text-amber-400' : 'text-emerald-400'
-                        }`}>
-                          {table.totalBill > 0 ? formatPrice(table.totalBill) : (language === 'en' ? 'PAID' : 'LUNAS')}
-                        </span>
-                      </div>
-
-                      {/* VIP EXECUTIVE GOLD PILL (IF MIN SPEND CONFIGURED) */}
-                      {table.minSpend && (
-                        <div className={`text-[9px] sm:text-[10px] font-mono font-bold rounded px-1.5 py-0.5 text-center mt-0.5 whitespace-nowrap truncate ${
-                          minSpendShortfall > 0
-                            ? 'text-amber-400 bg-amber-500/15 border border-amber-500/30'
-                            : 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/30'
-                        }`}>
-                          {minSpendShortfall > 0
-                            ? `👑 ${minSpendProgress}% • Sisa ${formatPrice(minSpendShortfall)}`
-                            : `👑 Lolos Min Spend (${minSpendProgress}%)`}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    /* EMPTY TABLE (COMPACT: SOLID 2-ROW BALANCED MONAD) */
-                    <>
-                      <div className="flex items-center justify-between gap-1 min-w-0">
-                        <div className="flex items-center gap-1 min-w-0">
-                          {isVip && <Crown className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />}
-                          <span className="font-mono font-black text-xs sm:text-[13px] text-white whitespace-nowrap">
-                            {isVip ? table.name : displayTableName}
-                          </span>
-                        </div>
-                        <span className="text-xs text-slate-400 font-mono font-medium">
-                          👥 {table.maxCapacity || table.pax || 4}
-                        </span>
-                      </div>
-                      <div className="text-center text-[10px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors py-0.5">
-                        + {language === 'en' ? 'Available' : 'Kosong'}
-                      </div>
-                    </>
-                  )
-                ) : (
-                  /* ========================================================================= */
-                  /* CASE B: FULL GRID VIEW (RICH OPERATIONAL DATA & COMPOSITE FIBONACCI FLOW) */
-                  /* ========================================================================= */
-                  !isAvailable ? (
-                    <>
-                      {/* ROW 1: HEADER (ID LEFT • UTILISATION CENTER • TIMER RIGHT) */}
-                      <div className="flex items-center justify-between gap-1 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0 truncate">
-                          {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                          <span className="font-mono font-black text-xs sm:text-sm text-white whitespace-nowrap">
-                            {isVip ? table.name : displayTableName}
-                          </span>
-                          <span className="font-mono font-bold text-[11px] text-amber-300 shrink-0">
-                            👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
-                          </span>
-                        </div>
-
-                        {/* RIGHT: TIMER */}
-                        {table.seatedDurationMinutes ? (
-                          <div className={`flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0 ${
-                            table.seatedDurationMinutes > 40
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-slate-800 text-slate-300 border border-slate-700'
-                          }`}>
-                            <Clock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-                            <span>{table.seatedDurationMinutes}m</span>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      {/* ROW 2: GUEST NAME & MENU GLYPH / VIP COMPACT PROGRESS */}
-                      <div className="flex items-center justify-between gap-1.5 min-w-0">
-                        <span className="text-[11px] font-medium text-slate-200 truncate flex-1 min-w-0">
-                          {table.customerName || t.pos?.walkInGuest || (language === 'en' ? 'Walk-In' : 'Tamu Walk-In')}
-                        </span>
-                        {minSpendProgress !== null ? (
-                          <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded shrink-0">
-                            👑 {minSpendProgress}%
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.2 rounded shrink-0">
-                            🍽️ {table.orderCount || 2}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* VIP INTEGRATED MICRO PROGRESS BAR (1px SLIM) */}
-                      {minSpendProgress !== null && (
-                        <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden -my-0.5">
-                          <div
-                            className={`h-full transition-all duration-300 ${minSpendProgress >= 100 ? 'bg-emerald-400' : 'bg-amber-400'}`}
-                            style={{ width: `${Math.min(100, minSpendProgress)}%` }}
-                          />
-                        </div>
-                      )}
-
-                      {/* ROW 3: FOOTER (TICKET / DINE-IN • TOTAL PRICE TABULAR) */}
-                      <div className="pt-1 border-t border-slate-800/60 flex items-center justify-between gap-2 min-w-0">
-                        <span className="text-[10px] font-mono text-slate-400 truncate">
-                          {table.orderIds?.[0] || 'Dine-In'}
-                        </span>
-                        <span className={`font-mono font-black text-xs sm:text-sm tabular-nums whitespace-nowrap shrink-0 ${
-                          isUnpaid ? 'text-amber-400' : 'text-emerald-400'
-                        }`}>
-                          {table.totalBill > 0 ? formatPrice(table.totalBill) : (language === 'en' ? 'PAID' : 'LUNAS')}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    /* EMPTY TABLE (FULL VIEW: SOLID CENTER MONAD) */
-                    <>
-                      <div className="flex items-center justify-between gap-1 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          {isVip && <Crown className="w-4 h-4 text-amber-400/60 shrink-0" />}
-                          <span className="font-mono font-black text-sm sm:text-base text-white whitespace-nowrap">
-                            {isVip ? table.name : displayTableName}
-                          </span>
-                        </div>
-                        <span className="text-xs text-slate-400 font-mono font-medium">
-                          👥 {table.maxCapacity || table.pax || 4}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center py-1.5 text-center">
-                        <span className="text-[11px] text-slate-400 font-mono group-hover:text-emerald-400 transition-colors">
-                          + {language === 'en' ? 'Open Table' : 'Buka Meja'}
-                        </span>
-                      </div>
-                    </>
-                  )
-                )}
-              </div>
-            )
-          })}
+          {group.tables.map(table => renderTableCard(table, isCompact, false))}
         </div>
       </div>
     )
   }
 
-  return isCompact ? (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pb-20 grid-flow-dense items-start">
-      {groupedZones.map(renderZoneCard)}
-    </div>
-  ) : (
+  // 1. COMPACT VIEW: 6-SLOT TETRIS CANVAS
+  if (isCompact) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pb-20 grid-flow-dense items-start">
+        {groupedZones.map(renderZoneCard)}
+      </div>
+    )
+  }
+
+  // 2. GRID VIEW (ALL ZONES): CONTINUOUS 4-COLUMN INTERLOCKING TETRIS (180-DEG ROTATION PACKING)
+  if (activeZoneId === 'all') {
+    const allTables = groupedZones.flatMap(g => g.tables)
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pb-20">
+        {allTables.map(table => renderTableCard(table, false, true))}
+      </div>
+    )
+  }
+
+  // 3. GRID VIEW (SINGLE FILTERED ZONE)
+  return (
     <div className="flex flex-col gap-3.5 pb-20">
       {groupedZones.map(renderZoneCard)}
     </div>
