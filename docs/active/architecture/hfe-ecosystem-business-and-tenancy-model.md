@@ -37,19 +37,19 @@ graph TD
    - Initial incorporation via Sleek Singapore, built-in Xero Connector, PayNow SGD integration, and early cross-border pilot.
    - Operates the full suite of HFE features globally from Day 1.
 2. **Stage 2: Indonesia Sovereign Subholding & Jakarta Node (`INA`)**:
-   - Establishment of **PT HFE Teknologi Indonesia** and AWS Jakarta on-soil server node (`ap-southeast-3`) to strictly comply with Indonesian data sovereignty laws (UU PDP No. 27/2022 & PP No. 71/2019).
+   - Establishment of **PT HFE Teknologi Indonesia** (`Tenant 10`) and AWS Jakarta on-soil server node (`ap-southeast-3`) to strictly comply with Indonesian data sovereignty laws (UU PDP No. 27/2022 & PP No. 71/2019).
    - Integration with BCA SNAP BI, Dynamic QRIS, and DJP e-Faktur 4.0.
    - Migration of Indonesian merchant contact data to the domestic operating subledger.
 3. **Stage 3: Malaysia Regional SEA Expansion (`MY`)**:
-   - Expansion to Malaysia, integration with **DuitNow QR (PayNet)**, FPX Online Banking, and **LHDN e-Invoicing** compliance in Ringgit (MYR).
+   - Expansion to Malaysia, establishing **HFE IT Malaysia Sdn. Bhd.** (`Tenant 12`), integration with **DuitNow QR (PayNet)**, FPX Online Banking, and **LHDN e-Invoicing** compliance in Ringgit (MYR).
 4. **Stage 4: Corporate Restructuring: Clean HoldCo vs. Global Operating Split in Singapore**:
-   - Separation into **`HFE IT Global Holdings Pte. Ltd.` (HoldCo)** holding 100% Core IP and **`HFE IT Singapore Operations Pte. Ltd.` (SG OpCo)** operating the commercial platform, achieving complete liability ring-fencing.
+   - Separation into **`HFE IT Global Holdings Pte. Ltd.` (HoldCo - Tenant 01)** holding 100% Core IP and **`HFE IT Singapore Operations Pte. Ltd.` (SG OpCo - Tenant 11)** operating the commercial platform, achieving complete liability ring-fencing.
 5. **Stage 5: Hong Kong Greater China & North Asia Regional Hub (`HK`)**:
-   - Establishment of **HFE IT Hong Kong Ltd.**, integration with **HKMA Faster Payment System (FPS)**, Inland Revenue Department (IRD) profits tax, and Greater Bay Area cross-border trade settlements (HKD/CNY/USD).
+   - Establishment of **HFE IT Hong Kong Ltd.** (`Tenant 30`), integration with **HKMA Faster Payment System (FPS)**, Inland Revenue Department (IRD) profits tax, and Greater Bay Area cross-border trade settlements (HKD/CNY/USD).
 
 ---
 
-## 2. Product Portfolio Breakdown
+## 2. Product Portfolio & Unified Frontend Surfaces
 
 | Product ID | Product Name | Description & Primary Capabilities | Target User Persona | Revenue Model |
 | :--- | :--- | :--- | :--- | :--- |
@@ -59,6 +59,11 @@ graph TD
 | **Produk 4** | **Hfeit BOARD** | Merchant Digital Storefront, Visual Menu Showcase, Brand Profile (Evolution of the Sekeding concept). | General Public, Online Customers | Included in Merchant Showcase Suite. |
 | **Produk 5** | **Hfeit CARD** | Personal Consumer Loyalty Wallet, Digital Member Pass, Points Balance, Personal Receipts History. | Loyal Individual Consumers & Members | Loyalty Engine Module / Add-on. |
 | **Produk 6** | **Hfeit BOOK** | Rebuilt CB-Client: Chart of Accounts, Double-Entry General Journals, Trial Balance, Balance Sheet, P&L, e-Faktur Pajak, & Multi-Entity Practice. | Enterprise Merchants, CFOs, Accounting Firms, CPAs | Core Ledger & Enterprise Add-on. |
+
+### 2.1 Unified Frontend Experience for Merchant & Super-Admin
+Super-Admins manage the entire platform directly through the official **HFE-X Frontend Platform (`hfe-pos`)**:
+- **Pilar 0 [CORE] (`CoreLandingView.tsx` & `ConnectHubAdminView.tsx`)**: Connect Hub 50-connector catalog management, Webhook Relay inspector, and embedded Scalar OpenAPI Explorer.
+- **Pilar 2 [ADMIN] (`AdminPortalView.tsx`)**: Cell Shard live rebalancer, Four-Eyes Approval center, Wholesale B2B metering console, and Multi-Company Holding governance.
 
 ---
 
@@ -261,3 +266,30 @@ This act demonstrates how a single tenant scales through the full multi-product,
 2. **Phase 2 (Roasting Factory - The Aha! Moment & BOOK Activation)**: Budi builds a coffee roasting factory (PT Nusantara Sangrai) to supply his cafe and sell wholesale. Facing manufacturing complexity (green bean shrinkage, gas costs, wholesale receivables), Budi upgrades to **`BOOK`** (`Hfeit:BOARD,MERCHANT,CARD,BOOK`), unlocking Bill of Materials (BOM) inventory assembly and double-entry general ledger.
 3. **Phase 3 (Indonesian Data Sovereignty Mandate & Live Zero-Downtime Migration)**: Indonesian regulators (UU PDP / BI) mandate on-soil data residency. HFE commissions the Jakarta Server Node (`ap-southeast-3` / `JKT-CELL-01`). HFE Core executes a **Live Shard Dual-Write Migration** moving Budi's BSD Cafe and Roasting Factory books from Singapore to Jakarta with $<1\text{ms}$ atomic routing flip and 0 dropped cashier carts.
 4. **Phase 4 (Singapore Global Trading & 50-Ha Gayo Plantation)**: Budi incorporates **Nusantara Coffee Global Pte. Ltd.** in Singapore via Sleek (hosted on Singapore Node) for container exports to Tokyo/London, and acquires a **50-Ha Coffee Plantation in Gayo** (hosted on Jakarta Node under PSAK 69 Biological Asset Accounting). Budi manages his entire seed-to-cup empire across **POS, BOOK, 4 Companies, and 2 Countries** from a single HFE-X console!
+
+---
+
+## 10. Scenario-Driven Preset Accumulation Engine
+
+Every executed business scenario automatically compiles into our production-ready **System Presets Registry in Tenant 01**:
+1. **Chart of Accounts (CoA) Presets**: `COA_ID_FNB_CAFE`, `COA_ID_ROASTING_MFG`, `COA_ID_AGRICULTURE_FARM`, `COA_SG_CROSSBORDER_TRADING`, `COA_MY_RETAIL_FNB`, `COA_HK_REGIONAL_TRADING`.
+2. **Business Policy (`CompanyPolicy`) Presets**: `POLICY_CAFE_FAST_CASHIER`, `POLICY_ROASTING_BOM_SHRINKAGE`, `POLICY_PLANTATION_FAIR_VALUE`, `POLICY_WHOLESALE_METERING`.
+3. **Jurisdictional Tax Presets**: `TAX_ID_PB1_PPN`, `TAX_SG_IRAS_GST_9`, `TAX_MY_LHDN_EINVOICE`, `TAX_HK_IRD_PROFITS`.
+
+---
+
+## 11. The 4-Tier End-to-End Verification Hierarchy & Dual-Plane Testing Standard
+
+```mermaid
+graph TD
+    T1["1. Flow Backend E2E (OpenAPI 3.1 & Black-Box Public Contract)"] --> T3["3. Flow Complete E2E (Full-Stack Local Bridge Orchestration)"]
+    T2["2. Flow Frontend E2E (UI Atoms, Defensive Spatial Isolation & Admin UI)"] --> T3
+    T3 --> T4["4. Flow Staging Server E2E (Real Multi-Region Cloud & Latency)"]
+```
+
+### 11.1 The Dual-Plane Contract Testing Standard
+- **Public Merchant Plane (`/api/v2/company-books/...`)**: Tested 100% against the public OpenAPI 3.1 contract, DTO schemas, and public authentication headers (`Authorization: Bearer <JWT>`, `X-Company-Book-Id`, `X-Idempotency-Key`, `X-Hfe-Signature`). Private structs are never called directly.
+- **Internal Admin Control Plane (`/api/v2/admin/...`)**: Tested via Internal Admin Privileged Contracts for Super-Admin operations (Cell Shard rebalancing, master connector publishing, wholesale billing triggers, and Four-Eyes approval signatures).
+
+### 11.2 Frontend E2E Testing for Merchant & Admin Surfaces
+All merchant surfaces (POS, ORDER, BOARD, CARD, BOOK) and admin management surfaces (Pilar 0 CORE and Pilar 2 ADMIN) are tested directly through the frontend experience layer via Vitest, AST pattern inspection, and DOM spatial isolation assertions.
