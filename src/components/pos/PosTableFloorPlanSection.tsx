@@ -195,14 +195,16 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       : table.zoneId === 'poolside-cabana' ? '🏊'
       : '🍸'
 
-    // Simplified clean table number for display
-    const displayTableName = `${zoneIcon} ${table.name}`
+    // Glyph-First Micro-Budget Table Name for Compact View
+    const displayTableName = isCompactMode
+      ? (isVip ? table.name : `${zoneIcon} ${table.name.replace(/^(OUT|IND|POOL|ROOF)-/i, '')}`)
+      : `${zoneIcon} ${table.name}`
 
     // Fixed-Slot Allocation:
-    // Standard Table: 1 Slot (25% width in Grid View)
-    // VIP Table: 2 Slots in Grid View (50% width `col-span-2`), 1 Slot in Compact Desktop
+    // Standard Table: 1 Slot (25% width in Grid View, 16.6% in 6-Col Compact)
+    // VIP Table: 2 Slots in Grid View and 2 Slots in Compact View
     const slotSpanClass = isVip
-      ? (isCompactMode ? (isMobile ? 'col-span-2' : 'col-span-1') : 'col-span-1 sm:col-span-2')
+      ? (isCompactMode ? 'col-span-2 sm:col-span-2 lg:col-span-2' : 'col-span-1 sm:col-span-2')
       : 'col-span-1'
     const zonePalette = AREA_SURFACE_PALETTES[table.zoneId as PropertyZoneId] || AREA_SURFACE_PALETTES.all
     const defaultSurfaceClass = `${zonePalette.bgCard} ${zonePalette.borderCard} ${zonePalette.hoverBorderCard}`
@@ -229,15 +231,15 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             <>
               {/* ROW 1: TABLE ID (LEFT) & UTILISATION (RIGHT) — EXACTLY 2 ELEMENTS */}
               <div className="flex items-center justify-between gap-1 min-w-0">
-                <div className="flex items-center gap-1 min-w-0">
+                <div className="flex items-center gap-1 min-w-0 truncate">
                   {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                  <span className="font-mono font-black text-xs sm:text-[13px] text-white whitespace-nowrap">
-                    {isVip ? table.name : displayTableName}
+                  <span className="font-mono font-black text-xs text-white truncate">
+                    {displayTableName}
                   </span>
                 </div>
 
                 {/* RIGHT ANCHOR: HEADCOUNT UTILISATION */}
-                <span className="font-mono font-bold text-xs text-amber-300 shrink-0">
+                <span className="font-mono font-bold text-[10px] sm:text-[11px] text-amber-300 shrink-0 whitespace-nowrap">
                   👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
                 </span>
               </div>
@@ -268,17 +270,17 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             /* EMPTY TABLE (COMPACT: SOLID 2-ROW BALANCED MONAD) */
             <>
               <div className="flex items-center justify-between gap-1 min-w-0">
-                <div className="flex items-center gap-1 min-w-0">
+                <div className="flex items-center gap-1 min-w-0 truncate">
                   {isVip && <Crown className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />}
-                  <span className="font-mono font-black text-xs sm:text-[13px] text-white whitespace-nowrap">
-                    {isVip ? table.name : displayTableName}
+                  <span className="font-mono font-black text-xs text-white truncate">
+                    {displayTableName}
                   </span>
                 </div>
-                <span className="text-xs text-slate-400 font-mono font-medium">
+                <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono font-medium shrink-0 whitespace-nowrap">
                   👥 {table.maxCapacity || table.pax || 4}
                 </span>
               </div>
-              <div className="text-center text-[10px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors py-0.5">
+              <div className="text-center text-[10px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors py-0.5 whitespace-nowrap">
                 + {language === 'en' ? 'Available' : 'Kosong'}
               </div>
             </>
@@ -447,11 +449,13 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     )
   }
 
-  // 1. COMPACT VIEW: 6-SLOT TETRIS CANVAS
+  // 1. COMPACT VIEW: UNIFIED 6-COLUMN MASTER CANVAS (DIRECT CHILDREN, ZERO DOUBLE BOXES)
   if (isCompact) {
+    const allTables = activeZoneId === 'all' ? groupedZones.flatMap(g => g.tables) : effectiveTables
+
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pb-20 grid-flow-dense items-start">
-        {groupedZones.map(renderZoneCard)}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 pb-20">
+        {allTables.map(table => renderTableCard(table, true, true))}
       </div>
     )
   }
