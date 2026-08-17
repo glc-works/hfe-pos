@@ -40,6 +40,10 @@ from .ast_scanner import (
     scan_ast,
     audit as audit_ast
 )
+from .story_sync import (
+    scan_story_scenarios,
+    audit as audit_stories
+)
 
 __all__ = [
     "PillarResult",
@@ -67,5 +71,7 @@ __all__ = [
     "ASTScanner",
     "ASTViolation",
     "scan_ast",
-    "audit_ast"
+    "audit_ast",
+    "scan_story_scenarios",
+    "audit_stories"
 ]

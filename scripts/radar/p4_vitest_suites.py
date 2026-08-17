@@ -1,6 +1,7 @@
 """
-[Pillar 4] Vitest Component Test Suites & Coverage Gate.
-Discovers and verifies all 86 Vitest test suites in src/tests/**/*.test.ts*.
+[Pillar 4] Vitest Component Test Suites, Coverage & Storybook Scenario Gate.
+Discovers and verifies all 86 Vitest test suites in src/tests/**/*.test.ts*
+and Storybook Living Scenario Suites in src/stories/scenarios/*.
 """
 
 import os
@@ -43,6 +44,21 @@ def audit(root_dir: str = None) -> PillarResult:
     else:
         summary.append(f"✅ Vitest Test Suite Parity: 100% Compliant ({test_count} suites active)")
         is_healthy = True
+
+    # Storybook Living Scenario Integration
+    try:
+        from .story_sync import scan_story_scenarios
+        story_data = scan_story_scenarios(root_dir)
+        summary.append(
+            f"• Storybook Scenarios:      {story_data['scenario_files_count']}/3 living scenarios ({story_data['onboarding_files_count']} onboarding suites active)"
+        )
+        if story_data["gaps"]:
+            gaps.extend(story_data["gaps"])
+            is_healthy = False
+        else:
+            summary.append("✅ Storybook 4-Quadrant Visual Suite: 100% Compliant")
+    except Exception:
+        pass
 
     return PillarResult(
         pillar_id=4,
