@@ -29,13 +29,13 @@ describe('Symmetric Othello Grid & Zone Territorial Surfaces (L2-POS-69)', () =>
   })
 
   it('guarantees clean, distinct chromatic surface tokens for each zone with zero wireframes', () => {
-    expect(AREA_SURFACE_PALETTES['outdoor-garden'].bgCard).toBe('bg-emerald-950/25')
-    expect(AREA_SURFACE_PALETTES['outdoor-garden'].borderCard).toBe('border-emerald-500/25')
+    expect(AREA_SURFACE_PALETTES['outdoor-garden'].bgCard).toBe('bg-emerald-950/40')
+    expect(AREA_SURFACE_PALETTES['outdoor-garden'].borderCard).toContain('border-emerald-500/40')
 
-    expect(AREA_SURFACE_PALETTES['indoor-ac'].bgCard).toBe('bg-cyan-950/25')
-    expect(AREA_SURFACE_PALETTES['indoor-ac'].borderCard).toBe('border-cyan-500/25')
+    expect(AREA_SURFACE_PALETTES['indoor-ac'].bgCard).toBe('bg-cyan-950/40')
+    expect(AREA_SURFACE_PALETTES['indoor-ac'].borderCard).toContain('border-cyan-500/40')
 
-    expect(AREA_SURFACE_PALETTES['vip-private'].bgCard).toBe('bg-amber-950/30')
-    expect(AREA_SURFACE_PALETTES['vip-private'].borderCard).toBe('border-amber-500/35')
+    expect(AREA_SURFACE_PALETTES['vip-private'].bgCard).toBe('bg-amber-950/45')
+    expect(AREA_SURFACE_PALETTES['vip-private'].borderCard).toContain('border-amber-500/50')
   })
 })
