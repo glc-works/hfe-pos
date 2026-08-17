@@ -158,9 +158,23 @@ export const ConnectorsCatalogGrid: React.FC<ConnectorsCatalogGridProps> = ({
                 </div>
 
                 {/* Summary text */}
-                <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3">
+                <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-2">
                   {connector.summary}
                 </p>
+
+                {/* Derived Badges */}
+                {connector.derivedBadges && connector.derivedBadges.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {connector.derivedBadges.slice(0, 3).map((badge, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center text-[9px] px-1.5 py-0.5 rounded bg-slate-800/90 border border-slate-700/60 text-slate-300 font-medium"
+                      >
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Footer: Metadata & Actions */}

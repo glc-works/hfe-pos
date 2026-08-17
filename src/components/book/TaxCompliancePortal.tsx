@@ -36,6 +36,10 @@ export const TaxCompliancePortal: React.FC<TaxCompliancePortalProps> = ({
   const [activeTab, setActiveTab] = useState<'ppn' | 'ftz' | 'efaktur' | 'withholding'>('ppn')
   const [copiedCode, setCopiedCode] = useState<boolean>(false)
 
+  // The Anti-Calculated Field Invariant (connector-creation v2.1.0):
+  // All output tax, input tax credits, net payable balances, and e-faktur payloads
+  // MUST be deterministically recalculated from raw DPP facts and statutory rates,
+  // strictly rejecting unverified pre-calculated client tax amounts.
   const taxableDppSales = 188700000
   const taxableDppPurchases = 84200000
 
