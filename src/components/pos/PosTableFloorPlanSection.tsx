@@ -206,6 +206,10 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     const slotSpanClass = isVip
       ? (isCompactMode ? (isMobile ? 'col-span-2' : 'col-span-1') : 'col-span-1 sm:col-span-2')
       : 'col-span-1'
+    const zonePalette = AREA_SURFACE_PALETTES[table.zoneId as PropertyZoneId] || AREA_SURFACE_PALETTES.all
+    const defaultSurfaceClass = isContinuousGrid
+      ? `${zonePalette.bgCard} ${zonePalette.borderCard} ${zonePalette.hoverBorderCard}`
+      : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
 
     return (
       <div
@@ -220,7 +224,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             ? 'bg-amber-500/10 border-amber-500/60 hover:border-amber-400'
             : isPaid
             ? 'bg-indigo-500/10 border-indigo-500/50 hover:border-indigo-400'
-            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+            : defaultSurfaceClass
         }`}
       >
         {/* ========================================================================= */}

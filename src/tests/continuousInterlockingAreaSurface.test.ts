@@ -79,10 +79,10 @@ describe('Continuous Interlocking Area Surface Engine Suite (L2-POS-67)', () => 
   })
 
   it('verifies all 5 areas have defined chromatic surface palettes', () => {
-    expect(AREA_SURFACE_PALETTES['outdoor-garden'].bgFill).toContain('rgba(16, 185, 129')
-    expect(AREA_SURFACE_PALETTES['indoor-ac'].bgFill).toContain('rgba(6, 182, 212')
-    expect(AREA_SURFACE_PALETTES['vip-private'].bgFill).toContain('rgba(245, 158, 11')
-    expect(AREA_SURFACE_PALETTES['poolside-cabana'].bgFill).toContain('rgba(20, 184, 166')
-    expect(AREA_SURFACE_PALETTES['rooftop-skybar'].bgFill).toContain('rgba(99, 102, 241')
+    expect(AREA_SURFACE_PALETTES['outdoor-garden'].bgCard).toBe('bg-emerald-950/25')
+    expect(AREA_SURFACE_PALETTES['indoor-ac'].bgCard).toBe('bg-cyan-950/25')
+    expect(AREA_SURFACE_PALETTES['vip-private'].bgCard).toBe('bg-amber-950/30')
+    expect(AREA_SURFACE_PALETTES['poolside-cabana'].bgCard).toBe('bg-teal-950/25')
+    expect(AREA_SURFACE_PALETTES['rooftop-skybar'].bgCard).toBe('bg-indigo-950/25')
   })
 })
