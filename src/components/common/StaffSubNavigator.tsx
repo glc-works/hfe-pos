@@ -9,7 +9,8 @@ import {
   Settings,
   Store,
   Warehouse,
-  ShieldCheck
+  ShieldCheck,
+  Globe
 } from 'lucide-react'
 import { StaffAppDrawerModal } from './StaffAppDrawerModal'
 
@@ -32,7 +33,8 @@ const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; icon: React.ReactN
   'warehouse-mgmt': { name: 'Gudang & Stok', icon: <Warehouse className="w-3.5 h-3.5" />, color: 'bg-amber-600' },
   'branch-mgmt': { name: 'Multi-Cabang', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
   'cafe-config': { name: 'Owner Settings', icon: <Settings className="w-3.5 h-3.5" />, color: 'bg-slate-600' },
-  'customer-crm': { name: 'Customer CRM', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-blue-600' }
+  'customer-crm': { name: 'Customer CRM', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-blue-600' },
+  'hfe-connect-hub': { name: '🧩 HFE Connect Hub', icon: <Globe className="w-3.5 h-3.5" />, color: 'bg-sky-500' }
 }
 
 export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
@@ -68,9 +70,9 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
           </div>
         </div>
 
-        {/* DESKTOP / TABLET VIEW (>= md): 5 DIRECT WORKSTATION TABS (ZERO FLANK DUPLICATES) */}
+        {/* DESKTOP / TABLET VIEW (>= md): 6 DIRECT WORKSTATION TABS (ZERO FLANK DUPLICATES) */}
         <div className="hidden md:flex items-center justify-between w-full gap-2">
-          {/* LEFT: 5 DIRECT WORKSTATION TABS */}
+          {/* LEFT: 6 DIRECT WORKSTATION TABS */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               type="button"
@@ -106,6 +108,18 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" /> HFE Insights
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStaffSurface('hfe-connect-hub')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeStaffSurface === 'hfe-connect-hub'
+                  ? 'bg-sky-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" /> Connect Hub
             </button>
 
             <button

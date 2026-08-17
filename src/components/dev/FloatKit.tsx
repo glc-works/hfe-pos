@@ -184,6 +184,7 @@ export const FloatKit: React.FC<FloatKitProps> = ({
                         { id: 'checker-qc', label: '🔍 Checker' },
                         { id: 'server-waiter', label: '🍽️ Server' },
                         { id: 'hfe-insights', label: '📈 Insights' },
+                        { id: 'hfe-connect-hub', label: '🧩 Connect' },
                         { id: 'cafe-config', label: '⚙️ Settings' }
                       ].map((role) => (
                         <button

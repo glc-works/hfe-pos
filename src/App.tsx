@@ -24,6 +24,7 @@ import { MaitreDView } from './views/MaitreDView'
 import { CustomerContactsView } from './views/CustomerContactsView'
 import { ComponentShowcaseView } from './views/ComponentShowcaseView'
 import { HfeInsightsView } from './views/HfeInsightsView'
+import { ConnectHubAdminView } from './views/ConnectHubAdminView'
 import { CustomerPortalView } from './views/CustomerPortalView'
 
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
@@ -344,6 +345,8 @@ function AppMain() {
                 cashDrawerFloat={cashDrawerFloat}
               />
             )}
+
+            {activeStaffSurface === 'hfe-connect-hub' && <ConnectHubAdminView />}
 
             {activeStaffSurface === 'cafe-config' && (
               <CafeSettingsView

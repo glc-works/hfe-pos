@@ -11,7 +11,8 @@ import {
   Grid,
   ChevronRight,
   ShieldCheck,
-  Check
+  Check,
+  Globe
 } from 'lucide-react'
 import { StaffSurfaceMode } from '../../types/pos'
 
@@ -52,6 +53,15 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
     icon: <Sparkles className="w-6 h-6" />,
     color: 'from-amber-500 via-orange-600 to-purple-700',
     badge: 'AI Live 99.8%'
+  },
+  {
+    id: 'hfe-connect-hub',
+    name: '🧩 HFE Connect Hub (Ecosystem & Open Banking)',
+    subtitle: 'Open Banking SNAP BI, Cloud Accounting Bridges, POS Terminals, & Beta Allowlist',
+    features: ['SNAP BI Bank Feeds', 'ERP / Accounting Bridge', 'Hardware POS Integrations', 'Beta Tenant Gating'],
+    icon: <Globe className="w-6 h-6" />,
+    color: 'from-sky-500 via-blue-600 to-cyan-700',
+    badge: 'Ecosystem'
   },
   {
     id: 'warehouse-mgmt',
@@ -119,12 +129,12 @@ export const StaffAppDrawerModal: React.FC<StaffAppDrawerModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
-                HFE Commerce Suite — 5 Core Workstations
+                HFE Commerce Suite — Workstations &amp; Connect Hub
                 <span className="text-[10px] font-mono font-bold bg-amber-500 text-slate-950 px-2 py-0.2 rounded-full">
-                  5 Core Suites
+                  6 Suites
                 </span>
               </h2>
-              <p className="text-xs text-slate-400">Pusat aplikasi terpadu operasional kasir, produksi dapur, & manajemen</p>
+              <p className="text-xs text-slate-400">Pusat aplikasi terpadu operasional kasir, produksi dapur, ekosistem &amp; manajemen</p>
             </div>
           </div>
 
