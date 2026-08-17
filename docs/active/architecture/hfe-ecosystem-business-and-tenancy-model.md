@@ -114,15 +114,26 @@ A single contact entity can seamlessly hold multiple scope tags as their relatio
 - `Hfeit:MERCHANT,BOARD` — Merchant running in-store POS with active online storefront.
 - `Hfeit:BOARD,MERCHANT,CARD` — Full-ecosystem enterprise merchant running POS, online storefront, and issuing loyalty member cards.
 
-```json
-{
-  "contact_id": "CNT-KOPI-01",
-  "name": "Kopi Maju Bersama",
-  "avatar_url": "/api/v2/company-books/tenant1/contacts/kopi-maju/avatar.svg",
-  "dimensions": {
-    "SCOPE": "Hfeit:BOARD,MERCHANT,CARD",
-    "JURISDICTION": "ID",
-    "RISK_TIER": "STANDARD"
-  }
-}
-```
+---
+
+## 7. Core Operational & Lifecycle Journeys
+
+### 7.1 The Genesis Bootstrapping Journey (Day 0)
+1. System migration boots up Tenant 1 (`BOOK-SYSTEM-ROOT` & `BOOK-HFEIT-HQ`) and Tenant 2 (`TENANT-2-EXPERIENCE`).
+2. An automatic **Intercompany Wholesale Bilateral Link** is created between Tenant 1 (PT HFE IT) and Tenant 2 (HFE-IT Experience), pre-authorizing paired Accounts Receivable (in T1) and Accounts Payable (in T2).
+
+### 7.2 The Merchant Scope Upgrade & Expansion Journey
+1. A merchant initially onboarded with `Hfeit:BOARD` (storefront menu only) opts to activate physical in-store POS.
+2. In the merchant dashboard, clicking "Activate POS Terminal" triggers a state machine promotion:
+   `SCOPE: Hfeit:BOARD` ──► `SCOPE: Hfeit:BOARD,MERCHANT`
+3. HFE Core provisions terminal register IDs and cashier shifts in the existing company book without data loss or re-onboarding.
+
+### 7.3 Automated Month-End Wholesale Metering & Invoicing Cycle
+1. **Day 30 (23:59:59 UTC)**: HFE Core automated cron calculates total compute volume across all merchant companies under Tenant 2.
+2. **Wholesale Invoice Issued**: Tenant 1 issues an official B2B invoice to Tenant 2 (Posting: `Dr. Piutang Usaha Tenant 2` vs `Cr. Pendapatan Lisensi Engine HFE Core`).
+3. **Day 1 (00:00:01 UTC)**: HFE-IT Experience generates and dispatches retail subscription invoices to individual merchants via Virtual Account / Card auto-debit.
+
+### 7.4 Dunning, Grace Period & Statutory Archival Journey
+1. **Days 1–7 (Active Grace Period)**: If a merchant's monthly retail payment fails, POS cashier terminals continue operating with a subtle dashboard reminder banner.
+2. **Day 8+ (Read-Only Suspension)**: The company status transitions to `STATUS: SUSPENDED_READONLY`. New orders and mutations are blocked, but historical journals, reports, and tax receipts remain viewable.
+3. **Statutory 10-Year Archival**: When a business permanently closes, its book transitions to `STATUS: ARCHIVED_STATUTORY` with full cryptographic tamper-proofing, strictly satisfying Indonesian statutory tax audit laws (UU KUP).
