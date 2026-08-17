@@ -5,6 +5,7 @@ import { NotificationProvider } from './context/NotificationContext'
 import { ViewportProvider } from './context/ViewportContext'
 import { FloatKit } from './components/dev/FloatKit'
 import { StaffSubNavigator } from './components/common/StaffSubNavigator'
+import { DomainNavigator } from './components/common/DomainNavigator'
 import { GlobalModals } from './components/modals/GlobalModals'
 import { ScenarioPlayerWidget } from './components/shared/ScenarioPlayerWidget'
 import { useHfeSync } from './hooks/useHfeSync'
@@ -206,6 +207,19 @@ function AppMain() {
         .theme-customer-badge { background-color: var(--brand-badge-bg) !important; color: var(--brand-badge-text) !important; }
         ${effectiveTheme.customCssOverrides || ''}
       `}</style>
+
+      {/* GLOBAL TOP APPLICATION & DOMAIN NAVIGATOR BAR */}
+      <DomainNavigator
+        activeApp={config.activeApp}
+        cafeUsername={sync.hfeCompanyProfile.brandName || 'Kopitiam'}
+        onSwitchDomain={(app) => config.setActiveApp(app)}
+        activeStaffSurface={activeStaffSurface}
+        setActiveStaffSurface={setActiveStaffSurface}
+        viewportMode={config.viewportMode}
+        onSetViewportMode={(mode) => config.setViewportMode(mode)}
+        paymentPolicy={config.paymentPolicy}
+        onSetPaymentPolicy={(pol) => config.setPaymentPolicy(pol)}
+      />
 
       {/* PURE NATIVE VIEWPORT APPLICATION CONTAINER */}
       <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full relative">
