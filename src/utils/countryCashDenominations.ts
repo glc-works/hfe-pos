@@ -1,5 +1,5 @@
 /**
- * Multi-Country Adaptive Cash Banknote Denominations Engine.
+ * Multi-Country Adaptive Cash Banknote Denominations & KISS Multi-Currency Engine.
  * Tier 1: Pure Algorithm & Statutory Currency Denominations (Zero Context Dependencies).
  * Computes realistic, localized physical banknote presets for cashier quick tender.
  */
@@ -7,6 +7,81 @@
 export interface CashPresetItem {
   value: number
   label: string
+}
+
+export interface SupportedTenderCurrency {
+  code: string
+  name: string
+  symbol: string
+  flag: string
+}
+
+export const ACCEPTED_TENDER_CURRENCIES: SupportedTenderCurrency[] = [
+  { code: 'IDR', name: 'Rupiah', symbol: 'Rp', flag: '🇮🇩' },
+  { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸' },
+  { code: 'SGD', name: 'SG Dollar', symbol: 'S$', flag: '🇸🇬' },
+  { code: 'MYR', name: 'Ringgit', symbol: 'RM', flag: '🇲🇾' },
+  { code: 'JPY', name: 'Yen', symbol: '¥', flag: '🇯🇵' },
+  { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺' }
+]
+
+// Standard Benchmark Exchange Rates to IDR (Base)
+export const STANDARD_FX_RATES: Record<string, number> = {
+  IDR: 1,
+  USD: 16000,
+  SGD: 12000,
+  MYR: 3600,
+  EUR: 17500,
+  JPY: 105,
+  AUD: 10500,
+  GBP: 20500
+}
+
+/**
+ * Returns clean currency symbol prefix.
+ */
+export function getCurrencySymbol(curr: string = 'IDR'): string {
+  const c = curr.toUpperCase()
+  switch (c) {
+    case 'USD': return '$'
+    case 'EUR': return '€'
+    case 'SGD': return 'S$'
+    case 'MYR': return 'RM'
+    case 'JPY': return '¥'
+    case 'GBP': return '£'
+    case 'AUD': return 'A$'
+    case 'IDR':
+    default:
+      return 'Rp'
+  }
+}
+
+/**
+ * Converts monetary amount between currencies using standard FX rates.
+ */
+export function convertCurrency(
+  amount: number,
+  fromCurr: string = 'IDR',
+  toCurr: string = 'IDR'
+): number {
+  if (!amount || amount <= 0) return 0
+  const from = fromCurr.toUpperCase()
+  const to = toCurr.toUpperCase()
+  if (from === to) return amount
+
+  const fromRate = STANDARD_FX_RATES[from] || 1
+  const toRate = STANDARD_FX_RATES[to] || 1
+
+  // Amount in IDR = amount * fromRate
+  const inIdr = amount * fromRate
+  // Amount in Target = inIdr / toRate
+  const converted = inIdr / toRate
+
+  // Round decimals: JPY/IDR = 0 decimals, others = 2 decimals
+  if (to === 'IDR' || to === 'JPY') {
+    return Math.round(converted)
+  }
+  return Math.round(converted * 100) / 100
 }
 
 /**

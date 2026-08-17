@@ -1,9 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, Building2 } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
-import { getCountryCashPresets } from '../../utils/countryCashDenominations'
+import {
+  getCountryCashPresets,
+  ACCEPTED_TENDER_CURRENCIES,
+  convertCurrency,
+  getCurrencySymbol
+} from '../../utils/countryCashDenominations'
 
 export interface PosCartSectionProps {
   cartItems: CartItem[]
@@ -42,11 +47,20 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
 }) => {
   const { t, formatPrice, language } = useTranslation()
   const { merchantTheme } = useMerchantConfig()
-  const currency = (merchantTheme as any)?.currency || (language === 'en' ? 'USD' : 'IDR')
-  const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'SGD' ? 'S$' : currency === 'MYR' ? 'RM' : currency === 'JPY' ? '¥' : 'Rp'
-  const cashPresets = getCountryCashPresets(grandTotal, currency, language)
+  const baseCurrency = (merchantTheme as any)?.currency || 'IDR'
+  const [tenderCurrency, setTenderCurrency] = useState<string>(baseCurrency)
+
+  useEffect(() => {
+    setTenderCurrency(baseCurrency)
+  }, [baseCurrency])
+
+  const tenderGrandTotal = convertCurrency(grandTotal, baseCurrency, tenderCurrency)
+  const currencySymbol = getCurrencySymbol(tenderCurrency)
+  const cashPresets = getCountryCashPresets(tenderGrandTotal, tenderCurrency, language)
   const cashGivenNum = parseFloat(posCashGiven) || 0
-  const changeAmount = Math.max(0, cashGivenNum - grandTotal)
+  const changeAmount = Math.max(0, cashGivenNum - tenderGrandTotal)
+  const isForeignTender = tenderCurrency !== baseCurrency
+  const baseCurrencyChange = isForeignTender ? convertCurrency(changeAmount, tenderCurrency, baseCurrency) : 0
 
   // Internal Card Metadata state
   const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>(
@@ -62,25 +76,14 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   const handleCardPrefixChange = (val: string) => {
     const cleaned = val.replace(/\D/g, '').slice(0, 4)
     setCardPrefix(cleaned)
-
-    // Auto-detect network from first digits
-    if (cleaned.startsWith('4')) {
-      setCardNetwork('visa')
-    } else if (cleaned.startsWith('51') || cleaned.startsWith('52') || cleaned.startsWith('53') || cleaned.startsWith('54') || cleaned.startsWith('55') || cleaned.startsWith('2')) {
-      setCardNetwork('mastercard')
-    } else if (cleaned.startsWith('5899') || cleaned.startsWith('1946') || cleaned.startsWith('60')) {
-      setCardNetwork('gpn')
-    } else if (cleaned.startsWith('34') || cleaned.startsWith('37')) {
-      setCardNetwork('amex')
-    } else if (cleaned.startsWith('35')) {
-      setCardNetwork('jcb')
-    }
+    if (cleaned.startsWith('4')) setCardNetwork('visa')
+    else if (/^(5[1-5]|2)/.test(cleaned)) setCardNetwork('mastercard')
+    else if (/^(5899|1946|60)/.test(cleaned)) setCardNetwork('gpn')
+    else if (/^(34|37)/.test(cleaned)) setCardNetwork('amex')
+    else if (cleaned.startsWith('35')) setCardNetwork('jcb')
   }
 
-  const handleCardLast3Change = (val: string) => {
-    const cleaned = val.replace(/\D/g, '').slice(0, 3)
-    setCardLast3(cleaned)
-  }
+  const handleCardLast3Change = (val: string) => setCardLast3(val.replace(/\D/g, '').slice(0, 3))
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
@@ -350,9 +353,40 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         {/* BAR TOMBOL UANG CEPAT (Jika Cash) */}
         {posPayMethod === 'cash' && (
           <div className="flex flex-col gap-2 bg-slate-950 p-3 rounded-2xl border border-slate-800 shadow-inner">
+            {/* TENDER CURRENCY SELECTOR (KISS MULTI-CURRENCY) */}
+            <div className="flex items-center justify-between pb-1 border-b border-slate-900">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                Mata Uang Diterima:
+              </span>
+              <div className="flex items-center gap-1">
+                {ACCEPTED_TENDER_CURRENCIES.slice(0, 3).map((curr) => {
+                  const isCurActive = tenderCurrency === curr.code
+                  return (
+                    <button
+                      key={curr.code}
+                      type="button"
+                      onClick={() => {
+                        setTenderCurrency(curr.code)
+                        const converted = convertCurrency(grandTotal, baseCurrency, curr.code)
+                        setPosCashGiven(converted.toString())
+                      }}
+                      className={`px-1.5 py-0.5 rounded-lg text-[9px] font-mono font-bold border transition-all flex items-center gap-1 ${
+                        isCurActive
+                          ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm'
+                          : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>{curr.flag}</span>
+                      <span>{curr.code}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
-              <span>{t.cart.cashGivenPrompt}</span>
-              {cashGivenNum === grandTotal && grandTotal > 0 && (
+              <span>{t.cart.cashGivenPrompt} {isForeignTender && `(${currencySymbol}${tenderGrandTotal})`}</span>
+              {cashGivenNum === tenderGrandTotal && tenderGrandTotal > 0 && (
                 <span className="text-emerald-400 font-mono flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/30">
                   <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {t.cart.exactCashPaid}
                 </span>
@@ -362,9 +396,9 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             <div className="grid grid-cols-5 gap-1">
               <button
                 type="button"
-                onClick={() => setPosCashGiven(grandTotal.toString())}
+                onClick={() => setPosCashGiven(tenderGrandTotal.toString())}
                 className={`py-1.5 px-0.5 font-mono text-[9px] sm:text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${
-                  cashGivenNum === grandTotal && grandTotal > 0
+                  cashGivenNum === tenderGrandTotal && tenderGrandTotal > 0
                     ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-md'
                     : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
                 }`}
@@ -405,15 +439,22 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             {/* KEMBALIAN PELANGGAN */}
             <div className="flex items-center justify-between border-t border-slate-800/80 pt-1.5 text-xs font-bold">
               <span className="text-slate-400">{t.cart.changeReturn}</span>
-              <span
-                className={`font-mono text-sm ${
-                  cashGivenNum >= grandTotal && grandTotal > 0
-                    ? 'text-amber-400 font-black'
-                    : 'text-slate-500'
-                }`}
-              >
-                {formatPrice(changeAmount)}
-              </span>
+              <div className="flex items-baseline gap-1.5 text-right">
+                <span
+                  className={`font-mono text-sm ${
+                    cashGivenNum >= tenderGrandTotal && tenderGrandTotal > 0
+                      ? 'text-amber-400 font-black'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  {isForeignTender ? `${currencySymbol}${changeAmount}` : formatPrice(changeAmount)}
+                </span>
+                {isForeignTender && changeAmount > 0 && (
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    (Rp {baseCurrencyChange.toLocaleString('id-ID')})
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}
