@@ -498,5 +498,16 @@ graph LR
 - **Zero Real Customer Impact in Production**: In Live Production, `Tenant 98` and `Tenant 99` operate strictly as a **Non-Destructive Synthetic Canary Sandbox**. Live roleplays and hourly canary sweeps execute against these tenants without polluting real commercial merchant accounts (Tenant 100+) or touching live bank rails.
 - **Zero Dual-Infrastructure Spawning Friction**: Testing in early phases can be run directly against the single live production deployment targeting `Tenant 98` and `Tenant 99` without spawning or paying for redundant staging clusters.
 
+### 15.3 The Universal Immutable UUID Tenancy Invariant (OnPrem ⟷ OnCloud Zero-Collision)
+1. **Zero Auto-Increment IDs**: `company_book_id` is ALWAYS an immutable, universally unique 128-bit cryptographic UUID (v4/v7).
+2. **Dual-Mode Identity Parity**: The UUID assigned to an OnPrem local edge node and the Cloud ledger is 100% identical (`cb-9b1deb4d...`).
+3. **Zero Remapping Sync**: Offline transactions logged on local OnPrem hardware sync to Cloud HFE Core with zero ID remapping and zero data collision risks.
+
+### 15.4 The Centralized Tenancy Issuance & Edge OnPrem Bundling Protocol
+1. **Origin of Truth**: All `company_book_id` UUIDs are officially issued either at self-service Web Onboarding registration (`POST /api/v2/company-books/provision`) or via Super-Admin issuance in the Admin Portal.
+2. **Edge OnPrem Configuration Bundling**: When a merchant requests an on-premises installation, the system generates an encrypted `hfe-node-config.json` containing the pre-issued `company_book_id` and cryptographic node authorization token.
+3. **Plug-and-Play Edge Activation**: The local OnPrem node boots up bound to its official cloud UUID, ensuring seamless bidirectional ledger reconciliation whenever internet connectivity is active.
+
+
 
 
