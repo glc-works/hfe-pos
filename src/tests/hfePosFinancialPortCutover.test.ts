@@ -248,7 +248,7 @@ describe('Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)', () =>
     })
 
     it('should resolve HfeSdkAdapter when mode is explicitly set to production', () => {
-      const port = createFinancialPort({ mode: 'production' })
+      const port = createFinancialPort({ mode: 'production', defaultBookId: 'BOOK-CAFE-HQ-88' })
       expect(port.isSimulated).toBe(false)
       expect(port.adapterName).toBe('HfeSdkAdapter')
     })

@@ -54,8 +54,11 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
   private readonly timeoutMs: number
 
   constructor(options?: HfeSdkAdapterOptions) {
+    if (!options?.defaultBookId?.trim()) {
+      throw new Error('defaultBookId is required for the production HfeSdkAdapter')
+    }
     this.baseUrl = options?.baseUrl || 'http://localhost:8080'
-    this.defaultBookId = options?.defaultBookId || 'BOOK-CAFE-HQ-88'
+    this.defaultBookId = options.defaultBookId
     this.timeoutMs = options?.timeoutMs || 10000
   }
 

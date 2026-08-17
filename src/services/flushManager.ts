@@ -43,6 +43,15 @@ export class FlushManager {
     if (typeof window !== 'undefined') {
       window.addEventListener('online', () => this.handleNetworkChange(true))
       window.addEventListener('offline', () => this.handleNetworkChange(false))
+      window.addEventListener('beforeunload', (event) => {
+        if (this.pendingCount > 0) {
+          event.preventDefault()
+          event.returnValue = true
+        }
+      })
+    }
+    if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
+      void navigator.storage.persist().catch(() => false)
     }
     this.refreshPendingCount()
   }

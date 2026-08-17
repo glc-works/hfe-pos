@@ -113,6 +113,27 @@ def check_pillar_2_microcopy_and_experience_pillars():
         except Exception as e:
             violations.append(f"Error reading file '{tsx_file}': {e}")
 
+def check_pillar_3_offline_durability():
+    """Verify Pillar III: durable storage and pending-queue lifecycle guards."""
+    offline_storage = SRC_DIR / "services" / "offlineStorage.ts"
+    flush_manager = SRC_DIR / "services" / "flushManager.ts"
+
+    if not offline_storage.exists():
+        violations.append("Pillar III [Durability]: 'offlineStorage.ts' is missing.")
+    else:
+        storage_text = offline_storage.read_text(encoding="utf-8")
+        if "indexedDB" not in storage_text or "transaction(STORE_TRANSACTIONS, 'readwrite')" not in storage_text:
+            violations.append("Pillar III [Durability]: offline financial intents are not written through IndexedDB transactions.")
+
+    if not flush_manager.exists():
+        violations.append("Pillar III [Lifecycle]: 'flushManager.ts' is missing.")
+    else:
+        flush_text = flush_manager.read_text(encoding="utf-8")
+        if "navigator.storage.persist()" not in flush_text:
+            violations.append("Pillar III [Durability]: persistent browser storage is not requested.")
+        if "beforeunload" not in flush_text:
+            violations.append("Pillar III [Lifecycle]: pending offline transactions have no beforeunload guard.")
+
 def check_pillar_4_accounting_truth():
     """Verify Pillar IV: Accounting Truth & Idempotency Header in SDK."""
     sdk_adapter = SRC_DIR / "services" / "financial" / "HfeSdkAdapter.ts"
@@ -130,6 +151,7 @@ def main():
 
     check_pillar_1_hardware_and_cross_browser()
     check_pillar_2_microcopy_and_experience_pillars()
+    check_pillar_3_offline_durability()
     check_pillar_4_accounting_truth()
 
     if violations:

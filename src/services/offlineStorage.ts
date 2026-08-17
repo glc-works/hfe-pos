@@ -63,19 +63,16 @@ export async function saveOfflineTransaction(
     retryCount: 0,
   }
 
-  try {
-    const db = await openOfflineStorageDB()
-    const tx = db.transaction(STORE_TRANSACTIONS, 'readwrite')
-    const store = tx.objectStore(STORE_TRANSACTIONS)
-    store.put(entry)
+  const db = await openOfflineStorageDB()
+  const tx = db.transaction(STORE_TRANSACTIONS, 'readwrite')
+  const store = tx.objectStore(STORE_TRANSACTIONS)
+  store.put(entry)
 
-    await new Promise<void>((resolve, reject) => {
-      tx.oncomplete = () => resolve()
-      tx.onerror = () => reject(tx.error)
-    })
-  } catch (err) {
-    console.warn('[OfflineStorage] IndexedDB write failed, fallback in-memory entry:', err)
-  }
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+    tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted'))
+  })
 
   return entry
 }

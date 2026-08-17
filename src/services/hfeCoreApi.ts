@@ -6,6 +6,23 @@ const DEFAULT_BASE_URL = 'http://localhost:8080'
 const DB_NAME = 'HfePosOfflineBufferDB'
 const DB_VERSION = 1
 const STORE_NAME = 'pending_transactions'
+const HFE_API_ALLOWED_ORIGINS = new Set([
+  'http://localhost:8080',
+  'http://127.0.0.1:8080',
+  'https://api.staging.hfeit.com',
+  'https://api.hfeit.com',
+])
+
+export function buildHfeUrl(baseUrl: string, path: string): string {
+  const url = new URL(path, `${baseUrl.replace(/\/$/, '')}/`)
+  if (!HFE_API_ALLOWED_ORIGINS.has(url.origin)) {
+    throw new Error('Hfe API base URL must use an approved HFE origin')
+  }
+  if (url.username || url.password) {
+    throw new Error('Hfe API base URL must not contain credentials')
+  }
+  return url.toString()
+}
 
 // --- UUID V4 GENERATOR FOR IDEMPOTENCY KEY ---
 export function generateUUIDv4(): string {
@@ -143,26 +160,23 @@ export function openOfflineDB(): Promise<IDBDatabase> {
 }
 
 export async function saveToOfflineBuffer(payload: SubmitTransactionPayload): Promise<void> {
-  try {
-    const db = await openOfflineDB()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    const store = tx.objectStore(STORE_NAME)
-    store.add({ timestamp: new Date().toISOString(), payload, idempotency_key: payload.idempotency_key || generateUUIDv4() })
-    await new Promise((resolve, reject) => {
-      tx.oncomplete = () => resolve(undefined)
-      tx.onerror = () => reject(tx.error)
-    })
-  } catch (err) {
-    console.warn('[HfeApi] Failed to write payload to IndexedDB buffer:', err)
-  }
+  const db = await openOfflineDB()
+  const tx = db.transaction(STORE_NAME, 'readwrite')
+  const store = tx.objectStore(STORE_NAME)
+  store.add({ timestamp: new Date().toISOString(), payload, idempotency_key: payload.idempotency_key || generateUUIDv4() })
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+    tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted'))
+  })
 }
 
 // --- REST CLIENT IMPLEMENTATIONS ---
 
 /** GET /v1/company-books/{book}/products */
-export async function fetchProductCatalog(bookId = 'BOOK-CAFE-HQ-88', baseUrl = DEFAULT_BASE_URL): Promise<MenuItem[]> {
+export async function fetchProductCatalog(bookId = 'BOOK-CAFE-HQ-88'): Promise<MenuItem[]> {
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/products`)
+    const response = await fetch(`http://localhost:8080/v1/company-books/${bookId}/products`)
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
@@ -180,7 +194,7 @@ export async function resolveContact(
 ): Promise<ResolveContactResponse> {
   const payload = { entry_mode: entryMode, phone: phone || '', display_name: name || '' }
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/contacts/resolve`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/contacts/resolve`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -208,7 +222,7 @@ export async function submitTransaction(
 ): Promise<SubmitTransactionResponse> {
   const idempotencyKey = payload.idempotency_key || generateUUIDv4()
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/transactions`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/transactions`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
       body: JSON.stringify({ ...payload, idempotency_key: idempotencyKey }),
@@ -240,7 +254,7 @@ export async function settleUniversalMultiTender(
   const totalTendered = payload.tenders.reduce((sum, t) => sum + t.amount_minor, 0)
   const totalDiscrepancy = (payload.discrepancies || []).reduce((sum, d) => sum + d.amount_minor, 0)
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/settlements/multi-tender`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/settlements/multi-tender`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': idempotencyKey },
       body: JSON.stringify(payload),
@@ -270,7 +284,7 @@ export async function generateQris(
 ): Promise<QrisResponse> {
   const payload = { transaction_id: txId, amount_idr: amount, biller_split_fee_idr: 250 }
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/payments/qris/generate`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/payments/qris/generate`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -296,7 +310,7 @@ export async function bumpKdsOrder(
 ): Promise<BumpKdsOrderResponse> {
   const payload = { from_status: 'brewing', target_status: status, station_id: 'drink-bar' }
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/kds/orders/${orderId}/bump`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/kds/orders/${orderId}/bump`), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -315,7 +329,7 @@ export async function lookupBarcode(
   baseUrl = DEFAULT_BASE_URL
 ): Promise<BarcodeLookupResponse | null> {
   try {
-    const res = await fetch(`${baseUrl}/v1/company-books/${bookId}/barcodes/lookup`, {
+    const res = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/barcodes/lookup`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ barcode: barcodeString }),
@@ -354,7 +368,7 @@ export async function saveStoreSettings(
   baseUrl = DEFAULT_BASE_URL
 ): Promise<{ success: boolean; updated_at: string }> {
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/settings`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/settings`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -367,9 +381,9 @@ export async function saveStoreSettings(
 }
 
 /** GET /v1/company-books/{book}/memberships */
-export async function fetchTeamRoster(bookId = 'BOOK-CAFE-HQ-88', baseUrl = DEFAULT_BASE_URL): Promise<TeamMember[]> {
+export async function fetchTeamRoster(bookId = 'BOOK-CAFE-HQ-88'): Promise<TeamMember[]> {
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/memberships`)
+    const response = await fetch(`http://localhost:8080/v1/company-books/${bookId}/memberships`)
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
@@ -388,7 +402,7 @@ export async function sendStaffInvitation(
   baseUrl = DEFAULT_BASE_URL
 ): Promise<TeamMember> {
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/memberships/invitations`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/memberships/invitations`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -415,7 +429,7 @@ export async function acceptStaffPin(
   baseUrl = DEFAULT_BASE_URL
 ): Promise<{ success: boolean; membership_id: string; role: string }> {
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/memberships/accept`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/memberships/accept`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin_code: pinCode }),
@@ -434,7 +448,7 @@ export async function revokeStaffAccess(
   baseUrl = DEFAULT_BASE_URL
 ): Promise<{ success: boolean }> {
   try {
-    const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/memberships/${membershipId}`, {
+    const response = await fetch(buildHfeUrl(baseUrl, `/v1/company-books/${bookId}/memberships/${membershipId}`), {
       method: 'DELETE',
     })
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)

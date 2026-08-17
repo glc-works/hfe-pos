@@ -1,9 +1,26 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import { generateUUIDv4, submitTransaction, SubmitTransactionPayload } from '../services/hfeApi'
 
 const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 describe('Idempotency Key & Header Protocol Engine', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+      const requestBody = JSON.parse(String(init?.body)) as SubmitTransactionPayload
+      return new Response(JSON.stringify({
+        tx_id: 'TX-TEST-01',
+        status: 'posted',
+        created_at: '2026-08-18T00:00:00.000Z',
+        grand_total: requestBody.grand_total,
+        idempotency_key: requestBody.idempotency_key,
+      }), { status: 201, headers: { 'Content-Type': 'application/json' } })
+    }))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('generates valid RFC 4122 UUID v4 strings', () => {
     const key = generateUUIDv4()
     expect(key).toMatch(UUID_V4_REGEX)

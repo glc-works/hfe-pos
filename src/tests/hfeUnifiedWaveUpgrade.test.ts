@@ -69,6 +69,7 @@ describe('Unified Wave Upgrade: Hfe Core SDK, Offline Intent & 6-Tier Architectu
     it('HfeSdkAdapter fails closed on disconnected network without generating fake success', async () => {
       const prodAdapter = new HfeSdkAdapter({
         baseUrl: 'http://127.0.0.1:59999', // Non-existent port
+        defaultBookId: 'BOOK-CAFE-HQ-88',
         timeoutMs: 500,
       })
 

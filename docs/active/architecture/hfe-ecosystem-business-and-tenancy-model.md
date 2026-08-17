@@ -76,7 +76,7 @@ To ensure complete mathematical synergy with our 2-digit segmented naming conven
  ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
  │ 👑 BLOK 01 - 09: CORE HOLDINGS & MASTER PLATFORM INFRASTRUCTURE                                 │
  │    • Tenant 01: HFE IT Global Holdings Pte. Ltd. (Global HoldCo & Core IP Master)              │
- │    • Tenant 02: HFE-IT Experience Global (Platform Operator & Wholesale Reseller Mesh)          │
+ │    • Tenant 02: HFE IT Experience (Platform Operator & Canonical Ecosystem Data)                 │
  │    • Tenant 03: HFE Global Connect Hub & Third-Party Relay Node                                 │
  │    • Tenant 04: HFE Global Treasury & FX Settlement Clearing Node                               │
  │    • Tenant 05: HFE Developer Sandbox & Simulation Environment                                  │
@@ -165,7 +165,7 @@ To ensure complete mathematical synergy with our 2-digit segmented naming conven
 
 ## 6. Unified Contact Subledger & Dynamic Namespaced Scope (`Hfeit:<SCOPES>`)
 
-All corporate, partner, regulator, merchant, and consumer contacts across HFE Core and HFE-IT Experience are centrally managed in **Tenant 01's Contact Subledger** with local operational delegation. 
+Tenant 01 is the canonical home of business entities and master business identity. Tenant 02 is the canonical home of HFE IT Experience ecosystem data. Ecosystem records reference Tenant 01 business entities through governed identifiers and APIs; they must not duplicate or take ownership of the canonical business entity. Merchant-private contacts and operational records remain isolated in their assigned Tenant 100+ company book.
 
 To prevent cross-product data duplication and cleanly track lifecycle progression, contacts are partitioned using the **`Hfeit:<SCOPES>`** dynamic namespace:
 
@@ -555,7 +555,6 @@ graph TD
 
 - **Composite Paired Edge Key Formula**:
   $$\mathbf{OnPremNodeKey} = \mathbf{tenant\_id} \mathbin{:} \mathbf{company\_book\_id} \mathbin{:} \mathbf{node\_id}$$
-
 
 
 
