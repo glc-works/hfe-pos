@@ -1,11 +1,11 @@
 ---
 name: web-creation
-description: Master SOP for engineering, scaffolding, inspecting, updating, auditing, styling with Design Tokens, and authoring Storybook 4-Quadrant Visual Suites in the HFE Monorepo with 6-Tier Architecture, Tier 2 React Aria Primitives, and Anti-Monolithic Decoupling.
-version: "1.3.0"
+description: Master SOP for engineering, scaffolding, inspecting, updating, auditing, styling with Design Tokens, and authoring Storybook 4-Quadrant Visual Suites in the HFE Monorepo with 6-Tier Architecture, Tier 2 React Aria Primitives, Modern Web Guidance Best Practices, and Anti-Monolithic Decoupling.
+version: "1.4.0"
 updated_at: "2026-08-17"
 ---
 
-# 🌐 Master SOP: Web Application Engineering, Tokens & Storybook Standard (v1.3.0)
+# 🌐 Master SOP: Web Application Engineering, Modern Standards & Design System (v1.4.0)
 
 > ⚠️ **NORMATIVE AUTHORITY & SSOT ANCHORS**:
 > Dokumen ini berstatus operasional (*executable SOP*) dan terikat secara mutlak pada hierarki kontrak kanonikal:
@@ -14,6 +14,7 @@ updated_at: "2026-08-17"
 > 3. [`POS-ENG-STD-001` & `HFE-UI-STD-001`](file:///Users/aldi/claudefiles/hfe-pos/scripts/hfex-rad0.py) — Standar 9-Pilar UI/UX HFE.
 > 4. [`AGENTS.md`](file:///Users/aldi/claudefiles/headless-company-books/AGENTS.md) — Aturan Isolasi Spasial Defensif & Arsitektur 6-Tingkat.
 > 5. [`docs/active/reference/openapi.json`](file:///Users/aldi/claudefiles/headless-company-books/docs/active/reference/openapi.json) — Kontrak API OpenAPI 3.1.
+> 6. [Modern Web Guidance Standards](file:///Users/aldi/.gemini/config/plugins/modern-web-guidance-plugin/skills/modern-web-guidance/SKILL.md) — Praktik Baku Web Modern (Baseline Widely Available).
 
 ---
 
@@ -71,69 +72,103 @@ Semua komponen UI wajib ditempatkan secara disiplin pada salah satu dari 6 lapis
 
 ---
 
-## 🎨 PILAR 4: PEMBUATAN & SINKRONISASI DESIGN TOKEN BARU (*Design Token Lifecycle Standard*)
+## 👑 PILAR 4: SELERA DESAIN TINGGI & 10 LARANGAN KLISE (*Design Taste & Anti-Cliché Standard*)
 
-1. **Lokasi & Definisi Token**:
-   - **CSS Variables Global**: Didefinisikan di `src/index.css` menggunakan format HSL (agar mudah dimanipulasi opacity-nya: `hsl(var(--color-primary) / <alpha>)`).
-   - **Preset Tema**: Didaftarkan di `src/data/mockData.ts` (`BUILTIN_THEMES`).
-2. **Konvensi Penamaan Token Semantik**:
-   - Background: `--color-bg-canvas`, `--color-bg-surface`, `--color-bg-card`.
-   - Border: `--color-border-subtle`, `--color-border-focus`, `--color-border-accent`.
-   - Text: `--color-text-primary`, `--color-text-muted`, `--color-text-tabular`.
-   - Action / State: `--color-brand-primary`, `--color-danger`, `--color-warning-amber`.
-3. **Anti-Hardcoded Colors Invariant**:
-   - 🚫 Dilarang menggunakan nilai warna hex ad-hoc (misal `#1e293b` atau `#f59e0b`) secara langsung di komponen.
-   - ✅ Gunakan semantic token classes Tailwind/CSS yang terhubung ke variabel root.
-4. **Sinkronisasi Token Lintas Workspace**:
-   - Pada workspace yang terhubung (misal `cb-client`), jalankan skrip sinkronisasi:
-     ```bash
-     npm run tokens:sync
-     ```
+1. **Prinsip Utama: Function-Driven Design**:
+   - Bentuk visual wajib mengabdi pada kecepatan operasional kasir dan kejelasan pembukuan.
+2. **Less, but Better**:
+   - Setiap piksel, border, dan bayangan (*shadow*) harus memiliki alasan fungsional.
+3. 🚫 **10 Larangan Pola Desain Klise (*Forbidden Tropes*)**:
+   * ❌ *No Dashboard Overuse* (Jangan memaksakan layout dashboard pada halaman yang butuh tabel/kanban fokus).
+   * ❌ *No Purple on Dark* (Haram memakai font ungu/violet neon di atas latar gelap).
+   * ❌ *No Colored Border Glows* (Garis tepi menyala neon dilarang; gunakan border solid/halus).
+   * ❌ *No Huge Untracked Typefaces* (Judul besar tanpa letter-spacing terkalibrasi).
+   * ❌ *No Textureless Surfaces* (Wadah datar tanpa kedalaman visual subtle).
+   * ❌ *No Icon-Stuffed Bento Boxes* (Bento box dijejali ikon acak tak bermakna).
+   * ❌ *No Pulsing Biscuit Pills* (Badge kapsul dengan titik berkedip di atas headline).
+   * ❌ *No Gradient Keywords* (Teks warna-warni gradien di kata kunci).
+   * ❌ *No Grid Backgrounds* (Latar belakang jaring-jaring garis).
+   * ❌ *No Over-Nested Cards* (Kartu di dalam kartu di dalam kartu).
 
 ---
 
-## 📚 PILAR 5: PENGGUNAAN & PEMBUATAN STORYBOOK (*Storybook 4-Quadrant Visual Suite*)
+## 🎨 PILAR 5: PEMBUATAN & SINKRONISASI DESIGN TOKEN (*Design Token Lifecycle Standard*)
+
+1. **Lokasi & Format Token**:
+   - **Global CSS Variables**: Didefinisikan di `src/index.css` dalam format HSL: `hsl(var(--color-primary) / <alpha>)`.
+   - **Preset Tema**: Terdaftar di `src/data/mockData.ts` (`BUILTIN_THEMES`).
+2. **Penamaan Semantik Baku**:
+   - Background: `--color-bg-canvas`, `--color-bg-surface`, `--color-bg-card`.
+   - Border: `--color-border-subtle`, `--color-border-focus`, `--color-border-accent`.
+   - Text: `--color-text-primary`, `--color-text-muted`, `--color-text-tabular`.
+   - State: `--color-brand-primary`, `--color-danger`, `--color-warning-amber`.
+3. **Anti-Hardcoded Colors Invariant**:
+   - 🚫 Dilarang menggunakan nilai warna hex ad-hoc (misal `#1e293b`) di komponen.
+   - ✅ Gunakan semantic token classes Tailwind/CSS yang terhubung ke variabel root.
+4. **Sinkronisasi Token Lintas Workspace**:
+   ```bash
+   npm run tokens:sync
+   ```
+
+---
+
+## 📚 PILAR 6: PENGGUNAAN & PEMBUATAN STORYBOOK (*Storybook 4-Quadrant Visual Suite*)
 
 1. **Struktur Direktori Story**:
    - `src/stories/components/` ➔ Atom Tier 2 & Widget Tier 3 (`PriceTag.stories.tsx`, `TableCard.stories.tsx`).
    - `src/stories/scenarios/` ➔ Simulasi skenario E2E (`SCN_01_01_01_BsdCafeSplitBill.stories.tsx`).
    - `src/stories/onboarding/` ➔ Wizard onboarding (`StoreOnboardingWizard.stories.tsx`).
 2. **Kewajiban 4-Kuadran di Setiap File Story (*4-Quadrant Rule*)**:
-   Setiap storybook wajib mengekspor 4 varian data ekstrem untuk validasi visual:
-   ```typescript
-   export const Q1_EmptyState: Story = { args: { name: '', amount: 0, elapsedMinutes: 0 } }
-   export const Q2_ExtremeShort: Story = { args: { name: 'Al', amount: 500, elapsedMinutes: 1 } }
-   export const Q3_ExtremeOverflow: Story = { args: { name: 'Bpk. Alexander Raden Christopher III', amount: 1850000000, elapsedMinutes: 120 } }
-   export const Q4_MultiStateVariation: Story = { args: { isOccupied: true, isSplitBill: true, isOverdue: true } }
-   ```
+   Setiap storybook wajib mengekspor 4 varian data ekstrem (`Q1_Empty`, `Q2_Short`, `Q3_Overflow`, `Q4_MultiState`).
 3. **Pengujian Interaktif `play()` Function**:
-   - Gunakan fungsi `play()` dari `@storybook/test` untuk mengotomasi interaksi pengguna (misal: klik meja, masukkan pin manajer, simulasikan split-bill).
+   - Gunakan fungsi `play()` dari `@storybook/test` untuk mengotomasi simulasi klik kasir, open-tab, dan QRIS.
 4. **Perintah Menjalankan & Mengaudit Storybook**:
-   - Jalankan Server Storybook:
-     ```bash
-     npm run storybook
-     ```
-   - Audit Kepatuhan Storybook:
-     ```bash
-     python3 scripts/radar/story_sync.py --audit
-     ```
+   ```bash
+   npm run storybook
+   python3 scripts/radar/story_sync.py --audit
+   ```
 
 ---
 
-## 🔍 PILAR 6: TOOLS INTROSPEKSI & CARA CEK FITUR (*Zero-Guess Capability Check*)
+## ♿ PILAR 7: AKSESIBILITAS & KEYBOARD SHORTCUTS (*A11y & WCAG 2.2 AA*)
+
+1. **Target Sentuh Minimum 44x44px**:
+   - Semua tombol dan kontrol sentuh wajib memiliki ukuran area sentuh minimal `min-h-[44px] min-w-[44px]`.
+2. **Navigasi Keyboard Penuh**:
+   - Dialog modal wajib mendukung penutupan via tombol `Esc` dan perangkap fokus (`focus-trap`).
+   - Sediakan hotkeys operasional kasir (misal `F2` untuk Bayar, `F4` untuk Cetak Struk).
+3. **Indikator Cincin Fokus Eksplisit**:
+   - Setiap elemen yang dapat difokuskan wajib memiliki `focus-visible:ring-2 focus-visible:ring-amber-500`.
+
+---
+
+## ⚡ PILAR 8: CORE WEB VITALS & OFFLINE-FIRST OPTIMISTIC UI (*Performance & Resilience*)
+
+1. **Zero Layout Shift (CLS == 0.00)**:
+   - Gunakan skeleton loader dengan dimensi tinggi dan lebar eksplisit sebelum data termuat.
+2. **Optimistic UI Updates (INP < 50ms)**:
+   - Perbarui state UI kasir secara instan (<16ms / 60fps), lalu kirim mutasi ke backend secara asinkron.
+3. **Buffer Mutasi Offline-First**:
+   - Jika koneksi terputus, simpan transaksi ke IndexedDB dan tampilkan badge status: `🟢 Online` / `⚡ Mode Offline`.
+
+---
+
+## 🔍 PILAR 9: TOOLS INTROSPEKSI & CARA CEK FITUR (*Zero-Guess Capability Check*)
 
 1. **Tool Pencarian Semantik CLI**:
    ```bash
    python3 scripts/hfe.py search "<kata-kunci>"
    ```
-2. **Tool Inspeksi OpenAPI 3.1**:
-   - Cari endpoint resmi di `docs/active/reference/openapi.json`.
-3. **Tool Inspeksi Komponen Eksisting**:
-   - Gunakan `grep_search` pada `src/ui/` dan `src/components/` untuk mendeteksi atom/widget yang sudah siap pakai.
+2. **Tool Modern Web Guidance Search**:
+   ```bash
+   npx -y modern-web-guidance@latest search "<use-case>"
+   ```
+3. **Tool Inspeksi OpenAPI 3.1 & Komponen**:
+   - Cari endpoint di `docs/active/reference/openapi.json` dan periksa `src/ui/`.
 
 ---
 
-## 🧭 PILAR 7: PROTOKOL AUDIT 9-PILAR & DETEKSI CELAH (*9-Pillar Radar & Gap Detection*)
+## 🧭 PILAR 10: PROTOKOL AUDIT 9-PILAR & DETEKSI CELAH (*9-Pillar Radar & Gap Detection*)
 
 Jalankan sentinel auditor otomatis untuk mendeteksi pelanggaran standar UI:
 
@@ -142,22 +177,14 @@ python3 scripts/hfex-rad0.py
 ```
 
 ### 9 Pilar yang Diaudit Secara Otomatis:
-1. **Pilar 1: Modularity & Line Limit (<500 baris)** ➔ Memastikan tidak ada file *god-component*.
-2. **Pilar 2: Tier 2 React Aria & Monotonic Boundary** ➔ Memastikan impor tidak melompat ke atas.
-3. **Pilar 3: Defensive Spatial Isolation & Anti-Collision** ➔ Memastikan safe-area, 100dvh, dan 4-kuadran.
-4. **Pilar 4: Vitest Component & Domain Suites** ➔ Memvalidasi kelulusan seluruh unit test UI.
-5. **Pilar 5: OpenAPI Contract & Connector Manifest** ➔ Memvalidasi izin dan `X-Idempotency-Key`.
-6. **Pilar 6: Tabular Monetary Presentation** ➔ Memvalidasi `font-variant-numeric: tabular-nums`.
-7. **Pilar 7: F&B Capacity Utilisation & Anti-Zigzag** ➔ Memvalidasi alur baca linear dan glif `👥`.
-8. **Pilar 8: Vite Bundle Budget (<1.500 KB)** ➔ Memvalidasi *tree-shaking* dan ukuran chunk.
-9. **Pilar 9: Git Hygiene & Fast Sentinel** ➔ Memvalidasi *working tree* bersih tanpa uncommitted changes.
+1. **Modularity (<500 baris)** • 2. **Tier 2 React Aria** • 3. **Spatial Isolation** • 4. **Vitest Suites (100+)** • 5. **OpenAPI Parity** • 6. **Tabular Numbers** • 7. **Capacity Utilisation** • 8. **Vite Bundle Budget (<1.500 KB)** • 9. **Git Hygiene**.
 
 ---
 
-## 🔄 PILAR 8: PROTOKOL PEMBARUAN & REFAKTOR AMAN (*Safe Refactoring Protocol*)
+## 🔄 PILAR 11: PROTOKOL PEMBARUAN & REFAKTOR AMAN (*Safe Refactoring Protocol*)
 
-1. **Surgical Changes**: Sentuh hanya komponen target. Jangan mengubah formatting file tetangga yang tidak bersalah.
-2. **Downward Monotonic Edit**: Pastikan atom Tier 2 tidak pernah mengimpor komponen dari Tier 3-6.
+1. **Surgical Changes**: Sentuh hanya komponen target tanpa merusak styling tetangga.
+2. **Downward Monotonic Edit**: Pastikan Tier 2 dilarang mengimpor komponen dari Tier 3-6.
 3. **Uji Regresi Vitest**:
    ```bash
    npm test -- src/tests/<nama-test>.test.ts --run
@@ -166,7 +193,7 @@ python3 scripts/hfex-rad0.py
 
 ---
 
-## 📋 PILAR 9: STANDAR PELAPORAN TEMUAN (*3-Part Retrospective & Health Scorecard*)
+## 📋 PILAR 12: STANDAR PELAPORAN TEMUAN (*3-Part Retrospective & Health Scorecard*)
 
 Setiap kali menemukan celah atau selesai melakukan pembaruan, agen wajib melaporkan dengan format baku:
 
@@ -186,20 +213,3 @@ Setiap kali menemukan celah atau selesai melakukan pembaruan, agen wajib melapor
 ==========================================================================================================
  [Daftar file yang diperbaiki, output unit test 100% Green, dan status Master Radar 9/9 Pilar Sehat]
 ```
-
----
-
-## ⚡ PILAR 10: ALUR SCAFFOLDING APLIKASI WEB BARU (*App Scaffolding Checklist*)
-
-1. **Inisialisasi Non-Interaktif**:
-   ```bash
-   npx -y create-vite-app@latest ./ --template react-ts
-   ```
-2. **Pasang Dependensi Inti**:
-   ```bash
-   npm install react-aria-components lucide-react clsx tailwind-merge
-   ```
-3. **Hubungkan Tier 2 UI Primitives**:
-   - Arahkan alias `@/ui` ke pustaka atom bersama (`src/ui/index.ts`).
-4. **Konfigurasi CSS & Safe Areas**:
-   - Terapkan `100dvh` dan safe-area insets (`env(safe-area-inset-top)`) pada kontainer utama.
