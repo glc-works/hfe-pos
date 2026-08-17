@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import {
   Bell, X, CheckCheck, Trash2, AlertTriangle, ShieldAlert,
-  Ticket, MessageSquare, DollarSign, Layers, Clock, Flame
+  MessageSquare, DollarSign, Layers, Clock, Flame
 } from 'lucide-react'
 import { useNotification } from '../../context/NotificationContext'
 import { NotificationCategory, HfeNotification } from '../../types/pos'
@@ -16,25 +16,26 @@ export interface NotificationCenterDrawerProps {
 type FilterTab = 'all' | NotificationCategory
 
 const CATEGORY_TABS: { id: FilterTab; label: string; icon: React.ReactNode }[] = [
-  { id: 'all', label: 'Semua', icon: <Layers className="w-3.5 h-3.5" /> },
-  { id: 'operational', label: 'Operasional', icon: <Flame className="w-3.5 h-3.5 text-amber-400" /> },
-  { id: 'tickets', label: 'Tiket Event', icon: <Ticket className="w-3.5 h-3.5 text-sky-400" /> },
-  { id: 'feedback', label: 'Feedback', icon: <MessageSquare className="w-3.5 h-3.5 text-emerald-400" /> },
+  { id: 'all', label: 'Semua Alert', icon: <Layers className="w-3.5 h-3.5" /> },
   { id: 'safety_allergen', label: 'Alergen', icon: <AlertTriangle className="w-3.5 h-3.5 text-rose-400" /> },
-  { id: 'financial_shifts', label: 'Keuangan', icon: <DollarSign className="w-3.5 h-3.5 text-yellow-400" /> }
+  { id: 'operational', label: 'Meja & Dapur', icon: <Flame className="w-3.5 h-3.5 text-amber-400" /> },
+  { id: 'financial_shifts', label: 'Shift Kasir', icon: <DollarSign className="w-3.5 h-3.5 text-yellow-400" /> },
+  { id: 'feedback', label: 'Ulasan Tamu', icon: <MessageSquare className="w-3.5 h-3.5 text-emerald-400" /> }
 ]
 
 export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> = ({
   isOpen,
   onClose,
   onOpenServiceTickets,
-  onOpenTicketValidator
 }) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAllNotifications, openServiceTicketsCount } = useNotification()
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
+  // Cafe Operations Isolation: In 'all' tab, prioritize operational F&B alerts (Allergens, Service, Shifts, Feedback)
   const filteredNotifications = useMemo(() => {
-    if (activeTab === 'all') return notifications
+    if (activeTab === 'all') {
+      return notifications.filter(n => n.category !== 'tickets')
+    }
     return notifications.filter(n => n.category === activeTab)
   }, [notifications, activeTab])
 
@@ -59,8 +60,6 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
         return <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400"><ShieldAlert className="w-4 h-4" /></div>
       case 'operational':
         return <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400"><Flame className="w-4 h-4" /></div>
-      case 'tickets':
-        return <div className="p-2 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400"><Ticket className="w-4 h-4" /></div>
       case 'feedback':
         return <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"><MessageSquare className="w-4 h-4" /></div>
       case 'financial_shifts':
@@ -100,10 +99,10 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
             </div>
             <div>
               <h2 className="text-sm font-black text-white flex items-center gap-2">
-                Pusat Notifikasi & Alert
+                Pusat Alert Operasional Kafe
               </h2>
               <p className="text-[11px] text-slate-400 font-mono">
-                {unreadCount} belum dibaca • {notifications.length} total
+                {unreadCount} belum dibaca • Layanan lantai & alergen
               </p>
             </div>
           </div>
@@ -139,7 +138,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
           </div>
         </div>
 
-        {/* 2. SHORTCUT HUBS: SERVICE TICKETS & EVENT VALIDATOR */}
+        {/* 2. DEDICATED SHORTCUT HUBS: TABLE SERVICE & ALLERGEN ALERTS */}
         <div className="px-4 py-2.5 bg-slate-900/40 border-b border-slate-800/80 flex items-center gap-2 shrink-0">
           <button
             type="button"
@@ -164,17 +163,18 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
 
           <button
             type="button"
-            onClick={() => {
-              onClose()
-              onOpenTicketValidator?.()
-            }}
-            className="flex-1 py-2 px-2.5 rounded-xl bg-gradient-to-r from-sky-500/20 to-slate-800 hover:from-sky-500/30 border border-sky-500/30 flex items-center justify-between text-left transition-all active:scale-[0.98]"
+            onClick={() => setActiveTab('safety_allergen')}
+            className={`flex-1 py-2 px-2.5 rounded-xl border flex items-center justify-between text-left transition-all active:scale-[0.98] ${
+              activeTab === 'safety_allergen'
+                ? 'bg-rose-500/20 border-rose-500/40 text-rose-300 ring-1 ring-rose-500/30'
+                : 'bg-gradient-to-r from-rose-500/10 to-slate-800 hover:from-rose-500/20 border-rose-500/20 text-slate-200'
+            }`}
           >
             <div className="flex items-center gap-2">
-              <span className="text-xs">🎟️</span>
-              <span className="text-xs font-bold text-slate-200">Scan Tiket</span>
+              <span className="text-xs">⚠️</span>
+              <span className="text-xs font-bold">Alert Alergen</span>
             </div>
-            <span className="text-[10px] font-mono text-sky-400 font-bold">Gate-In</span>
+            <span className="text-[10px] font-mono text-rose-400 font-bold">Kritis</span>
           </button>
         </div>
 
@@ -207,9 +207,9 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
               <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 mb-3">
                 <Bell className="w-6 h-6" />
               </div>
-              <p className="text-xs font-bold text-slate-300">Tidak Ada Notifikasi</p>
+              <p className="text-xs font-bold text-slate-300">Tidak Ada Alert Aktif</p>
               <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">
-                Semua alert operasional dan chits meja sudah tertangani.
+                Semua alert operasional meja dan alergen sudah tertangani.
               </p>
             </div>
           ) : (
@@ -266,7 +266,7 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
         {/* 5. FOOTER */}
         <div className="p-3 border-t border-slate-800 bg-slate-900/90 text-center shrink-0">
           <p className="text-[10px] text-slate-400 font-mono">
-            Hfe Omnichannel Attention Engine (GLC-ENG-STD-001)
+            Hfe Floor Operations & Service Dispatch (GLC-ENG-STD-001)
           </p>
         </div>
       </div>
