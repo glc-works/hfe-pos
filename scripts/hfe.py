@@ -347,7 +347,7 @@ def cmd_scenario(args):
         print("\n" + "=" * 80)
 
 def cmd_town(args):
-    engine_path = os.path.join(REPO_ROOT, "scripts", "agent_town", "game_engine.py")
+    engine_path = os.path.join(REPO_ROOT, "scripts", "agent_town", "world_sim.py")
     action = (args.action or "sim").strip().lower()
     cmd = [sys.executable, engine_path]
     if action == "status":
@@ -357,10 +357,14 @@ def cmd_town(args):
     else:
         if args.days is not None:
             cmd.extend(["--days", str(args.days)])
-        if args.actors is not None:
-            cmd.extend(["--actors", str(args.actors)])
         if args.speed:
             cmd.extend(["--speed", args.speed])
+        if getattr(args, "hours", None):
+            cmd.extend(["--hours", args.hours])
+        if getattr(args, "drama_rate", None) is not None:
+            cmd.extend(["--drama-rate", str(args.drama_rate)])
+        if getattr(args, "novel", False):
+            cmd.append("--novel")
         if args.json:
             cmd.append("--json")
     if args.extra_args:
@@ -412,7 +416,10 @@ def main():
     p_town.add_argument("action", nargs="?", default="sim", choices=["sim", "status"], help="Action: sim, status")
     p_town.add_argument("--days", type=int, default=None, help="Number of virtual days to simulate")
     p_town.add_argument("--actors", type=int, default=None, help="Number of autonomous actors")
-    p_town.add_argument("--speed", choices=["warp", "fast"], default=None, help="Simulation speed")
+    p_town.add_argument("--speed", choices=["slow", "fast", "warp"], default=None, help="Simulation speed: slow, fast, warp")
+    p_town.add_argument("--hours", type=str, default=None, help="Operating hours: default, 24h, or <open>-<close>")
+    p_town.add_argument("--drama-rate", type=float, default=None, help="Drama probability rate (0.0 to 1.0)")
+    p_town.add_argument("--novel", action="store_true", help="Print full literary narrative novel chapters with dialogues")
     p_town.add_argument("--json", action="store_true", help="Output raw telemetry JSON")
     p_town.add_argument("extra_args", nargs="*", default=[], help="Additional arguments")
     p_skill = subparsers.add_parser("skill", help="Explore HFE Agent Skills & Ecosystem Catalog")
