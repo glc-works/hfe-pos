@@ -1,11 +1,11 @@
 ---
 name: connector-creation
-description: Master SOP for engineering, auditing, cataloging, migrating, and bi-directionally syncing Ecosystem Connectors (Xero, QuickBooks, Moka, Accurate, Mekari Jurnal, BCA SNAP, Stripe, Shopify, SAP) in Connect Hub, with Raw Facts Recalculation, 3-Way Reconciliation, and Proactive Feature Reverse-Adoption.
+description: Master SOP for engineering, auditing, cataloging, migrating, updating, and bi-directionally syncing Ecosystem Connectors (Xero, QuickBooks, Moka, Accurate, Mekari Jurnal, BCA SNAP, Stripe, Shopify, SAP) in Connect Hub, with Raw Facts Recalculation, 3-Way Reconciliation, and Proactive Feature Reverse-Adoption.
 ---
 
-# 🔌 Ecosystem Connector Creation Standard (Tool-Driven SOP)
+# 🔌 Master SOP: Ecosystem Connector Engineering, Audit & Lifecycle Standard
 
-Panduan operasional baku (*Standard Operating Procedure*) untuk membangun, mengaudit, mendaftarkan ke Connect Hub, memigrasikan data, dan menyinkronkan konektor ekosistem pihak ketiga ke dalam **Headless Company Books (HFE)** menggunakan tools kanonikal repositori.
+Panduan operasional baku (*Standard Operating Procedure*) untuk membangun, mengaudit kepatuhan, mendaftarkan ke Connect Hub, memigrasikan data, mengupdate versi API, dan menyinkronkan konektor ekosistem pihak ketiga ke dalam **Headless Company Books (HFE)** menggunakan tools kanonikal repositori.
 
 ---
 
@@ -38,7 +38,7 @@ Daftarkan konektor baru ke Connect Hub Marketplace menggunakan langkah berbasis 
    - Pastikan `category` dan `region` yang dipilih valid terhadap tipe union TypeScript di berkas tersebut.
 2. **Tambahkan Metadata Konektor**:
    - Tambahkan entri baru ke array `CONNECTORS_DATA` di `connectorsData.ts`:
-     * `slug`, `name`, `category`, `region`, `icon`, `summary`, `derivedBadges`, `requiredScopes`.
+     * `slug`, `name`, `category`, `region`, `icon`, `summary`, `derivedBadges`, `requiredScopes`, `supportedVersions`.
 3. **Konfigurasi Form Kredensial Modal**:
    - Buka `src/components/core/hub/ConnectorInstallModal.tsx` dan tentukan input kredensial (ClientId, ClientSecret, ApiKey, WebhookSecret).
 4. **Konfigurasi Webhook Relay Panel**:
@@ -80,27 +80,41 @@ Daftarkan konektor baru ke Connect Hub Marketplace menggunakan langkah berbasis 
 
 ---
 
-## 🧪 PILAR 5: PENGUJIAN INVARIAN & MASTER RADAR GATE (*Testing & Verification*)
+## 🛡️ PILAR 5: AUDIT KEPATUHAN & KEAMANAN KONEKTOR (*5-Point Security Audit*)
 
-1. **Uji Frontend & Backend**:
-   - Jalankan suite pengujian:
-     ```bash
-     npm test
-     cargo test --manifest-path hcb2/Cargo.toml --lib
-     ```
-2. **Verifikasi Master Radar & Modularity**:
-   - Jalankan sentinel radar di kedua repositori:
-     ```bash
-     python3 scripts/hfe-rad0.py
-     python3 ../hfe-pos/scripts/hfex-rad0.py
-     ```
-   - Assert: **0 Critical Gaps** & seluruh berkas kode `<400 baris` (batas mutlak `<500 baris`).
+Sebelum konektor dinyatakan stabil (*Stable Release*), wajib lolos **Audit 5 Poin**:
+
+1. **Audit Anti-Calculated Field**: Pastikan tidak ada endpoint DTO yang menerima `tax_amount` atau `grand_total` manual dari klien.
+2. **Audit Tanda Tangan Webhook**: Pastikan seluruh webhook listener menolak payload tanpa `HMAC-SHA256` yang valid.
+3. **Audit Idempotensi**: Pastikan penembakan 5 request duplikat serentak tidak menimbulkan pemotongan saldo ganda.
+4. **Audit Isolasi Tenant**: Pastikan kredensial Tenant A tidak dapat mengakses buku besar Tenant B.
+5. **Verifikasi Master Radar**:
+   ```bash
+   python3 scripts/hfe-rad0.py
+   python3 ../hfe-pos/scripts/hfex-rad0.py
+   ```
+   Assert: **0 Critical Gaps** & seluruh berkas kode `<400 baris` (batas mutlak `<500 baris`).
 
 ---
 
-## 🔄 PILAR 6: ADOPSI TERBALIK & USULAN FITUR BARU (*The Reverse-Adoption Loop*)
+## 🔄 PILAR 6: PROTOKOL PEMBARUAN & VERSI API (*Connector Update & Versioning*)
 
-Saat mengaudit API pihak ketiga, jika menemukan pola desain yang unggul dan belum dimiliki HFE:
+Saat pihak ketiga merilis versi API baru (misal: Xero API v3, DJP Coretax v4.0, SNAP BI upgrade):
+
+1. **Audit Changelog & Diff Skema**:
+   - Bandingkan DTO versi lama vs versi baru. Identifikasi field yang dihapus (*deprecated*) atau format baru.
+2. **Perbarui Metadata Versi**:
+   - Tambahkan versi baru ke `supportedVersions` di `src/components/core/hub/connectorsData.ts` (misal: `['v3.2', 'v4.0-coretax']`).
+3. **Adaptor Kompatibilitas Mundur (*Backwards-Compatible Transformer*)**:
+   - Bangun transformer yang mampu menerima versi lama maupun versi baru secara dinamis tanpa memutus koneksi merchant yang belum upgrade.
+4. **Uji Regresi Penuh**:
+   - Jalankan test suite `npm test` dan `cargo test` untuk membuktikan tidak ada kerusakan pada data historis.
+
+---
+
+## 💡 PILAR 7: ADOPSI TERBALIK & USULAN FITUR BARU (*The Reverse-Adoption Loop*)
+
+Saat mengaudit atau mengupdate konektor luar, jika menemukan pola desain yang unggul dan belum dimiliki HFE:
 
 1. Jalankan `python3 scripts/hfe.py search "<keyword>"` untuk memastikan apakah HFE sudah memiliki fitur tersebut.
 2. Jika belum ada, susun dokumen **Level-2 Feature Proposal** di `docs/active/plans/level-2/`:
