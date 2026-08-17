@@ -94,7 +94,11 @@ export const INITIAL_COA_DATA: AccountNode[] = [
   },
 ]
 
-export const CoATreeHierarchy: React.FC = () => {
+export interface CoATreeHierarchyProps {
+  accounts?: any
+}
+
+export const CoATreeHierarchy: React.FC<CoATreeHierarchyProps> = ({ accounts: _accounts }) => {
   const [treeData, setTreeData] = useState<AccountNode[]>(INITIAL_COA_DATA)
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({
     'coa-1000': true, 'coa-1100': true, 'coa-2000': true, 'coa-3000': true, 'coa-4000': true, 'coa-5000': true, 'coa-6000': true,

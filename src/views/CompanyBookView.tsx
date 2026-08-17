@@ -12,7 +12,10 @@ import {
   Calendar,
   Download,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Flame,
+  Trees,
+  Building2
 } from 'lucide-react'
 import { AccountingTabId } from '../types/accounting'
 import {
@@ -29,8 +32,11 @@ import {
   TrialBalanceView,
   BalanceSheetStatement,
   ProfitAndLossStatement,
-  TaxCompliancePortal
-} from '../components/accounting'
+  TaxCompliancePortal,
+  InventoryAssemblyModal,
+  BiologicalAssetRegistry,
+  ConsolidatedStatementView
+} from '../components/book'
 
 export interface CompanyBookViewProps {
   bookId?: string
@@ -76,7 +82,10 @@ export const CompanyBookView: React.FC<CompanyBookViewProps> = ({
     { id: 'trial-balance', label: 'Neraca Saldo', icon: <Scale className="w-4 h-4" /> },
     { id: 'balance-sheet', label: 'Neraca Keuangan', icon: <Landmark className="w-4 h-4" /> },
     { id: 'pnl', label: 'Laba Rugi (P&L)', icon: <PieChart className="w-4 h-4" /> },
-    { id: 'tax', label: 'Portal Pajak (PB1)', icon: <Receipt className="w-4 h-4" />, count: MOCK_TAX_OBLIGATIONS.length }
+    { id: 'tax', label: 'Portal Pajak (PB1)', icon: <Receipt className="w-4 h-4" />, count: MOCK_TAX_OBLIGATIONS.length },
+    { id: 'assembly', label: 'Perakitan BOM', icon: <Flame className="w-4 h-4" /> },
+    { id: 'bio-assets', label: 'Aset Biologis (PSAK 69)', icon: <Trees className="w-4 h-4" /> },
+    { id: 'consolidation', label: 'Konsolidasi Grup', icon: <Building2 className="w-4 h-4" /> }
   ]
 
   return (
@@ -235,6 +244,18 @@ export const CompanyBookView: React.FC<CompanyBookViewProps> = ({
 
         {activeTab === 'tax' && (
           <TaxCompliancePortal obligations={MOCK_TAX_OBLIGATIONS} />
+        )}
+
+        {activeTab === 'assembly' && (
+          <InventoryAssemblyModal />
+        )}
+
+        {activeTab === 'bio-assets' && (
+          <BiologicalAssetRegistry />
+        )}
+
+        {activeTab === 'consolidation' && (
+          <ConsolidatedStatementView />
         )}
       </div>
     </div>

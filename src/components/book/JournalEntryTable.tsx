@@ -74,7 +74,11 @@ export const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [
   },
 ]
 
-export const JournalEntryTable: React.FC = () => {
+export interface JournalEntryTableProps {
+  entries?: any
+}
+
+export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _initialEntries }) => {
   const [entries, setEntries] = useState<JournalEntry[]>(INITIAL_JOURNAL_ENTRIES)
   const [selectedType, setSelectedType] = useState<JournalType>('ALL')
   const [searchQuery, setSearchQuery] = useState('')

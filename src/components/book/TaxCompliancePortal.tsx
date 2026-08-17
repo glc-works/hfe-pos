@@ -18,6 +18,7 @@ import {
 } from '@/ui'
 
 export interface TaxCompliancePortalProps {
+  obligations?: any
   companyName?: string
   npwp?: string
   taxPeriodLabel?: string

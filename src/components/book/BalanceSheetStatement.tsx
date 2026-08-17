@@ -29,6 +29,7 @@ export interface BalanceSheetItem {
 }
 
 export interface BalanceSheetStatementProps {
+  data?: any
   companyName?: string
   currentPeriodLabel?: string
   priorPeriodLabel?: string

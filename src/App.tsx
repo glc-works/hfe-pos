@@ -6,6 +6,7 @@ import { ViewportProvider } from './context/ViewportContext'
 import { FloatKit } from './components/dev/FloatKit'
 import { StaffSubNavigator } from './components/common/StaffSubNavigator'
 import { GlobalModals } from './components/modals/GlobalModals'
+import { ScenarioPlayerWidget } from './components/shared/ScenarioPlayerWidget'
 import { useHfeSync } from './hooks/useHfeSync'
 import { useTableState } from './hooks/useTableState'
 import { useCart } from './hooks/useCart'
@@ -438,6 +439,9 @@ function AppMain() {
         setCustomerProfiles={setCustomerProfiles}
         setQrStepView={setQrStepView}
       />
+
+      {/* SCENARIO LIVE PLAYER & DEV TOOLKIT */}
+      <ScenarioPlayerWidget />
 
       {/* FLOATKIT DEV PACK (RENDERED AT VERY END TO GUARANTEE ZERO DOM-ORDER INTERFERENCE) */}
       <FloatKit

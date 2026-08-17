@@ -25,6 +25,7 @@ export interface PnLItem {
 }
 
 export interface ProfitAndLossStatementProps {
+  data?: any
   companyName?: string
   currentPeriodLabel?: string
   priorPeriodLabel?: string

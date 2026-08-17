@@ -114,4 +114,13 @@ export interface TaxObligation {
   sptpdNumber?: string
 }
 
-export type AccountingTabId = 'coa' | 'journals' | 'trial-balance' | 'balance-sheet' | 'pnl' | 'tax'
+export type AccountingTabId =
+  | 'coa'
+  | 'journals'
+  | 'trial-balance'
+  | 'balance-sheet'
+  | 'pnl'
+  | 'tax'
+  | 'assembly'
+  | 'bio-assets'
+  | 'consolidation'

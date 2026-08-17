@@ -67,7 +67,12 @@ export const MOCK_SUBLEDGER_MAP: Record<string, SubledgerTransaction[]> = {
   ],
 }
 
-export const TrialBalanceView: React.FC = () => {
+export interface TrialBalanceViewProps {
+  rows?: any
+  periodName?: string
+}
+
+export const TrialBalanceView: React.FC<TrialBalanceViewProps> = ({ rows: _rows, periodName: _periodName }) => {
   const [items] = useState<TrialBalanceItem[]>(INITIAL_TRIAL_BALANCE)
   const [period, setPeriod] = useState<PeriodFilter>('MTD')
   const [searchQuery, setSearchQuery] = useState('')

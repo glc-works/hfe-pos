@@ -6,7 +6,8 @@ import {
   Zap,
   Sparkles,
   Layers,
-  Webhook
+  Webhook,
+  CreditCard
 } from 'lucide-react'
 import {
   ConnectorsCatalogGrid,
@@ -17,8 +18,9 @@ import {
   DeveloperKeysManager,
   WebhookRelayPanel
 } from '../components/core/hub'
+import { WholesaleBillingInspector } from '../components/admin'
 
-export type ConnectHubTab = 'catalog' | 'allowlist' | 'claims' | 'simulator' | 'webhooks' | 'keys'
+export type ConnectHubTab = 'catalog' | 'allowlist' | 'claims' | 'simulator' | 'webhooks' | 'keys' | 'wholesale'
 
 export const ConnectHubAdminView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ConnectHubTab>('catalog')
@@ -185,6 +187,19 @@ export const ConnectHubAdminView: React.FC = () => {
           <Key className="w-3.5 h-3.5 text-amber-400" />
           <span>Developer API Keys</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('wholesale')}
+          className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            activeTab === 'wholesale'
+              ? 'bg-slate-800 text-white border border-slate-700 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <CreditCard className="w-3.5 h-3.5 text-purple-400" />
+          <span>B2B Wholesale Metering</span>
+        </button>
       </div>
 
       {/* Main Tab Content */}
@@ -205,6 +220,8 @@ export const ConnectHubAdminView: React.FC = () => {
         {activeTab === 'simulator' && <BankFeedSimulator initialBank={simulatorBank} />}
 
         {activeTab === 'keys' && <DeveloperKeysManager />}
+
+        {activeTab === 'wholesale' && <WholesaleBillingInspector />}
       </div>
     </div>
   )
