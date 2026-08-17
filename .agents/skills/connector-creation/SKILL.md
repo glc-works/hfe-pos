@@ -3,83 +3,62 @@ name: connector-creation
 description: Master SOP for engineering, auditing, cataloging, migrating, and bi-directionally syncing Ecosystem Connectors (Xero, QuickBooks, Moka, Accurate, Mekari Jurnal, BCA SNAP, Stripe, Shopify, SAP) in Connect Hub, with Raw Facts Recalculation, 3-Way Reconciliation, and Proactive Feature Reverse-Adoption.
 ---
 
-# 🔌 Ecosystem Connector Creation & Integration Standard (7-Pillar SOP)
+# 🔌 Ecosystem Connector Creation Standard (Tool-Driven SOP)
 
-Panduan operasional baku (*Standard Operating Procedure*) untuk membangun, mengaudit, mempublikasikan ke Store, memigrasikan data, dan menyinkronkan konektor ekosistem pihak ketiga ke dalam **Headless Company Books (HFE)**.
-
----
-
-## 🏛️ PILAR 1: AUDIT & PEMETAAN API SUMBER (*The 4-Dimensional Audit Matrix*)
-
-Sebelum menulis kode atau melakukan integrasi database, lakukan **Audit 4-Dimensi** terhadap API sumber:
-
-### 1. Penemuan Endpoint (*Endpoint & Capability Discovery*)
-- Identitas & Valas: Organisasi, mata uang fungsional, dan daftar valas aktif.
-- Fondasi Akuntansi: Bagan Akun (CoA), tarif pajak, dan kategori pelacakan/cabang (*Tracking Categories*).
-- Data Master: Kontak pelanggan/vendor (NPWP/Tax ID, terms) dan katalog produk/SKU.
-- Transaksi: Faktur AR/AP, pembayaran kas, transfer bank, dan jurnal memorial.
-- Memori Operasional: Aturan bank (*Bank Rules*), tagihan berulang (*Repeating Invoices*), dan segel tutup buku (*Period Locks*).
-
-### 2. Klasifikasi Fakta Mentah vs Angka Kalkulasi (*Raw Fact Classifier*)
-- 🟢 **Tandai `RAW_FACT` (Wajib Diingest)**:
-  * `Quantity`, `UnitPrice (minor units)`, `Discount %`, `Tax Code Identifier`, `Exchange Rate`, `Timestamps`.
-- 🚫 **Tandai `CALCULATED_FIELD` (Haram Dipercaya / Wajib Dihitung Ulang)**:
-  * `Subtotal`, `TaxAmount`, `DiscountAmount`, `GrandTotal`, `COGS`, `EndingBalance`.
-
-### 3. Audit Protokol & Limit Jaringan (*Transport & Throttling Limits*)
-- Catat batasan rate limit (misal: 60 req/min ➔ gunakan penunda antrean cerdas 1 req/detik).
-- Tentukan strategi paginasi: Jendela tanggal (*Date-Window Partitioning*) atau kursor.
-- Identifikasi siklus masa berlaku token OAuth2 dan mekanisme *Refresh Token*.
-
-### 4. Matriks Pemetaan ke Kernel HFE (*Target Schema Mapping Matrix*)
-- Petakan setiap properti JSON sumber ke tabel tujuan di database PostgreSQL HFE.
-- **Invarian Entitas**: 1 Buku = 1 Entitas Hukum Perusahaan. Rekening bank valas dipetakan langsung ke `account.currency` di dalam bagan akun yang sama.
+Panduan operasional baku (*Standard Operating Procedure*) untuk membangun, mengaudit, mendaftarkan ke Connect Hub, memigrasikan data, dan menyinkronkan konektor ekosistem pihak ketiga ke dalam **Headless Company Books (HFE)** menggunakan tools kanonikal repositori.
 
 ---
 
-## 🛍️ PILAR 2: PENERJEMAHAN KEMAMPUAN KE STORE & PENDAFTARAN HUB (*App Store & Hub Registration*)
+## 🏛️ PILAR 1: AUDIT & PEMETAAN API SUMBER (*Tool-Driven API Discovery*)
 
-Setiap konektor wajib didaftarkan dan dipajang di Connect Hub Marketplace (`src/components/core/hub/`):
+Sebelum menulis kode atau melakukan integrasi database, lakukan audit terhadap API sumber:
 
-### 1. Struktur Kartu Store yang Diturunkan dari API
-1. **Headline Proposisi Nilai**: Masalah bisnis utama yang diselesaikan.
-2. **Badge Kemampuan Nyata (*Derived Feature Badges*)**:
-   - `[⚡ Auto Bank Clearing]`: Jika API memiliki endpoint aturan bank (`/BankRules`).
-   - `[🔁 B2B Subscriptions]`: Jika API memiliki endpoint tagihan berulang (`/RepeatingInvoices`).
-   - `[🏬 Multi-Branch Outlets]`: Jika API memiliki dimensi cabang/departemen (`/TrackingCategories`).
-   - `[🎨 Custom PDF Branding]`: Jika API memiliki kustomisasi logo & tema faktur (`/BrandingThemes`).
-   - `[🏭 Asset Depreciation]`: Jika API memiliki register aset tetap (`/Assets`).
-3. **Kisah Use Case Bisnis**: Target profil merchant yang paling diuntungkan.
-4. **Izin Akses Minimal (*Least-Privilege Scopes*)**: Cantumkan hak akses RBAC minimum (misal: `['ledger:post', 'accounts:read']`).
-
-### 2. Checklist 5 Langkah Pendaftaran Konektor ke Connect Hub
-- [ ] **Langkah 1**: Tambahkan entri metadata konektor di `src/components/core/hub/connectorsData.ts` (slug, name, category, region, icon, summary, derivedBadges, requiredScopes).
-- [ ] **Langkah 2**: Daftarkan kolom input kredensial modal di `src/components/core/hub/ConnectorInstallModal.tsx` (ClientId, ClientSecret, ApiKey, WebhookSecret).
-- [ ] **Langkah 3**: Daftarkan webhook listener di `src/components/core/hub/WebhookRelayPanel.tsx` untuk pengujian tanda tangan HMAC-SHA256.
-- [ ] **Langkah 4**: Tambahkan slug konektor ke array `requiredSlugs` di `src/tests/connectorInstallModal.test.ts` sebagai pengawal anti-regresi.
-- [ ] **Langkah 5**: Jalankan `python3 scripts/hfex-rad0.py` untuk memvalidasi lolosnya Pilar 5 (*Connector Manifest Parity Gate*).
+1. **Introspeksi Kesiapan Kernel HFE**:
+   - Jalankan tool CLI:
+     ```bash
+     python3 scripts/hfe.py search "<kata-kunci-domain>"
+     ```
+   - Periksa apakah domain kemampuan, skema database, atau endpoint terkait sudah ada di HFE.
+2. **Validasi Kontrak OpenAPI 3.1**:
+   - Buka dan periksa `docs/active/reference/openapi.json` untuk mencocokkan DTO request/response resmi HFE.
+3. **Pemisahan Fakta Mentah vs Angka Hitungan (*The Anti-Calculated Field Law*)**:
+   - 🟢 **Tandai `RAW_FACT` (Wajib Diingest)**: `Quantity`, `UnitPrice (minor units)`, `Discount %`, `Tax Code Identifier`, `Exchange Rate`, `Timestamps`.
+   - 🚫 **Tandai `CALCULATED_FIELD` (Haram Dipercaya / Wajib Dihitung Ulang)**: `Subtotal`, `TaxAmount`, `DiscountAmount`, `GrandTotal`, `COGS`, `EndingBalance`.
+4. **Audit Protokol & Limit Jaringan**:
+   - Identifikasi batasan rate limit (misal: 60 req/min ➔ gunakan throttler antrean 1 req/detik), model paginasi (Date-Window / Cursor), dan masa berlaku token OAuth2.
 
 ---
 
-## 🔐 PILAR 3: PENGELOLAAN AUTENTIKASI & KREDENSIAL (*Auth Handshake & Credentials*)
+## 🛍️ PILAR 2: REGISTRASI & PENERJEMAHAN KEMAMPUAN KE STORE (*Connect Hub Registration*)
 
-1. **Form Kredensial UI (`ConnectorInstallModal.tsx`)**:
-   - Menyediakan form input terisolasi untuk `ClientId`, `ClientSecret`, `TenantId`, dan `WebhookSecret`.
-2. **Uji Ping Koneksi Otomatis**:
-   - Menguji konektivitas ke server eksternal sebelum menyimpan kredensial.
-3. **Pengelolaan Token Aman**:
-   - Menyimpan refresh token secara terenkripsi dan melakukan peremajaan token sebelum kedaluwarsa.
+Daftarkan konektor baru ke Connect Hub Marketplace menggunakan langkah berbasis data:
+
+1. **Inspeksi Kategori & Wilayah Aktif**:
+   - Buka berkas data kanonikal: `src/components/core/hub/connectorsData.ts`.
+   - Pastikan `category` dan `region` yang dipilih valid terhadap tipe union TypeScript di berkas tersebut.
+2. **Tambahkan Metadata Konektor**:
+   - Tambahkan entri baru ke array `CONNECTORS_DATA` di `connectorsData.ts`:
+     * `slug`, `name`, `category`, `region`, `icon`, `summary`, `derivedBadges`, `requiredScopes`.
+3. **Konfigurasi Form Kredensial Modal**:
+   - Buka `src/components/core/hub/ConnectorInstallModal.tsx` dan tentukan input kredensial (ClientId, ClientSecret, ApiKey, WebhookSecret).
+4. **Konfigurasi Webhook Relay Panel**:
+   - Daftarkan slug konektor ke `src/components/core/hub/WebhookRelayPanel.tsx` untuk pengujian tanda tangan `HMAC-SHA256`.
+5. **Tambahkan Pengawal Anti-Regresi Vitest**:
+   - Tambahkan slug konektor ke array `requiredSlugs` di `src/tests/connectorInstallModal.test.ts`.
+   - Jalankan pengujian:
+     ```bash
+     npm test -- src/tests/connectorInstallModal.test.ts --run
+     ```
 
 ---
 
-## 📦 PILAR 4: MESIN MIGRASI 1-KLIK & REKONSILIASI 3-ARAH (*The 3-Way Recon Invariant*)
+## 📦 PILAR 3: MESIN MIGRASI 1-KLIK & REKONSILIASI 3-ARAH (*The 3-Way Recon Invariant*)
 
-Saat melakukan migrasi data dari sistem lama:
-
-1. **Prinsip Ingest Fakta Mentah**:
-   - Ambil hanya kuantitas dan harga satuan. Hitung ulang seluruh subtotal, pajak PB1/GST, dan grand total menggunakan Kernel Deterministik HFE.
-2. **Ekstraksi 8 Dimensi Memori Operasional**:
-   - Serap cabang, aturan bank, langganan rutin, peran staf, plafon piutang, dan jadwal depresiasi aset secara otomatis.
+1. **Invarian Entitas & Valas Akun**:
+   - **1 Buku = 1 Entitas Hukum Perusahaan** (`base_currency: "SGD"` atau `"IDR"`).
+   - Rekening bank valas dipetakan langsung ke atribut `account.currency` di dalam bagan akun yang sama (DBS SGD ➔ `SGD`, DBS USD ➔ `USD`).
+2. **Kalkulasi Deterministik**:
+   - Ingest hanya fakta mentah atomik. Biarkan Kernel HFE menghitung ulang seluruh subtotal, beban pajak, dan jurnal debet-kredit seimbang ($Debits == Credits$).
 3. **Protokol Rekonsiliasi 3-Arah (*3-Way Recon Gate*)**:
    - *Recon 1 (Neraca Saldo)*: Membandingkan saldo tiap akun ($\Delta = |\text{HFE} - \text{Sumber}|$).
    - *Recon 2 (Rekening Bank)*: Membandingkan saldo akhir kas per rekening bank luar vs HFE.
@@ -90,34 +69,41 @@ Saat melakukan migrasi data dari sistem lama:
 
 ---
 
-## ⚡ PILAR 5: SINKRONISASI REAL-TIME DUA ARAH (*Bi-Directional Event Relay*)
+## ⚡ PILAR 4: SINKRONISASI REAL-TIME DUA ARAH (*Bi-Directional Event Relay*)
 
 1. **Inbound Webhook Relay**:
-   - Memvalidasi tanda tangan kriptografi `HMAC-SHA256` pada header webhook masuk.
-   - Memeriksa `X-Idempotency-Key` / `EventID` untuk mencegah pemotongan saldo ganda.
-   - Menerjemahkan payload luar dan memanggil API resmi `POST /api/v2/postings`.
+   - Validasi tanda tangan kriptografi `HMAC-SHA256`.
+   - Validasi `X-Idempotency-Key` / `EventID` untuk mencegah duplikasi transaksi.
+   - Terjemahkan payload dan panggil API resmi `POST /api/v2/postings`.
 2. **Outbound Shift Synchronization**:
-   - Saat kasir POS tutup shift (Z-Report), ringkasan omzet dan pajak diteruskan secara asinkron ke sistem akuntansi eksternal via HTTP client resmi.
+   - Saat kasir POS tutup shift (Z-Report), teruskan ringkasan jurnal omzet dan pajak ke sistem luar via HTTP client resmi.
 
 ---
 
-## 🧪 PILAR 6: PENGUJIAN INVARIAN & MODULARITAS KODE (*Testing & Modularity Gate*)
+## 🧪 PILAR 5: PENGUJIAN INVARIAN & MASTER RADAR GATE (*Testing & Verification*)
 
-1. **Uji Komponen Frontend (Vitest)**:
-   - Pastikan modal instalasi, toggle izin, dan tabel rekonsiliasi memiliki pengujian unit di `src/tests/`.
-2. **Kepatuhan Modularity File Limit**:
-   - Setiap berkas konektor wajib `<400 baris` (batas mutlak `<500 baris`).
-3. **Verifikasi Fuzzer Properti**:
-   - Jalankan fuzzer matematis untuk membuktikan tidak ada kebocoran nilai debet-kredit pada payload transaksi acak.
+1. **Uji Frontend & Backend**:
+   - Jalankan suite pengujian:
+     ```bash
+     npm test
+     cargo test --manifest-path hcb2/Cargo.toml --lib
+     ```
+2. **Verifikasi Master Radar & Modularity**:
+   - Jalankan sentinel radar di kedua repositori:
+     ```bash
+     python3 scripts/hfe-rad0.py
+     python3 ../hfe-pos/scripts/hfex-rad0.py
+     ```
+   - Assert: **0 Critical Gaps** & seluruh berkas kode `<400 baris` (batas mutlak `<500 baris`).
 
 ---
 
-## 🔄 PILAR 7: ADOPSI TERBALIK & USULAN FITUR BARU (*The Reverse-Adoption Loop*)
+## 🔄 PILAR 6: ADOPSI TERBALIK & USULAN FITUR BARU (*The Reverse-Adoption Loop*)
 
-Saat mengaudit API luar, jika menemukan pola desain yang superior:
+Saat mengaudit API pihak ketiga, jika menemukan pola desain yang unggul dan belum dimiliki HFE:
 
-1. **Introspeksi Kernel**: Periksa apakah HFE sudah memiliki fitur tersebut (`python3 scripts/hfe.py search "<keyword>"`).
-2. **Formulasi Usulan Fitur**: Jika HFE belum memiliki atau bisa diperkuat, buat dokumen **Level-2 Feature Proposal** di `docs/active/plans/level-2/`:
-   - 🌟 *Inspirasi Sumber*: Pola API eksternal yang ditemukan.
-   - 💡 *Nilai Tambah*: Manfaat bagi merchant dan arsitektur HFE.
+1. Jalankan `python3 scripts/hfe.py search "<keyword>"` untuk memastikan apakah HFE sudah memiliki fitur tersebut.
+2. Jika belum ada, susun dokumen **Level-2 Feature Proposal** di `docs/active/plans/level-2/`:
+   - 🌟 *Inspirasi Sumber*: Pola API eksternal yang ditemukan (misal: Stripe Test Clocks, Xero Bank Rules).
+   - 💡 *Nilai Tambah*: Manfaat bagi merchant dan keunggulan arsitektur HFE.
    - 🏛️ *Rancangan Teknis*: Skema database, DTO endpoint API, dan komponen UI.
