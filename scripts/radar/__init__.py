@@ -20,6 +20,20 @@ from .engine import (
     PILLAR_REGISTRY,
     PILLAR_NAME_MAP
 )
+from .clone_detector import (
+    run_clone_detection,
+    audit as audit_clones
+)
+from .p2_layer_boundaries import (
+    scan_layer_boundaries,
+    audit as audit_layer_boundaries
+)
+from .ast_scanner import (
+    ASTScanner,
+    ASTViolation,
+    scan_ast,
+    audit as audit_ast
+)
 
 __all__ = [
     "PillarResult",
@@ -35,5 +49,13 @@ __all__ = [
     "run_radar",
     "run_cadence",
     "PILLAR_REGISTRY",
-    "PILLAR_NAME_MAP"
+    "PILLAR_NAME_MAP",
+    "run_clone_detection",
+    "audit_clones",
+    "scan_layer_boundaries",
+    "audit_layer_boundaries",
+    "ASTScanner",
+    "ASTViolation",
+    "scan_ast",
+    "audit_ast"
 ]

@@ -308,6 +308,22 @@
       }
     },
     {
+      "id": "tool-clone-detector",
+      "title": "Structural Clone & Duplicate Component Detector",
+      "level": 1,
+      "path": "scripts/radar/clone_detector.py",
+      "parents": [
+        "p1-modularity"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER2_REACT_ARIA",
+        "CADENCE": "LARGE",
+        "EXECUTION_LOOP": "LIVE"
+      }
+    },
+    {
       "id": "tool-typecheck",
       "title": "TypeScript Compiler Typecheck (tsc --noEmit)",
       "level": 1,

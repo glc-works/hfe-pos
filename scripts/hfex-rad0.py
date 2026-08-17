@@ -20,6 +20,10 @@ from radar import (
     query_dimensions,
     generate_ci_matrix,
     print_tools_directory,
+    audit_layer_boundaries,
+    audit_ast,
+    scan_ast,
+    scan_layer_boundaries,
     DIMENSIONS
 )
 
@@ -101,12 +105,51 @@ def main():
         help="Auto-discover and display all available tools organized by Level (L0 to L5)"
     )
     parser.add_argument(
+        "--ast", "--ast-scan",
+        dest="ast_scan",
+        action="store_true",
+        help="Run AST Structural Pattern Scanner (Button, Currency, Flex, Capacity rules)"
+    )
+    parser.add_argument(
+        "--layers", "--layer-boundaries",
+        dest="layer_boundaries",
+        action="store_true",
+        help="Run 6-Tier Monotonic Downward Import Boundary Sentinel"
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
         help="Output results as machine-readable JSON for CI/CD pipelines"
     )
 
     args = parser.parse_args()
+
+    if args.ast_scan:
+        res = audit_ast()
+        if args.json:
+            import json
+            from dataclasses import asdict
+            violations, stats = scan_ast()
+            print(json.dumps({"healthy": res.is_healthy, "stats": stats, "violations": [asdict(v) for v in violations]}, indent=2))
+        else:
+            status_icon = "✅" if res.is_healthy else "❌"
+            print(f"\n{status_icon} {res.title}")
+            for line in res.summary_lines:
+                print(f"  {line}")
+        sys.exit(0 if res.is_healthy else 1)
+
+    if args.layer_boundaries:
+        res = audit_layer_boundaries()
+        if args.json:
+            import json
+            violations, stats = scan_layer_boundaries()
+            print(json.dumps({"healthy": res.is_healthy, "stats": stats, "violations": [{"source": v.source_file, "target": v.target_file, "message": v.message} for v in violations]}, indent=2))
+        else:
+            status_icon = "✅" if res.is_healthy else "❌"
+            print(f"\n{status_icon} {res.title}")
+            for line in res.summary_lines:
+                print(f"  {line}")
+        sys.exit(0 if res.is_healthy else 1)
 
     if args.ci_matrix:
         sys.exit(generate_ci_matrix(as_json=True))

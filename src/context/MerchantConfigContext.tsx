@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useRef, ReactNode } from 'r
 import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig } from '../types/pos'
 import { BUILTIN_THEMES } from '../data/mockData'
 import { MARKETPLACE_THEMES } from '../data/marketplaceThemesData'
-import { DEFAULT_AVAILABLE_VOUCHERS } from '../components/pos/VoucherCard'
+import { DEFAULT_AVAILABLE_VOUCHERS } from '../data/mockVouchers'
 import { INITIAL_PARTNER_CONTACTS } from '../data/mockContacts'
 import { DEFAULT_STOREFRONT_CUSTOMIZATION } from '../data/defaultStorefrontCustomization'
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useTranslation } from '../context/LanguageContext'
+import { formatPrice, formatCompactPrice } from '../utils/currencyFormatter'
 
 export interface PriceTagProps {
   amount: number
@@ -20,8 +20,6 @@ export const PriceTag: React.FC<PriceTagProps> = ({
   variant = 'default',
   className = '',
 }) => {
-  const { formatPrice, formatCompactPrice } = useTranslation()
-
   let displayString = ''
   if (mode === 'compact') {
     displayString = formatCompactPrice(amount)

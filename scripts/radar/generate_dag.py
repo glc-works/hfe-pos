@@ -94,6 +94,7 @@ tools = [
     ("tool-contract-check", "Hfe Contract & Health Gate", "scripts/hfe-contract-check.sh", "p5-openapi-parity", "BOOK", "DESKTOP_1024", "TIER3_DOMAIN_SLOTS", "MEDIUM", "OUTER"),
     ("tool-ci-local", "Local CI Gate Runner", "scripts/ci-local.sh", "hub-root", "ADMIN", "DESKTOP_1024", "TIER6_VIEWS", "MEDIUM", "OUTER"),
     ("tool-inspect-pillars", "Playwright Multi-Pillar Visual Inspector", "scripts/inspect-all-pillars.cjs", "p3-spatial-isolation", "POS", "DESKTOP_1024", "TIER6_VIEWS", "LARGE", "LIVE"),
+    ("tool-clone-detector", "Structural Clone & Duplicate Component Detector", "scripts/radar/clone_detector.py", "p1-modularity", "CORE", "DESKTOP_1024", "TIER2_REACT_ARIA", "LARGE", "LIVE"),
     ("tool-typecheck", "TypeScript Compiler Typecheck (tsc --noEmit)", "tsconfig.json", "hub-root", "CORE", "DESKTOP_1024", "TIER1_TOKENS", "MEDIUM", "OUTER"),
     ("tool-build", "Vite Production Build (vite build)", "vite.config.ts", "p8-bundle-budget", "CORE", "DESKTOP_1024", "TIER1_TOKENS", "MEDIUM", "OUTER")
 ]
