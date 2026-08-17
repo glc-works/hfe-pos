@@ -351,3 +351,68 @@ To eliminate stale documentation and dual-maintenance drift across repositories:
 1. **`headless-company-books` is the Sole Master SSOT**: All canonical scenario definitions, YAML frontmatters, and 360° pairing matrices are exclusively authored and maintained in `docs/active/scenarios/` of `headless-company-books`.
 2. **`hfe-pos` Uses Thin Markdown Links**: The scenario directory in `hfe-pos` contains lightweight pointers referencing the master scenarios in `headless-company-books` plus pure frontend UI interaction scenarios.
 3. **Automated Cross-Repo Parity Sentinel**: `python3 scripts/hfe-rad0.py` and `python3 scripts/hfex-rad0.py` automatically verify link resolution integrity (0 broken links).
+
+---
+
+## 13. The "Absorb-and-Extend" Architecture, Specialist Clusters & `CLUSTER_OTHER` Incubation Lifecycle
+
+The core architectural operating principle of Headless Company Books is **"Absorb generic patterns into the core kernel + Extend niche requirements via specialist connectors + Group niche patterns into structured clusters"**.
+
+```mermaid
+graph TD
+    subgraph AbsorbLayer["The Absorb Layer (Generic Core Kernel)"]
+        P1["P1: Double-Entry Posting (PostingService)"]
+        P2["P2: Inventory Transformation (POST /inventory/transformations)"]
+        P3["P3: Adjusting & Revaluation Seam (POST /journals/adjusting)"]
+        P4["P4: Multi-Currency Translation (IAS 21 FX Engine)"]
+        P5["P5: Paired Ledger Metering Dispatcher (POST /billing/invoices/dispatch)"]
+    end
+
+    subgraph ExtendLayer["The Extend Layer (Specialist Industry Clusters)"]
+        C1["CLUSTER_HOSPITALITY (F&B POS, Split-Bill, 👥 3/4 Seat Ratio)"]
+        C2["CLUSTER_MFG (Roasting BOM, 15% Moisture Shrinkage, COGM)"]
+        C3["CLUSTER_AGRI (Gayo 50 Ha, PSAK 69 Biological Assets, Harvest)"]
+        C4["CLUSTER_TAX_FTZ (Batam FTZ 0%, DJP e-Faktur, LHDN, IRAS)"]
+        C5["CLUSTER_PRACTICE (KAP Santoso Audit, Multi-Book Switcher, SHA-256)"]
+        CO["CLUSTER_OTHER (Incubation Sandbox for Unclassified Use-Cases)"]
+    end
+
+    C1 --> P1
+    C2 --> P2
+    C3 --> P2
+    C3 --> P3
+    C4 --> P1
+    C5 --> P3
+    CO -.-> P1
+    CO -.-> P2
+```
+
+### 13.1 The 5 Generic Kernel Primitives (The Absorb Layer)
+The Core Financial Kernel remains strictly minimalist, sovereign, and modular (<500 lines per file):
+1. **P1: Double-Entry Posting Engine (`financial_kernel::posting`)**: Atomic zero-penny imbalance debits==credits posting.
+2. **P2: Inventory Transformation Seam (`POST /inventory/transformations`)**: Consumes input items $\rightarrow$ produces output items with shrinkage/abnormal variance tracking and automated COGM posting.
+3. **P3: Adjusting & Revaluation Seam (`POST /journals/adjusting` & `POST /periods/close`)**: Adjusting entries, asset revaluation, and immutable period closing seals.
+4. **P4: Multi-Currency Translation Kernel (`IAS 21 FX Engine`)**: Foreign subsidiary trial balance conversion and intercompany AR/AP reciprocal eliminations.
+5. **P5: Paired Ledger Metering Dispatcher (`POST /billing/invoices/dispatch`)**: Synchronized paired journals between Platform HoldCo (Tenant 01) and Commercial OpCos (Tenant 02..99).
+
+### 13.2 The 5 Canonical Specialist Clusters (The Extend Layer)
+Niche domain logic lives as pluggable extension packs in Connect Hub & Policy Presets:
+1. **`CLUSTER_HOSPITALITY`**: Fast cashier shifts, IndexedDB offline buffer, 4-way split-bill, and dynamic table floorplan capacity badges (`👥 seated/max`).
+2. **`CLUSTER_MFG`**: Roasting BOM assembly recipes, 15% natural moisture shrinkage calculations, direct labor, and utility overhead allocation.
+3. **`CLUSTER_AGRI`**: PSAK 69 / IAS 41 Biological Asset growth fair value adjustments and point-of-harvest fresh cherry conversion into produce inventory.
+4. **`CLUSTER_TAX_FTZ`**: Batam FTZ 0% VAT exemption, Indonesian DJP e-Faktur 4.0, Malaysian LHDN e-Invoice API, and Singapore IRAS GST 9%.
+5. **`CLUSTER_PRACTICE`**: KAP Santoso external CPA audit practice, Multi-Book Switcher, and SHA-256 digital closing seals.
+
+### 13.3 The `CLUSTER_OTHER` Incubation Sandbox & Data-Driven Promotion Protocol
+To avoid premature categorization while maintaining zero-friction adoption:
+1. **Incubation in `CLUSTER_OTHER`**: Any novel business scenario or user feedback not fitting the 5 baseline clusters is tagged as `CLUSTER_OTHER`. It executes immediately using the 5 Core Kernel Primitives without kernel modifications.
+2. **Density Monitoring Threshold ($\ge 3$ items)**: Master Radar (`hfe-rad0.py` / `hfex-rad0.py`) tracks item density in `CLUSTER_OTHER`. When $\ge 3$ related scenarios accumulate sharing a common industry ontology (e.g. 3 healthcare/clinic scenarios), Radar flags a candidate promotion insight:
+   `💡 CLUSTER CANDIDATE DETECTED: 3 items in OTHER share medical ontology -> Propose CLUSTER_HEALTHCARE`.
+3. **Formal Promotion & Re-Grouping**: Upon architectural approval, the candidate is promoted to a canonical cluster, schema registries are updated, and items are migrated from `CLUSTER_OTHER` to the new dedicated cluster pack.
+
+### 13.4 Multi-Cadence Visual QA Dev Toolkit
+Inspection and testing support 3 distinct operational cadences:
+- **Small / Fast Headless (`--visual none`)**: Ultra-fast AST and logical assertions (<100ms per scenario) for git pre-commit sentinels.
+- **Medium / 4-Quadrant DOM Layout (`--visual snapshot`)**: Evaluates the 4-Quadrant Matrix (Empty, Short, Long 1.8B IDR, Multi-State) and asserts non-overlapping bounding boxes without full browser overhead.
+- **Large / Live Interactive QA (`--visual live`)**: Launches the live browser / In-App `ScenarioPlayerWidget` in HFE-X, driving visual inputs with customizable playback speeds (`1x`, `5x`, `Turbo`) and step-by-step state verification.
+
