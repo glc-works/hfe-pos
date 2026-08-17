@@ -1,11 +1,11 @@
 ---
 name: web-creation
-description: Master SOP for engineering, scaffolding, inspecting, updating, auditing, and reporting high-performance web applications in the HFE Monorepo with 6-Tier Architecture, Tier 2 React Aria Primitives, Defensive Spatial Isolation, Zero Text-Collision, and Anti-Monolithic Decoupling.
-version: "1.2.0"
+description: Master SOP for engineering, scaffolding, inspecting, updating, auditing, styling with Design Tokens, and authoring Storybook 4-Quadrant Visual Suites in the HFE Monorepo with 6-Tier Architecture, Tier 2 React Aria Primitives, and Anti-Monolithic Decoupling.
+version: "1.3.0"
 updated_at: "2026-08-17"
 ---
 
-# 🌐 Master SOP: Web Application Engineering, Audit & Lifecycle Standard (v1.2.0)
+# 🌐 Master SOP: Web Application Engineering, Tokens & Storybook Standard (v1.3.0)
 
 > ⚠️ **NORMATIVE AUTHORITY & SSOT ANCHORS**:
 > Dokumen ini berstatus operasional (*executable SOP*) dan terikat secara mutlak pada hierarki kontrak kanonikal:
@@ -50,7 +50,7 @@ Semua komponen UI wajib ditempatkan secara disiplin pada salah satu dari 6 lapis
 
 ---
 
-## 🛡️ PILAR 3: STANDAR ISOLASI SPASIAL DEFENSIF (*Defensive Spatial Isolation & Zero Text-Collision*)
+## 🛡️ PILAR 3: STANDAR ISOLASI SPASIAL DEFENSIF (*Defensive Spatial Isolation & Zero Collision*)
 
 1. **Zero Text-Collision & Sub-Container Mandiri**:
    - Data multi-variabel (ID meja, nama pelanggan, badge status, timer, nominal harga) **DILARANG** dijejalkan dalam satu baris horizontal tanpa sub-kontainer.
@@ -71,9 +71,56 @@ Semua komponen UI wajib ditempatkan secara disiplin pada salah satu dari 6 lapis
 
 ---
 
-## 🔍 PILAR 4: TOOLS INTROSPEKSI & CARA CEK KEBERADAAN FITUR (*Zero-Guess Capability Check*)
+## 🎨 PILAR 4: PEMBUATAN & SINKRONISASI DESIGN TOKEN BARU (*Design Token Lifecycle Standard*)
 
-Sebelum merancang halaman baru, agen **WAJIB** mengecek apakah kapabilitas sudah ada di repositori:
+1. **Lokasi & Definisi Token**:
+   - **CSS Variables Global**: Didefinisikan di `src/index.css` menggunakan format HSL (agar mudah dimanipulasi opacity-nya: `hsl(var(--color-primary) / <alpha>)`).
+   - **Preset Tema**: Didaftarkan di `src/data/mockData.ts` (`BUILTIN_THEMES`).
+2. **Konvensi Penamaan Token Semantik**:
+   - Background: `--color-bg-canvas`, `--color-bg-surface`, `--color-bg-card`.
+   - Border: `--color-border-subtle`, `--color-border-focus`, `--color-border-accent`.
+   - Text: `--color-text-primary`, `--color-text-muted`, `--color-text-tabular`.
+   - Action / State: `--color-brand-primary`, `--color-danger`, `--color-warning-amber`.
+3. **Anti-Hardcoded Colors Invariant**:
+   - 🚫 Dilarang menggunakan nilai warna hex ad-hoc (misal `#1e293b` atau `#f59e0b`) secara langsung di komponen.
+   - ✅ Gunakan semantic token classes Tailwind/CSS yang terhubung ke variabel root.
+4. **Sinkronisasi Token Lintas Workspace**:
+   - Pada workspace yang terhubung (misal `cb-client`), jalankan skrip sinkronisasi:
+     ```bash
+     npm run tokens:sync
+     ```
+
+---
+
+## 📚 PILAR 5: PENGGUNAAN & PEMBUATAN STORYBOOK (*Storybook 4-Quadrant Visual Suite*)
+
+1. **Struktur Direktori Story**:
+   - `src/stories/components/` ➔ Atom Tier 2 & Widget Tier 3 (`PriceTag.stories.tsx`, `TableCard.stories.tsx`).
+   - `src/stories/scenarios/` ➔ Simulasi skenario E2E (`SCN_01_01_01_BsdCafeSplitBill.stories.tsx`).
+   - `src/stories/onboarding/` ➔ Wizard onboarding (`StoreOnboardingWizard.stories.tsx`).
+2. **Kewajiban 4-Kuadran di Setiap File Story (*4-Quadrant Rule*)**:
+   Setiap storybook wajib mengekspor 4 varian data ekstrem untuk validasi visual:
+   ```typescript
+   export const Q1_EmptyState: Story = { args: { name: '', amount: 0, elapsedMinutes: 0 } }
+   export const Q2_ExtremeShort: Story = { args: { name: 'Al', amount: 500, elapsedMinutes: 1 } }
+   export const Q3_ExtremeOverflow: Story = { args: { name: 'Bpk. Alexander Raden Christopher III', amount: 1850000000, elapsedMinutes: 120 } }
+   export const Q4_MultiStateVariation: Story = { args: { isOccupied: true, isSplitBill: true, isOverdue: true } }
+   ```
+3. **Pengujian Interaktif `play()` Function**:
+   - Gunakan fungsi `play()` dari `@storybook/test` untuk mengotomasi interaksi pengguna (misal: klik meja, masukkan pin manajer, simulasikan split-bill).
+4. **Perintah Menjalankan & Mengaudit Storybook**:
+   - Jalankan Server Storybook:
+     ```bash
+     npm run storybook
+     ```
+   - Audit Kepatuhan Storybook:
+     ```bash
+     python3 scripts/radar/story_sync.py --audit
+     ```
+
+---
+
+## 🔍 PILAR 6: TOOLS INTROSPEKSI & CARA CEK FITUR (*Zero-Guess Capability Check*)
 
 1. **Tool Pencarian Semantik CLI**:
    ```bash
@@ -86,7 +133,7 @@ Sebelum merancang halaman baru, agen **WAJIB** mengecek apakah kapabilitas sudah
 
 ---
 
-## 🧭 PILAR 5: PROTOKOL AUDIT 9-PILAR & DETEKSI CELAH (*9-Pillar Radar & Gap Detection*)
+## 🧭 PILAR 7: PROTOKOL AUDIT 9-PILAR & DETEKSI CELAH (*9-Pillar Radar & Gap Detection*)
 
 Jalankan sentinel auditor otomatis untuk mendeteksi pelanggaran standar UI:
 
@@ -107,9 +154,7 @@ python3 scripts/hfex-rad0.py
 
 ---
 
-## 🔄 PILAR 6: PROTOKOL PEMBARUAN & REFAKTOR AMAN (*Safe Refactoring Protocol*)
-
-Saat mengupdate atau merefaktor halaman web:
+## 🔄 PILAR 8: PROTOKOL PEMBARUAN & REFAKTOR AMAN (*Safe Refactoring Protocol*)
 
 1. **Surgical Changes**: Sentuh hanya komponen target. Jangan mengubah formatting file tetangga yang tidak bersalah.
 2. **Downward Monotonic Edit**: Pastikan atom Tier 2 tidak pernah mengimpor komponen dari Tier 3-6.
@@ -121,7 +166,7 @@ Saat mengupdate atau merefaktor halaman web:
 
 ---
 
-## 📋 PILAR 7: STANDAR PELAPORAN TEMUAN (*3-Part Retrospective & Health Scorecard*)
+## 📋 PILAR 9: STANDAR PELAPORAN TEMUAN (*3-Part Retrospective & Health Scorecard*)
 
 Setiap kali menemukan celah atau selesai melakukan pembaruan, agen wajib melaporkan dengan format baku:
 
@@ -144,7 +189,7 @@ Setiap kali menemukan celah atau selesai melakukan pembaruan, agen wajib melapor
 
 ---
 
-## ⚡ PILAR 8: ALUR SCAFFOLDING APLIKASI WEB BARU (*App Scaffolding Checklist*)
+## ⚡ PILAR 10: ALUR SCAFFOLDING APLIKASI WEB BARU (*App Scaffolding Checklist*)
 
 1. **Inisialisasi Non-Interaktif**:
    ```bash
