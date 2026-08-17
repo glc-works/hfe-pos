@@ -47,6 +47,17 @@ describe('Store Onboarding & Preset Policy Engine', () => {
     expect(result.success).toBe(true)
     expect(result.updated_at).toBeDefined()
   })
+
+  it('validates 1-Click Persona Kafe BSD preset structure and cluster mapping', async () => {
+    const { PERSONA_KAFE_BSD, PERSONA_ROASTERY } = await import('../hooks/useOnboarding')
+    expect(PERSONA_KAFE_BSD.cluster).toBe('CLUSTER_FNB')
+    expect(PERSONA_KAFE_BSD.capacityScale).toBe('20 Meja (👥 3/4)')
+    expect(PERSONA_KAFE_BSD.country).toBe('ID')
+    expect(PERSONA_KAFE_BSD.currency).toBe('IDR')
+
+    expect(PERSONA_ROASTERY.cluster).toBe('CLUSTER_ROASTERY')
+    expect(PERSONA_ROASTERY.capacityScale).toBe('20kg Batch Oven')
+  })
 })
 
 describe('Team Membership & RBAC Access Control Evaluator', () => {

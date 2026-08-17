@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { useOnboarding } from '../../hooks/useOnboarding'
 import { StoreOnboardingWizard } from './StoreOnboardingWizard'
-import { Sparkles, CheckCircle2, ShieldCheck, ChevronDown, ChevronUp, RotateCcw, Building2, Users, DollarSign } from 'lucide-react'
+import { GettingStartedGuideModal } from './GettingStartedGuideModal'
+import { Button, Badge } from '@/ui'
+import { Sparkles, ShieldCheck, ChevronDown, ChevronUp, RotateCcw, Building2, Users, DollarSign, BookOpen } from 'lucide-react'
 
 export interface GettingStartedChecklistProps {
   companyName?: string
@@ -17,6 +19,7 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
   const { isOnboardingCompleted } = useOnboarding()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isWizardOpen, setIsWizardOpen] = useState(false)
+  const [isGuideOpen, setIsGuideOpen] = useState(false)
 
   // System-Verified Verification Rules (HCB Core Concept)
   const isProfileVerified = Boolean(companyName && companyName.length > 3)
@@ -54,13 +57,13 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
   return (
     <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-900/20 shadow-md">
       {/* Widget Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-amber-600 text-white shadow-sm">
+          <div className="p-2 rounded-xl bg-amber-600 text-white shadow-sm shrink-0">
             <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-amber-950 dark:text-amber-100 flex items-center gap-2">
+            <h3 className="text-base font-bold text-amber-950 dark:text-amber-100 flex items-center gap-2 flex-wrap">
               Panduan Penyiapan System-Verified HCB Core
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-600 text-white">
                 {completedCount}/{totalCount} Terverifikasi ({progressPercent}%)
@@ -72,15 +75,28 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
+        <div className="flex items-center gap-2 self-end sm:self-center">
+          <Button
             type="button"
-            onClick={() => setIsWizardOpen(true)}
-            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-all flex items-center gap-1.5 shadow-sm"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsGuideOpen(true)}
+            className="text-xs h-8 border-amber-900/20 bg-amber-500/10 text-amber-950 dark:text-amber-100 hover:bg-amber-500/20 font-bold"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <BookOpen className="w-3.5 h-3.5 mr-1 text-amber-600 dark:text-amber-400" />
+            📖 Baca Panduan Lengkap
+          </Button>
+
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={() => setIsWizardOpen(true)}
+            className="text-xs h-8 font-bold"
+          >
+            <RotateCcw className="w-3.5 h-3.5 mr-1" />
             {isOnboardingCompleted ? 'Ulang Wizard' : 'Buka Setup Wizard'}
-          </button>
+          </Button>
 
           <button
             type="button"
@@ -146,11 +162,17 @@ export const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = (
         </div>
       )}
 
-      {/* Store Onboarding Wizard Modal */}
+      {/* Modals */}
       <StoreOnboardingWizard
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
         onComplete={() => setIsWizardOpen(false)}
+      />
+
+      <GettingStartedGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        onOpenWizard={() => setIsWizardOpen(true)}
       />
     </div>
   )
