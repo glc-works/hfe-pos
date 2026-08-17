@@ -7,6 +7,7 @@ import { INITIAL_PARTNER_CONTACTS } from '../data/mockContacts'
 import { DEFAULT_STOREFRONT_CUSTOMIZATION } from '../data/defaultStorefrontCustomization'
 
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
+export type ThemeModeType = 'light' | 'dark' | 'system'
 
 export interface MerchantConfigContextType {
   // 1. BILLING & PAYMENT POLICY
@@ -14,6 +15,9 @@ export interface MerchantConfigContextType {
   setPaymentPolicy: (policy: PaymentPolicy) => void
 
   // 2. THEME & VISUAL IDENTITY
+  themeMode: ThemeModeType
+  setThemeMode: (mode: ThemeModeType) => void
+  toggleThemeMode: () => void
   customerTheme: CafeThemeConfig
   setCustomerTheme: (theme: CafeThemeConfig) => void
   merchantTheme: CafeThemeConfig
@@ -61,7 +65,68 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
     }
   })
 
-  // 2. Customer & Merchant Themes
+  // 2. Theme Mode ('light' | 'dark' | 'system')
+  const [themeMode, setThemeModeState] = useState<ThemeModeType>(() => {
+    try {
+      const stored = localStorage.getItem('hfe_theme_mode') as ThemeModeType
+      if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+      return 'dark'
+    } catch {
+      return 'dark'
+    }
+  })
+
+  // Synchronize .light and .dark classes on documentElement and body dynamically
+  React.useEffect(() => {
+    const applyTheme = (mode: ThemeModeType) => {
+      let isDark = mode === 'dark'
+      if (mode === 'system') {
+        isDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      }
+
+      const root = document.documentElement
+      const body = document.body
+      if (isDark) {
+        root.classList.add('dark')
+        root.classList.remove('light')
+        body?.classList.add('dark')
+        body?.classList.remove('light')
+      } else {
+        root.classList.add('light')
+        root.classList.remove('dark')
+        body?.classList.add('light')
+        body?.classList.remove('dark')
+      }
+    }
+
+    applyTheme(themeMode)
+
+    if (themeMode === 'system' && typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      const handler = () => applyTheme('system')
+      mediaQuery.addEventListener('change', handler)
+      return () => mediaQuery.removeEventListener('change', handler)
+    }
+  }, [themeMode])
+
+  const setThemeMode = (mode: ThemeModeType) => {
+    setThemeModeState(mode)
+    try {
+      localStorage.setItem('hfe_theme_mode', mode)
+    } catch {}
+  }
+
+  const toggleThemeMode = () => {
+    setThemeModeState(prev => {
+      const next: ThemeModeType = prev === 'light' ? 'dark' : 'light'
+      try {
+        localStorage.setItem('hfe_theme_mode', next)
+      } catch {}
+      return next
+    })
+  }
+
+  // 3. Customer & Merchant Themes
   const [customerTheme, setCustomerThemeState] = useState<CafeThemeConfig>(() => {
     try {
       const stored = localStorage.getItem('hfe_customer_theme')
@@ -259,6 +324,9 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       value={{
         paymentPolicy,
         setPaymentPolicy,
+        themeMode,
+        setThemeMode,
+        toggleThemeMode,
         customerTheme,
         setCustomerTheme,
         merchantTheme,

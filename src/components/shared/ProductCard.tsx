@@ -46,6 +46,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const { t, formatPrice } = useTranslation()
   const cartQty = quantityInCart
+  const isLight = cardBgHex === '#ffffff' || (textColor ? textColor.toLowerCase() === '#1e293b' || textColor.toLowerCase() === '#0f172a' : false)
 
   // Default SKU visibility: true for POS cashiers, false for Customers
   const shouldShowSku = showSku !== undefined ? showSku : variant.startsWith('pos-')
@@ -312,48 +313,48 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       <div className="flex-1 flex flex-col justify-between min-w-0">
         <div>
-          <div className="flex items-center justify-between gap-2 min-w-0">
-            <h4
-              className="font-bold text-sm truncate tracking-tight"
-              style={{ color: textColor }}
-            >
-              {product.name}
-            </h4>
-            {priceVisibilityMode === 'show_prices' ? (
-              <span
-                className="text-xs font-bold font-mono whitespace-nowrap shrink-0"
-                style={{ color: primaryAccentHex }}
-              >
-                Rp {product.price.toLocaleString('id-ID')}
-              </span>
-            ) : (
-              <span
-                className="text-[10px] font-bold font-mono px-2 py-0.5 rounded border whitespace-nowrap shrink-0"
-                style={{ color: secondaryTextColor, borderColor: cardBorderColor }}
-              >
-                🏷️ Kontak Barista
-              </span>
-            )}
-          </div>
-          {/* Customer does not see technical SKU, only culinary description */}
+          <h4
+            className="font-bold text-sm line-clamp-2 tracking-tight leading-snug"
+            style={{ color: textColor }}
+          >
+            {product.name}
+          </h4>
           {shouldShowSku && (
             <span className="text-[9px] font-mono text-slate-500 block mt-0.5">
               SKU: {product.hfeCategoryCode || product.id}
             </span>
           )}
-          <p
-            className="text-[11px] line-clamp-1 mt-0.5 leading-relaxed"
-            style={{ color: secondaryTextColor }}
-          >
-            {product.description}
-          </p>
+          {product.description && (
+            <p
+              className="text-[11px] line-clamp-2 mt-0.5 leading-relaxed opacity-80"
+              style={{ color: secondaryTextColor }}
+            >
+              {product.description}
+            </p>
+          )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 mt-2">
+        <div className="flex items-center justify-between gap-2 mt-auto pt-2">
+          {priceVisibilityMode === 'show_prices' ? (
+            <span
+              className="text-sm font-extrabold font-mono tabular-nums whitespace-nowrap"
+              style={{ color: primaryAccentHex }}
+            >
+              Rp {product.price.toLocaleString('id-ID')}
+            </span>
+          ) : (
+            <span
+              className="text-[10px] font-bold font-mono px-2 py-0.5 rounded border whitespace-nowrap"
+              style={{ color: secondaryTextColor, borderColor: cardBorderColor }}
+            >
+              🏷️ Kontak Barista
+            </span>
+          )}
+
           {customerAppDisplayMode === 'full_ordering' ? (
             cartQty > 0 ? (
               <div
-                className="flex items-center gap-1 p-0.5 rounded-lg border shadow-sm"
+                className="flex items-center gap-1 p-0.5 rounded-lg border shadow-sm shrink-0"
                 style={{ borderColor: cardBorderColor, backgroundColor: cardBgHex }}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -384,10 +385,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <button
                 type="button"
                 onClick={handlePlusClick}
-                className="p-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center active:scale-95"
+                className="w-7 h-7 rounded-lg flex items-center justify-center shadow-sm transition-all active:scale-95 shrink-0"
                 style={{
                   backgroundColor: primaryAccentHex,
-                  color: '#020617'
+                  color: isLight ? '#ffffff' : '#020617'
                 }}
                 title={t.pos?.addToCart || 'Tambah'}
               >

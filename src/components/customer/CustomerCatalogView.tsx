@@ -29,6 +29,7 @@ export interface CustomerCatalogViewProps {
 export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
   productCatalog,
   activeTheme,
+  hfeCompanyProfile,
   priceVisibilityMode,
   customerAppDisplayMode,
   cart,
@@ -211,8 +212,15 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
         </div>
       )}
 
-      {/* BOTTOM SPACING BUFFER FOR ZERO-CLIPPING & RUNWAY (256px) */}
-      <div className="h-64 shrink-0" />
+      {/* CALIBRATED BOTTOM RUNWAY & BRAND STAMP */}
+      <div className="pt-8 pb-20 flex flex-col items-center justify-center gap-1.5 opacity-60 shrink-0">
+        <span className="text-[11px] font-medium tracking-tight" style={{ color: secondaryTextColor }}>
+          {hfeCompanyProfile?.brandName || 'Artisan Cafe & Roastery'} • Menu Digital
+        </span>
+        <span className="text-[9px] font-mono tracking-wider uppercase opacity-75" style={{ color: secondaryTextColor }}>
+          Powered by HFE Engine
+        </span>
+      </div>
     </>
   )
 }
