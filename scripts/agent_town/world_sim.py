@@ -298,10 +298,20 @@ def main():
     parser.add_argument("--hours", type=str, default="default", help="Operating hours: default, 24h, or <open>-<close>")
     parser.add_argument("--drama-rate", type=float, default=0.35, help="Drama probability rate (0.0 to 1.0, default: 0.35)")
     parser.add_argument("--novel", action="store_true", help="Print full literary narrative novel chapters with dialogues")
+    parser.add_argument("--fuzz", action="store_true", help="Run Property-Based Fuzzer & Chaos Invariant Stress Test")
+    parser.add_argument("--iterations", type=int, default=10000, help="Number of fuzzing iterations (default: 10000)")
+    parser.add_argument("--seed", type=int, default=None, help="Deterministic seed for fuzzing reproduction")
     parser.add_argument("--json", action="store_true", help="Output raw telemetry JSON summary")
     parser.add_argument("--status", action="store_true", help="Display latest persisted state")
 
     args = parser.parse_args()
+
+    if args.fuzz:
+        try:
+            from fuzz_engine import run_fuzzer_cli
+        except ImportError:
+            from scripts.agent_town.fuzz_engine import run_fuzzer_cli
+        sys.exit(run_fuzzer_cli(iterations=args.iterations, seed=args.seed))
 
     if args.status and os.path.exists(STATE_FILE):
         try:
