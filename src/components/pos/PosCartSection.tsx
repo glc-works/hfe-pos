@@ -9,6 +9,11 @@ import {
   convertCurrency,
   getCurrencySymbol
 } from '../../utils/countryCashDenominations'
+import {
+  formatMoneyInputDisplay,
+  parseMoneyInput,
+  formatLocaleNumber
+} from '../../utils/localeNumberFormat'
 import { PosCardTenderForm } from './PosCardTenderForm'
 
 export interface PosCartSectionProps {
@@ -339,11 +344,15 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 shadow-inner">
                 <span className="text-xs font-mono font-bold text-slate-400 shrink-0">{currencySymbol}</span>
                 <input
-                  type="number"
-                  value={posCashGiven}
-                  onChange={(e) => setPosCashGiven(e.target.value)}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatMoneyInputDisplay(posCashGiven, language)}
+                  onChange={(e) => {
+                    const raw = parseMoneyInput(e.target.value, language)
+                    setPosCashGiven(raw)
+                  }}
                   placeholder="0"
-                  className="bg-transparent w-full text-xs font-mono font-bold text-white placeholder-slate-600 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="bg-transparent w-full text-xs font-mono font-bold text-white placeholder-slate-600 focus:outline-none"
                 />
                 {posCashGiven && posCashGiven !== '0' && (
                   <button
@@ -411,17 +420,19 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               <span className="text-slate-400">{t.cart.changeReturn}</span>
               <div className="flex items-baseline gap-1.5 text-right">
                 <span
-                  className={`font-mono text-sm ${
+                  className={`font-mono text-sm tabular-nums ${
                     cashGivenNum >= tenderGrandTotal && tenderGrandTotal > 0
                       ? 'text-amber-400 font-black'
                       : 'text-slate-500'
                   }`}
                 >
-                  {isForeignTender ? `${currencySymbol}${changeAmount}` : formatPrice(changeAmount)}
+                  {isForeignTender
+                    ? `${currencySymbol}${formatLocaleNumber(changeAmount, language, 2, 2)}`
+                    : formatPrice(changeAmount)}
                 </span>
                 {isForeignTender && changeAmount > 0 && (
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    (Rp {baseCurrencyChange.toLocaleString('id-ID')})
+                  <span className="text-[10px] text-slate-400 font-mono tabular-nums">
+                    (Rp {formatLocaleNumber(baseCurrencyChange, language, 0, 0)})
                   </span>
                 )}
               </div>
