@@ -2,7 +2,7 @@
 
 export type PrimaryDomainApp = 'landing' | 'customer' | 'cafe' | 'design-system' | 'customer-portal'
 export type StaffSurfaceMode = 'barista-pos' | 'kds-screen' | 'checker-qc' | 'server-waiter' | 'cafe-config' | 'retail-pos' | 'scan-go' | 'fine-dining-kds' | 'sommelier' | 'maitre-d'
- | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights' | 'hfe-connect-hub' | 'hfe-company-book' | 'hfe-agent-town'
+ | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights' | 'hfe-connect-hub' | 'hfe-company-book'
 export type KdsViewModeType = 'kanban' | 'list' | 'workorder'
 export type CustomerLoginType = 'phone' | 'guest-name'
 export type PaymentPolicy = 'pay-first' | 'open-tab'

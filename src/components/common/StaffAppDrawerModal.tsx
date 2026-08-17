@@ -13,8 +13,7 @@ import {
   ShieldCheck,
   Check,
   Globe,
-  BookOpen,
-  Gamepad2
+  BookOpen
 } from 'lucide-react'
 import { StaffSurfaceMode } from '../../types/pos'
 
@@ -91,15 +90,6 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
     icon: <Settings className="w-6 h-6" />,
     color: 'from-slate-700 via-slate-800 to-slate-900',
     badge: 'Back-Office'
-  },
-  {
-    id: 'hfe-agent-town',
-    name: '🎮 Coffee Tycoon Game & Living Testbed',
-    subtitle: 'Simulasi real-time kafe, pergerakan pelanggan virtual, stress testing rush hour & AI Agent living testbed',
-    features: ['Simulasi Rush-Hour', 'Virtual Guest AI Agents', 'Financial Stress Test', 'Living Testbed & Gamification'],
-    icon: <Gamepad2 className="w-6 h-6" />,
-    color: 'from-purple-600 via-pink-600 to-amber-600',
-    badge: 'World Simulation'
   }
 ]
 
