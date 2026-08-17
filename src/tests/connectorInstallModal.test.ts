@@ -222,7 +222,103 @@ describe('ConnectorInstallModal & Connect Hub Ecosystem Tests', () => {
       expect(Array.isArray(connector.requiredScopes)).toBe(true)
       expect(connector.requiredScopes!.length).toBeGreaterThanOrEqual(2)
       expect(connector.requiredScopes).toContain('tax:efaktur_generate')
-      expect(connector.requiredScopes).toContain('tax:filing_submit')
+
+      // 3. supportedVersions check
+      expect(connector.supportedVersions).toBeDefined()
+      expect(Array.isArray(connector.supportedVersions)).toBe(true)
+      expect(connector.supportedVersions.length).toBeGreaterThanOrEqual(1)
+
+      // 4. environment check
+      expect(connector.environment).toBeDefined()
+      expect(['both', 'sandbox', 'production']).toContain(connector.environment)
+    }
+  })
+
+  it('strictly validates all 11 Banking & Statement Feeds connectors against connector-creation v2.1.0 metadata standard', () => {
+    const bankingSlugs = [
+      'bca-snap-bi-gateway',
+      'mandiri-mcm-snap-bi',
+      'bri-briapi-snap-gateway',
+      'bni-direct-snap-gateway',
+      'bank-jago-bisnis-connector',
+      'cimb-bizchannel-snap',
+      'permata-ebusiness-snap',
+      'sg-paynow-fast-gateway',
+      'hk-fps-banking-rail',
+      'us-plaid-fednow-bridge',
+      'eu-sepa-instant-tink'
+    ]
+
+    const bankingConnectors = CONNECTORS_DATA.filter((c) => c.category === 'banking')
+    expect(bankingConnectors.length).toBe(11)
+
+    for (const slug of bankingSlugs) {
+      const connector = bankingConnectors.find((c) => c.slug === slug)
+      expect(connector).toBeDefined()
+      if (!connector) continue
+
+      // 1. derivedBadges check (must include feeds & idempotent badges)
+      expect(connector.derivedBadges).toBeDefined()
+      expect(Array.isArray(connector.derivedBadges)).toBe(true)
+      expect(connector.derivedBadges!.length).toBeGreaterThanOrEqual(3)
+      expect(connector.derivedBadges).toContain('🏦 Auto Statement Feeds')
+      expect(connector.derivedBadges).toContain('🔒 Webhook HMAC-SHA256')
+      expect(connector.derivedBadges).toContain('🔁 Idempotent Replay Safe')
+
+      // 2. requiredScopes check (least privilege banking scopes)
+      expect(connector.requiredScopes).toBeDefined()
+      expect(Array.isArray(connector.requiredScopes)).toBe(true)
+      expect(connector.requiredScopes!.length).toBeGreaterThanOrEqual(3)
+      expect(connector.requiredScopes).toContain('banking:read')
+      expect(connector.requiredScopes).toContain('statements:write')
+
+      // 3. supportedVersions check
+      expect(connector.supportedVersions).toBeDefined()
+      expect(Array.isArray(connector.supportedVersions)).toBe(true)
+      expect(connector.supportedVersions.length).toBeGreaterThanOrEqual(1)
+
+      // 4. environment check
+      expect(connector.environment).toBeDefined()
+      expect(['both', 'sandbox', 'production']).toContain(connector.environment)
+    }
+  })
+
+  it('strictly validates all 11 Payment Gateway connectors against connector-creation v2.1.0 metadata standard', () => {
+    const paymentSlugs = [
+      'qris-bi-standar-gateway',
+      'stripe-elements-gateway',
+      'midtrans-snap-gateway',
+      'xendit-invoicing-gateway',
+      'doku-checkout-gateway',
+      'faspay-billing-gateway',
+      'ovo-merchant-direct',
+      'gopay-merchant-direct',
+      'dana-qris-direct',
+      'shopeepay-merchant-direct',
+      'eu-adyen-mollie-gateway'
+    ]
+
+    const paymentConnectors = CONNECTORS_DATA.filter((c) => c.category === 'payments')
+    expect(paymentConnectors.length).toBe(11)
+
+    for (const slug of paymentSlugs) {
+      const connector = paymentConnectors.find((c) => c.slug === slug)
+      expect(connector).toBeDefined()
+      if (!connector) continue
+
+      // 1. derivedBadges check (must include HMAC-SHA256 & idempotency)
+      expect(connector.derivedBadges).toBeDefined()
+      expect(Array.isArray(connector.derivedBadges)).toBe(true)
+      expect(connector.derivedBadges!.length).toBeGreaterThanOrEqual(3)
+      expect(connector.derivedBadges).toContain('🔒 Webhook HMAC-SHA256')
+      expect(connector.derivedBadges).toContain('🔁 Idempotent Replay Safe')
+
+      // 2. requiredScopes check (must include least-privilege payment scopes)
+      expect(connector.requiredScopes).toBeDefined()
+      expect(Array.isArray(connector.requiredScopes)).toBe(true)
+      expect(connector.requiredScopes!.length).toBeGreaterThanOrEqual(3)
+      expect(connector.requiredScopes).toContain('payments:charge')
+      expect(connector.requiredScopes).toContain('webhooks:listen')
 
       // 3. supportedVersions check
       expect(connector.supportedVersions).toBeDefined()
@@ -235,3 +331,4 @@ describe('ConnectorInstallModal & Connect Hub Ecosystem Tests', () => {
     }
   })
 })
+

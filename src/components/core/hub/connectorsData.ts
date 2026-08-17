@@ -252,7 +252,7 @@ export const CONNECTORS_DATA: EcosystemConnector[] = [
     summary: 'Automated order ingestion, inventory reservation, and coupon accounting.',
     track: 'stable', verified: true, installs: 190, supportedVersions: ['v3.0', 'v2026-01'], environment: 'both',
     derivedBadges: ['🛒 Woo REST Order Sync', '🎟️ Coupon Ledger Accounting', '🔒 Webhook HMAC'],
-    requiredScopes: ['sales:read_write', 'inventory:sync']
+    requiredScopes: ['sales:read_write', 'inventory:sync', 'payouts:read']
   },
   {
     slug: 'alfamart-h2h-retail-sync', name: 'Alfamart Host-to-Host', region: 'id', category: 'ecommerce', icon: '🏪',
