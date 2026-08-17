@@ -214,6 +214,25 @@ const meta: Meta<typeof BsdCafeScenarioView> = {
     preset: 'COA_ID_FNB_CAFE',
     layout: 'fullscreen',
   },
+  args: {
+    shiftOpen: true,
+    table: {
+      id: 'T-08',
+      name: 'Meja 08',
+      seatedGuests: 4,
+      maxCapacity: 4,
+      guestName: 'Group Arisan BSD (4 Pax)',
+      elapsedMinutes: 45,
+      items: [
+        { id: 'item-1', name: 'Piccolo Latte Double Shot', qty: 2, price: 38000 },
+        { id: 'item-2', name: 'V60 Gayo Anaerobic Natural', qty: 2, price: 45000 },
+        { id: 'item-3', name: 'Almond Croissant Artisan', qty: 4, price: 32000 },
+      ],
+      totalBill: 294000,
+      isOccupied: true,
+    },
+    showSplitModal: false,
+  },
 }
 
 export default meta

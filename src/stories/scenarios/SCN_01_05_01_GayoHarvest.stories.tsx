@@ -183,6 +183,20 @@ const meta: Meta<typeof BiologicalAssetRegistryView> = {
     preset: 'COA_ID_PLANTATION_AGRI',
     layout: 'fullscreen',
   },
+  args: {
+    plot: {
+      plotId: 'PLOT-GAYO-01',
+      locationName: 'Blang Gele, Takengon (1.400 mdpl)',
+      hectares: 2.5,
+      treeCount: 3500,
+      fairValuePerTree: 55000,
+      immatureCount: 500,
+      harvestKg: 450,
+      pickingCostPerKg: 3500,
+      isRevalued: false,
+      isHarvestLogged: false,
+    },
+  },
 }
 
 export default meta

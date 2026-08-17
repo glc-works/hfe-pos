@@ -169,6 +169,17 @@ const meta: Meta<typeof RoastingBOMAssemblyView> = {
     preset: 'COA_ID_ROASTING_MFG',
     layout: 'fullscreen',
   },
+  args: {
+    batch: {
+      batchNumber: 'LOT-GAYO-ANAEROBIC-2026-B08',
+      greenBeanKg: 20,
+      greenBeanCostPerKg: 140000,
+      gasCost: 65000,
+      laborCost: 85000,
+      shrinkageRate: 0.15,
+      isPosted: false,
+    },
+  },
 }
 
 export default meta
