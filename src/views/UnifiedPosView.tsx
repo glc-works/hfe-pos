@@ -23,6 +23,7 @@ import { EventTicketCheckInModal } from '../components/notifications/EventTicket
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useTranslation } from '../context/LanguageContext'
 import { useViewport } from '../context/ViewportContext'
+import { smartSearchFilter } from '../utils/searchThesaurus'
 
 export interface UnifiedPosViewProps {
   activeStaffSurface: StaffSurfaceMode
@@ -101,11 +102,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
 
   const categories = useMemo(() => ['all', ...Array.from(new Set(productCatalog.map((i) => i.category)))], [productCatalog])
 
-  const filteredCatalog = useMemo(() => productCatalog.filter((item) => {
-    const matchCat = selectedCategory === 'all' || item.category === selectedCategory
-    const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.id.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchCat && matchSearch
-  }), [productCatalog, selectedCategory, searchQuery])
+  const filteredCatalog = useMemo(() => {
+    return smartSearchFilter(productCatalog, searchQuery, selectedCategory)
+  }, [productCatalog, selectedCategory, searchQuery])
 
   const handleAddToCart = (menuItem: MenuItem) => {
     setCartItems((prev) => {

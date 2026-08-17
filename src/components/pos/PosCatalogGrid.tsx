@@ -3,6 +3,7 @@ import { Search, X, Layers, Sparkles } from 'lucide-react'
 import { MenuItem, CartItem } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
 import { ProductCard } from '../shared/ProductCard'
+import { getSmartSearchSuggestion } from '../../utils/searchThesaurus'
 
 export interface PosCatalogGridProps {
   searchQuery: string
@@ -112,19 +113,40 @@ export const PosCatalogGrid: React.FC<PosCatalogGridProps> = ({
         </div>
       </div>
 
-      {/* 2. EMPTY STATE */}
+      {/* 2. EMPTY STATE & SMART RECOMMENDATIONS */}
       {filteredCatalog.length === 0 && (
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center flex flex-col items-center justify-center gap-2">
           <Search className="w-8 h-8 text-slate-600 mb-1" />
           <p className="text-sm font-bold text-slate-300">{t.pos?.noProductsFound || 'Produk tidak ditemukan'}</p>
           <p className="text-xs text-slate-500">{t.pos?.noProductsSub || 'Coba gunakan kata kunci pencarian atau kategori lain'}</p>
+          
+          {(() => {
+            const suggestion = getSmartSearchSuggestion(searchQuery, categories)
+            if (suggestion?.suggestedCategory) {
+              return (
+                <div className="mt-2 flex flex-col items-center gap-1.5 animate-fadeIn">
+                  <p className="text-xs text-amber-300 font-medium">{suggestion.reason}</p>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedCategory(suggestion.suggestedCategory!); setSearchQuery(''); }}
+                    className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition-all active:scale-[0.97] flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Buka Kategori {suggestion.suggestedCategory} ➔</span>
+                  </button>
+                </div>
+              )
+            }
+            return null
+          })()}
+
           {searchQuery && (
             <button
               type="button"
               onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
-              className="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-400 rounded-xl border border-slate-700"
+              className="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 hover:text-white rounded-xl border border-slate-700 transition-all"
             >
-              Reset Filter
+              Reset Pencarian
             </button>
           )}
         </div>
