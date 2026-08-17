@@ -278,18 +278,36 @@ Every executed business scenario automatically compiles into our production-read
 
 ---
 
-## 11. The 4-Tier End-to-End Verification Hierarchy & Dual-Plane Testing Standard
+## 11. The 3-Tier E2E Scope Hierarchy & Multi-Environment Matrix
 
 ```mermaid
 graph TD
-    T1["1. Flow Backend E2E (OpenAPI 3.1 & Black-Box Public Contract)"] --> T3["3. Flow Complete E2E (Full-Stack Local Bridge Orchestration)"]
-    T2["2. Flow Frontend E2E (UI Atoms, Defensive Spatial Isolation & Admin UI)"] --> T3
-    T3 --> T4["4. Flow Staging Server E2E (Real Multi-Region Cloud & Latency)"]
+    subgraph ScopeTiers["3 Scope Tiers"]
+        T1["Tier 1: Backend Flow (--mode backend)"]
+        T2["Tier 2: Frontend Flow (--mode frontend)"]
+        T3["Tier 3: Complete Full-Stack Flow (--mode complete)"]
+    end
+    
+    subgraph Environments["Multi-Environment Targets"]
+        E1["--env local (Localhost / Docker)"]
+        E2["--env staging (Real Multi-Region Cloud)"]
+        E3["--env production (Non-Destructive Synthetic Canary)"]
+    end
+    
+    T1 -.-> E1
+    T1 -.-> E2
+    T2 -.-> E1
+    T3 -.-> E1
+    T3 -.-> E2
+    T3 -.-> E3
 ```
 
-### 11.1 The Dual-Plane Contract Testing Standard
-- **Public Merchant Plane (`/api/v2/company-books/...`)**: Tested 100% against the public OpenAPI 3.1 contract, DTO schemas, and public authentication headers (`Authorization: Bearer <JWT>`, `X-Company-Book-Id`, `X-Idempotency-Key`, `X-Hfe-Signature`). Private structs are never called directly.
-- **Internal Admin Control Plane (`/api/v2/admin/...`)**: Tested via Internal Admin Privileged Contracts for Super-Admin operations (Cell Shard rebalancing, master connector publishing, wholesale billing triggers, and Four-Eyes approval signatures).
+### 11.1 The 3 Scope Tiers
+1. **Tier 1: Flow Backend (`--mode backend`)**: Tests the 13 acts strictly against the **Public OpenAPI 3.1 Contract** (`Authorization: Bearer <JWT>`, `X-Company-Book-Id`, `X-Idempotency-Key`, `X-Hfe-Signature`) and the **Internal Admin Control Plane** (`/api/v2/admin/...`) without private struct shortcuts.
+2. **Tier 2: Flow Frontend (`--mode frontend`)**: Tests visual UI interactions, React Aria headless atoms, IndexedDB offline buffer, Defensive Spatial Isolation, and tabular numerals across merchant and admin surfaces.
+3. **Tier 3: Flow Complete Full-Stack (`--mode complete`)**: Tests the unified bridge connecting frontend UI clicks directly to backend TigerBeetle posting kernels.
 
-### 11.2 Frontend E2E Testing for Merchant & Admin Surfaces
-All merchant surfaces (POS, ORDER, BOARD, CARD, BOOK) and admin management surfaces (Pilar 0 CORE and Pilar 2 ADMIN) are tested directly through the frontend experience layer via Vitest, AST pattern inspection, and DOM spatial isolation assertions.
+### 11.2 The Multi-Environment Targets
+- `--env local`: Runs against localhost (`http://127.0.0.1:8080`) for rapid pre-commit validation.
+- `--env staging`: Runs against real multi-region cloud infrastructure (`https://api.staging.hfeit.com`) across Singapore (`ap-southeast-1`) and Jakarta (`ap-southeast-3`) with real network latency and live failover tests.
+- `--env production`: Runs non-destructive synthetic canary audits in live production.
