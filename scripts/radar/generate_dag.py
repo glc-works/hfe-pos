@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """
 scripts/radar/generate_dag.py — Semantic DAG Generator for hfex-rad0
-Registers all dimensions, 9 pillars, tool nodes, and 86 Vitest test suites.
+Registers all dimensions, 9 pillars, tool nodes, arbitrary depth Experience Plans (L0..LN),
+and 86 Vitest test suites into scripts/radar/semantic_dag.json.
 """
 
 import os
 import glob
 import json
 import re
+from plan_scanner import scan_plans
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DAG_PATH = os.path.join(ROOT_DIR, "scripts", "radar", "semantic_dag.json")
 
 spec = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "name": "HFE-POS Unified 2D Semantic & Topological DAG Specification (hfex-rad0)",
     "dimensions": {
         "PILLAR": {
@@ -46,6 +48,7 @@ spec["nodes"].append({
     "id": "hub-root",
     "title": "Master Radar & Experience Orchestrator (hfex-rad0)",
     "level": 0,
+    "node_type": "HUB",
     "path": "scripts/hfex-rad0.py",
     "parents": [],
     "dimensions": {
@@ -75,6 +78,7 @@ for pid, title, path, pillar_dim, tier_dim in pillars:
         "id": pid,
         "title": title,
         "level": 1,
+        "node_type": "PILLAR",
         "path": path,
         "parents": ["hub-root"],
         "dimensions": {
@@ -104,6 +108,7 @@ for tid, title, path, parent, pillar_dim, surface_dim, tier_dim, cadence_dim, lo
         "id": tid,
         "title": title,
         "level": 1,
+        "node_type": "TOOL",
         "path": path,
         "parents": [parent],
         "dimensions": {
@@ -115,7 +120,12 @@ for tid, title, path, parent, pillar_dim, surface_dim, tier_dim, cadence_dim, lo
         }
     })
 
-# 4. Map All 86 Vitest Test Suites
+# 4. Scan & Index Experience Plans (L0..LN Arbitrary Depth)
+plan_nodes = scan_plans(ROOT_DIR)
+for p in plan_nodes:
+    spec["nodes"].append(p)
+
+# 5. Map All 86 Vitest Test Suites
 tests_dir = os.path.join(ROOT_DIR, "src", "tests")
 test_files = sorted(glob.glob(os.path.join(tests_dir, "*.test.ts*")))
 
@@ -186,6 +196,7 @@ for path in test_files:
         "id": node_id,
         "title": title,
         "level": 2,
+        "node_type": "TEST",
         "path": rel_path,
         "parents": ["p4-vitest-suites"],
         "dimensions": {
@@ -200,4 +211,4 @@ for path in test_files:
 with open(DAG_PATH, "w", encoding="utf-8") as f:
     json.dump(spec, f, indent=2)
 
-print(f"Generated semantic_dag.json with {len(spec['nodes'])} total nodes ({len(test_files)} test suites).")
+print(f"Generated semantic_dag.json with {len(spec['nodes'])} total nodes ({len(plan_nodes)} plans, {len(test_files)} test suites).")
