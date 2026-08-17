@@ -2,7 +2,8 @@
 """
 hfex-rad0 — Master Experience Radar & Diagnostic Orchestrator for hfe-pos.
 Evaluates 9 Architectural Pillars, 2D Orthogonal Topological Matrix (Depth x Dimension),
-and Multi-Cadence Verification Loops (Google Test Size SMALL/MEDIUM/LARGE & INNER/OUTER/LIVE).
+Multi-Cadence Verification Loops (Google Test Size SMALL/MEDIUM/LARGE & INNER/OUTER/LIVE),
+and Arbitrary Depth Experience Plans (Level 0 through Level N).
 """
 
 import sys
@@ -20,6 +21,7 @@ from radar import (
     query_dimensions,
     generate_ci_matrix,
     print_tools_directory,
+    print_plans_directory,
     audit_layer_boundaries,
     audit_ast,
     scan_ast,
@@ -55,13 +57,24 @@ def main():
         "--dim", "-D",
         type=str,
         default=None,
-        help="Multi-dimensional dynamic label query (e.g. --dim PILLAR=CORE,CADENCE=SMALL or --dim SURFACE=CUSTOMER_MOBILE)"
+        help="Multi-dimensional dynamic label query (e.g. --dim PILLAR=POS or --dim SURFACE=MOBILE_360,CADENCE=SMALL)"
     )
     parser.add_argument(
         "--level", "-l",
         type=int,
         default=None,
-        help="Filter specific topological level (0 to 5, e.g. -l 1 for Static Guards, -l 2 for Unit Suites)"
+        help="Filter specific topological level (0 to N, e.g. -l 0 for Master Hub, -l 1 for Pillars, -l 2 for Features)"
+    )
+    parser.add_argument(
+        "--plans", "--list-plans",
+        dest="list_plans",
+        action="store_true",
+        help="Display all indexed Experience Plans (L0..LN arbitrary depth)"
+    )
+    parser.add_argument(
+        "--plan-matrix",
+        action="store_true",
+        help="Render 2D Orthogonal Matrix exclusively for Experience Plans (L0..LN)"
     )
     parser.add_argument(
         "--small",
@@ -153,6 +166,13 @@ def main():
 
     if args.ci_matrix:
         sys.exit(generate_ci_matrix(as_json=True))
+
+    if args.list_plans:
+        sys.exit(print_plans_directory(target_level=args.level, target_pillar=args.pillar, as_json=args.json))
+
+    if args.plan_matrix:
+        group_by = args.group_by if args.group_by else "PILLAR"
+        sys.exit(render_dimension_matrix(group_by=group_by, as_json=args.json, plan_only=True))
 
     if args.matrix or args.group_by is not None:
         group_by = args.group_by if args.group_by else "PILLAR"

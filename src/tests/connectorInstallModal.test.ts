@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { CONNECTORS_DATA, EcosystemConnector } from '../components/connect_hub/ConnectorsCatalogGrid'
+import { CONNECTORS_DATA, EcosystemConnector } from '../components/core/hub/ConnectorsCatalogGrid'
+import { WebhookRelayPanel } from '../components/core/hub/WebhookRelayPanel'
 
 describe('ConnectorInstallModal & Connect Hub Ecosystem Tests', () => {
-  it('contains valid connectors across all supported regions and categories', () => {
-    expect(CONNECTORS_DATA.length).toBeGreaterThanOrEqual(15)
+  it('contains >= 44 connectors across all supported regions and categories', () => {
+    expect(CONNECTORS_DATA.length).toBeGreaterThanOrEqual(44)
 
     const categories = new Set(CONNECTORS_DATA.map((c) => c.category))
     expect(categories.has('banking')).toBe(true)
@@ -22,17 +23,26 @@ describe('ConnectorInstallModal & Connect Hub Ecosystem Tests', () => {
     expect(regions.has('eu')).toBe(true)
   })
 
-  it('verifies connector attributes and slug immutability', () => {
-    const bca = CONNECTORS_DATA.find((c) => c.slug === 'bca-snap-bi-gateway')
-    expect(bca).toBeDefined()
-    expect(bca?.category).toBe('banking')
-    expect(bca?.verified).toBe(true)
-    expect(bca?.track).toBe('stable')
+  it('verifies essential benchmark connectors: Xero, QuickBooks, Stripe, QRIS, Midtrans, SNAP BI, PayNow, FPS, Shopify, Alfamart', () => {
+    const requiredSlugs = [
+      'xero-sync-connector',
+      'quickbooks-online-bridge',
+      'qris-bi-standar-gateway',
+      'stripe-elements-gateway',
+      'midtrans-snap-gateway',
+      'bca-snap-bi-gateway',
+      'sg-paynow-fast-gateway',
+      'hk-fps-banking-rail',
+      'shopify-multistore-sync',
+      'woocommerce-webhook-sync',
+      'alfamart-h2h-retail-sync'
+    ]
 
-    const xero = CONNECTORS_DATA.find((c) => c.slug === 'xero-sync-connector')
-    expect(xero).toBeDefined()
-    expect(xero?.category).toBe('accounting')
-    expect(xero?.track).toBe('stable')
+    for (const slug of requiredSlugs) {
+      const found = CONNECTORS_DATA.find((c) => c.slug === slug)
+      expect(found).toBeDefined()
+      expect(found?.name.length).toBeGreaterThan(0)
+    }
   })
 
   it('validates required scope groups for accounting, banking, payments, and ecommerce', () => {
@@ -51,5 +61,9 @@ describe('ConnectorInstallModal & Connect Hub Ecosystem Tests', () => {
     expect(sampleScopes.ecommerce).toContain('sales:read_write')
     expect(sampleScopes.pos).toContain('cogs:deplete')
     expect(sampleScopes.tax).toContain('tax:efaktur_generate')
+  })
+
+  it('exports WebhookRelayPanel component cleanly', () => {
+    expect(WebhookRelayPanel).toBeDefined()
   })
 })

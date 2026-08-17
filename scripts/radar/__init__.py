@@ -3,6 +3,11 @@ HFE-POS Radar Subsystem Package (hfex-rad0).
 """
 
 from .base import PillarResult
+from .plan_scanner import (
+    scan_plans,
+    get_plan_summary,
+    parse_simple_yaml_frontmatter
+)
 from .dimensions import (
     DimensionIndex,
     parse_dimension_filter,
@@ -12,7 +17,8 @@ from .dimensions import (
     query_dimensions,
     render_dimension_matrix,
     generate_ci_matrix,
-    print_tools_directory
+    print_tools_directory,
+    print_plans_directory
 )
 from .engine import (
     run_radar,
@@ -46,6 +52,10 @@ __all__ = [
     "render_dimension_matrix",
     "generate_ci_matrix",
     "print_tools_directory",
+    "print_plans_directory",
+    "scan_plans",
+    "get_plan_summary",
+    "parse_simple_yaml_frontmatter",
     "run_radar",
     "run_cadence",
     "PILLAR_REGISTRY",

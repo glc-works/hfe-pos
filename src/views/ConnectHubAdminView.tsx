@@ -6,21 +6,19 @@ import {
   Zap,
   Sparkles,
   Layers,
-  ArrowUpRight,
-  TrendingUp,
-  Building2,
-  Server
+  Webhook
 } from 'lucide-react'
 import {
   ConnectorsCatalogGrid,
-  EcosystemConnector
-} from '../components/connect_hub/ConnectorsCatalogGrid'
-import { BetaAllowlistTable } from '../components/connect_hub/BetaAllowlistTable'
-import { VendorClaimsTable } from '../components/connect_hub/VendorClaimsTable'
-import { BankFeedSimulator } from '../components/connect_hub/BankFeedSimulator'
-import { DeveloperKeysManager } from '../components/connect_hub/DeveloperKeysManager'
+  EcosystemConnector,
+  BetaAllowlistTable,
+  VendorClaimsTable,
+  BankFeedSimulator,
+  DeveloperKeysManager,
+  WebhookRelayPanel
+} from '../components/core/hub'
 
-export type ConnectHubTab = 'catalog' | 'allowlist' | 'claims' | 'simulator' | 'keys'
+export type ConnectHubTab = 'catalog' | 'allowlist' | 'claims' | 'simulator' | 'webhooks' | 'keys'
 
 export const ConnectHubAdminView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ConnectHubTab>('catalog')
@@ -40,7 +38,7 @@ export const ConnectHubAdminView: React.FC = () => {
     setActiveTab('simulator')
   }
 
-  const handleOpenAllowlist = (connector: EcosystemConnector) => {
+  const handleOpenAllowlist = (_connector: EcosystemConnector) => {
     setActiveTab('allowlist')
   }
 
@@ -57,11 +55,11 @@ export const ConnectHubAdminView: React.FC = () => {
               <h1 className="text-xl md:text-2xl font-black tracking-tight text-white flex items-center gap-2">
                 <span>HFE Connect Hub &amp; Global Ecosystem</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/30 px-2 py-0.5 rounded-full">
-                  Operator Super-Admin
+                  Pillar 0 Core Admin
                 </span>
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
-                Open Banking SNAP BI, Cloud Accounting Bridges, POS Terminals, and TestFlight-Style Beta Allowlist.
+                Open Banking SNAP BI, Cloud Accounting Bridges, QRIS Gateways, Webhook Event Relays &amp; Beta Gating.
               </p>
             </div>
           </div>
@@ -79,31 +77,31 @@ export const ConnectHubAdminView: React.FC = () => {
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             Total Konektor Global
           </div>
-          <div className="text-2xl font-black font-mono tabular-nums text-white mt-1">45+</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">ID, SG, HK, UAE, US &amp; EU</div>
+          <div className="text-2xl font-black font-mono tabular-nums text-white mt-1">50+</div>
+          <div className="text-[11px] text-slate-500 mt-0.5">Accounting, QRIS, Banks, POS &amp; Tax</div>
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             Bank Feeds &amp; SNAP BI
           </div>
-          <div className="text-2xl font-black font-mono tabular-nums text-sky-400 mt-1">12</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">BCA, Mandiri, BRI, Jago, PayNow</div>
+          <div className="text-2xl font-black font-mono tabular-nums text-sky-400 mt-1">11</div>
+          <div className="text-[11px] text-slate-500 mt-0.5">BCA, Mandiri, BRI, BNI, Jago, PayNow</div>
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            Beta Tenant Allowlist
+            Webhook Event Relays
           </div>
-          <div className="text-2xl font-black font-mono tabular-nums text-amber-400 mt-1">8</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">Enrolled Early Channels</div>
+          <div className="text-2xl font-black font-mono tabular-nums text-emerald-400 mt-1">99.8%</div>
+          <div className="text-[11px] text-slate-500 mt-0.5">HMAC-SHA256 &amp; Exponential Backoff</div>
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             Vendor Claims Proved
           </div>
-          <div className="text-2xl font-black font-mono tabular-nums text-emerald-400 mt-1">15</div>
+          <div className="text-2xl font-black font-mono tabular-nums text-purple-400 mt-1">15</div>
           <div className="text-[11px] text-slate-500 mt-0.5">Cryptographic Sentinel Verified</div>
         </div>
       </div>
@@ -120,7 +118,20 @@ export const ConnectHubAdminView: React.FC = () => {
           }`}
         >
           <Layers className="w-3.5 h-3.5 text-sky-400" />
-          <span>Ecosystem Catalog (45+)</span>
+          <span>Ecosystem Catalog (50+)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('webhooks')}
+          className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            activeTab === 'webhooks'
+              ? 'bg-slate-800 text-white border border-slate-700 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Webhook className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Webhook &amp; Event Relay</span>
         </button>
 
         <button
@@ -145,7 +156,7 @@ export const ConnectHubAdminView: React.FC = () => {
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
           <span>Vendor Claims &amp; Proofs</span>
         </button>
 
@@ -171,7 +182,7 @@ export const ConnectHubAdminView: React.FC = () => {
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Key className="w-3.5 h-3.5 text-purple-400" />
+          <Key className="w-3.5 h-3.5 text-amber-400" />
           <span>Developer API Keys</span>
         </button>
       </div>
@@ -184,6 +195,8 @@ export const ConnectHubAdminView: React.FC = () => {
             onOpenAllowlistModal={handleOpenAllowlist}
           />
         )}
+
+        {activeTab === 'webhooks' && <WebhookRelayPanel />}
 
         {activeTab === 'allowlist' && <BetaAllowlistTable />}
 
