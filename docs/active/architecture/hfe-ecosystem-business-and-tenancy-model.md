@@ -91,3 +91,38 @@ graph TD
 - **Frontend Repository (`hfe-pos`)**:
   - Contains **HFE-X Platform (Produk 2..5: POS, ORDER, BOARD, CARD + Rebuilt BOOK)**.
   - Master Orchestrator: `python3 scripts/hfex-rad0.py`
+
+---
+
+## 6. Unified Contact Subledger & Dynamic Namespaced Scope (`Hfeit:<SCOPES>`)
+
+All corporate, partner, regulator, merchant, and consumer contacts across HFE Core and HFE-IT Experience are centrally managed in **Tenant 1's Contact Subledger**. 
+
+To prevent cross-product data duplication and cleanly track lifecycle progression, contacts are partitioned using the **`Hfeit:<SCOPES>`** dynamic namespace:
+
+### 6.1 Canonical Scope Tokens
+- `CORE`: Internal platform, cloud infrastructure, financial regulators, and connector master definitions (e.g. BCA SNAP, Xero, DJP e-Faktur, AWS).
+- `MERCHANT`: Business entities originating from Full Merchant Signups (POS / Backoffice / Cashier users).
+- `BOARD`: Entities originating from Storefront / Landing Page-only signups (Evolusi Sekeding).
+- `CARD`: Individual consumer members originating from Digital Loyalty Card signups.
+
+### 6.2 Multi-Scope Combinations
+A single contact entity can seamlessly hold multiple scope tags as their relationship evolves, separated by commas:
+- `Hfeit:CORE` — Platform master connector or bank API partner.
+- `Hfeit:BOARD` — Small food stall utilizing only digital menu storefront.
+- `Hfeit:CARD` — Individual consumer holding a member pass.
+- `Hfeit:MERCHANT,BOARD` — Merchant running in-store POS with active online storefront.
+- `Hfeit:BOARD,MERCHANT,CARD` — Full-ecosystem enterprise merchant running POS, online storefront, and issuing loyalty member cards.
+
+```json
+{
+  "contact_id": "CNT-KOPI-01",
+  "name": "Kopi Maju Bersama",
+  "avatar_url": "/api/v2/company-books/tenant1/contacts/kopi-maju/avatar.svg",
+  "dimensions": {
+    "SCOPE": "Hfeit:BOARD,MERCHANT,CARD",
+    "JURISDICTION": "ID",
+    "RISK_TIER": "STANDARD"
+  }
+}
+```
