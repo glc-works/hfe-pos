@@ -67,15 +67,8 @@ export const MobileQrScanCatalog: Story = {
     handleUpdateQty: () => {},
     handleApplyPromo: () => {},
     handleSubmitOrder: () => {},
-    handleRedeemVoucher: () => {},
-    handleRemovePromo: () => {},
-    handleRemoveVoucher: () => {},
-    handleLogin: () => {},
-    handleLogout: () => {},
-    handleSetCustomTip: () => {},
     onSwitchToLandingPage: () => {},
-    onSwitchToPos: () => {},
-    onQuickAction: () => {}
+    onSwitchToPos: () => {}
   }
 }
 
