@@ -184,6 +184,10 @@ Agar kode UI, komponen visual, dan integritas alur kasir tetap 100% kokoh dan si
    - Pastikan seluruh 9 pilar berstatus **`0 Critical Gaps / 100% Healthy`**.
 4. 🚀 **Saat Mengakhiri Sesi Kerja**:
    - Lakukan commit bersih dengan conventional commits dan push ke remote: `git push origin main`.
+5. 🔬 **Saat Mengajukan Saran / Perubahan Desain Arsitektur (Implementation-First & Global Benchmarking)**:
+   - Wajib selalu mengidentifikasi implementasi aktual di codebase saat ini terlebih dahulu (*Zero-Guessing Rule*).
+   - Sajikan perbandingan 3-arah: **[Kondisi Kode Saat Ini] vs [Standar Pemimpin Global (Stripe, AWS, Toast, NetSuite)] vs [Target Usulan Perubahan]**.
+
 
 ---
 

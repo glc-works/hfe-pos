@@ -508,6 +508,55 @@ graph LR
 2. **Edge OnPrem Configuration Bundling**: When a merchant requests an on-premises installation, the system generates an encrypted `hfe-node-config.json` containing the pre-issued `company_book_id` and cryptographic node authorization token.
 3. **Plug-and-Play Edge Activation**: The local OnPrem node boots up bound to its official cloud UUID, ensuring seamless bidirectional ledger reconciliation whenever internet connectivity is active.
 
+---
+
+## 16. The Relational Billing Account Architecture (AWS Organizations / GCP Billing Model)
+
+To support real-world enterprise holding structures where a single investor, founder, or corporate entity pays SaaS and compute fees for multiple operating entities, HFE decouples billing from the tenancy/ledger kernel:
+
+```mermaid
+graph TD
+    B["💳 BILLING ACCOUNT (billing_account_id: Payer / Corp Card)"]
+    
+    subgraph PT1["PT 1: BSD Cafe (tenant_01)"]
+        T1["tenant_id: org-kafe-bsd"] --> CB1["company_book_id: cb-fnb-bsd-01"]
+    end
+
+    subgraph PT2["PT 2: Roastery Factory (tenant_02)"]
+        T2["tenant_id: org-roastery-mfg"] --> CB2["company_book_id: cb-roasting-mfg-02"]
+    end
+
+    subgraph PT3["PT 3: Gayo Plantation (tenant_03)"]
+        T3["tenant_id: org-gayo-agri"] --> CB3["company_book_id: cb-plantation-agri-03"]
+    end
+
+    B -.->|billing_account_assignments| T1
+    B -.->|billing_account_assignments| T2
+    B -.->|billing_account_assignments| T3
+```
+
+1. **Independent Payer Entity (`billing_account_id`)**: Holds payment methods, wholesale compute discounts, and billing invoices.
+2. **Relational Assignment Layer (`billing_account_assignments`)**: Maps one billing account to $N$ `company_book_id` instances ($1 \longleftrightarrow N$).
+3. **Sovereign Ledger Boundary**: Financial journals and POS records remain strictly partitioned by `company_book_id`, completely independent of who pays the platform compute bill.
+
+---
+
+## 17. The Canonical 4-Tier Enterprise Hierarchy & Composite Edge Key
+
+```text
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ 💳 LEVEL 0: `billing_account_id` ──► Payer Entity (AWS Billing Model / Wholesale Settler)       │
+ │ 🏢 LEVEL 1: `tenant_id`          ──► Workspace / Organization (IAM & Member Policies)           │
+ │ 🏛️ LEVEL 2: `company_id`         ──► Legal Entity (NPWP, Corporate Domicile, DJP e-Faktur)     │
+ │ 📚 LEVEL 3: `company_book_id`    ──► Financial General Ledger & POS Transaction Partition      │
+ │ 🏪 LEVEL 4: `node_id`            ──► Physical Hardware Terminal (Kasir-01, Kasir-02, KDS-01)   │
+ └─────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Composite Paired Edge Key Formula**:
+  $$\mathbf{OnPremNodeKey} = \mathbf{tenant\_id} \mathbin{:} \mathbf{company\_book\_id} \mathbin{:} \mathbf{node\_id}$$
+
+
 
 
 
