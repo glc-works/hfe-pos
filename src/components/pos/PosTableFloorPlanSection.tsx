@@ -217,11 +217,9 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
         onClick={() => handleTableClick(table)}
         className={`${slotSpanClass} border rounded-2xl p-3 flex flex-col justify-between gap-1.5 ${
           isCompactMode ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[114px] sm:min-h-[122px]'
-        } transition-all cursor-pointer relative overflow-hidden group ${
-          selectedPOSTable?.id === table.id
-            ? 'ring-2 ring-indigo-500 bg-indigo-500/20 border-indigo-500 shadow-lg'
-            : isUnpaid
-            ? 'bg-amber-500/10 border-amber-500/60 hover:border-amber-400'
+        } transition-all duration-150 cursor-pointer relative overflow-hidden group active:scale-[0.98] ${
+          isUnpaid
+            ? 'bg-amber-500/10 border-amber-500/60 hover:border-amber-400 shadow-sm'
             : isPaid
             ? 'bg-indigo-500/10 border-indigo-500/50 hover:border-indigo-400'
             : defaultSurfaceClass
