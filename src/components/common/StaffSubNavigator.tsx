@@ -36,7 +36,8 @@ const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; icon: React.ReactN
   'branch-mgmt': { name: 'Multi-Cabang', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
   'cafe-config': { name: 'Owner Settings', icon: <Settings className="w-3.5 h-3.5" />, color: 'bg-slate-600' },
   'customer-crm': { name: 'Customer CRM', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-blue-600' },
-  'hfe-connect-hub': { name: '🧩 HFE Connect Hub', icon: <Globe className="w-3.5 h-3.5" />, color: 'bg-sky-500' }
+  'hfe-connect-hub': { name: '🧩 HFE Connect Hub', icon: <Globe className="w-3.5 h-3.5" />, color: 'bg-sky-500' },
+  'hfe-agent-town': { name: '🎮 Tycoon & UI Testbed', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-gradient-to-r from-amber-500 to-rose-600' }
 }
 
 export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
@@ -158,6 +159,18 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
               }`}
             >
               <Settings className="w-3.5 h-3.5" /> Pengaturan
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveStaffSurface('hfe-agent-town')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                activeStaffSurface === 'hfe-agent-town'
+                  ? 'bg-gradient-to-r from-amber-500 to-rose-600 text-white shadow-md font-extrabold'
+                  : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" /> 🎮 Tycoon & UI Testbed
             </button>
           </div>
 

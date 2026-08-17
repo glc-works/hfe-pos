@@ -3,7 +3,7 @@ import { FIVE_CORE_APPS } from '../components/common/StaffAppDrawerModal'
 
 describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
   it('should contain consolidated core apps including connect hub', () => {
-    expect(FIVE_CORE_APPS.length).toBe(7)
+    expect(FIVE_CORE_APPS.length).toBe(8)
 
     const appNames = FIVE_CORE_APPS.map((c) => c.name)
     expect(appNames).toContain('Kasir POS (Commerce Hub)')
@@ -13,6 +13,7 @@ describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
     expect(appNames).toContain('🧩 HFE Connect Hub (Ecosystem & Open Banking)')
     expect(appNames).toContain('Gudang, Inventori & Multi-Cabang')
     expect(appNames).toContain('Pengaturan Toko & Tim (Management)')
+    expect(appNames).toContain('🎮 Coffee Tycoon Game & Living Testbed')
   })
 
   it('should include core workstation IDs in the app launcher', () => {

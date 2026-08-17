@@ -90,6 +90,15 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
     icon: <Settings className="w-6 h-6" />,
     color: 'from-slate-700 via-slate-800 to-slate-900',
     badge: 'Back-Office'
+  },
+  {
+    id: 'hfe-agent-town',
+    name: '🎮 Coffee Tycoon Game & Living Testbed',
+    subtitle: 'Simulasi bisnis F&B, supply chain Gayo-Roastery-BSD, NFC dual-persona, & DOM bounding-box stress test',
+    features: ['Living Isometric Canvas', 'TigerBeetle Dual-Entry Live', 'NFC Dual-Persona Tap', '4-Quadrant Stress Matrix'],
+    icon: <Sparkles className="w-6 h-6" />,
+    color: 'from-amber-500 via-rose-600 to-purple-800',
+    badge: '🎮 Tycoon Living UI'
   }
 ]
 
