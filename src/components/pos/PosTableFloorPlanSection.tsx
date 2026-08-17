@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react'
-import { Clock, Crown, ShieldAlert, ChevronDown, ArrowRightLeft, Check } from 'lucide-react'
+import { Clock, Crown } from 'lucide-react'
 import { TableStatus, PropertyZoneConfig, PropertyZoneId } from '../../types/pos'
 import { PROPERTY_ZONES } from '../../data/mockData'
 import { useTranslation } from '../../context/LanguageContext'
+import { PriceTag } from '../../ui/PriceTag'
 import { AreaSurfaceOverlay, AREA_SURFACE_PALETTES } from './AreaSurfaceOverlay'
 
 export interface PosTableFloorPlanSectionProps {
@@ -38,25 +39,18 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
   handleTableClick,
   onOpenTableOpsModal
 }) => {
-  const { t, formatPrice, language } = useTranslation()
+  const { t, formatPrice, formatCompactPrice, language } = useTranslation()
   const [internalZoneId, setInternalZoneId] = useState<PropertyZoneId>('all')
 
   const activeZoneId = propSelectedZoneId !== undefined ? propSelectedZoneId : internalZoneId
 
+  const resolveZone = (t: TableStatus): PropertyZoneId =>
+    t.zoneId || (t.name.startsWith('OUT') ? 'outdoor-garden' : t.name.startsWith('IND') ? 'indoor-ac' : t.name.startsWith('VIP') ? 'vip-private' : t.name.startsWith('POOL') ? 'poolside-cabana' : t.name.startsWith('ROOF') ? 'rooftop-skybar' : 'indoor-ac')
+
   // Combined Zone & Status Filtering
   const effectiveTables = useMemo(() => {
     return tablesGrid.filter((table) => {
-      // 1. Zone filter with automatic prefix fallback
-      const resolvedZone = table.zoneId || (
-        table.name.startsWith('OUT') ? 'outdoor-garden' :
-        table.name.startsWith('IND') ? 'indoor-ac' :
-        table.name.startsWith('VIP') ? 'vip-private' :
-        table.name.startsWith('POOL') ? 'poolside-cabana' :
-        table.name.startsWith('ROOF') ? 'rooftop-skybar' : 'indoor-ac'
-      )
-      const matchZone = activeZoneId === 'all' || resolvedZone === activeZoneId
-
-      // 2. Status filter
+      const matchZone = activeZoneId === 'all' || resolveZone(table) === activeZoneId
       const isUnpaid = (table.status === 'open-tab' || table.status === 'occupied') && table.totalBill > 0
       const isPaid = table.customerName?.includes('(Lunas)') || (table.status === 'occupied' && table.totalBill === 0)
       const isAvailable = table.status === 'free'
@@ -73,37 +67,14 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
   // Grouped Zones for Adaptive Bounded Surfaces
   const groupedZones = useMemo(() => {
     if (activeZoneId !== 'all') {
-      const currentZoneConfig = propertyZones.find(z => z.id === activeZoneId) || {
-        id: activeZoneId,
-        name: activeZoneId.replace('-', ' '),
-        icon: '🏢'
-      }
-      return [{
-        zone: currentZoneConfig,
-        tables: effectiveTables
-      }]
+      const currentZoneConfig = propertyZones.find(z => z.id === activeZoneId) || { id: activeZoneId, name: activeZoneId.replace('-', ' '), icon: '🏢' }
+      return [{ zone: currentZoneConfig, tables: effectiveTables }]
     }
 
     const zonesWithTables: { zone: PropertyZoneConfig; tables: TableStatus[] }[] = []
-    
     propertyZones.filter(z => z.id !== 'all').forEach(zone => {
-      const matchingTables = effectiveTables.filter(t => {
-        const resolvedZone = t.zoneId || (
-          t.name.startsWith('OUT') ? 'outdoor-garden' :
-          t.name.startsWith('IND') ? 'indoor-ac' :
-          t.name.startsWith('VIP') ? 'vip-private' :
-          t.name.startsWith('POOL') ? 'poolside-cabana' :
-          t.name.startsWith('ROOF') ? 'rooftop-skybar' : 'indoor-ac'
-        )
-        return resolvedZone === zone.id
-      })
-
-      if (matchingTables.length > 0) {
-        zonesWithTables.push({
-          zone,
-          tables: matchingTables
-        })
-      }
+      const matchingTables = effectiveTables.filter(t => resolveZone(t) === zone.id)
+      if (matchingTables.length > 0) zonesWithTables.push({ zone, tables: matchingTables })
     })
 
     // Catch-all for uncategorized tables
@@ -223,9 +194,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             : defaultSurfaceClass
         }`}
       >
-        {/* ========================================================================= */}
-        {/* CASE A: COMPACT VIEW (FIBONACCI 2-ROW SOLID GRAVITY - ZERO VOID HOLE)     */}
-        {/* ========================================================================= */}
+        {/* CASE A: COMPACT VIEW */}
         {isCompactMode ? (
           !isAvailable ? (
             <>
@@ -246,11 +215,20 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
 
               {/* ROW 2: FULL WIDTH MONETARY LINE (EXACTLY 1 ELEMENT — ZERO CLIPPING) */}
               <div className="pt-1 border-t border-slate-800/70 flex items-center justify-center min-w-0">
-                <span className={`font-mono font-black text-xs sm:text-sm tabular-nums whitespace-nowrap text-center ${
-                  isUnpaid ? 'text-amber-400' : 'text-emerald-400'
-                }`}>
-                  {table.totalBill > 0 ? formatPrice(table.totalBill) : (language === 'en' ? 'PAID' : 'LUNAS')}
-                </span>
+                {table.totalBill > 0 ? (
+                  <PriceTag
+                    amount={table.totalBill}
+                    mode="adaptive"
+                    isVipSpan={isVip}
+                    variant={isUnpaid ? 'accent' : 'emerald'}
+                    size="sm"
+                    className="font-black text-xs sm:text-sm"
+                  />
+                ) : (
+                  <span className="font-mono font-black text-xs sm:text-sm text-emerald-400">
+                    {language === 'en' ? 'PAID' : 'LUNAS'}
+                  </span>
+                )}
               </div>
 
               {/* VIP EXECUTIVE GOLD PILL (IF MIN SPEND CONFIGURED) */}
@@ -261,7 +239,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
                     : 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/30'
                 }`}>
                   {minSpendShortfall > 0
-                    ? `👑 ${minSpendProgress}% • Sisa ${formatPrice(minSpendShortfall)}`
+                    ? `👑 ${minSpendProgress}% • Sisa ${formatCompactPrice(minSpendShortfall)}`
                     : `👑 Lolos Min Spend (${minSpendProgress}%)`}
                 </div>
               )}
@@ -286,9 +264,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             </>
           )
         ) : (
-          /* ========================================================================= */
-          /* CASE B: FULL GRID VIEW (RICH OPERATIONAL DATA & COMPOSITE FIBONACCI FLOW) */
-          /* ========================================================================= */
+          /* CASE B: FULL GRID VIEW */
           !isAvailable ? (
             <>
               {/* ROW 1: HEADER (ID LEFT • UTILISATION CENTER • TIMER RIGHT) */}
@@ -347,11 +323,19 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
                 <span className="text-[10px] font-mono text-slate-400 truncate">
                   {table.orderIds?.[0] || 'Dine-In'}
                 </span>
-                <span className={`font-mono font-black text-xs sm:text-sm tabular-nums whitespace-nowrap shrink-0 ${
-                  isUnpaid ? 'text-amber-400' : 'text-emerald-400'
-                }`}>
-                  {table.totalBill > 0 ? formatPrice(table.totalBill) : (language === 'en' ? 'PAID' : 'LUNAS')}
-                </span>
+                {table.totalBill > 0 ? (
+                  <PriceTag
+                    amount={table.totalBill}
+                    mode="full"
+                    variant={isUnpaid ? 'accent' : 'emerald'}
+                    size="sm"
+                    className="font-black shrink-0"
+                  />
+                ) : (
+                  <span className="font-mono font-black text-xs text-emerald-400 shrink-0">
+                    {language === 'en' ? 'PAID' : 'LUNAS'}
+                  </span>
+                )}
               </div>
             </>
           ) : (
@@ -436,7 +420,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             </span>
             {totalZoneSales > 0 && (
               <span className="text-emerald-400 font-bold">
-                • {formatPrice(totalZoneSales)}
+                • <PriceTag amount={totalZoneSales} mode="compact" size="xs" variant="emerald" />
               </span>
             )}
           </div>
