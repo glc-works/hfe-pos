@@ -16,6 +16,7 @@ import {
 import { useTranslation } from '../../context/LanguageContext'
 import { useViewport } from '../../context/ViewportContext'
 import { useNotification } from '../../context/NotificationContext'
+import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { PropertyZoneConfig, PropertyZoneId, TableStatus } from '../../types/pos'
 
 export interface PosCommandHeaderProps {
@@ -75,6 +76,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   const { t } = useTranslation()
   const { isMobile } = useViewport()
   const { unreadCount, openServiceTicketsCount } = useNotification()
+  const { themeMode, toggleThemeMode } = useMerchantConfig()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const totalAlerts = unreadCount + openServiceTicketsCount
 
@@ -88,34 +90,34 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   const scopedAvailable = scopedTables.filter(t => t.status === 'free').length
 
   return (
-    <header className="bg-slate-900 border border-slate-800 rounded-2xl shadow-lg shrink-0 select-none overflow-hidden flex flex-col z-20">
+    <header className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg shrink-0 select-none overflow-hidden flex flex-col z-20">
       {/* TIER 1: GLOBAL COMMAND & IDENTITY BAR (42px) */}
       <div className="px-2.5 py-1.5 flex items-center justify-between gap-2 h-11">
         {/* 1. LEFT: SINGLE-DOOR APP SUITE LAUNCHER & OUTLET IDENTITY */}
         <button
           type="button"
           onClick={onOpenAppDrawer}
-          className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500/20 via-slate-800 to-slate-800 hover:from-amber-500/30 border border-amber-500/40 rounded-xl text-white transition-all shadow-sm group shrink-0 cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500/10 via-slate-100 to-slate-100 dark:from-amber-500/20 dark:via-slate-800 dark:to-slate-800 hover:from-amber-500/20 dark:hover:from-amber-500/30 border border-amber-500/30 dark:border-amber-500/40 rounded-xl text-slate-900 dark:text-white transition-all shadow-sm group shrink-0 cursor-pointer"
           title="Buka 5 Core App Suites (Dapur KDS, Insights, Gudang, Pengaturan)"
         >
           <div className="w-4 h-4 rounded-md bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0 shadow-sm">
             <Store className="w-2.5 h-2.5 stroke-[2.5]" />
           </div>
-          <span className="text-xs font-black text-white truncate max-w-[100px] sm:max-w-[130px]">
+          <span className="text-xs font-black text-slate-900 dark:text-white truncate max-w-[100px] sm:max-w-[130px]">
             Kasir POS
           </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <ChevronDown className="w-3 h-3 text-amber-400 group-hover:translate-y-0.5 transition-transform shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse shrink-0" />
+          <ChevronDown className="w-3 h-3 text-amber-500 dark:text-amber-400 group-hover:translate-y-0.5 transition-transform shrink-0" />
         </button>
 
         {/* 2. CENTER: MASTER CUSTOM TABS (PETA MEJA / KATALOG MENU) */}
-        <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-xl border border-slate-800 shrink-0">
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
           {enableTableFloorPlan && (
             <button
               type="button"
               onClick={() => setPosModeTab('tables')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer ${
-                posModeTab === 'tables' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                posModeTab === 'tables' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Users className="w-3.5 h-3.5 shrink-0" />
@@ -127,7 +129,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
             type="button"
             onClick={() => setPosModeTab('catalog')}
             className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer ${
-              posModeTab === 'catalog' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+              posModeTab === 'catalog' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5 shrink-0" />
@@ -137,16 +139,29 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
 
         {/* 3. RIGHT: UNIVERSAL ACTION SHORTCUT BUTTONS (100% INVARIANT) */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* 1-Tap Day / Night Mode Switcher Button */}
+          <button
+            type="button"
+            onClick={toggleThemeMode}
+            className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-amber-500 dark:text-amber-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+            title={themeMode === 'light' ? 'Beralih ke Dark Mode (🌙)' : 'Beralih ke Day Mode (☀️)'}
+          >
+            <span className="text-xs">{themeMode === 'light' ? '🌙' : '☀️'}</span>
+            <span className="hidden lg:inline text-[11px] text-slate-700 dark:text-slate-200">
+              {themeMode === 'light' ? 'Malam' : 'Siang'}
+            </span>
+          </button>
+
           {onOpenSpotlight && (
             <button
               type="button"
               onClick={onOpenSpotlight}
-              className="p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-800 text-amber-400 border border-slate-800 hover:border-amber-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+              className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
               title="Pencarian Cepat Spotlight (⌘K / Ctrl+K)"
             >
               <Search className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden md:inline text-[11px]">Cari</span>
-              <kbd className="hidden md:inline-flex px-1 py-0.2 bg-slate-800 border border-slate-700 rounded text-[9px] font-mono text-slate-400 font-bold">⌘K</kbd>
+              <kbd className="hidden md:inline-flex px-1 py-0.2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[9px] font-mono text-slate-600 dark:text-slate-400 font-bold">⌘K</kbd>
             </button>
           )}
 
@@ -156,8 +171,8 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               onClick={onOpenNotifications}
               className={`relative p-1 sm:px-2 sm:py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 border cursor-pointer ${
                 totalAlerts > 0
-                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/40'
-                  : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
+                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-400 border-amber-500/40'
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
               }`}
               title="Pusat Notifikasi & Service Request"
             >
@@ -173,7 +188,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
           <button
             type="button"
             onClick={onOpenScanner}
-            className="p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-800 text-emerald-400 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+            className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
             title="Scan Barcode Produk SKU"
           >
             <Camera className="w-3.5 h-3.5 shrink-0" />
@@ -182,20 +197,20 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
           <button
             type="button"
             onClick={onOpenGuestBinding}
-            className="hidden sm:flex p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl text-xs font-bold transition-all items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+            className="hidden sm:flex p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
             title="Sambut Tamu & Alokasi Meja"
           >
-            <Users className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Users className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
             <span className="hidden lg:inline text-[11px]">Sambut</span>
           </button>
         </div>
       </div>
 
       {/* HAIRLINE DIVIDER */}
-      <div className="border-t border-slate-800/80 w-full" />
+      <div className="border-t border-slate-200 dark:border-slate-800/80 w-full" />
 
       {/* TIER 2: LOCAL CONTEXTUAL GROUPING & VIEW PREFERENCE STRIP (36px) */}
-      <div className="px-2.5 py-1 flex items-center justify-between gap-2 bg-slate-950/40 h-10 relative">
+      <div className="px-2.5 py-1 flex items-center justify-between gap-2 bg-slate-50/80 dark:bg-slate-950/40 h-10 relative">
         {/* TAB 1: PETA MEJA CONTEXTUAL STRIP */}
         {posModeTab === 'tables' && (
           <>
@@ -204,21 +219,21 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-indigo-500/20 to-slate-800 hover:from-indigo-500/30 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
+                className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-indigo-500/10 to-slate-100 dark:from-indigo-500/20 dark:to-slate-800 hover:from-indigo-500/20 text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white border border-indigo-500/30 dark:border-indigo-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
               >
                 <span>{currentZone?.icon || '📍'}</span>
                 <span className="truncate max-w-[120px] sm:max-w-[150px]">{currentZone?.name || 'Semua Area'}</span>
-                <span className="text-[10px] font-mono bg-indigo-500/40 px-1.5 py-0.2 rounded-full text-white font-bold">
+                <span className="text-[10px] font-mono bg-indigo-500/20 dark:bg-indigo-500/40 px-1.5 py-0.2 rounded-full text-indigo-700 dark:text-white font-bold">
                   {scopedTotal}
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-y-0.5 transition-transform" />
+                <ChevronDown className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 group-hover:translate-y-0.5 transition-transform" />
               </button>
 
               {isDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
-                    <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold border-b border-slate-800/80">
+                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
+                    <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800/80">
                       Pilih Lantai / Zona Area
                     </div>
                     {propertyZones.map((zone) => {
@@ -238,7 +253,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                           className={`w-full px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-2 text-left touch-manipulation cursor-pointer ${
                             isSelected
                               ? 'bg-indigo-500 text-white font-black shadow-md'
-                              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                           }`}
                         >
                           <div className="flex items-center gap-2 min-w-0">
@@ -247,7 +262,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
                             <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                              isSelected ? 'bg-indigo-400/40 text-white' : 'bg-slate-800 text-slate-400'
+                              isSelected ? 'bg-indigo-400/40 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                             }`}>
                               {count} Meja
                             </span>
@@ -264,7 +279,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
             {/* RIGHT: 3-SEGMENT STATUS PILLS (SEMUA, TAGIHAN, KOSONG) + PINDAH MEJA + VIEW SWITCHER */}
             <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               {setTableStatusFilter && (
-                <div className="flex items-center gap-1 bg-slate-950/80 p-0.5 rounded-xl border border-slate-800/80">
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/80 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   {/* 1. SEMUA MEJA (RESET FILTER) */}
                   <button
                     type="button"
@@ -272,13 +287,13 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                     className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
                       tableStatusFilter === 'all'
                         ? 'bg-indigo-500 text-white font-black shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                     title="Tampilkan Semua Meja (Reset Filter)"
                   >
                     <span>Semua</span>
                     <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
-                      tableStatusFilter === 'all' ? 'bg-indigo-400/40 text-white' : 'bg-slate-800 text-slate-400'
+                      tableStatusFilter === 'all' ? 'bg-indigo-400/40 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400'
                     }`}>
                       {scopedTotal}
                     </span>
@@ -291,13 +306,13 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                     className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
                       tableStatusFilter === 'unpaid'
                         ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                        : 'text-amber-400 hover:bg-amber-500/10'
+                        : 'text-amber-600 dark:text-amber-400 hover:bg-amber-500/10'
                     }`}
                     title="Filter Meja Belum Lunas"
                   >
                     <span>⏳ Tagihan</span>
                     <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
-                      tableStatusFilter === 'unpaid' ? 'bg-slate-950 text-amber-400' : 'bg-amber-400/20 text-amber-300'
+                      tableStatusFilter === 'unpaid' ? 'bg-slate-950 text-amber-400' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
                     }`}>
                       {scopedUnpaid}
                     </span>
@@ -310,13 +325,13 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                     className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
                       tableStatusFilter === 'available'
                         ? 'bg-emerald-500 text-slate-950 font-black shadow-sm'
-                        : 'text-emerald-400 hover:bg-emerald-500/10'
+                        : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
                     }`}
                     title="Filter Meja Kosong"
                   >
                     <span>🟢 Kosong</span>
                     <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
-                      tableStatusFilter === 'available' ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-400/20 text-emerald-300'
+                      tableStatusFilter === 'available' ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                     }`}>
                       {scopedAvailable}
                     </span>
@@ -327,20 +342,20 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenTableOps}
-                className="p-1 sm:px-2 sm:py-1 bg-slate-950 hover:bg-slate-850 text-indigo-300 border border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+                className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-850 text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
                 title="Operasi Meja (Pindah Meja / Gabung Tagihan)"
               >
-                <ArrowRightLeft className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <ArrowRightLeft className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
                 <span className="hidden sm:inline text-[11px]">Pindah</span>
               </button>
 
               {setViewMode && (
-                <div className="hidden sm:flex items-center gap-0.5 bg-slate-950 p-0.5 rounded-xl border border-slate-800 shrink-0">
+                <div className="hidden sm:flex items-center gap-0.5 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
                   <button
                     type="button"
                     onClick={() => setViewMode('grid')}
                     className={`p-1 rounded-lg text-xs font-bold transition-all ${
-                      viewMode === 'grid' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                      viewMode === 'grid' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                     title="Grid View"
                   >
@@ -350,7 +365,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                     type="button"
                     onClick={() => setViewMode('compact')}
                     className={`p-1 rounded-lg text-xs font-bold transition-all ${
-                      viewMode === 'compact' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                      viewMode === 'compact' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                     title="Compact View"
                   >
@@ -360,7 +375,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                     type="button"
                     onClick={() => setViewMode('list')}
                     className={`p-1 rounded-lg text-xs font-bold transition-all ${
-                      viewMode === 'list' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                      viewMode === 'list' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                     title="List View"
                   >
@@ -380,23 +395,23 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-amber-500/20 to-slate-800 hover:from-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
+                className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-amber-500/10 to-slate-100 dark:from-amber-500/20 dark:to-slate-800 hover:from-amber-500/20 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-white border border-amber-500/30 dark:border-amber-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
               >
                 <span>☕</span>
                 <span className="truncate max-w-[120px] sm:max-w-[150px] capitalize">
                   {selectedCategory === 'all' ? 'Semua Menu' : selectedCategory}
                 </span>
-                <span className="text-[10px] font-mono bg-amber-500/30 px-1.5 py-0.2 rounded-full text-white font-bold">
+                <span className="text-[10px] font-mono bg-amber-500/20 dark:bg-amber-500/30 px-1.5 py-0.2 rounded-full text-amber-700 dark:text-white font-bold">
                   {catalogSkuCount} SKU
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-amber-400 group-hover:translate-y-0.5 transition-transform" />
+                <ChevronDown className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 group-hover:translate-y-0.5 transition-transform" />
               </button>
 
               {isDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                  <div className="absolute top-full left-0 mt-1.5 w-60 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
-                    <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold border-b border-slate-800/80">
+                  <div className="absolute top-full left-0 mt-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
+                    <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800/80">
                       Pilih Kategori Menu
                     </div>
                     {categories.map((cat) => {
@@ -412,7 +427,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                           className={`w-full px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all flex items-center justify-between gap-2 text-left touch-manipulation cursor-pointer ${
                             isSelected
                               ? 'bg-amber-500 text-slate-950 font-black shadow-md'
-                              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                           }`}
                         >
                           <span>{cat === 'all' ? '✨ Semua Kategori' : cat}</span>
@@ -427,12 +442,12 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
 
             {/* RIGHT: VIEW MODE BUTTONS: GRID / COMPACT / LIST */}
             {setViewMode && (
-              <div className="flex items-center gap-0.5 bg-slate-950 p-0.5 rounded-xl border border-slate-800 shrink-0">
+              <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
                 <button
                   type="button"
                   onClick={() => setViewMode('grid')}
                   className={`p-1 rounded-lg text-xs font-bold transition-all ${
-                    viewMode === 'grid' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                    viewMode === 'grid' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                   title="Grid View"
                 >
@@ -442,7 +457,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                   type="button"
                   onClick={() => setViewMode('compact')}
                   className={`p-1 rounded-lg text-xs font-bold transition-all ${
-                    viewMode === 'compact' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                    viewMode === 'compact' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                   title="Compact View"
                 >
@@ -452,7 +467,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                   type="button"
                   onClick={() => setViewMode('list')}
                   className={`p-1 rounded-lg text-xs font-bold transition-all ${
-                    viewMode === 'list' ? 'bg-white text-slate-950 shadow font-black' : 'text-slate-400 hover:text-slate-200'
+                    viewMode === 'list' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                   title="List View"
                 >

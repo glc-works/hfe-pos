@@ -80,9 +80,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     return (
       <div
         onClick={handleCardClick}
-        className={`bg-slate-900 border ${
-          cartQty > 0 ? 'border-emerald-500/50 shadow-emerald-950/30' : 'border-slate-800 hover:border-slate-600'
-        } rounded-xl p-2 sm:p-2.5 flex items-center justify-between gap-3 cursor-pointer transition-all hover:bg-slate-800/60 shadow-sm group select-none ${className}`}
+        className={`bg-white dark:bg-slate-900 border ${
+          cartQty > 0 ? 'border-emerald-500/50 shadow-emerald-950/30' : 'border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600'
+        } rounded-xl p-2 sm:p-2.5 flex items-center justify-between gap-3 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm group select-none ${className}`}
         style={style}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -90,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {isImageUrl(product.image) ? (
               <img src={product.image} alt={product.name} className="w-11 h-11 rounded-lg object-cover shrink-0 shadow-inner" />
             ) : (
-              <div className="w-11 h-11 bg-slate-800 rounded-lg flex items-center justify-center text-xl shrink-0">
+              <div className="w-11 h-11 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-xl shrink-0">
                 {product.image || '☕'}
               </div>
             )}
@@ -102,56 +102,56 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs font-bold text-slate-100 truncate group-hover:text-white">{product.name}</span>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-slate-950 dark:group-hover:text-white">{product.name}</span>
               {shouldShowSku && (
-                <span className="text-[9px] font-mono text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 shrink-0">
+                <span className="text-[9px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800 shrink-0">
                   {product.hfeCategoryCode || product.id}
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-slate-400 truncate">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
               {product.category} • {product.description?.slice(0, 40) || 'Menu Item'}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs font-mono font-bold text-emerald-400 whitespace-nowrap">
+          <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
             {formatPrice(product.price)}
           </span>
           {cartQty > 0 ? (
             <div
-              className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-emerald-500/40 shadow-sm"
+              className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-emerald-500/40 shadow-sm"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={handleMinusClick}
-                className="p-1 hover:bg-slate-800 text-slate-300 hover:text-white rounded transition-all active:scale-95"
+                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded transition-all active:scale-95"
                 title="Kurangi"
               >
-                <Minus className="w-3.5 h-3.5 text-emerald-400" />
+                <Minus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               </button>
-              <span className="font-mono font-extrabold text-xs text-white px-1.5 min-w-[18px] text-center">
+              <span className="font-mono font-extrabold text-xs text-slate-900 dark:text-white px-1.5 min-w-[18px] text-center">
                 {cartQty}
               </span>
               <button
                 type="button"
                 onClick={handlePlusClick}
-                className="p-1 hover:bg-slate-800 text-slate-300 hover:text-white rounded transition-all active:scale-95"
+                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded transition-all active:scale-95"
                 title="Tambah"
               >
-                <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={handlePlusClick}
-              className="bg-white hover:bg-slate-200 text-slate-950 p-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center active:scale-95"
+              className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-950 p-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center active:scale-95"
               title={t.pos?.addToCart || 'Tambah'}
             >
-              <Plus className="w-3.5 h-3.5 text-slate-950" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -166,8 +166,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     return (
       <div
         onClick={handleCardClick}
-        className={`bg-slate-900 border ${
-          cartQty > 0 ? 'border-emerald-500/50 shadow-emerald-950/30' : 'border-slate-800 hover:border-slate-500'
+        className={`bg-white dark:bg-slate-900 border ${
+          cartQty > 0 ? 'border-emerald-500/50 shadow-emerald-950/30' : 'border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-500'
         } rounded-2xl overflow-hidden cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between shadow-md group select-none ${className}`}
         style={style}
       >
@@ -175,7 +175,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {isImageUrl(product.image) ? (
             <img src={product.image} alt={product.name} className="w-full h-28 sm:h-32 object-cover rounded-t-xl group-hover:opacity-90 transition-opacity" />
           ) : (
-            <div className="w-full h-24 bg-slate-800/80 flex items-center justify-center text-3xl rounded-t-xl">
+            <div className="w-full h-24 bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-3xl rounded-t-xl">
               {product.image || '☕'}
             </div>
           )}
@@ -187,49 +187,49 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
         <div className="p-3 flex flex-col gap-1">
           <div className="flex items-center justify-between gap-1">
-            <h4 className="text-xs font-bold text-slate-100 truncate group-hover:text-white">{product.name}</h4>
+            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-slate-950 dark:group-hover:text-white">{product.name}</h4>
             {shouldShowSku && (
-              <span className="text-[9px] font-mono text-slate-500 bg-slate-950 px-1 py-0.5 rounded border border-slate-800 shrink-0">
+              <span className="text-[9px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-950 px-1 py-0.5 rounded border border-slate-200 dark:border-slate-800 shrink-0">
                 {product.hfeCategoryCode || product.id}
               </span>
             )}
           </div>
-          <span className="text-[10px] text-slate-400 truncate">{product.category}</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{product.category}</span>
           <div className="flex items-center justify-between mt-1 pt-0.5">
-            <p className="text-xs font-mono font-bold text-emerald-400">{formatPrice(product.price)}</p>
+            <p className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(product.price)}</p>
             {cartQty > 0 ? (
               <div
-                className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-emerald-500/40 shadow-sm"
+                className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-emerald-500/40 shadow-sm"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
                   type="button"
                   onClick={handleMinusClick}
-                  className="p-1 hover:bg-slate-800 text-slate-300 hover:text-white rounded transition-all active:scale-95"
+                  className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded transition-all active:scale-95"
                   title="Kurangi"
                 >
-                  <Minus className="w-3 h-3 text-emerald-400" />
+                  <Minus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 </button>
-                <span className="font-mono font-extrabold text-xs text-white px-1.5 min-w-[18px] text-center">
+                <span className="font-mono font-extrabold text-xs text-slate-900 dark:text-white px-1.5 min-w-[18px] text-center">
                   {cartQty}
                 </span>
                 <button
                   type="button"
                   onClick={handlePlusClick}
-                  className="p-1 hover:bg-slate-800 text-slate-300 hover:text-white rounded transition-all active:scale-95"
+                  className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded transition-all active:scale-95"
                   title="Tambah"
                 >
-                  <Plus className="w-3 h-3 text-emerald-400" />
+                  <Plus className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={handlePlusClick}
-                className="bg-white hover:bg-slate-200 text-slate-950 p-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center active:scale-95"
+                className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-950 p-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center active:scale-95"
                 title={t.pos?.addToCart || 'Tambah'}
               >
-                <Plus className="w-3.5 h-3.5 text-slate-950" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -246,8 +246,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <button
         type="button"
         onClick={handleCardClick}
-        className={`relative bg-slate-900 border ${
-          cartQty > 0 ? 'border-emerald-500/50 shadow-emerald-950/30' : 'border-slate-800 hover:border-slate-500'
+        className={`relative bg-white dark:bg-slate-900 border ${
+          cartQty > 0 ? 'border-emerald-500/50 shadow-emerald-950/30' : 'border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-500'
         } rounded-xl p-2.5 flex flex-col items-center justify-between text-center transition-all hover:scale-[1.02] shadow-sm group min-h-[110px] select-none ${className}`}
         style={style}
       >
@@ -256,7 +256,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {cartQty}x
           </span>
         )}
-        <div className="w-10 h-10 rounded-lg bg-slate-800/80 flex items-center justify-center text-xl overflow-hidden mt-1">
+        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-xl overflow-hidden mt-1">
           {isImageUrl(product.image) ? (
             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
           ) : (
@@ -264,10 +264,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
         <div className="flex flex-col items-center w-full px-1">
-          <span className="text-[11px] font-bold text-slate-200 group-hover:text-white line-clamp-2 leading-tight">
+          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 group-hover:text-slate-950 dark:group-hover:text-white line-clamp-2 leading-tight">
             {product.name}
           </span>
-          <span className="text-[10px] font-mono text-emerald-400 font-bold mt-1">{formatPrice(product.price)}</span>
+          <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold mt-1">{formatPrice(product.price)}</span>
         </div>
       </button>
     )

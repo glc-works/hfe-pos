@@ -228,7 +228,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const isImageUrl = (url?: string) => Boolean(url && (url.startsWith('http') || url.startsWith('/') || url.includes('unsplash.com')))
 
   return (
-    <div className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-950">
+    <div className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950">
       <main className={`flex-1 min-h-0 w-full h-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-3 sm:gap-4 ${
         isMobile
           ? 'flex flex-col overflow-y-auto overscroll-contain pb-36'
