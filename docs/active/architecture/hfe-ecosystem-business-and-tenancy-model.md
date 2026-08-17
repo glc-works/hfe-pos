@@ -460,4 +460,43 @@ In compliance with Architecture Rule #7 (*"Settings Own Accounting Behavior"*):
 3. **Granular Scoped Mutations**: Supported via `PATCH /settings/{domain}` (e.g. `PATCH /settings/pos` for printer configuration) to prevent non-critical hardware errors from blocking critical fiscal/tax updates.
 4. **Effective-Dated Immutable Provenance**: Every setting change generates an effective-dated successor version with cryptographic audit provenance.
 
+---
+
+## 15. The Universal Paired Testing Tenancy Standard (Tenant 98 ⟷ Tenant 99)
+
+To eliminate multi-environment configuration drift and mental overhead, HFE establishes **One Canonical Paired Tenancy Constant Identical Across All Environments (Localhost, Staging Cloud, and Live Production)**:
+
+```mermaid
+graph LR
+    subgraph GoldenPair["The Golden Universal Pair (All Environments)"]
+        T98["🏭 Tenant 98: Upstream Provider (cb-tenancy-upstream-0098)"]
+        T99["☕ Tenant 99: Downstream Merchant (cb-tenancy-downstream-0099)"]
+        T98 <== "Bilateral Trade & Paired Invoices (P5)" ==> T99
+    end
+
+    subgraph Environments["3 Environment Targets"]
+        E1["Localhost (--env local / 127.0.0.1)"]
+        E2["Staging Cloud (--env staging)"]
+        E3["Live Production Canary (--env production)"]
+    end
+
+    GoldenPair -.-> E1
+    GoldenPair -.-> E2
+    GoldenPair -.-> E3
+```
+
+### 15.1 The Canonical Role Allocation
+1. **🏭 Tenant 98 (`cb-tenancy-upstream-0098`) — The Upstream Provider**:
+   - Represents the Roastery Manufacturing Plant (`CLUSTER_MFG`), Gayo Coffee Plantation (`CLUSTER_AGRI`), or Wholesale Platform Operator (Tenant 02).
+   - Owns raw material supply, wholesale compute invoices, and Accounts Receivable (AR).
+2. **☕ Tenant 99 (`cb-tenancy-downstream-0099`) — The Downstream Merchant**:
+   - Represents BSD Cafe POS Cashier (`CLUSTER_HOSPITALITY`), Table QR self-ordering, and Retail Commerce.
+   - Owns coffee inventory receipt, shift floats, POS cashier sales, and Accounts Payable (AP).
+
+### 15.2 Cross-Environment Determinism & Production Canary Safety
+- **Environment Isolation**: Because database instances are physically isolated across Local (`127.0.0.1`), Staging (`db.staging.hfeit.com`), and Production (`db.prod.hfeit.com`), using the exact same IDs (`Tenant 98` & `Tenant 99`) is 100% safe and zero-pollution.
+- **Zero Real Customer Impact in Production**: In Live Production, `Tenant 98` and `Tenant 99` operate strictly as a **Non-Destructive Synthetic Canary Sandbox**. Live roleplays and hourly canary sweeps execute against these tenants without polluting real commercial merchant accounts (Tenant 100+) or touching live bank rails.
+- **Zero Dual-Infrastructure Spawning Friction**: Testing in early phases can be run directly against the single live production deployment targeting `Tenant 98` and `Tenant 99` without spawning or paying for redundant staging clusters.
+
+
 
