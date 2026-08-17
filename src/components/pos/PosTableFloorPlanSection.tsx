@@ -3,6 +3,7 @@ import { Clock, Crown, ShieldAlert, ChevronDown, ArrowRightLeft, Check } from 'l
 import { TableStatus, PropertyZoneConfig, PropertyZoneId } from '../../types/pos'
 import { PROPERTY_ZONES } from '../../data/mockData'
 import { useTranslation } from '../../context/LanguageContext'
+import { AreaSurfaceOverlay, AREA_SURFACE_PALETTES } from './AreaSurfaceOverlay'
 
 export interface PosTableFloorPlanSectionProps {
   tablesGrid: TableStatus[]
@@ -455,13 +456,19 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
     )
   }
 
-  // 2. GRID VIEW (ALL ZONES): CONTINUOUS 4-COLUMN INTERLOCKING TETRIS (180-DEG ROTATION PACKING)
+  // 2. GRID VIEW (ALL ZONES): CONTINUOUS 4-COLUMN INTERLOCKING TETRIS WITH AREA SURFACE OVERLAY
   if (activeZoneId === 'all') {
     const allTables = groupedZones.flatMap(g => g.tables)
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pb-20">
-        {allTables.map(table => renderTableCard(table, false, true))}
+      <div className="relative pb-20">
+        {/* LAYER 0: SMOOTH AREA SURFACE GEOMETRY (BACKDROP ISLANDS) */}
+        <AreaSurfaceOverlay viewMode={viewMode} />
+
+        {/* LAYER 1: RIGID 4-COLUMN INTERACTIVE TABLE WIDGETS GRID */}
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          {allTables.map(table => renderTableCard(table, false, true))}
+        </div>
       </div>
     )
   }
