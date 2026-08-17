@@ -1,8 +1,10 @@
 import React from 'react'
+import { useTranslation } from '../context/LanguageContext'
 
 export interface PriceTagProps {
   amount: number
-  currency?: string
+  mode?: 'full' | 'compact' | 'adaptive'
+  isVipSpan?: boolean
   originalAmount?: number
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   variant?: 'default' | 'accent' | 'emerald' | 'muted'
@@ -11,16 +13,28 @@ export interface PriceTagProps {
 
 export const PriceTag: React.FC<PriceTagProps> = ({
   amount,
-  currency = 'IDR',
+  mode = 'full',
+  isVipSpan = false,
   originalAmount,
   size = 'md',
   variant = 'default',
   className = '',
 }) => {
-  const formatted = new Intl.NumberFormat('id-ID').format(amount)
-  const formattedOriginal = originalAmount
-    ? new Intl.NumberFormat('id-ID').format(originalAmount)
-    : null
+  const { formatPrice, formatCompactPrice } = useTranslation()
+
+  let displayString = ''
+  if (mode === 'compact') {
+    displayString = formatCompactPrice(amount)
+  } else if (mode === 'adaptive') {
+    // In adaptive mode: If not VIP and amount >= 1M (11+ chars), use compact price to prevent clipping
+    if (!isVipSpan && amount >= 1_000_000) {
+      displayString = formatCompactPrice(amount)
+    } else {
+      displayString = formatPrice(amount)
+    }
+  } else {
+    displayString = formatPrice(amount)
+  }
 
   const sizeClasses = {
     xs: 'text-[11px]',
@@ -38,14 +52,14 @@ export const PriceTag: React.FC<PriceTagProps> = ({
   }[variant]
 
   return (
-    <span className={`inline-flex items-baseline gap-1 font-mono tabular-nums ${className}`}>
-      {formattedOriginal && (
+    <span className={`inline-flex items-baseline gap-1 font-mono tabular-nums whitespace-nowrap ${className}`}>
+      {originalAmount && (
         <span className="text-[10px] text-slate-500 line-through">
-          {currency} {formattedOriginal}
+          {formatPrice(originalAmount)}
         </span>
       )}
       <span className={`${sizeClasses} ${variantClasses}`}>
-        {currency} {formatted}
+        {displayString}
       </span>
     </span>
   )
