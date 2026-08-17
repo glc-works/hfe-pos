@@ -64,43 +64,83 @@ graph TD
 
 ## 3. Multi-Tenancy & Provisioning Architecture
 
-### 3.1 Tenant 1 (HFE Core Engine / Global HoldCo)
-- **Role**: Root System Operator & Master Entity Registry.
-- **Tenant Scope**: Stores global connector catalog (50 connectors), baseline Chart of Accounts (CoA) templates, national jurisdictional tax profiles (DJP, Batam FTZ, IRAS Singapore, LHDN Malaysia, IRD Hong Kong), and developer API documentation (Scalar OAS 3.1).
-- **Security**: Strictly locked to Super-Admin credentials. Merchant tenants cannot read or mutate Tenant 1 system data.
+### 3.1 Tenant Allocation Rules & The 2-Digit System Space (`01 .. 99`)
+To ensure complete mathematical synergy with our 2-digit segmented naming convention (`01-01-01`), **Tenant IDs 01 through 99 are strictly reserved for HFE-IT Infrastructure & Regional OpCos**:
 
-### 3.2 Tenant 2 (HFE-IT Experience Platform Operator / Regional OpCos)
-- **Role**: Master Tenant User / Reseller Account inside HFE Core.
-- **Tenant Scope**: Owns and orchestrates the merchant ecosystem.
-- **Provisioning Flow**:
-  1. When a new Merchant signs up on HFE-IT Experience:
-  2. HFE-IT Experience invokes the HFE Core provisioning endpoint:
-     ```http
-     POST /api/v2/company-books/provision
-     Content-Type: application/json
-     
-     {
-       "company_name": "Restoran Kopi ABC",
-       "billing_parent_tenant_id": "TENANT-2-EXPERIENCE",
-       "coa_template": "ID_FNB_STANDARD",
-       "tax_profile": "ID_PPN_11"
-     }
-     ```
-  3. HFE Core creates a new isolated `Company` with its own `company_book_id UUID`.
-  4. The merchant operates POS, ORDER, BOARD, and CARD within their own isolated book boundaries.
-  5. At the end of the billing cycle:
-     - **HFE Core** meters engine compute/posting volume and invoices **Tenant 2 (HFE-IT Experience / OpCo)**.
-     - **OpCo** bills the **Merchant** according to its merchant subscription/transaction pricing.
+```text
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ 👑 BLOK 01 - 09: CORE HOLDINGS & MASTER PLATFORM INFRASTRUCTURE                                 │
+ │    • Tenant 01: HFE IT Global Holdings Pte. Ltd. (Global HoldCo & Core IP Master)              │
+ │    • Tenant 02: HFE-IT Experience Global (Platform Operator & Wholesale Reseller Mesh)          │
+ │    • Tenant 03: HFE Global Connect Hub & Third-Party Relay Node                                 │
+ │    • Tenant 04: HFE Global Treasury & FX Settlement Clearing Node                               │
+ │    • Tenant 05: HFE Developer Sandbox & Simulation Environment                                  │
+ │    • Tenant 06: HFE Security, Audit & Compliance Archival Vault                                 │
+ │    • Tenant 07 - 09: Reserved for AI Autonomous Financial Kernels & DR Recovery                 │
+ ├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ 🌏 BLOK 10 - 29: ASIA TENGGARA (ASEAN REGIONAL OPCOS)                                           │
+ │    • Tenant 10: PT HFE Teknologi Indonesia (Jakarta Sovereign OpCo)                             │
+ │    • Tenant 11: HFE IT Singapore Operations Pte. Ltd. (Singapore OpCo)                          │
+ │    • Tenant 12: HFE IT Malaysia Sdn. Bhd. (Kuala Lumpur OpCo)                                   │
+ │    • Tenant 13: HFE IT Thailand Co., Ltd.                                                       │
+ │    • Tenant 14: HFE IT Vietnam LLC                                                              │
+ │    • Tenant 15: HFE IT Philippines Inc.                                                         │
+ │    • Tenant 16 - 29: Reserved for Southeast Asian Markets & Regional Expansion                  │
+ ├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ 🏮 BLOK 30 - 49: ASIA TIMUR & PASIFIK (EAST ASIA & OCEANIA OPCOS)                               │
+ │    • Tenant 30: HFE IT Hong Kong Ltd. (Greater China & North Asia Hub)                          │
+ │    • Tenant 31: HFE IT Japan K.K.                                                               │
+ │    • Tenant 32: HFE IT Australia Pty Ltd.                                                       │
+ │    • Tenant 33: HFE IT South Korea Co., Ltd.                                                    │
+ │    • Tenant 34 - 49: Reserved for Asia-Pacific Regional Hubs                                    │
+ ├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ 🌍 BLOK 50 - 69: EROPA & TIMUR TENGAH (EMEA OPCOS)                                              │
+ │    • Tenant 50: HFE IT UK Ltd. (London Hub)                                                     │
+ │    • Tenant 51: HFE IT UAE Ltd. (Dubai Hub)                                                     │
+ │    • Tenant 52: HFE IT Europe B.V. (Amsterdam Hub)                                              │
+ │    • Tenant 53 - 69: Reserved for Middle East & European Markets                                │
+ ├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ 🗽 BLOK 70 - 89: AMERIKA (AMERICAS OPCOS)                                                       │
+ │    • Tenant 70: HFE IT US Inc. (Americas Hub)                                                   │
+ │    • Tenant 71: HFE IT Canada Ltd.                                                              │
+ │    • Tenant 72 - 89: Reserved for North & Latin American Markets                                │
+ ├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ 🛡️ BLOK 90 - 99: SPECIAL PURPOSE VEHICLES (SPV) & EMERGENCY BREAK-GLASS NODES                   │
+ ├─────────────────────────────────────────────────────────────────────────────────────────────────┤
+ │ 🛒 BLOK 100+: PUBLIC COMMERCIAL MERCHANTS (KAFE, RESTO, RETAIL & ENTERPRISE PELANGGAN)          │
+ │    • All commercial merchant registrations are dynamically provisioned starting at Tenant 100+. │
+ └─────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.2 Provisioning Flow for Commercial Merchants (Tenant 100+)
+1. When a new Merchant signs up on HFE-IT Experience:
+2. HFE-IT Experience invokes the HFE Core provisioning endpoint:
+   ```http
+   POST /api/v2/company-books/provision
+   Content-Type: application/json
+   
+   {
+     "company_name": "Restoran Kopi ABC",
+     "billing_parent_tenant_id": "TENANT-02",
+     "coa_template": "ID_FNB_STANDARD",
+     "tax_profile": "ID_PPN_11"
+   }
+   ```
+3. HFE Core provisions a new company book (e.g. `TENANT-0100` / `company_book_id UUID`).
+4. The merchant operates POS, ORDER, BOARD, and CARD within their own isolated book boundaries.
+5. At the end of the billing cycle:
+   - **HFE Core** meters engine compute/posting volume and invoices **Tenant 02 (HFE-IT Experience / OpCo)**.
+   - **OpCo** bills the **Merchant** according to its merchant subscription/transaction pricing.
 
 ---
 
 ## 4. Architectural Invariants & Hard Constraints
 
 1. **Zero Cross-Tenant Data Leakage**: Every query and mutation in HFE Core must enforce `WHERE company_book_id = $merchant_book_id`.
-2. **Immutable System Definitions**: Merchants instantiate connectors and CoA templates from Tenant 1, but cannot alter the root definitions.
+2. **Immutable System Definitions**: Merchants instantiate connectors and CoA templates from Tenant 01, but cannot alter the root definitions.
 3. **Financial Posting Kernel Invariant**: No direct SQL updates to account balances; all financial movements must resolve through `PostingService` and double-entry debits/credits.
 4. **Permanent Audit Trail**: Posted journals and finalized period close records cannot be hard-deleted; corrections must execute via reversal entries.
-5. **Asset Isolation**: Connector icons and platform assets resolve through `tenant1` contact subledgers with zero untrusted external CDN dependencies.
+5. **Asset Isolation**: Connector icons and platform assets resolve through `tenant01` contact subledgers with zero untrusted external CDN dependencies.
 6. **Zero-Downtime High Availability Gate**: All database migrations and cell node rebalancing must execute online without dropping active cashier connections ($99.999\%$ SLA target).
 
 ---
@@ -118,7 +158,7 @@ graph TD
 
 ## 6. Unified Contact Subledger & Dynamic Namespaced Scope (`Hfeit:<SCOPES>`)
 
-All corporate, partner, regulator, merchant, and consumer contacts across HFE Core and HFE-IT Experience are centrally managed in **Tenant 1's Contact Subledger** with local operational delegation. 
+All corporate, partner, regulator, merchant, and consumer contacts across HFE Core and HFE-IT Experience are centrally managed in **Tenant 01's Contact Subledger** with local operational delegation. 
 
 To prevent cross-product data duplication and cleanly track lifecycle progression, contacts are partitioned using the **`Hfeit:<SCOPES>`** dynamic namespace:
 
@@ -142,7 +182,7 @@ A single contact entity can seamlessly hold multiple scope tags as their relatio
 ## 7. Group Policy Data Management & Dual-Tier Contact Governance
 
 Corporate contacts operate under a **Dual-Tier Governance Model** governed by `GroupPolicy: DataManagementPolicy`:
-1. **Global Holding Master Registry (Tenant 1 - Singapore)**: Retains global corporate entity metadata (Legal Name, Global ID, Valuation, Contract Tier) for investor reporting, group valuation, and global AML screening.
+1. **Global Holding Master Registry (Tenant 01 - Singapore)**: Retains global corporate entity metadata (Legal Name, Global ID, Valuation, Contract Tier) for investor reporting, group valuation, and global AML screening.
 2. **Local Operating Subledgers (Jakarta, KL, HK)**: Directly manage granular local operational data (NPWP/Tax IDs, local PIC contacts, local bank feeds, and cashier logins).
 3. **Data Residency Compliance (UU PDP)**: Upward synchronization strips private personal identification information (PII), transmitting only anonymized financial summaries and corporate entity profiles to Holding.
 
@@ -168,7 +208,7 @@ The following real-world scenario connects all 6 products across both repositori
 ### Act 1: Genesis & The Humble Food Cart (Produk 4: Hfeit BOARD)
 - **Actor**: Mas Budi launches a roadside coffee cart ("Warung Kopi Budi").
 - **Action**: Budi signs up on HFE-IT Experience needing only a digital menu & landing page (`Hfeit:BOARD`).
-- **Execution**: HFE Core creates an isolated `company_book_id`. Menu goes live at `kopibudi.hfeit.board`.
+- **Execution**: HFE Core creates an isolated `company_book_id` (`Tenant 100`). Menu goes live at `kopibudi.hfeit.board`.
 
 ### Act 2: Viral Success & Physical Expansion (Produk 2 & 3: POS & ORDER)
 - **Event**: Warung Kopi Budi goes viral. Budi opens a 20-table cafe.
@@ -184,7 +224,7 @@ The following real-world scenario connects all 6 products across both repositori
 - **Execution**: Remaining balance split 4 ways via Dynamic QRIS. Webhook Relay matches callbacks against BCA SNAP BI bank feed, posting double-entry settlements and freeing Table 8.
 
 ### Act 5: Enterprise Scaling & Self-Managed Accounting (Produk 6: Hfeit BOOK)
-- **Event**: Monthly revenue exceeds Rp 2 Billion. Budi activates **Modul BOOK** (`Hfeit:BOARD,MERCHANT,BOOK`).
+- **Event**: Monthly revenue exceeds Rp 2 Billion. Budi activates **Modul BOOK** (`Hfeit:BOARD,MERCHANT,CARD,BOOK`).
 - **Execution**: HFE Core constructs Chart of Accounts, General Journals, Trial Balance ($Debits == Credits$), and exports DJP e-Faktur 4.0 XML/CSV slips.
 
 ### Act 6: Professional Accounting Practice & External Audit (Multi-Book Practice)
@@ -193,26 +233,26 @@ The following real-world scenario connects all 6 products across both repositori
 
 ### Act 7: Wholesale Settlement & Platform Profit Realization
 - **Event**: Month-End Billing Settlement.
-- **Execution**: HFE Core (Tenant 1) calculates compute mutations and invoices Wholesale Engine Fee of Rp 150.000 to Tenant 2. Tenant 2 bills Budi's retail SaaS of Rp 499.000 via Virtual Account auto-debit.
+- **Execution**: HFE Core (Tenant 01) calculates compute mutations and invoices Wholesale Engine Fee of Rp 150.000 to Tenant 02. Tenant 02 bills Budi's retail SaaS of Rp 499.000 via Virtual Account auto-debit.
 
 ### Act 8: Singapore Global Expansion & The Sleek Adoption Journey (Stage 1)
 - **Event**: PT HFE IT expands internationally, incorporating **HFE IT Global Pte. Ltd.** in Singapore via **Sleek Singapore**.
 - **Execution**: Sleek clients operate on Xero; HFE IT uses **`BOOK`**. HFE IT deploys its native **Xero Connector** in Connect Hub to sync PayNow SGD bank feeds. Observing HFE's superior multi-jurisdiction engine, Sleek signs a Strategic Enterprise Agreement and migrates regional clients onto **HFE `BOOK`**.
 
 ### Act 9: Indonesian Subholding & Domestic Enterprise Sales (Stage 2)
-- **Event**: Explosive domestic growth leads to the formal incorporation of **PT HFE Teknologi Indonesia** on AWS Jakarta server nodes (`ap-southeast-3`).
+- **Event**: Explosive domestic growth leads to the formal incorporation of **PT HFE Teknologi Indonesia** (`Tenant 10`) on AWS Jakarta server nodes (`ap-southeast-3`).
 - **Execution**: PT Indo closes an enterprise implementation deal with Boga Group (120 restaurant branches), issuing official DJP PPN 11% invoices in IDR. All Indonesian merchant contacts are re-homed into the domestic sovereign subledger.
 
 ### Act 10: Malaysia Regional Expansion & DuitNow Integration (Stage 3)
-- **Event**: HFE expands to Malaysia, establishing **HFE IT Malaysia Sdn. Bhd.**
+- **Event**: HFE expands to Malaysia, establishing **HFE IT Malaysia Sdn. Bhd.** (`Tenant 12`).
 - **Execution**: HFE Core activates the **MY Jurisdictional Profile**, integrating **DuitNow QR (PayNet)**, FPX banking feeds, and **LHDN e-Invoicing** compliance for hundreds of cafes in Kuala Lumpur and Penang.
 
 ### Act 11: Corporate Restructuring: Clean HoldCo vs. Global OpCo Split (Stage 4)
 - **Event**: Group volume reaches institutional enterprise scale.
-- **Execution**: HFE formalizes the separation into **`HFE IT Global Holdings Pte. Ltd.` (HoldCo)** holding 100% Core IP and **`HFE IT Singapore Operations Pte. Ltd.` (SG OpCo)** operating the commercial platform, achieving complete liability ring-fencing.
+- **Execution**: HFE formalizes the separation into **`HFE IT Global Holdings Pte. Ltd.` (HoldCo - Tenant 01)** holding 100% Core IP and **`HFE IT Singapore Operations Pte. Ltd.` (SG OpCo - Tenant 11)** operating the commercial platform, achieving complete liability ring-fencing.
 
 ### Act 12: Hong Kong Regional Hub & Greater Bay Cross-Border Trade (Stage 5)
-- **Event**: Establishment of **HFE IT Hong Kong Ltd.** to serve North Asia.
+- **Event**: Establishment of **HFE IT Hong Kong Ltd.** (`Tenant 30`) to serve North Asia.
 - **Execution**: Integration with **HKMA Faster Payment System (FPS)** and IRD Profits Tax. HFE Core handles multi-currency cross-border trade settlements across HKD, SGD, MYR, IDR, and USD seamlessly with automatic intercompany eliminations.
 
 ### Act 13: The "Seed-to-Cup" Conglomerate Evolution (Nusantara Coffee Group)
