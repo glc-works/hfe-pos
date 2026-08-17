@@ -1,4 +1,4 @@
-import { getPendingTransactions, removeSyncedTransaction, getPendingCount, OfflineTransactionEntry } from './offlineStorage'
+import { getPendingTransactions, removeSyncedTransaction, getPendingCount, registerOfflineBeforeUnloadGuard, OfflineTransactionEntry } from './offlineStorage'
 import { verifyPayloadIntegrity } from '../utils/cryptoHasher'
 
 export interface FlushStatusState {
@@ -22,11 +22,15 @@ export class FlushManager {
   private bookId: string
   private baseUrl: string
 
-  constructor(bookId: string = 'BOOK-CAFE-HQ-88', baseUrl: string = 'http://localhost:8080') {
+  constructor(bookId: string = '', baseUrl: string = 'http://localhost:8080') {
     this.bookId = bookId
     this.baseUrl = baseUrl
     this.isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true
     this.initListeners()
+  }
+
+  public setCompanyBookId(bookId: string) {
+    this.bookId = bookId
   }
 
   /**
@@ -43,6 +47,7 @@ export class FlushManager {
     if (typeof window !== 'undefined') {
       window.addEventListener('online', () => this.handleNetworkChange(true))
       window.addEventListener('offline', () => this.handleNetworkChange(false))
+      registerOfflineBeforeUnloadGuard(() => this.pendingCount)
     }
     this.refreshPendingCount()
   }
@@ -127,6 +132,14 @@ export class FlushManager {
 
     let syncedCount = 0
     let failedCount = 0
+
+    if (!this.bookId || this.bookId.trim() === '') {
+      console.warn('[FlushManager] Cannot flush queue: No companyBookId configured. Fail-closed.')
+      this.lastError = 'Missing companyBookId: Fail-closed'
+      this.isFlushing = false
+      this.notify()
+      return { syncedCount: 0, failedCount: 0 }
+    }
 
     try {
       const pendingItems: OfflineTransactionEntry[] = await getPendingTransactions()

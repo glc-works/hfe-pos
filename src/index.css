@@ -113,8 +113,10 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
   }
-  button, input, select, textarea, a {
+  button, input, select, textarea, a, .select-none {
     touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   /* TABULAR FIGURES & NUMERIC PRESENTATION STANDARD */

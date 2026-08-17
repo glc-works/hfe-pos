@@ -69,6 +69,7 @@ describe('Unified Wave Upgrade: Hfe Core SDK, Offline Intent & 6-Tier Architectu
     it('HfeSdkAdapter fails closed on disconnected network without generating fake success', async () => {
       const prodAdapter = new HfeSdkAdapter({
         baseUrl: 'http://127.0.0.1:59999', // Non-existent port
+        defaultBookId: 'BOOK-TEST',
         timeoutMs: 500,
       })
 
@@ -91,7 +92,7 @@ describe('Unified Wave Upgrade: Hfe Core SDK, Offline Intent & 6-Tier Architectu
         idempotency_key: 'IDEMP-RETRY-UUID-777',
       }
 
-      const queuedItem = await intentQueue.enqueueIntent(intentPayload)
+      const queuedItem = await intentQueue.enqueueIntent(intentPayload, 'BOOK-CAFE-HQ-88')
 
       expect(queuedItem.status).toBe('pending_sync')
       expect(queuedItem.idempotencyKey).toBe('IDEMP-RETRY-UUID-777')

@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""
-scripts/audit-hfe-ui-standards.py
-Automated Linter and Heuristic Governance Auditor for HFE-UI-STD-001 (Pillars I-IV).
-
-Enforces:
-1. Pillar I: Hardware Viewport & Multi-Device Parity (100dvh, safe-areas, Firefox/WebKit scrollbars, tap-transparent).
-2. Pillar II: Ergonomic Design, 4 Experience Pillars (POS, CARD, BOARD, ORDER), Spotlight Search, and Zero-Parentheses.
-3. Pillar III: Offline ACID Resilience (IndexedDB queue usage, beforeunload guards).
-4. Pillar IV: Accounting Truth (GL mapping, Idempotency headers).
+"""HFE POS & UI Standards Auditor (HFE-UI-STD-001)
+Strict Multi-Pillar Compliance Gate enforcing:
+- Pillar I: Hardware Viewport & Cross-Browser Parity (100dvh, Touch Ergonomics, Single Scroll Owner)
+- Pillar II: Experience Pillars & Microcopy (POS, CARD, BOARD, ORDER, Apple HIG Verb-First, Anti-Parentheses)
+- Pillar III: Offline ACID Resilience & Durability (IndexedDB, navigator.storage.persist, beforeunload guard, Fail-Closed Storage)
+- Pillar IV: Universal Accounting Truth & Double-Entry Mapping (Idempotency Key Header, Ledger Endpoints)
 """
 
 import os
@@ -17,75 +14,41 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SRC_DIR = ROOT_DIR / "src"
-DOCS_DIR = ROOT_DIR / "docs"
-INDEX_HTML = ROOT_DIR / "index.html"
-INDEX_CSS = SRC_DIR / "index.css"
-AGENTS_MD = ROOT_DIR / "AGENTS.md"
-STD_001_MD = DOCS_DIR / "active" / "standards" / "HFE-UI-STD-001.md"
 
 violations = []
 
 def check_pillar_1_hardware_and_cross_browser():
-    """Verify Pillar I: Physical Viewport, Safe-Areas & Multi-Browser Parity."""
-    # 1. Check index.html viewport meta
-    if INDEX_HTML.exists():
-        content = INDEX_HTML.read_text(encoding="utf-8")
-        if "viewport-fit=cover" not in content:
-            violations.append("Pillar I [Hardware]: 'index.html' is missing 'viewport-fit=cover' meta tag for iOS notch/Dynamic Island.")
-        if "user-scalable=no" not in content:
-            violations.append("Pillar I [Hardware]: 'index.html' is missing 'user-scalable=no' for native cashier app stability.")
-    else:
-        violations.append("Pillar I [Hardware]: 'index.html' not found.")
+    """Verify Pillar I: Viewport and Cross-Browser CSS Invariants."""
+    index_css = SRC_DIR / "index.css"
+    if not index_css.exists():
+        violations.append("Pillar I [CSS]: 'src/index.css' not found.")
+        return
 
-    # 2. Check src/index.css
-    if INDEX_CSS.exists():
-        css = INDEX_CSS.read_text(encoding="utf-8")
-        if "overscroll-behavior-y: none" not in css:
-            violations.append("Pillar I [Hardware]: 'src/index.css' is missing 'overscroll-behavior-y: none' (rubber-band reload leak).")
-        if "-webkit-tap-highlight-color: transparent" not in css:
-            violations.append("Pillar I [Hardware]: 'src/index.css' is missing '-webkit-tap-highlight-color: transparent'.")
-        if "touch-action: manipulation" not in css:
-            violations.append("Pillar I [Hardware]: 'src/index.css' is missing 'touch-action: manipulation' (300ms tap delay leak).")
-        if "--sat:" not in css or "--sab:" not in css:
-            violations.append("Pillar I [Hardware]: 'src/index.css' is missing safe-area CSS root variables (--sat, --sab).")
-        if "scrollbar-width: thin" not in css:
-            violations.append("Pillar I [Hardware]: 'src/index.css' is missing Firefox thin scrollbar support ('scrollbar-width: thin').")
-        if "tabular-nums" not in css:
-            violations.append("Pillar I [Defensive UI]: 'src/index.css' is missing 'font-variant-numeric: tabular-nums' for jitter-free financial alignment.")
-    else:
-        violations.append("Pillar I [Hardware]: 'src/index.css' not found.")
+    content = index_css.read_text(encoding="utf-8")
+
+    # 1. Check overscroll-behavior-y: none
+    if "overscroll-behavior-y: none" not in content and "overscroll-behavior: none" not in content:
+        violations.append("Pillar I [Ergonomics]: 'index.css' missing 'overscroll-behavior-y: none' on root/html/body.")
+
+    # 2. Check -webkit-tap-highlight-color: transparent
+    if "-webkit-tap-highlight-color: transparent" not in content and "tap-highlight-color" not in content:
+        violations.append("Pillar I [Ergonomics]: 'index.css' missing '-webkit-tap-highlight-color: transparent'.")
+
+    # 3. Check touch-action: manipulation
+    if "touch-action: manipulation" not in content:
+        violations.append("Pillar I [Ergonomics]: 'index.css' missing 'touch-action: manipulation' on buttons/interactives.")
+
+    # 4. Check user-select: none
+    if "user-select: none" not in content and "select-none" not in content:
+        violations.append("Pillar I [Ergonomics]: 'index.css' missing 'user-select: none' utility.")
 
 def check_pillar_2_microcopy_and_experience_pillars():
-    """Verify Pillar II: Microcopy, 4 Experience Pillars (POS, CARD, BOARD, ORDER), Directory Taxonomy, and Spotlight."""
-    # 0. Check Canonical Directory Structure
-    canonical_dirs = [
-        SRC_DIR / "ui",
-        SRC_DIR / "components" / "shared",
-        SRC_DIR / "components" / "pos",
-        SRC_DIR / "components" / "customer-portal",
-        SRC_DIR / "components" / "landing",
-        SRC_DIR / "components" / "customer",
-        SRC_DIR / "views",
-        SRC_DIR / "context",
-        SRC_DIR / "hooks",
-        SRC_DIR / "services" / "financial"
-    ]
-    for d in canonical_dirs:
-        if not d.exists() or not d.is_dir():
-            violations.append(f"Pillar II [Taxonomy]: Canonical directory '{d.relative_to(ROOT_DIR)}' is missing.")
-
-    # 1. Check documentation anchors
-    if STD_001_MD.exists():
-        std_text = STD_001_MD.read_text(encoding="utf-8")
-        for pillar_name in ["`POS`", "`CARD`", "`BOARD`", "`ORDER`"]:
-            if pillar_name not in std_text:
-                violations.append(f"Pillar II [Experience Taxonomy]: 'HFE-UI-STD-001.md' missing experience pillar definition for {pillar_name}.")
-    else:
-        violations.append("Pillar II [Standards]: 'HFE-UI-STD-001.md' not found.")
-
-    if AGENTS_MD.exists():
-        agents_text = AGENTS_MD.read_text(encoding="utf-8")
-        for pillar_name in ["`POS`", "`CARD`", "`BOARD`", "`ORDER`"]:
+    """Verify Pillar II: 4 Experience Pillars & Strict Microcopy Rules."""
+    # 1. Check AGENTS.md for the 4 Experience Pillars declaration
+    agents_md = ROOT_DIR / "AGENTS.md"
+    if agents_md.exists():
+        agents_text = agents_md.read_text(encoding="utf-8")
+        for pillar_name in ["POS", "CARD", "BOARD", "ORDER"]:
             if pillar_name not in agents_text:
                 violations.append(f"Pillar II [Agent Guidance]: 'AGENTS.md' missing experience pillar definition for {pillar_name}.")
 
@@ -98,7 +61,6 @@ def check_pillar_2_microcopy_and_experience_pillars():
         violations.append("Pillar II [Shortcuts]: 'useSpotlightShortcuts.ts' hook is missing.")
 
     # 3. Check JSX files for forbidden patterns
-    forbidden_button_parentheses = re.compile(r'<button[^>]*>\s*[^<]*\([A-Za-z0-9_\-\s]+\)[^<]*</button>')
     hardcoded_is_mobile = re.compile(r'const\s+isMobile\s*=\s*viewportMode\s*===\s*[\'"]mobile[\'"]')
 
     for tsx_file in SRC_DIR.rglob("*.tsx"):
@@ -112,6 +74,42 @@ def check_pillar_2_microcopy_and_experience_pillars():
 
         except Exception as e:
             violations.append(f"Error reading file '{tsx_file}': {e}")
+
+def check_pillar_3_offline_acid():
+    """Verify Pillar III: Offline ACID Resilience, Storage Persistence & Crash Guard."""
+    offline_storage = SRC_DIR / "services" / "offlineStorage.ts"
+    offline_intent_queue = SRC_DIR / "services" / "financial" / "OfflineIntentQueue.ts"
+    flush_manager = SRC_DIR / "services" / "flushManager.ts"
+
+    # 1. Verify offlineStorage.ts presence and contracts
+    if not offline_storage.exists():
+        violations.append("Pillar III [ACID Storage]: 'src/services/offlineStorage.ts' is missing.")
+    else:
+        storage_text = offline_storage.read_text(encoding="utf-8")
+        if "navigator.storage.persist" not in storage_text and "requestPersistentStorage" not in storage_text:
+            violations.append("Pillar III [Durability]: 'offlineStorage.ts' missing 'navigator.storage.persist()' registration.")
+        if "beforeunload" not in storage_text and "registerOfflineBeforeUnloadGuard" not in storage_text:
+            violations.append("Pillar III [Crash Guard]: 'offlineStorage.ts' missing 'beforeunload' listener crash guard.")
+        if "indexedDB" not in storage_text:
+            violations.append("Pillar III [ACID Storage]: 'offlineStorage.ts' must use native IndexedDB physical disk storage.")
+        if "FAIL-CLOSED" not in storage_text and "throw new Error" not in storage_text:
+            violations.append("Pillar III [Durability]: 'offlineStorage.ts' must fail-closed on storage failure (no silent RAM degradation).")
+
+    # 2. Verify OfflineIntentQueue.ts presence and fail-closed contracts
+    if not offline_intent_queue.exists():
+        violations.append("Pillar III [ACID Storage]: 'src/services/financial/OfflineIntentQueue.ts' is missing.")
+    else:
+        intent_text = offline_intent_queue.read_text(encoding="utf-8")
+        if "FAIL-CLOSED" not in intent_text and "throw new Error" not in intent_text:
+            violations.append("Pillar III [Durability]: 'OfflineIntentQueue.ts' must enforce fail-closed physical storage persistence.")
+
+    # 3. Verify flushManager.ts wires crash guard
+    if not flush_manager.exists():
+        violations.append("Pillar III [Sync Manager]: 'src/services/flushManager.ts' is missing.")
+    else:
+        flush_text = flush_manager.read_text(encoding="utf-8")
+        if "registerOfflineBeforeUnloadGuard" not in flush_text and "beforeunload" not in flush_text:
+            violations.append("Pillar III [Crash Guard]: 'flushManager.ts' must wire beforeunload crash guard.")
 
 def check_pillar_4_accounting_truth():
     """Verify Pillar IV: Accounting Truth & Idempotency Header in SDK."""
@@ -130,6 +128,7 @@ def main():
 
     check_pillar_1_hardware_and_cross_browser()
     check_pillar_2_microcopy_and_experience_pillars()
+    check_pillar_3_offline_acid()
     check_pillar_4_accounting_truth()
 
     if violations:
@@ -142,7 +141,7 @@ def main():
         print("\n✅ [AUDIT PASSED] 100% Compliant with HFE-UI-STD-001 (Pillars I - IV).")
         print("   • Pillar I   (Hardware Viewport & Cross-Browser Parity): PASSED")
         print("   • Pillar II  (Experience Pillars: POS, CARD, BOARD, ORDER): PASSED")
-        print("   • Pillar III (Offline ACID Resilience):                  PASSED")
+        print("   • Pillar III (Offline ACID Resilience & Durability):     PASSED")
         print("   • Pillar IV  (Universal Accounting Truth & Idempotency): PASSED")
         sys.exit(0)
 

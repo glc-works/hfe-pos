@@ -1,5 +1,5 @@
 // --- HFE OFFLINE INTENT QUEUE (POS-ENG-STD-001) ---
-// Non-Financial Intent Buffer for Disconnected POS Operations
+// Strict Fail-Closed Intent Buffer for Disconnected POS Operations
 
 import { SubmitRetailTransactionPayload } from './HfePosFinancialPort'
 import { generatePayloadChecksum } from '../../utils/cryptoHasher'
@@ -52,8 +52,12 @@ export class OfflineIntentQueue {
 
   async enqueueIntent(
     payload: SubmitRetailTransactionPayload,
-    bookId: string = 'BOOK-CAFE-HQ-88'
+    bookId: string
   ): Promise<QueuedFinancialIntent> {
+    if (!bookId || bookId.trim() === '') {
+      throw new Error('companyBookId is required for ledger mutations. Fail-closed: zero fallback default allowed.')
+    }
+
     const idempotencyKey = payload.idempotency_key || generateUUIDv4()
     const payloadWithKey: SubmitRetailTransactionPayload = {
       ...payload,
@@ -71,9 +75,6 @@ export class OfflineIntentQueue {
       retryCount: 0,
     }
 
-    // Write to in-memory cache
-    this.inMemoryQueue.set(idempotencyKey, intent)
-
     try {
       const db = await this.openDB()
       const tx = db.transaction(STORE_NAME, 'readwrite')
@@ -84,8 +85,18 @@ export class OfflineIntentQueue {
         tx.oncomplete = () => resolve()
         tx.onerror = () => reject(tx.error)
       })
-    } catch {
-      // Graceful fallback to in-memory queue
+
+      // Only add to inMemoryQueue once physical disk write succeeds
+      this.inMemoryQueue.set(idempotencyKey, intent)
+    } catch (err) {
+      if (typeof indexedDB !== 'undefined') {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error('[OfflineIntentQueue] FAIL-CLOSED: Physical disk write failed:', msg)
+        throw new Error(`Failed to persist financial intent to physical storage: ${msg}`)
+      } else {
+        // Non-browser / Node.js test environment fallback
+        this.inMemoryQueue.set(idempotencyKey, intent)
+      }
     }
 
     return intent

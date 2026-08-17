@@ -21,6 +21,43 @@ const STORE_TRANSACTIONS = 'unSyncedTransactions'
 const STORE_MASTER_DATA = 'masterDataCache'
 
 /**
+ * Request persistent browser storage to prevent OS eviction during offline cashier shifts.
+ */
+export async function requestPersistentStorage(): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+    try {
+      const isPersisted = await navigator.storage.persist()
+      return isPersisted
+    } catch (err) {
+      console.warn('[OfflineStorage] navigator.storage.persist() call failed:', err)
+      return false
+    }
+  }
+  return false
+}
+
+/**
+ * Register beforeunload crash guard to prevent tab closure when un-synced offline transactions exist.
+ */
+export function registerOfflineBeforeUnloadGuard(getPendingCountFn: () => number): () => void {
+  if (typeof window === 'undefined') return () => {}
+
+  const handler = (e: BeforeUnloadEvent) => {
+    const pending = getPendingCountFn()
+    if (pending > 0) {
+      e.preventDefault()
+      e.returnValue = `Terdapat ${pending} transaksi kasir offline yang belum tersinkronisasi. Yakin ingin menutup halaman?`
+      return e.returnValue
+    }
+  }
+
+  window.addEventListener('beforeunload', handler)
+  return () => {
+    window.removeEventListener('beforeunload', handler)
+  }
+}
+
+/**
  * Open or upgrade browser native IndexedDB for offline transactions & master data.
  */
 export function openOfflineStorageDB(): Promise<IDBDatabase> {
@@ -47,6 +84,7 @@ export function openOfflineStorageDB(): Promise<IDBDatabase> {
 
 /**
  * Save un-synced offline transaction into IndexedDB buffer with SHA-256 integrity checksum.
+ * STRICT FAIL-CLOSED: Throws an error if disk persistence fails to prevent phantom confirmations.
  */
 export async function saveOfflineTransaction(
   payload: SubmitTransactionPayload
@@ -74,7 +112,11 @@ export async function saveOfflineTransaction(
       tx.onerror = () => reject(tx.error)
     })
   } catch (err) {
-    console.warn('[OfflineStorage] IndexedDB write failed, fallback in-memory entry:', err)
+    if (typeof indexedDB !== 'undefined') {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error('[OfflineStorage] FAIL-CLOSED: IndexedDB physical write failed:', message)
+      throw new Error(`Failed to persist offline transaction to disk storage: ${message}`)
+    }
   }
 
   return entry

@@ -14,10 +14,15 @@ import subprocess
 from typing import Dict, List, Any, Optional, Set
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PARENT_DIR = os.path.dirname(REPO_ROOT)
 OPENAPI_PATHS = [
     os.path.join(REPO_ROOT, "hcb2", "service", "openapi.json"),
     os.path.join(REPO_ROOT, "docs", "active", "reference", "openapi.json"),
     os.path.join(REPO_ROOT, "hcb2", "openapi.json"),
+    os.path.join(REPO_ROOT, "openapi.json"),
+    os.path.join(PARENT_DIR, "headless-company-books", "docs", "active", "reference", "openapi.json"),
+    os.path.join(PARENT_DIR, "headless-company-books", "hcb2", "service", "openapi.json"),
+    os.path.join(PARENT_DIR, "headless-company-books", "openapi.json"),
 ]
 PLANS_DIR = os.path.join(REPO_ROOT, "docs", "active", "plans")
 SCENARIOS_DIR = os.path.join(REPO_ROOT, "docs", "active", "scenarios")

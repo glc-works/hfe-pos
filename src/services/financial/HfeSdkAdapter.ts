@@ -55,8 +55,16 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
 
   constructor(options?: HfeSdkAdapterOptions) {
     this.baseUrl = options?.baseUrl || 'http://localhost:8080'
-    this.defaultBookId = options?.defaultBookId || 'BOOK-CAFE-HQ-88'
+    this.defaultBookId = options?.defaultBookId || ''
     this.timeoutMs = options?.timeoutMs || 10000
+  }
+
+  private resolveTargetBook(bookId?: string): string {
+    const book = bookId || this.defaultBookId
+    if (!book || book.trim() === '') {
+      throw new Error('companyBookId is required for ledger operations. Fail-closed: zero fallback default allowed.')
+    }
+    return book
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -104,7 +112,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
   }
 
   async fetchProductCatalog(bookId?: string): Promise<MenuItem[]> {
-    const targetBook = bookId || this.defaultBookId
+    const targetBook = this.resolveTargetBook(bookId)
     return this.request<MenuItem[]>(`/v1/company-books/${targetBook}/products`, {
       method: 'GET',
     })
@@ -116,7 +124,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     name?: string,
     bookId?: string
   ): Promise<ResolveContactResponse> {
-    const targetBook = bookId || this.defaultBookId
+    const targetBook = this.resolveTargetBook(bookId)
     const payload = {
       entry_mode: entryMode,
       phone: phone || '',
@@ -132,7 +140,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     payload: SubmitRetailTransactionPayload,
     bookId?: string
   ): Promise<SubmitRetailTransactionResponse> {
-    const targetBook = bookId || this.defaultBookId
+    const targetBook = this.resolveTargetBook(bookId)
     const idempotencyKey = payload.idempotency_key || generateUUIDv4()
 
     const bodyPayload = {
@@ -173,7 +181,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     payload: GenerateQrisPayload,
     bookId?: string
   ): Promise<QrisPaymentResponse> {
-    const targetBook = bookId || this.defaultBookId
+    const targetBook = this.resolveTargetBook(bookId)
     const bodyPayload = {
       transaction_id: payload.transaction_id,
       amount_idr: payload.amount_idr,
@@ -192,7 +200,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     initialFloat: number,
     bookId?: string
   ): Promise<CashierShiftResponse> {
-    const targetBook = bookId || this.defaultBookId
+    const targetBook = this.resolveTargetBook(bookId)
     return this.request<CashierShiftResponse>(`/v1/company-books/${targetBook}/shifts/open`, {
       method: 'POST',
       body: JSON.stringify({
@@ -207,7 +215,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     reportedCash: number,
     bookId?: string
   ): Promise<CashierShiftCloseResponse> {
-    const targetBook = bookId || this.defaultBookId
+    const targetBook = this.resolveTargetBook(bookId)
     return this.request<CashierShiftCloseResponse>(`/v1/company-books/${targetBook}/shifts/${shiftId}/close`, {
       method: 'POST',
       body: JSON.stringify({
@@ -217,7 +225,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
   }
 
   async fetchCompanyBookSettings(bookId?: string): Promise<CompanyBookSettingsResponse> {
-    const targetBook = bookId || this.defaultBookId
+    const targetBook = this.resolveTargetBook(bookId)
     return this.request<CompanyBookSettingsResponse>(`/v1/company-books/${targetBook}/settings`, {
       method: 'GET',
     })

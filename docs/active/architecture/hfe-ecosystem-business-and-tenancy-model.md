@@ -163,17 +163,20 @@ To ensure complete mathematical synergy with our 2-digit segmented naming conven
 
 ---
 
-## 6. Unified Contact Subledger & Dynamic Namespaced Scope (`Hfeit:<SCOPES>`)
+## 6. Canonical Tenancy Data Boundaries & Unified Contact Namespace (`Hfeit:<SCOPES>`)
 
-All corporate, partner, regulator, merchant, and consumer contacts across HFE Core and HFE-IT Experience are centrally managed in **Tenant 01's Contact Subledger** with local operational delegation. 
+Master data and ecosystem touchpoints respect the strict 3-tier platform data boundary:
+- **Tenant 01 (Engine Business Model)**: Canonical home of master business entities, corporate legal identities, and core engine configuration (`CORE.Hfeit`, `ADMIN.Hfeit`).
+- **Tenant 02 (Ecosystem Business Model)**: Canonical home of platform ecosystem data (`BOARD.Hfeit`, `CARD.Hfeit`, `POS.Hfeit`, `ORDER.Hfeit`, `BOOK.Hfeit`). Ecosystem records reference the Tenant 01 business entity through governed identifiers and APIs without creating competing canonical entities.
+- **Tenant 100+ (Merchant Private Domain)**: Merchant-private operational and transaction records remain isolated in their respective assigned tenant.
 
-To prevent cross-product data duplication and cleanly track lifecycle progression, contacts are partitioned using the **`Hfeit:<SCOPES>`** dynamic namespace:
+To prevent cross-product data duplication and cleanly track lifecycle progression, platform contacts are partitioned using the **`Hfeit:<SCOPES>`** dynamic namespace:
 
 ### 6.1 Canonical Scope Tokens
-- `CORE`: Internal platform, cloud infrastructure, financial regulators, and connector master definitions (e.g. BCA SNAP, Xero, DJP e-Faktur, AWS, IRAS, LHDN, HKMA).
+- `CORE`: Tenant 01 business entities, cloud infrastructure, financial regulators, and connector master definitions (e.g. BCA SNAP, Xero, DJP e-Faktur, AWS, IRAS, LHDN, HKMA).
 - `MERCHANT`: Business entities originating from Full Merchant Signups (POS / Backoffice / Cashier users).
 - `BOARD`: Entities originating from Storefront / Landing Page-only signups (Evolusi Sekeding).
-- `CARD`: Individual consumer members originating from Digital Loyalty Card signups.
+- `CARD`: Individual consumer members originating from Digital Loyalty Card signups in Tenant 02.
 - `AUDITOR_PRACTICE`: Accounting firms, CPAs, and corporate secretarial partners managing multiple client books.
 
 ### 6.2 Multi-Scope Combinations
