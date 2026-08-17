@@ -196,9 +196,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       : '🍸'
 
     // Simplified clean table number for display
-    const displayTableName = isContinuousGrid
-      ? `${zoneIcon} ${table.name}`
-      : table.name.replace(/^(OUT|IND|POOL|ROOF)-/i, '')
+    const displayTableName = `${zoneIcon} ${table.name}`
 
     // Fixed-Slot Allocation:
     // Standard Table: 1 Slot (25% width in Grid View)
@@ -207,9 +205,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       ? (isCompactMode ? (isMobile ? 'col-span-2' : 'col-span-1') : 'col-span-1 sm:col-span-2')
       : 'col-span-1'
     const zonePalette = AREA_SURFACE_PALETTES[table.zoneId as PropertyZoneId] || AREA_SURFACE_PALETTES.all
-    const defaultSurfaceClass = isContinuousGrid
-      ? `${zonePalette.bgCard} ${zonePalette.borderCard} ${zonePalette.hoverBorderCard}`
-      : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+    const defaultSurfaceClass = `${zonePalette.bgCard} ${zonePalette.borderCard} ${zonePalette.hoverBorderCard}`
 
     return (
       <div
@@ -414,10 +410,12 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       }
     }
 
+    const zonePalette = AREA_SURFACE_PALETTES[group.zone.id as PropertyZoneId] || AREA_SURFACE_PALETTES.all
+
     return (
       <div
         key={group.zone.id}
-        className={`${zoneSpanClass} bg-slate-900/40 border border-slate-800/80 rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between gap-2.5 shadow-sm`}
+        className={`${zoneSpanClass} bg-slate-900/60 ${zonePalette.borderCard} rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between gap-2.5 shadow-sm`}
       >
         <div className="flex items-center justify-between gap-2 px-1 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0 truncate">
