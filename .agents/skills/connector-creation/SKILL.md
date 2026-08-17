@@ -1,9 +1,11 @@
 ---
 name: connector-creation
 description: Master SOP for engineering, auditing, cataloging, migrating, updating, and bi-directionally syncing Ecosystem Connectors (Xero, QuickBooks, Moka, Accurate, Mekari Jurnal, BCA SNAP, Stripe, Shopify, SAP) in Connect Hub, with Raw Facts Recalculation, 3-Way Reconciliation, and Proactive Feature Reverse-Adoption.
+version: "2.1.0"
+updated_at: "2026-08-17"
 ---
 
-# 🔌 Master SOP: Ecosystem Connector Engineering, Audit & Lifecycle Standard
+# 🔌 Master SOP: Ecosystem Connector Engineering, Audit & Lifecycle Standard (v2.1.0)
 
 Panduan operasional baku (*Standard Operating Procedure*) untuk membangun, mengaudit kepatuhan, mendaftarkan ke Connect Hub, memigrasikan data, mengupdate versi API, dan menyinkronkan konektor ekosistem pihak ketiga ke dalam **Headless Company Books (HFE)** menggunakan tools kanonikal repositori.
 
@@ -39,8 +41,8 @@ Daftarkan konektor baru ke Connect Hub Marketplace menggunakan langkah berbasis 
 2. **Tambahkan Metadata Konektor**:
    - Tambahkan entri baru ke array `CONNECTORS_DATA` di `connectorsData.ts`:
      * `slug`, `name`, `category`, `region`, `icon`, `summary`, `derivedBadges`, `requiredScopes`, `supportedVersions`.
-3. **Konfigurasi Form Kredensial Modal**:
-   - Buka `src/components/core/hub/ConnectorInstallModal.tsx` dan tentukan input kredensial (ClientId, ClientSecret, ApiKey, WebhookSecret).
+3. **Konfigurasi Form Kredensial Modal & Sakelar Lingkungan**:
+   - Buka `src/components/core/hub/ConnectorInstallModal.tsx` dan tentukan input kredensial serta sakelar `environment: 'sandbox' | 'production'`.
 4. **Konfigurasi Webhook Relay Panel**:
    - Daftarkan slug konektor ke `src/components/core/hub/WebhookRelayPanel.tsx` untuk pengujian tanda tangan `HMAC-SHA256`.
 5. **Tambahkan Pengawal Anti-Regresi Vitest**:
@@ -69,13 +71,16 @@ Daftarkan konektor baru ke Connect Hub Marketplace menggunakan langkah berbasis 
 
 ---
 
-## ⚡ PILAR 4: SINKRONISASI REAL-TIME DUA ARAH (*Bi-Directional Event Relay*)
+## ⚡ PILAR 4: SINKRONISASI REAL-TIME DUA ARAH & DLQ RETRY (*Resilient Event Relay*)
 
 1. **Inbound Webhook Relay**:
    - Validasi tanda tangan kriptografi `HMAC-SHA256`.
    - Validasi `X-Idempotency-Key` / `EventID` untuk mencegah duplikasi transaksi.
    - Terjemahkan payload dan panggil API resmi `POST /api/v2/postings`.
-2. **Outbound Shift Synchronization**:
+2. **Penanganan Kegagalan Jaringan (Exponential Backoff & DLQ)**:
+   - Jika server pihak ketiga *down* (503/timeout), jalankan retry pada `1s`, `5s`, `30s`, `5m`, `30m`.
+   - Payload gagal dipindahkan ke **Dead-Letter Queue (DLQ)** dengan kemampuan *Manual Replay*.
+3. **Outbound Shift Synchronization**:
    - Saat kasir POS tutup shift (Z-Report), teruskan ringkasan jurnal omzet dan pajak ke sistem luar via HTTP client resmi.
 
 ---
@@ -97,7 +102,7 @@ Sebelum konektor dinyatakan stabil (*Stable Release*), wajib lolos **Audit 5 Poi
 
 ---
 
-## 🔄 PILAR 6: PROTOKOL PEMBARUAN & VERSI API (*Connector Update & Versioning*)
+## 🔄 PILAR 6: PROTOKOL PEMBARUAN & VERSI API KONEKTOR (*Connector Version Upgrades*)
 
 Saat pihak ketiga merilis versi API baru (misal: Xero API v3, DJP Coretax v4.0, SNAP BI upgrade):
 
@@ -107,8 +112,10 @@ Saat pihak ketiga merilis versi API baru (misal: Xero API v3, DJP Coretax v4.0, 
    - Tambahkan versi baru ke `supportedVersions` di `src/components/core/hub/connectorsData.ts` (misal: `['v3.2', 'v4.0-coretax']`).
 3. **Adaptor Kompatibilitas Mundur (*Backwards-Compatible Transformer*)**:
    - Bangun transformer yang mampu menerima versi lama maupun versi baru secara dinamis tanpa memutus koneksi merchant yang belum upgrade.
-4. **Uji Regresi Penuh**:
-   - Jalankan test suite `npm test` dan `cargo test` untuk membuktikan tidak ada kerusakan pada data historis.
+4. **Deteksi Data Drift Historis (*Historical Drift Heartbeat*)**:
+   - Audit berkala untuk mendeteksi apakah data historis di sistem luar diubah/dihapus secara sepihak.
+5. **Prosedur Pencabutan (*Unlink & De-Provisioning*)**:
+   - Saat merchant memutuskan koneksi, cabut token OAuth2 namun **pertahankan seluruh jejak audit jurnal historis**.
 
 ---
 
@@ -121,3 +128,13 @@ Saat mengaudit atau mengupdate konektor luar, jika menemukan pola desain yang un
    - 🌟 *Inspirasi Sumber*: Pola API eksternal yang ditemukan (misal: Stripe Test Clocks, Xero Bank Rules).
    - 💡 *Nilai Tambah*: Manfaat bagi merchant dan keunggulan arsitektur HFE.
    - 🏛️ *Rancangan Teknis*: Skema database, DTO endpoint API, dan komponen UI.
+
+---
+
+## 🎓 PILAR 8: PROTOKOL PENYEMPURNAAN SKILL VIA `/learn` (*Skill Versioning & Continuous Refinement*)
+
+Jika selama implementasi ditemukan kasus tepi (*edge-case*) baru:
+
+1. Panggil perintah `/learn` untuk memperbarui berkas `SKILL.md` ini secara modular.
+2. Naikkan nomor versi semantik di header YAML (`version: "2.x.x"`).
+3. Sinkronkan pembaruan skill ke kedua repositori dan validasi dengan `python3 scripts/hfe-rad0.py`.
