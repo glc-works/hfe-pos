@@ -118,6 +118,15 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
       1. **Root Cause Breakdown (Kenapa Salah):** Unfiltered analysis of the spatial, mathematical, or architectural flaw.
       2. **The Permanent Invariant (Apa yang Diperbaiki):** Mathematical or structural formula that prevents recurrence.
       3. **Actionable Concrete Fix & Verification Proof:** Exact diff and test evidence.
+24. **Storybook Purity, Single Viewport Ownership & Playwright Headless Mount Guard (Anti-Double-Frame & Anti-Slop Invariant).**
+    - *Universal Full Provider Tree:* All Storybook stories MUST inherit the complete application context tree in `.storybook/preview.tsx` (`<MerchantConfigProvider>`, `<LanguageProvider>`, `<ViewportProvider>`, `<NotificationProvider>`).
+    - *Single Viewport Ownership:* Storybook's iframe is the sole authoritative device frame. Adding artificial device wrappers (`min-h-[844px]`, `max-w-md`, or fixed-height wrappers) inside individual `.stories.tsx` files is STRICTLY PROHIBITED.
+      - For `layout: 'fullscreen'`: Use pure `w-full min-h-screen p-0`.
+      - For `layout: 'centered'`: Center atomic components with balanced padding.
+    - *Defensive Meta-Level Story Args:* Every story file MUST declare complete, valid mock data in `meta.args` to prevent `TypeError: Cannot read properties of undefined` during hot-reloads.
+    - *Playwright Headless Mount Gate:* Never declare Storybook verified solely via `npm run build-storybook`. Verification requires executing `node scripts/audit-storybook-playwright.cjs` asserting 100% pass across all stories in `index.json`.
+25. **Mandatory End-of-Session /learn Persistence Invariant.**
+    - Whenever a user corrects an anti-pattern, architectural flaw, or spatial collision, the agent MUST trigger `/learn` before session close to persist the permanent invariant into `AGENTS.md` and prevent recurrence.
 
 ## Slot Reservation Rules
 

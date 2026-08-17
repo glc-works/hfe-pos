@@ -11,16 +11,7 @@ const meta: Meta<typeof CustomerMobileView> = {
     viewport: {
       defaultViewport: 'iphone14'
     }
-  },
-  decorators: [
-    (Story) => (
-      <div className="min-h-screen bg-slate-950 flex justify-center items-start sm:py-6">
-        <div className="w-full max-w-[420px] min-h-[844px] bg-slate-900 shadow-2xl rounded-none sm:rounded-[36px] border-0 sm:border sm:border-slate-800 overflow-hidden flex flex-col">
-          <Story />
-        </div>
-      </div>
-    )
-  ]
+  }
 }
 
 export default meta
