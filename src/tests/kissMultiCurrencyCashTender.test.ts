@@ -6,7 +6,7 @@ import {
   ACCEPTED_TENDER_CURRENCIES
 } from '../utils/countryCashDenominations'
 
-describe('KISS Multi-Currency Cashier Tender & Language Decoupling Suite (L2-POS-82)', () => {
+describe('KISS Multi-Currency Cashier Tender & Language Decoupling Suite (L2-POS-82 & L2-POS-83)', () => {
   it('correctly converts amounts between supported currencies', () => {
     // IDR to USD: 160,000 / 16,000 = $10.00
     expect(convertCurrency(160000, 'IDR', 'USD')).toBe(10)
@@ -27,14 +27,14 @@ describe('KISS Multi-Currency Cashier Tender & Language Decoupling Suite (L2-POS
     // When UI language is English ('en'), store in Indonesia MUST still produce clean IDR banknotes
     const presetsEn = getCountryCashPresets(totalBill, storeBaseCurrency, 'en')
     expect(presetsEn).toHaveLength(4)
-    expect(presetsEn.map(p => p.value)).toEqual([90000, 100000, 150000, 200000])
-    expect(presetsEn.map(p => p.label)).toEqual(['90k', '100k', '150k', '200k'])
+    expect(presetsEn.map(p => p.value)).toEqual([100000, 200000, 500000, 1000000])
+    expect(presetsEn.map(p => p.label)).toEqual(['100k', '200k', '500k', '1M'])
 
-    // When UI language is Indonesian ('id'), store produces IDR banknotes with 'rb'
+    // When UI language is Indonesian ('id'), store produces IDR banknotes with 'rb' / 'Jt'
     const presetsId = getCountryCashPresets(totalBill, storeBaseCurrency, 'id')
     expect(presetsId).toHaveLength(4)
-    expect(presetsId.map(p => p.value)).toEqual([90000, 100000, 150000, 200000])
-    expect(presetsId.map(p => p.label)).toEqual(['90rb', '100rb', '150rb', '200rb'])
+    expect(presetsId.map(p => p.value)).toEqual([100000, 200000, 500000, 1000000])
+    expect(presetsId.map(p => p.label)).toEqual(['100rb', '200rb', '500rb', '1 Jt'])
   })
 
   it('computes accurate foreign tender presets and dual-currency change returns', () => {

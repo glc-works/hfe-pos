@@ -109,43 +109,49 @@ export function getCountryCashPresets(
 
     const set = new Set<number>()
 
-    if (total < 100000) {
-      // Small bill (< 100k): Suggest round 10k, 20k, 50k, 100k
-      const next10k = Math.ceil(total / 10000) * 10000
-      if (next10k > total) set.add(next10k)
+    if (total <= 20000) {
+      // Bill <= 20k: Next 20k, 50k, 100k, 200k
       if (total < 20000) set.add(20000)
+      set.add(50000)
+      set.add(100000)
+      set.add(200000)
+    } else if (total <= 50000) {
+      // Bill 21k - 50k: Next 50k, 100k, 200k, 500k
       if (total < 50000) set.add(50000)
-      if (total < 100000) set.add(100000)
-      if (total < 150000) set.add(150000)
-      if (total < 200000) set.add(200000)
-    } else if (total < 1000000) {
-      // Medium bill (100k - 1M): Suggest round 50k, 100k, 200k, 500k, 1M
-      const next50k = Math.ceil(total / 50000) * 50000
-      if (next50k > total) set.add(next50k)
-      const next100k = Math.ceil(total / 100000) * 100000
-      if (next100k > total) set.add(next100k)
-      if (total < 200000) set.add(200000)
-      if (total < 300000) set.add(300000)
-      if (total < 500000) set.add(500000)
-      if (total < 1000000) set.add(1000000)
+      set.add(100000)
+      set.add(200000)
+      set.add(500000)
     } else {
-      // Large bill (>= 1M): Suggest round 50k, 100k, 500k, 1M multiples
-      const next50k = Math.ceil(total / 50000) * 50000
-      if (next50k > total) set.add(next50k)
+      // Bill > 50k: Next 100k ceiling (e.g. 86k -> 100k; 760k -> 800k; 860k -> 900k)
       const next100k = Math.ceil(total / 100000) * 100000
       if (next100k > total) set.add(next100k)
-      const next500k = Math.ceil(total / 500000) * 500000
-      if (next500k > total) set.add(next500k)
-      const next1M = Math.ceil(total / 1000000) * 1000000
-      if (next1M > total) set.add(next1M)
-      set.add(next1M + 500000)
-      set.add(next1M + 1000000)
+
+      if (total < 500000) {
+        if (total < 200000) set.add(200000)
+        set.add(500000)
+        set.add(1000000)
+        set.add(1500000)
+      } else if (total < 1000000) {
+        const nextNext100k = next100k + 100000
+        set.add(nextNext100k)
+        set.add(1000000)
+        set.add(1500000)
+        set.add(2000000)
+      } else {
+        const next500k = Math.ceil(total / 500000) * 500000
+        if (next500k > total) set.add(next500k)
+        const next1M = Math.ceil(total / 1000000) * 1000000
+        if (next1M > total) set.add(next1M)
+        set.add(next1M + 500000)
+        set.add(next1M + 1000000)
+        set.add(next1M + 1500000)
+      }
     }
 
     const sorted = Array.from(set).filter(n => n > total).sort((a, b) => a - b)
     while (sorted.length < 4) {
       const last = sorted[sorted.length - 1] || total
-      sorted.push(last + (total >= 1000000 ? 500000 : 50000))
+      sorted.push(last + (total >= 1000000 ? 500000 : 100000))
     }
 
     return sorted.slice(0, 4).map(val => {

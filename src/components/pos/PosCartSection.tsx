@@ -9,6 +9,7 @@ import {
   convertCurrency,
   getCurrencySymbol
 } from '../../utils/countryCashDenominations'
+import { PosCardTenderForm } from './PosCardTenderForm'
 
 export interface PosCartSectionProps {
   cartItems: CartItem[]
@@ -240,113 +241,22 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               </span>
             </div>
 
-            {/* PILIH TIPE KARTU: CC VS DEBIT */}
-            <div className="flex flex-col gap-1">
-              <span className="text-[9px] font-bold text-slate-400 uppercase">{t.cart.cardTypeLabel}</span>
-              <div className="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInternalCardType('cc')
-                    setPosPayMethod('cc')
-                  }}
-                  className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                    internalCardType === 'cc' || posPayMethod === 'cc' || posPayMethod === 'card'
-                      ? 'bg-amber-500 text-slate-950 shadow font-extrabold'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <CreditCard className="w-3.5 h-3.5" /> {t.cart.payCc}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInternalCardType('debit')
-                    setPosPayMethod('debit')
-                  }}
-                  className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                    internalCardType === 'debit' || posPayMethod === 'debit'
-                      ? 'bg-amber-500 text-slate-950 shadow font-extrabold'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <Building2 className="w-3.5 h-3.5" /> {t.cart.payDebit}
-                </button>
-              </div>
-            </div>
-
-            {/* EDC BANK SELECTOR */}
-            <div className="flex flex-col gap-1">
-              <span className="text-[9px] font-bold text-slate-400 uppercase">{t.cart.cardBankLabel}</span>
-              <div className="grid grid-cols-5 gap-1">
-                {['BCA', 'Mandiri', 'BRI', 'BNI', 'CIMB'].map((bank) => (
-                  <button
-                    key={bank}
-                    type="button"
-                    onClick={() => setSelectedBank(bank)}
-                    className={`py-1 text-[10px] font-bold rounded-lg border transition-all ${
-                      selectedBank === bank
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm'
-                        : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
-                    }`}
-                  >
-                    {bank}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* CARD PREFIX & SUFFIX & APPROVAL CODE */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-bold text-slate-400 uppercase">{t.cart.cardPrefixLabel}</span>
-                <input
-                  type="text"
-                  maxLength={4}
-                  value={cardPrefix}
-                  onChange={(e) => handleCardPrefixChange(e.target.value)}
-                  placeholder="4123"
-                  className="bg-slate-900 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-100 font-mono text-center placeholder-slate-600 focus:outline-none focus:border-indigo-400 shadow-inner"
-                />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-bold text-slate-400 uppercase">{t.cart.cardSuffixLabel}</span>
-                <input
-                  type="text"
-                  maxLength={3}
-                  value={cardLast3}
-                  onChange={(e) => handleCardLast3Change(e.target.value)}
-                  placeholder="789"
-                  className="bg-slate-900 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-100 font-mono text-center placeholder-slate-600 focus:outline-none focus:border-indigo-400 shadow-inner"
-                />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[8px] font-bold text-slate-400 uppercase">{t.cart.approvalCodeLabel}</span>
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={approvalCode}
-                  onChange={(e) => setApprovalCode(e.target.value.toUpperCase())}
-                  placeholder="APPRV1"
-                  className="bg-slate-900 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-100 font-mono text-center placeholder-slate-600 focus:outline-none focus:border-indigo-400 shadow-inner"
-                />
-              </div>
-            </div>
-
-            {/* LIVE AUTO-DETECTED RECONCILIATION PREVIEW (ZERO MANUAL JARINGAN SELECTION) */}
-            <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-2.5 flex items-center justify-between gap-2 shadow-inner">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-[10px] font-extrabold uppercase bg-indigo-500 text-white px-2 py-0.5 rounded-md font-mono tracking-wider shadow-sm shrink-0">
-                  {cardNetwork}
-                </span>
-                <span className="text-xs font-mono font-bold text-slate-200 truncate">
-                  {selectedBank} EDC • {cardPrefix || '****'}-***-{cardLast3 || '***'}
-                </span>
-              </div>
-              <span className="text-[10px] text-emerald-400 font-mono font-bold shrink-0 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                Auto-Detected
-              </span>
-            </div>
+            {/* EDC CARD TENDER FORM */}
+            <PosCardTenderForm
+              posPayMethod={posPayMethod}
+              internalCardType={internalCardType}
+              selectedBank={selectedBank}
+              cardPrefix={cardPrefix}
+              cardLast3={cardLast3}
+              cardNetwork={cardNetwork}
+              approvalCode={approvalCode}
+              setInternalCardType={setInternalCardType}
+              setPosPayMethod={setPosPayMethod}
+              setSelectedBank={setSelectedBank}
+              onCardPrefixChange={handleCardPrefixChange}
+              onCardLast3Change={handleCardLast3Change}
+              setApprovalCode={setApprovalCode}
+            />
           </div>
         )}
 
@@ -424,16 +334,76 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               })}
             </div>
 
-            {/* INPUT NOMINAL UANG TUNAI MANUAL */}
-            <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 shadow-inner">
-              <span className="text-xs font-mono font-bold text-slate-400 shrink-0">{currencySymbol}</span>
-              <input
-                type="number"
-                value={posCashGiven}
-                onChange={(e) => setPosCashGiven(e.target.value)}
-                placeholder="0"
-                className="bg-transparent w-full text-xs font-mono font-bold text-white placeholder-slate-600 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
+            {/* INPUT NOMINAL UANG TUNAI MANUAL & SPEED KEYS */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 shadow-inner">
+                <span className="text-xs font-mono font-bold text-slate-400 shrink-0">{currencySymbol}</span>
+                <input
+                  type="number"
+                  value={posCashGiven}
+                  onChange={(e) => setPosCashGiven(e.target.value)}
+                  placeholder="0"
+                  className="bg-transparent w-full text-xs font-mono font-bold text-white placeholder-slate-600 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                {posCashGiven && posCashGiven !== '0' && (
+                  <button
+                    type="button"
+                    onClick={() => setPosCashGiven('')}
+                    className="text-[10px] text-slate-500 hover:text-slate-300 font-mono font-bold px-1.5 py-0.5 rounded hover:bg-slate-800 shrink-0 cursor-pointer"
+                    title="Hapus"
+                  >
+                    ⌫
+                  </button>
+                )}
+              </div>
+
+              {/* SPEED MULTIPLIER BUTTONS (000, 00, +10k, +50k) */}
+              <div className="grid grid-cols-4 gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = posCashGiven || '0'
+                    setPosCashGiven(current === '0' ? '1000' : `${current}000`)
+                  }}
+                  className="py-1 bg-slate-900/80 hover:bg-slate-800 text-indigo-300 border border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
+                  title="Tambah 000 (Ribuan)"
+                >
+                  +000
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = posCashGiven || '0'
+                    setPosCashGiven(current === '0' ? '100' : `${current}00`)
+                  }}
+                  className="py-1 bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
+                  title="Tambah 00 (Ratusan)"
+                >
+                  +00
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const val = parseFloat(posCashGiven) || 0
+                    const increment = tenderCurrency === 'IDR' ? 10000 : 10
+                    setPosCashGiven((val + increment).toString())
+                  }}
+                  className="py-1 bg-slate-900/80 hover:bg-slate-800 text-amber-300 border border-amber-500/20 hover:border-amber-500/40 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
+                >
+                  +{tenderCurrency === 'IDR' ? '10rb' : `${currencySymbol}10`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const val = parseFloat(posCashGiven) || 0
+                    const increment = tenderCurrency === 'IDR' ? 50000 : 50
+                    setPosCashGiven((val + increment).toString())
+                  }}
+                  className="py-1 bg-slate-900/80 hover:bg-slate-800 text-amber-300 border border-amber-500/20 hover:border-amber-500/40 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
+                >
+                  +{tenderCurrency === 'IDR' ? '50rb' : `${currencySymbol}50`}
+                </button>
+              </div>
             </div>
 
             {/* KEMBALIAN PELANGGAN */}

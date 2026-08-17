@@ -1,26 +1,26 @@
 import { describe, it, expect } from 'vitest'
 import { getCountryCashPresets } from '../utils/countryCashDenominations'
 
-describe('Multi-Country Adaptive Cash Banknote Denominations Engine (L2-POS-81)', () => {
+describe('Multi-Country Adaptive Cash Banknote Denominations Engine (L2-POS-81 & L2-POS-83)', () => {
   it('computes exact 4 clean Indonesian Rupiah (IDR) banknotes for micro-bill (Rp 35.000)', () => {
     const presets = getCountryCashPresets(35000, 'IDR', 'id')
     expect(presets).toHaveLength(4)
-    expect(presets.map(p => p.value)).toEqual([40000, 50000, 100000, 150000])
-    expect(presets.map(p => p.label)).toEqual(['40rb', '50rb', '100rb', '150rb'])
+    expect(presets.map(p => p.value)).toEqual([50000, 100000, 200000, 500000])
+    expect(presets.map(p => p.label)).toEqual(['50rb', '100rb', '200rb', '500rb'])
   })
 
   it('computes exact 4 clean Indonesian Rupiah (IDR) banknotes for standard dining (Rp 180.000)', () => {
     const presets = getCountryCashPresets(180000, 'IDR', 'id')
     expect(presets).toHaveLength(4)
-    expect(presets.map(p => p.value)).toEqual([200000, 300000, 500000, 1000000])
-    expect(presets.map(p => p.label)).toEqual(['200rb', '300rb', '500rb', '1 Jt'])
+    expect(presets.map(p => p.value)).toEqual([200000, 500000, 1000000, 1500000])
+    expect(presets.map(p => p.label)).toEqual(['200rb', '500rb', '1 Jt', '1.5 Jt'])
   })
 
   it('computes exact 4 clean Indonesian Rupiah (IDR) banknotes for million-tier bill (Rp 1.530.100)', () => {
     const presets = getCountryCashPresets(1530100, 'IDR', 'id')
     expect(presets).toHaveLength(4)
-    expect(presets.map(p => p.value)).toEqual([1550000, 1600000, 2000000, 2500000])
-    expect(presets.map(p => p.label)).toEqual(['1.55 Jt', '1.6 Jt', '2 Jt', '2.5 Jt'])
+    expect(presets.map(p => p.value)).toEqual([1600000, 2000000, 2500000, 3000000])
+    expect(presets.map(p => p.label)).toEqual(['1.6 Jt', '2 Jt', '2.5 Jt', '3 Jt'])
   })
 
   it('computes exact 4 clean US Dollar (USD) banknotes for dining bill ($14.50)', () => {
