@@ -416,3 +416,48 @@ Inspection and testing support 3 distinct operational cadences:
 - **Medium / 4-Quadrant DOM Layout (`--visual snapshot`)**: Evaluates the 4-Quadrant Matrix (Empty, Short, Long 1.8B IDR, Multi-State) and asserts non-overlapping bounding boxes without full browser overhead.
 - **Large / Live Interactive QA (`--visual live`)**: Launches the live browser / In-App `ScenarioPlayerWidget` in HFE-X, driving visual inputs with customizable playback speeds (`1x`, `5x`, `Turbo`) and step-by-step state verification.
 
+---
+
+## 14. The Dual-Phase Onboarding Paradigm & Single-Door Backend Settings Gateway
+
+To reconcile the tension between rapid time-to-value for new merchants and the complex data reconciliation required for legacy system migrations, HFE establishes the **Two-Phase Progressive Disclosure Architecture**:
+
+```mermaid
+graph LR
+    subgraph Phase1["Phase 1: Day-0 Fast Entry (Strict 3+1)"]
+        W1["Step 1: Business Identity & Baseline Cluster"]
+        W2["Step 2: Brand & Capacity Scale"]
+        W3["Step 3: Jurisdiction, Currency & Cash Float"]
+        W4["Step 4: Interactive System Preview"]
+        W1 --> W2 --> W3 --> W4
+    end
+
+    subgraph Phase2["Phase 2: Day-1+ Living Getting Started Hub"]
+        G1["Task 1: Legacy Migration & Account Mapping Seam"]
+        G2["Task 2: Day-2 Specialist Cluster Enablement"]
+        G3["Task 3: Bank Feeds & Digital Tax Certification"]
+        G4["Task 4: Hardware POS ESC/POS Pairing"]
+    end
+
+    W4 == "Instant Provisioning (POST /provision)" ==> Phase2
+```
+
+### 14.1 The Strict "3 Steps + 1 Preview" Invariant (Day-0 Fast Entry <60s)
+1. **Zero Cognitive Friction**: Every new merchant completes onboarding in $<60$ seconds answering only 3 simple operational questions.
+2. **Step 4 Interactive Preview Gate**: Shows the exact generated tenancy boundary, assigned CoA template, opening cash drawer balance, and balanced debits==credits proof before committing.
+3. **Atomic 1-Click Provisioning Seam (`POST /api/v2/company-books/provision`)**: Provisions the tenant, binds settings, seeds CoA, and posts the opening journal atomically.
+
+### 14.2 The Living Getting Started Hub (Day-1..Day-N Progressive Lifecycle)
+1. **Persistent Companion**: Remains accessible as an in-app workspace guide rather than a one-time disposable modal.
+2. **Asynchronous Legacy Migration Seam**: Handles complex multi-thousand SKU imports, modifier mappings, and beginning trial balance reconciliations (Xero, Moka, Mekari Jurnal, Accurate, CSV/Excel) without delaying Day-0 launch.
+3. **Non-Destructive Day-2 Cluster Evolution**: Enables merchants to add new specialist clusters (e.g. adding `CLUSTER_MFG` when opening a roasting factory) without resetting established historical ledger periods or cash floats.
+4. **System-Verified Real Database Assertions**: Validates actual live transactional conditions in PostgreSQL (active staff $\ge 1$, cash float $>0$, registered PT) rather than artificial UI checkboxes.
+
+### 14.3 The Single-Door Gateway $\longleftrightarrow$ Federated Capability Settings Architecture
+In compliance with Architecture Rule #7 (*"Settings Own Accounting Behavior"*):
+1. **Single Entrypoint**: All client surfaces read and update configuration exclusively through `GET /api/v2/company-books/{id}/settings` and `PUT /api/v2/company-books/{id}/settings`.
+2. **Federated Domain Handlers**: The gateway dispatches domain-specific configurations to their respective capability submodules (`tax/`, `inventory/`, `pos/`, `bank/`, `connect_hub/`).
+3. **Granular Scoped Mutations**: Supported via `PATCH /settings/{domain}` (e.g. `PATCH /settings/pos` for printer configuration) to prevent non-critical hardware errors from blocking critical fiscal/tax updates.
+4. **Effective-Dated Immutable Provenance**: Every setting change generates an effective-dated successor version with cryptographic audit provenance.
+
+

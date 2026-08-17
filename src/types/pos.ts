@@ -210,7 +210,6 @@ export interface TableStatus {
 
 export type TableInfo = TableStatus
 
-
 export type MemberTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
 
 export interface CustomerPreferences {
@@ -330,6 +329,10 @@ export interface StorefrontCustomizationConfig {
 // --- STORE ONBOARDING & PRESET POLICY TYPES ---
 export type BusinessType = 'cafe_fnb' | 'toko_kelontong' | 'fine_dining'
 export type OperationScale = 'single_person' | 'small_team' | 'enterprise'
+export type BusinessCluster = 'CLUSTER_FNB' | 'CLUSTER_ROASTERY' | 'CLUSTER_PLANTATION' | 'CLUSTER_TRADING' | 'CLUSTER_RETAIL' | 'CLUSTER_OTHER'
+export type MigrationSource = 'fresh' | 'xero' | 'moka' | 'jurnal' | 'accurate' | 'csv'
+export type SupportedCountry = 'ID' | 'SG' | 'MY' | 'HK'
+export type SupportedCurrency = 'IDR' | 'SGD' | 'MYR' | 'HKD'
 
 export interface BusinessTypePolicy {
   enableTableFloorPlan: boolean
@@ -355,6 +358,12 @@ export interface OperationScalePolicy {
 export interface OnboardingData {
   businessType: BusinessType
   operationScale: OperationScale
+  cluster?: BusinessCluster
+  migrationSource?: MigrationSource
+  migrationFileName?: string
+  country?: SupportedCountry
+  currency?: SupportedCurrency
+  capacityScale?: string
   brandName: string
   logoUrl: string
   address: string
@@ -365,20 +374,11 @@ export interface OnboardingData {
   wifiAccessPolicy?: WifiAccessPolicy
   pb1TaxMode: PB1TaxMode
   initialKasFloat: number
+  tenancyUuid?: string
 }
 
 // --- TEAM MEMBERSHIP & RBAC TYPES ---
-export type StaffRole = 
-  | 'owner' 
-  | 'store_manager' 
-  | 'cashier' 
-  | 'barista' 
-  | 'chef' 
-  | 'waiter' 
-  | 'checker_qc' 
-  | 'sommelier' 
-  | 'courier' 
-  | 'warehouse_keeper'
+export type StaffRole = 'owner' | 'store_manager' | 'cashier' | 'barista' | 'chef' | 'waiter' | 'checker_qc' | 'sommelier' | 'courier' | 'warehouse_keeper'
 
 export interface TeamMember {
   id: string
@@ -422,7 +422,6 @@ export interface PurchasedEventTicket {
   qrBarcodeData: string
   status: 'valid' | 'used' | 'cancelled'
 }
-
 
 export interface InviteStaffPayload {
   name: string
@@ -492,8 +491,5 @@ export interface ServiceTicket {
   assignedStaffName?: string
   notes?: string
 }
-
 // --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---
 export * from './identity'
-
-

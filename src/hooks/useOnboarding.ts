@@ -9,6 +9,11 @@ const STORAGE_KEY_CHECKLIST = 'hfe_onboarding_checklist'
 export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   businessType: 'cafe_fnb',
   operationScale: 'small_team',
+  cluster: 'CLUSTER_FNB',
+  migrationSource: 'fresh',
+  country: 'ID',
+  currency: 'IDR',
+  capacityScale: '20 Meja (👥 3/4)',
   brandName: 'Artisan Coffee & Eatery',
   logoUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=200&h=200&fit=crop',
   address: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
@@ -19,6 +24,49 @@ export const DEFAULT_ONBOARDING_DATA: OnboardingData = {
   wifiAccessPolicy: 'after_payment',
   pb1TaxMode: 1,
   initialKasFloat: 500000,
+  tenancyUuid: 'cb-tenancy-7f8a9b2c-0100-hfe',
+}
+
+export const PERSONA_KAFE_BSD: Partial<OnboardingData> = {
+  businessType: 'cafe_fnb',
+  operationScale: 'small_team',
+  cluster: 'CLUSTER_FNB',
+  migrationSource: 'fresh',
+  country: 'ID',
+  currency: 'IDR',
+  capacityScale: '20 Meja (👥 3/4)',
+  brandName: 'BSD Specialty Coffee & Eatery',
+  logoUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=200&h=200&fit=crop',
+  address: 'Ruko BSD Boulevard No. 12, Tangerang Selatan',
+  instagram: '@bsdcoffee.id',
+  whatsappOrder: '628119876543',
+  wifiSsid: 'BSDCoffee_Free',
+  wifiPassword: 'kopibsd2026',
+  wifiAccessPolicy: 'after_payment',
+  pb1TaxMode: 1,
+  initialKasFloat: 500000,
+  tenancyUuid: 'cb-tenancy-bsd-0102-hfe',
+}
+
+export const PERSONA_ROASTERY: Partial<OnboardingData> = {
+  businessType: 'cafe_fnb',
+  operationScale: 'enterprise',
+  cluster: 'CLUSTER_ROASTERY',
+  migrationSource: 'fresh',
+  country: 'ID',
+  currency: 'IDR',
+  capacityScale: '20kg Batch Oven',
+  brandName: 'PT Nusantara Sangrai Kopi',
+  logoUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=200&h=200&fit=crop',
+  address: 'Kawasan Industri Gading Serpong Blok R-8, Tangerang',
+  instagram: '@nusantararoastery',
+  whatsappOrder: '6281234567890',
+  wifiSsid: 'NusantaraRoastery_Staff',
+  wifiPassword: 'roastmaster2026',
+  wifiAccessPolicy: 'always_visible',
+  pb1TaxMode: 2,
+  initialKasFloat: 1000000,
+  tenancyUuid: 'cb-tenancy-roastery-0103-hfe',
 }
 
 export interface ChecklistState {
@@ -120,14 +168,14 @@ export function useOnboarding() {
     return false
   })
 
-  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1)
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1)
 
   const [onboardingData, setOnboardingData] = useState<OnboardingData>(() => {
     if (typeof localStorage !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEY_DATA)
       if (saved) {
         try {
-          return JSON.parse(saved)
+          return { ...DEFAULT_ONBOARDING_DATA, ...JSON.parse(saved) }
         } catch {
           // ignore
         }
@@ -158,7 +206,7 @@ export function useOnboarding() {
     return getOperationScalePolicy(onboardingData.operationScale)
   }, [onboardingData.operationScale])
 
-  const updateStep = (step: 1 | 2 | 3) => {
+  const updateStep = (step: 1 | 2 | 3 | 4) => {
     setActiveStep(step)
   }
 
@@ -170,6 +218,11 @@ export function useOnboarding() {
       }
       return updated
     })
+  }
+
+  const applyPersona = (persona: 'bsd' | 'roastery') => {
+    const template = persona === 'bsd' ? PERSONA_KAFE_BSD : PERSONA_ROASTERY
+    updateOnboardingData(template)
   }
 
   const completeOnboarding = async () => {
@@ -228,6 +281,7 @@ export function useOnboarding() {
     checklist,
     updateStep,
     updateOnboardingData,
+    applyPersona,
     completeOnboarding,
     resetOnboarding,
     toggleChecklistItem,
