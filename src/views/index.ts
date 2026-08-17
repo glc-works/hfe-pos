@@ -1,5 +1,4 @@
 export * from './AdminPortalView'
-export * from './AgentTownGameView'
 export * from './BaristaPosView'
 export * from './BranchManagementView'
 export * from './CafeSettingsView'

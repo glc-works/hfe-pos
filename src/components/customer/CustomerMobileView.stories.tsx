@@ -9,9 +9,18 @@ const meta: Meta<typeof CustomerMobileView> = {
   parameters: {
     layout: 'fullscreen',
     viewport: {
-      defaultViewport: 'mobile1'
+      defaultViewport: 'iphone14'
     }
-  }
+  },
+  decorators: [
+    (Story) => (
+      <div className="min-h-screen bg-slate-950 flex justify-center items-start sm:py-6">
+        <div className="w-full max-w-[420px] min-h-[844px] bg-slate-900 shadow-2xl rounded-none sm:rounded-[36px] border-0 sm:border sm:border-slate-800 overflow-hidden flex flex-col">
+          <Story />
+        </div>
+      </div>
+    )
+  ]
 }
 
 export default meta
@@ -58,28 +67,30 @@ export const MobileQrScanCatalog: Story = {
     handleUpdateQty: () => {},
     handleApplyPromo: () => {},
     handleSubmitOrder: () => {},
-    onSwitchToPos: () => {}
+    handleRedeemVoucher: () => {},
+    handleRemovePromo: () => {},
+    handleRemoveVoucher: () => {},
+    handleLogin: () => {},
+    handleLogout: () => {},
+    handleSetCustomTip: () => {},
+    onSwitchToLandingPage: () => {},
+    onSwitchToPos: () => {},
+    onQuickAction: () => {}
   }
 }
 
 export const MobileCheckoutView: Story = {
   args: {
     ...MobileQrScanCatalog.args,
+    qrStepView: 'checkout',
     cart: [
       {
-        id: 'MN-001',
-        hfeCategoryCode: 'SKU-COF-001',
-        name: 'Espresso Aren Latte',
-        category: 'Coffee',
-        price: 28000,
-        image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=500&q=80',
-        description: 'Espresso ganda Arabica kintamani dipadu gula aren alami dan susu segar.',
+        ...PRODUCT_CATALOG[0],
         quantity: 2
       }
     ],
     totalCartCount: 2,
     rawSubtotal: 56000,
-    grandTotalBill: 61600,
-    qrStepView: 'checkout'
+    grandTotalBill: 56000
   }
 }

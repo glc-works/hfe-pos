@@ -70,27 +70,12 @@ export const DomainNavigator: React.FC<DomainNavigatorProps> = ({
             type="button"
             onClick={() => onSwitchDomain('cafe')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-xs transition-all ${
-              activeApp === 'cafe' && activeStaffSurface !== 'hfe-agent-town' && activeStaffSurface !== 'hfe-company-book'
+              activeApp === 'cafe' && activeStaffSurface !== 'hfe-company-book'
                 ? 'bg-white text-slate-950 shadow font-extrabold'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Store className="w-3.5 h-3.5" /> Cashier & Staff
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              onSwitchDomain('cafe')
-              if (setActiveStaffSurface) setActiveStaffSurface('hfe-agent-town')
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-xs transition-all ${
-              activeApp === 'cafe' && activeStaffSurface === 'hfe-agent-town'
-                ? 'bg-amber-500 text-slate-950 shadow font-black ring-2 ring-amber-400'
-                : 'text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10'
-            }`}
-          >
-            <span>🎮</span> World.Hfeit Simulator
           </button>
 
           <button

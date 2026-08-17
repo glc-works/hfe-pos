@@ -145,21 +145,7 @@ export const ScenarioPlayerWidget: React.FC<ScenarioPlayerWidgetProps> = ({
                 <span>🌐 Ganti Layar / Surface:</span>
                 <span className="text-amber-400 font-bold">{activeApp?.toUpperCase()}</span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveApp('cafe');
-                    if (setActiveStaffSurface) setActiveStaffSurface('hfe-agent-town');
-                  }}
-                  className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-left flex items-center gap-1.5 ${
-                    activeApp === 'cafe' && activeStaffSurface === 'hfe-agent-town'
-                      ? 'bg-amber-500 text-slate-950 shadow ring-2 ring-amber-400 font-black'
-                      : 'bg-slate-800/90 hover:bg-slate-700 text-amber-300'
-                  }`}
-                >
-                  <span>🎮</span> World.Hfeit
-                </button>
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -167,7 +153,7 @@ export const ScenarioPlayerWidget: React.FC<ScenarioPlayerWidgetProps> = ({
                     if (setActiveStaffSurface) setActiveStaffSurface('barista-pos');
                   }}
                   className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-left flex items-center gap-1.5 ${
-                    activeApp === 'cafe' && activeStaffSurface !== 'hfe-agent-town' && activeStaffSurface !== 'hfe-company-book'
+                    activeApp === 'cafe' && activeStaffSurface !== 'hfe-company-book'
                       ? 'bg-emerald-600 text-white shadow font-black'
                       : 'bg-slate-800/90 hover:bg-slate-700 text-slate-200'
                   }`}
