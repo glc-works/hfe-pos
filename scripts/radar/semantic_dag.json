@@ -1,0 +1,1719 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "2.0.0",
+  "name": "HFE-POS Unified 2D Semantic & Topological DAG Specification (hfex-rad0)",
+  "dimensions": {
+    "PILLAR": {
+      "name": "Experience & Capability Pillar",
+      "values": [
+        "CORE",
+        "BOARD",
+        "ADMIN",
+        "POS",
+        "ORDER",
+        "CARD",
+        "BOOK"
+      ]
+    },
+    "SURFACE": {
+      "name": "Hardware Viewport & Surface",
+      "values": [
+        "MOBILE_360",
+        "TABLET_768",
+        "DESKTOP_1024",
+        "KIOSK"
+      ]
+    },
+    "TIER": {
+      "name": "6-Tier Atomic Architecture Layer",
+      "values": [
+        "TIER1_TOKENS",
+        "TIER2_REACT_ARIA",
+        "TIER3_DOMAIN_SLOTS",
+        "TIER4_WIDGET_CLUSTERS",
+        "TIER5_LAYOUTS",
+        "TIER6_VIEWS"
+      ]
+    },
+    "CADENCE": {
+      "name": "Google Test Size Standard",
+      "values": [
+        "SMALL",
+        "MEDIUM",
+        "LARGE"
+      ]
+    },
+    "EXECUTION_LOOP": {
+      "name": "Developer Feedback Loop Cadence",
+      "values": [
+        "INNER",
+        "OUTER",
+        "LIVE"
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "id": "hub-root",
+      "title": "Master Radar & Experience Orchestrator (hfex-rad0)",
+      "level": 0,
+      "path": "scripts/hfex-rad0.py",
+      "parents": [],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p1-modularity",
+      "title": "P1: Modularity & 500-Line Limit Gate",
+      "level": 1,
+      "path": "scripts/radar/p1_modularity.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p2-react-aria",
+      "title": "P2: Tier 2 React Aria & Headless Primitives",
+      "level": 1,
+      "path": "scripts/radar/p2_react_aria.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER2_REACT_ARIA",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p3-spatial-isolation",
+      "title": "P3: Defensive Spatial Isolation & Anti-Collision Matrix",
+      "level": 1,
+      "path": "scripts/radar/p3_spatial_isolation.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p4-vitest-suites",
+      "title": "P4: Vitest 86-Suite Test Suite Runner",
+      "level": 1,
+      "path": "scripts/radar/p4_vitest_suites.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p5-openapi-parity",
+      "title": "P5: OpenAPI Contract & Connector Manifest Parity",
+      "level": 1,
+      "path": "scripts/radar/p5_openapi_parity.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "BOOK",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p6-tabular-monetary",
+      "title": "P6: Tabular Monetary Presentation & Zero-Jitter Currency",
+      "level": 1,
+      "path": "scripts/radar/p6_tabular_monetary.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p7-capacity-utilisation",
+      "title": "P7: F&B Capacity Utilisation & Anti-Zigzag Standard",
+      "level": 1,
+      "path": "scripts/radar/p7_capacity_utilisation.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p8-bundle-budget",
+      "title": "P8: Vite Build Bundle Budget & Chunk Size Gate",
+      "level": 1,
+      "path": "scripts/radar/p8_bundle_budget.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "p9-git-hygiene",
+      "title": "P9: Git Hygiene & Pre-Commit Fast Sentinel",
+      "level": 1,
+      "path": "scripts/radar/p9_git_hygiene.py",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "tool-modularity-scan",
+      "title": "Modularity Checker Tool",
+      "level": 1,
+      "path": "scripts/check-modularity.py",
+      "parents": [
+        "p1-modularity"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "tool-ui-standards-audit",
+      "title": "UI Standards & Viewport Auditor",
+      "level": 1,
+      "path": "scripts/audit-hfe-ui-standards.py",
+      "parents": [
+        "p3-spatial-isolation"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "tool-manifest-validate",
+      "title": "Connector Manifest Validator",
+      "level": 1,
+      "path": "scripts/validate-connector.py",
+      "parents": [
+        "p5-openapi-parity"
+      ],
+      "dimensions": {
+        "PILLAR": "BOOK",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "tool-contract-check",
+      "title": "Hfe Contract & Health Gate",
+      "level": 1,
+      "path": "scripts/hfe-contract-check.sh",
+      "parents": [
+        "p5-openapi-parity"
+      ],
+      "dimensions": {
+        "PILLAR": "BOOK",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "tool-ci-local",
+      "title": "Local CI Gate Runner",
+      "level": 1,
+      "path": "scripts/ci-local.sh",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "tool-inspect-pillars",
+      "title": "Playwright Multi-Pillar Visual Inspector",
+      "level": 1,
+      "path": "scripts/inspect-all-pillars.cjs",
+      "parents": [
+        "p3-spatial-isolation"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "LARGE",
+        "EXECUTION_LOOP": "LIVE"
+      }
+    },
+    {
+      "id": "tool-typecheck",
+      "title": "TypeScript Compiler Typecheck (tsc --noEmit)",
+      "level": 1,
+      "path": "tsconfig.json",
+      "parents": [
+        "hub-root"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "tool-build",
+      "title": "Vite Production Build (vite build)",
+      "level": 1,
+      "path": "vite.config.ts",
+      "parents": [
+        "p8-bundle-budget"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "MEDIUM",
+        "EXECUTION_LOOP": "OUTER"
+      }
+    },
+    {
+      "id": "test-adaptiveFactorGridColumns",
+      "title": "Adaptive Factor Grid Columns Zero Empty Space Suite (L2-POS-61)",
+      "level": 2,
+      "path": "src/tests/adaptiveFactorGridColumns.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-adversarialFraudAndExploitMitigation",
+      "title": "\ud83d\udd75\ufe0f Adversarial Anti-Fraud & Exploit Mitigation Suite",
+      "level": 2,
+      "path": "src/tests/adversarialFraudAndExploitMitigation.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-allPersonasMiniAppsAndIdentities",
+      "title": "\ud83d\udc65 All Personas, Multi-Identity HfeCard & Mini Apps Ecosystem Suite",
+      "level": 2,
+      "path": "src/tests/allPersonasMiniAppsAndIdentities.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-antiBleedingTypography",
+      "title": "Anti-Bleeding Typography & Single-Line Heuristics (L2-POS-30)",
+      "level": 2,
+      "path": "src/tests/antiBleedingTypography.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-appDrawerNavigation",
+      "title": "App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)",
+      "level": 2,
+      "path": "src/tests/appDrawerNavigation.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-backofficeFnbOperations",
+      "title": "Backoffice F&B Operations Test Suite (POS-ENG-STD-001)",
+      "level": 2,
+      "path": "src/tests/backofficeFnbOperations.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-barOperationsAndBillionStressTest",
+      "title": "Bar Operations, Billion Stress-Test, and Zero-Ambiguity Currency Suite (L2-POS-74)",
+      "level": 2,
+      "path": "src/tests/barOperationsAndBillionStressTest.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-boardAndOrderPillarsSpotlight",
+      "title": "\ud83c\udfdb\ufe0f 4 Core Experience Pillars: BOARD & ORDER Spotlight & Touch Suite",
+      "level": 2,
+      "path": "src/tests/boardAndOrderPillarsSpotlight.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOARD",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER2_REACT_ARIA",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-canonicalCashierLifecyclePipeline",
+      "title": "\ud83d\udd04 Canonical 13-Step Cashier POS & Ledger Pipeline",
+      "level": 2,
+      "path": "src/tests/canonicalCashierLifecyclePipeline.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-cardTenderAccounting",
+      "title": "Card Tender (CC / Debit) Accounting Integrity & BIN Detection",
+      "level": 2,
+      "path": "src/tests/cardTenderAccounting.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CARD",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-cartMath",
+      "title": "Cart Financial Math & PB1 Tax Engine",
+      "level": 2,
+      "path": "src/tests/cartMath.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-connectorInstallModal",
+      "title": "ConnectorInstallModal & Connect Hub Ecosystem Tests",
+      "level": 2,
+      "path": "src/tests/connectorInstallModal.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-continuousInterlockingAreaSurface",
+      "title": "Continuous Interlocking Area Surface Engine Suite (L2-POS-67)",
+      "level": 2,
+      "path": "src/tests/continuousInterlockingAreaSurface.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-customerOrderChannelsWave2",
+      "title": "Wave 2: Customer Touchpoints & Order Channels Suite",
+      "level": 2,
+      "path": "src/tests/customerOrderChannelsWave2.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ORDER",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-customerPortalAndMemberCard",
+      "title": "Customer Portal & Digital Member Card Suite (L2-POS-47)",
+      "level": 2,
+      "path": "src/tests/customerPortalAndMemberCard.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CARD",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-customerSafetyAndMultiMerchantAudit",
+      "title": "\ud83d\udd2c Pakar Expert Audit: Customer Safety, Privacy & Multi-Merchant Scenarios",
+      "level": 2,
+      "path": "src/tests/customerSafetyAndMultiMerchantAudit.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-customerUserJourneyEndToEnd",
+      "title": "End-to-End Customer QR Journey Suite (Jony Ive UX Standards)",
+      "level": 2,
+      "path": "src/tests/customerUserJourneyEndToEnd.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ORDER",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-defensiveSecurityAndSocialEngineering",
+      "title": "\ud83d\udee1\ufe0f Defensive Security & Social Engineering Resilience Test Suite",
+      "level": 2,
+      "path": "src/tests/defensiveSecurityAndSocialEngineering.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-defensiveUiAndSpatialIsolationStress",
+      "title": "Defensive UI & Spatial Isolation Standard (HFE-UI-STD-001 / Zero Text-Collision)",
+      "level": 2,
+      "path": "src/tests/defensiveUiAndSpatialIsolationStress.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-designSystemShowcase",
+      "title": "Living Component Design System & SSOT Showcase (L2-POS-31)",
+      "level": 2,
+      "path": "src/tests/designSystemShowcase.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-devInspectorHud",
+      "title": "DevKit Zero-Lag Live Hover Inspector HUD (L2-POS-41)",
+      "level": 2,
+      "path": "src/tests/devInspectorHud.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-directModalActionCleanCards",
+      "title": "Direct Modal Action and Clean Selection Rollback Suite (L2-POS-71)",
+      "level": 2,
+      "path": "src/tests/directModalActionCleanCards.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CARD",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-esgReportEngine",
+      "title": "ESG Sustainability Report Calculation Engine (L1-20 / L2-POS-23)",
+      "level": 2,
+      "path": "src/tests/esgReportEngine.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-eventTicketingAndClassBooking",
+      "title": "Event Ticketing & Workshop Class Booking Engine (L2-POS-46)",
+      "level": 2,
+      "path": "src/tests/eventTicketingAndClassBooking.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOOK",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-financialBusinessEventsLedgerAudit",
+      "title": "\ud83d\udcca Financial Audit of Business Events to General Ledger",
+      "level": 2,
+      "path": "src/tests/financialBusinessEventsLedgerAudit.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOOK",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-fiveCoreAppsSuite",
+      "title": "Core Apps Consolidation & Modular Features Suite (L2-POS-36)",
+      "level": 2,
+      "path": "src/tests/fiveCoreAppsSuite.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-floorPlanAreaFilters",
+      "title": "Floor Plan Area Filters & View Consistency Suite (L2-POS-72)",
+      "level": 2,
+      "path": "src/tests/floorPlanAreaFilters.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "TABLET_768",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-hfeCoreSyncAndMultiTender",
+      "title": "Hfe Core SSOT Synchronization & Universal Multi-Tender Settlement",
+      "level": 2,
+      "path": "src/tests/hfeCoreSyncAndMultiTender.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-hfeInsightsAndUxRepair",
+      "title": "Hfe Real-Time Operational Insights Engine",
+      "level": 2,
+      "path": "src/tests/hfeInsightsAndUxRepair.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-hfePosFinancialPortCutover",
+      "title": "Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)",
+      "level": 2,
+      "path": "src/tests/hfePosFinancialPortCutover.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOOK",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-hfeUnifiedWaveUpgrade",
+      "title": "Unified Wave Upgrade: Hfe Core SDK, Offline Intent & 6-Tier Architecture Proof",
+      "level": 2,
+      "path": "src/tests/hfeUnifiedWaveUpgrade.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-hfeUniversalUiStandard",
+      "title": "\ud83c\udfdb\ufe0f HFE-UI-STD-001: Unified Master Universal UI & Accounting Truth Suite",
+      "level": 2,
+      "path": "src/tests/hfeUniversalUiStandard.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-i18nMultiLanguage",
+      "title": "i18n & Multi-Language Localization Engine",
+      "level": 2,
+      "path": "src/tests/i18nMultiLanguage.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-idempotency",
+      "title": "Idempotency Key & Header Protocol Engine",
+      "level": 2,
+      "path": "src/tests/idempotency.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-interlockingTetris4ColGrid",
+      "title": "4-Column Continuous Interlocking Tetris Rotation Engine Suite (L2-POS-65)",
+      "level": 2,
+      "path": "src/tests/interlockingTetris4ColGrid.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "TABLET_768",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-iosSettingsView",
+      "title": "iOS / Android Inset Grouped Settings & Top Menu Navigation (L2-POS-33 & L2-POS-34)",
+      "level": 2,
+      "path": "src/tests/iosSettingsView.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-iosWidgetMatrixFloorPlan",
+      "title": "iOS/Android Modular Widget Matrix Floor Plan Suite (L2-POS-63)",
+      "level": 2,
+      "path": "src/tests/iosWidgetMatrixFloorPlan.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-layoutInvariants",
+      "title": "Intrinsic Component Architecture & Self-Contained Standard (GLC-FNB-UX-010)",
+      "level": 2,
+      "path": "src/tests/layoutInvariants.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-loyalty",
+      "title": "Loyalty Tier & Point Multiplier Engine",
+      "level": 2,
+      "path": "src/tests/loyalty.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CARD",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-masterComplianceSweepWave4",
+      "title": "Master Product-Wide Compliance Sweep Suite (Wave 4)",
+      "level": 2,
+      "path": "src/tests/masterComplianceSweepWave4.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-merchantConfigContext",
+      "title": "Single-Door Merchant Configuration Architecture (L2-POS-43)",
+      "level": 2,
+      "path": "src/tests/merchantConfigContext.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-merchantStorefrontCustomization",
+      "title": "Merchant Storefront Customization & Global Governance Suite",
+      "level": 2,
+      "path": "src/tests/merchantStorefrontCustomization.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-mobileVisualRepair",
+      "title": "Mobile Viewport Visual Polish & Single-Line Badge Rule (L2-POS-37)",
+      "level": 2,
+      "path": "src/tests/mobileVisualRepair.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-modifierPolicyGeneral",
+      "title": "Generalized Modifier & Category Policy Engine (POS-ENG-STD-001)",
+      "level": 2,
+      "path": "src/tests/modifierPolicyGeneral.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-multiDeviceCustomerJourney",
+      "title": "Multi-Device Responsive Customer Journey Verification (Rule 11 & Principle 9)",
+      "level": 2,
+      "path": "src/tests/multiDeviceCustomerJourney.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ORDER",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-multiDeviceSwitchingAndPreview",
+      "title": "Multi-Device Switcher & Dual-Port Responsive Invariant (POS-ENG-STD-001 Rule 13)",
+      "level": 2,
+      "path": "src/tests/multiDeviceSwitchingAndPreview.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-multiZoneHotelResto",
+      "title": "L2-POS-45 Module A: Multi-Zone Property Table & Dynamic Custom Naming Engine",
+      "level": 2,
+      "path": "src/tests/multiZoneHotelResto.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-noHardcodedViewportCheck",
+      "title": "\ud83d\udcd0 Viewport Single Source of Truth (SSOT) Lint Guard",
+      "level": 2,
+      "path": "src/tests/noHardcodedViewportCheck.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-notificationCenterAndTicketing",
+      "title": "Omnichannel Notification Center & Service Ticketing Hub (L2-POS-49)",
+      "level": 2,
+      "path": "src/tests/notificationCenterAndTicketing.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOARD",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-offlineAndAuth",
+      "title": "SHA-256 Web Crypto Payload Integrity Hasher",
+      "level": 2,
+      "path": "src/tests/offlineAndAuth.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-onboardingAndTeam",
+      "title": "Store Onboarding & Preset Policy Engine",
+      "level": 2,
+      "path": "src/tests/onboardingAndTeam.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOARD",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-openBillLifecycle",
+      "title": "Open Bill (Open Tab) Full Lifecycle & Settlement Suite",
+      "level": 2,
+      "path": "src/tests/openBillLifecycle.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-operationsKdsAndBackofficeWave3",
+      "title": "Wave 3: Operations, KDS Multi-Station & Backoffice Suite",
+      "level": 2,
+      "path": "src/tests/operationsKdsAndBackofficeWave3.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOARD",
+        "SURFACE": "TABLET_768",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-posCashierStepperAndBadge",
+      "title": "POS Cashier Stepper & Sensory Feedback Tests (POS-ENG-STD-001)",
+      "level": 2,
+      "path": "src/tests/posCashierStepperAndBadge.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER2_REACT_ARIA",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-realLifeOperationalScenarios",
+      "title": "\ud83c\udfea Real-Life (RL) Operational Scenarios Test Suite",
+      "level": 2,
+      "path": "src/tests/realLifeOperationalScenarios.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-responsiveViewportIntegrity",
+      "title": "Responsive Viewport & Text Bleeding Integrity Guard (GLC-FNB-UX-001)",
+      "level": 2,
+      "path": "src/tests/responsiveViewportIntegrity.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-restoreSpacious4ColGridView",
+      "title": "Restore Spacious 4-Column Grid View Suite (L2-POS-60)",
+      "level": 2,
+      "path": "src/tests/restoreSpacious4ColGridView.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-retailAndFineDining",
+      "title": "Retail Suite - Wholesale UOM & Barcode Parser",
+      "level": 2,
+      "path": "src/tests/retailAndFineDining.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-sdkWarehouseBranch",
+      "title": "@hfe/pos-auth-starterkit SDK & Authentication Engine",
+      "level": 2,
+      "path": "src/tests/sdkWarehouseBranch.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOOK",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-sharedProductCard",
+      "title": "Universal Shared ProductCard Standard",
+      "level": 2,
+      "path": "src/tests/sharedProductCard.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CARD",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-sixTierPriceTagAtom",
+      "title": "Tier 2 PriceTag Atom & 6-Tier Layer Isolation Suite (L2-POS-75)",
+      "level": 2,
+      "path": "src/tests/sixTierPriceTagAtom.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER2_REACT_ARIA",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-spotlightSearchAndShortcuts",
+      "title": "Spotlight Omni-Search & Workstation Shortcuts Engine",
+      "level": 2,
+      "path": "src/tests/spotlightSearchAndShortcuts.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-staffSubNavZeroRedundancy",
+      "title": "Staff SubNavigator Zero-Redundancy Navigation (L2-POS-39)",
+      "level": 2,
+      "path": "src/tests/staffSubNavZeroRedundancy.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-strict4ColGrid6ColCompactCanvas",
+      "title": "Strict 4-Slot Grid View & 6-Slot Compact View Canvas Suite (L2-POS-64)",
+      "level": 2,
+      "path": "src/tests/strict4ColGrid6ColCompactCanvas.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-svgFilletAreaSurface",
+      "title": "Native SVG Fillet Path Surface Engine Suite (L2-POS-68)",
+      "level": 2,
+      "path": "src/tests/svgFilletAreaSurface.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-symmetric3x2TetrisZonePairing",
+      "title": "Symmetric 3x2 Tetris Zone Pairing Suite (L2-POS-58)",
+      "level": 2,
+      "path": "src/tests/symmetric3x2TetrisZonePairing.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "TABLET_768",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-symmetricOthelloGrid",
+      "title": "Symmetric Othello Grid & Zone Territorial Surfaces (L2-POS-69)",
+      "level": 2,
+      "path": "src/tests/symmetricOthelloGrid.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-tablePaymentStatus",
+      "title": "Table Bill Hydration & Payment Status Visibility (L2-POS-29)",
+      "level": 2,
+      "path": "src/tests/tablePaymentStatus.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-territorialAreaClassification",
+      "title": "Pure CSS Territorial Area Classification Engine (L2-POS-70)",
+      "level": 2,
+      "path": "src/tests/territorialAreaClassification.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-tetrisVerticalRowspanPacking",
+      "title": "2D Tetris Vertical RowSpan Packing Suite (L2-POS-57)",
+      "level": 2,
+      "path": "src/tests/tetrisVerticalRowspanPacking.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "TABLET_768",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-tetrisZonePackingZeroEmptySpace",
+      "title": "Proportional Tetris Zone Packing & Zero Empty Space Suite (L2-POS-56)",
+      "level": 2,
+      "path": "src/tests/tetrisZonePackingZeroEmptySpace.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "TABLET_768",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-themeContrastAudit",
+      "title": "Theme Contrast & Parity Audit Suite (POS-ENG-STD-001 & GLC-FNB-AUDIT-002)",
+      "level": 2,
+      "path": "src/tests/themeContrastAudit.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-themeMarketplaceAndCustomTemplates",
+      "title": "Theme Customization, Vault & Marketplace Suite (L2-POS-42)",
+      "level": 2,
+      "path": "src/tests/themeMarketplaceAndCustomTemplates.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-themeSelector",
+      "title": "Theme Selector, Light/Dark Presets & Merchant/Customer Separation (L2-POS-32)",
+      "level": 2,
+      "path": "src/tests/themeSelector.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER1_TOKENS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-trueSingleTopBarAndDevkit",
+      "title": "True Single Top Bar & DevKit v2.0 Architecture (L2-POS-40)",
+      "level": 2,
+      "path": "src/tests/trueSingleTopBarAndDevkit.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-unified6ColCompactView",
+      "title": "Unified Single-Canvas 6-Col Compact View Suite (L2-POS-73)",
+      "level": 2,
+      "path": "src/tests/unified6ColCompactView.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-unifiedKdsAndFloorPlan",
+      "title": "Module A: Unified KDS & Course Sequence Engine",
+      "level": 2,
+      "path": "src/tests/unifiedKdsAndFloorPlan.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "BOARD",
+        "SURFACE": "TABLET_768",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-unifiedPosCommandHeader",
+      "title": "Unified POS Single Command Header & Layout Optimization (L2-POS-38)",
+      "level": 2,
+      "path": "src/tests/unifiedPosCommandHeader.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-universal3RowMicroBudget",
+      "title": "Universal 3-Row Micro-Budget Multi-Device Parity Suite (L2-POS-59)",
+      "level": 2,
+      "path": "src/tests/universal3RowMicroBudget.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-universalCustomerAndPresetRoles",
+      "title": "\ud83d\udc65 Universal Customer Identity & 10 Preset Roles RBAC Test Suite",
+      "level": 2,
+      "path": "src/tests/universalCustomerAndPresetRoles.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "MOBILE_360",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-userJourneyLoop",
+      "title": "User Journey Test Loop Iterations (Poin 1 - 5 Deep Validation)",
+      "level": 2,
+      "path": "src/tests/userJourneyLoop.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ORDER",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-userJourneys",
+      "title": "Multi-Role User Journey Integration Test Suite",
+      "level": 2,
+      "path": "src/tests/userJourneys.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ORDER",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER6_VIEWS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-viewportGeometryAndHeaderBudget",
+      "title": "\ud83d\udcd0 Viewport Geometry & Mobile Header Budget Guard",
+      "level": 2,
+      "path": "src/tests/viewportGeometryAndHeaderBudget.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-viewportShell",
+      "title": "Viewport App Shell & Single Scroll Owner Governance (POS-ENG-STD-001 Rule 9 & GLC-FNB-UX-012)",
+      "level": 2,
+      "path": "src/tests/viewportShell.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "CORE",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER5_LAYOUTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-wifiAccessPolicy",
+      "title": "WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)",
+      "level": 2,
+      "path": "src/tests/wifiAccessPolicy.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "POS",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER3_DOMAIN_SLOTS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    },
+    {
+      "id": "test-workflowsAndResi",
+      "title": "Workflows, Delivery & Resi AWB Engine Suite",
+      "level": 2,
+      "path": "src/tests/workflowsAndResi.test.ts",
+      "parents": [
+        "p4-vitest-suites"
+      ],
+      "dimensions": {
+        "PILLAR": "ADMIN",
+        "SURFACE": "DESKTOP_1024",
+        "TIER": "TIER4_WIDGET_CLUSTERS",
+        "CADENCE": "SMALL",
+        "EXECUTION_LOOP": "INNER"
+      }
+    }
+  ]
+}
