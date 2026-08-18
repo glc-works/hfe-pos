@@ -17,6 +17,16 @@ module.exports = {
     },
     extend: {
       colors: {
+        canvas: "var(--bg-canvas)",
+        surface: {
+          DEFAULT: "var(--bg-surface)",
+          elevated: "var(--bg-surface-elevated)",
+        },
+        'text-primary': "var(--text-primary)",
+        'text-secondary': "var(--text-secondary)",
+        'text-muted': "var(--text-muted)",
+        'border-subtle': "var(--border-subtle)",
+        'border-strong': "var(--border-strong)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { ThemeProvider } from './context/ThemeContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { MerchantConfigProvider, useMerchantConfig } from './context/MerchantConfigContext'
 import { NotificationProvider } from './context/NotificationContext'
@@ -466,14 +467,16 @@ function ViewportConsumerWrapper({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <MerchantConfigProvider>
-        <NotificationProvider>
-          <ViewportConsumerWrapper>
-            <AppMain />
-          </ViewportConsumerWrapper>
-        </NotificationProvider>
-      </MerchantConfigProvider>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <MerchantConfigProvider>
+          <NotificationProvider>
+            <ViewportConsumerWrapper>
+              <AppMain />
+            </ViewportConsumerWrapper>
+          </NotificationProvider>
+        </MerchantConfigProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   )
 }

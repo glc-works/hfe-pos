@@ -16,6 +16,7 @@ import {
 import { useTranslation } from '../../context/LanguageContext'
 import { useViewport } from '../../context/ViewportContext'
 import { useNotification } from '../../context/NotificationContext'
+import { useTheme } from '../../context/ThemeContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { PropertyZoneConfig, PropertyZoneId, TableStatus } from '../../types/pos'
 
@@ -76,7 +77,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   const { t } = useTranslation()
   const { isMobile } = useViewport()
   const { unreadCount, openServiceTicketsCount } = useNotification()
-  const { themeMode, toggleThemeMode } = useMerchantConfig()
+  const { themeMode, toggleThemeMode } = useTheme()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const totalAlerts = unreadCount + openServiceTicketsCount
 

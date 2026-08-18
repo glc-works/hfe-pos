@@ -118,8 +118,8 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
       1. **Root Cause Breakdown (Kenapa Salah):** Unfiltered analysis of the spatial, mathematical, or architectural flaw.
       2. **The Permanent Invariant (Apa yang Diperbaiki):** Mathematical or structural formula that prevents recurrence.
       3. **Actionable Concrete Fix & Verification Proof:** Exact diff and test evidence.
-24. **Storybook Purity, Single Viewport Ownership & Playwright Headless Mount Guard (Anti-Double-Frame & Anti-Slop Invariant).**
-    - *Universal Full Provider Tree:* All Storybook stories MUST inherit the complete application context tree in `.storybook/preview.tsx` (`<MerchantConfigProvider>`, `<LanguageProvider>`, `<ViewportProvider>`, `<NotificationProvider>`).
+24. **Storybook Purity, Single Viewport Ownership & Experience-Scoped Provider Decoupling (Anti-Double-Frame & Anti-Coupling Invariant).**
+    - *Platform-Neutral Global Decorators:* Global Storybook decorators in `.storybook/preview.tsx` MUST provide neutral platform-level providers (`<ThemeProvider>`, `<LanguageProvider>`, `<ViewportProvider>`, `<NotificationProvider>`). Experience-specific domain states (`MerchantConfigProvider`, `CashierShiftProvider`) belong to experience-scoped decorators or mock args to prevent cross-experience contamination (e.g. CARD/BOOK or Tier 2 Atoms silently coupling to POS merchant state).
     - *Single Viewport Ownership:* Storybook's iframe is the sole authoritative device frame. Adding artificial device wrappers (`min-h-[844px]`, `max-w-md`, or fixed-height wrappers) inside individual `.stories.tsx` files is STRICTLY PROHIBITED.
       - For `layout: 'fullscreen'`: Use pure `w-full min-h-screen p-0`.
       - For `layout: 'centered'`: Center atomic components with balanced padding.

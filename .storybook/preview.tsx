@@ -1,5 +1,6 @@
 import React from "react";
 import type { Preview } from "@storybook/react";
+import { ThemeProvider } from "../src/context/ThemeContext";
 import { MerchantConfigProvider } from "../src/context/MerchantConfigContext";
 import { LanguageProvider } from "../src/context/LanguageContext";
 import { ViewportProvider } from "../src/context/ViewportContext";
@@ -42,23 +43,25 @@ const preview: Preview = {
     (Story, context) => {
       const isFullscreen = context.parameters.layout === "fullscreen";
       return (
-        <MerchantConfigProvider>
+        <ThemeProvider>
           <LanguageProvider>
             <ViewportProvider>
               <NotificationProvider>
-                {isFullscreen ? (
-                  <div className="bg-slate-950 text-slate-100 font-sans min-h-screen w-full">
-                    <Story />
-                  </div>
-                ) : (
-                  <div className="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 flex items-center justify-center">
-                    <Story />
-                  </div>
-                )}
+                <MerchantConfigProvider>
+                  {isFullscreen ? (
+                    <div className="bg-canvas text-primary font-sans min-h-screen w-full">
+                      <Story />
+                    </div>
+                  ) : (
+                    <div className="bg-canvas text-primary font-sans min-h-screen p-4 flex items-center justify-center">
+                      <Story />
+                    </div>
+                  )}
+                </MerchantConfigProvider>
               </NotificationProvider>
             </ViewportProvider>
           </LanguageProvider>
-        </MerchantConfigProvider>
+        </ThemeProvider>
       );
     },
   ],
