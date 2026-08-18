@@ -18,6 +18,9 @@ Skill ini membekali agent untuk mengotomasi komunikasi perbankan open API standa
 
 ## 🚀 Perintah Cepat
 ```bash
-# Uji rekonsiliasi mutasi SNAP BI hari ini
-python3 scripts/hfe.py bank reconcile --account bca-main
+# Cari endpoint dan skema rekonsiliasi bank di Engine API
+python3 scripts/hfex.py search "rekonsiliasi"
+
+# ⚠️ Engine-only: Perintah bank reconcile membutuhkan
+# headless-company-books CLI. Gunakan hfex.py search untuk Experience Layer.
 ```

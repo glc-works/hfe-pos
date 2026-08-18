@@ -17,6 +17,10 @@ Skill ini membekali agent untuk mengelola aset biologis perkebunan (Kebun Gayo 5
 
 ## 🚀 Perintah Cepat
 ```bash
-# Uji siklus panen dan akuntansi PSAK 69
-python3 scripts/e2e-master-runner.py --scenario 01-05-01
+# Cari endpoint dan skema agrikultur di Engine API
+python3 scripts/hfex.py search "agrikultur"
+
+# ⚠️ Engine-only: E2E scenario tests membutuhkan
+# headless-company-books/scripts/e2e-master-runner.py
+# Contoh: python3 scripts/e2e-master-runner.py --scenario 01-05-01
 ```

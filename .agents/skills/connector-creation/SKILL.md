@@ -18,7 +18,7 @@ Sebelum menulis kode atau melakukan integrasi database, lakukan audit terhadap A
 1. **Introspeksi Kesiapan Kernel HFE**:
    - Jalankan tool CLI:
      ```bash
-     python3 scripts/hfe.py search "<kata-kunci-domain>"
+     python3 scripts/hfex.py search "<kata-kunci-domain>"
      ```
    - Periksa apakah domain kemampuan, skema database, atau endpoint terkait sudah ada di HFE.
 2. **Validasi Kontrak OpenAPI 3.1**:
@@ -95,8 +95,7 @@ Sebelum konektor dinyatakan stabil (*Stable Release*), wajib lolos **Audit 5 Poi
 4. **Audit Isolasi Tenant**: Pastikan kredensial Tenant A tidak dapat mengakses buku besar Tenant B.
 5. **Verifikasi Master Radar**:
    ```bash
-   python3 scripts/hfe-rad0.py
-   python3 ../hfe-pos/scripts/hfex-rad0.py
+   python3 scripts/hfex-rad0.py
    ```
    Assert: **0 Critical Gaps** & seluruh berkas kode `<400 baris` (batas mutlak `<500 baris`).
 
@@ -123,7 +122,7 @@ Saat pihak ketiga merilis versi API baru (misal: Xero API v3, DJP Coretax v4.0, 
 
 Saat mengaudit atau mengupdate konektor luar, jika menemukan pola desain yang unggul dan belum dimiliki HFE:
 
-1. Jalankan `python3 scripts/hfe.py search "<keyword>"` untuk memastikan apakah HFE sudah memiliki fitur tersebut.
+1. Jalankan `python3 scripts/hfex.py search "<keyword>"` untuk memastikan apakah HFE sudah memiliki fitur tersebut.
 2. Jika belum ada, susun dokumen **Level-2 Feature Proposal** di `docs/active/plans/level-2/`:
    - 🌟 *Inspirasi Sumber*: Pola API eksternal yang ditemukan (misal: Stripe Test Clocks, Xero Bank Rules).
    - 💡 *Nilai Tambah*: Manfaat bagi merchant dan keunggulan arsitektur HFE.
@@ -137,4 +136,4 @@ Jika selama implementasi ditemukan kasus tepi (*edge-case*) baru:
 
 1. Panggil perintah `/learn` untuk memperbarui berkas `SKILL.md` ini secara modular.
 2. Naikkan nomor versi semantik di header YAML (`version: "2.x.x"`).
-3. Sinkronkan pembaruan skill ke kedua repositori dan validasi dengan `python3 scripts/hfe-rad0.py`.
+3. Sinkronkan pembaruan skill ke kedua repositori dan validasi dengan `python3 scripts/hfex-rad0.py`.

@@ -157,7 +157,7 @@ Semua komponen UI wajib ditempatkan secara disiplin pada salah satu dari 6 lapis
 
 1. **Tool Pencarian Semantik CLI**:
    ```bash
-   python3 scripts/hfe.py search "<kata-kunci>"
+    python3 scripts/hfex.py search "<kata-kunci>"
    ```
 2. **Tool Modern Web Guidance Search**:
    ```bash

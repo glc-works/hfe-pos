@@ -17,6 +17,10 @@ Skill ini membekali agent untuk melakukan konsolidasi laporan keuangan holding (
 
 ## 🚀 Perintah Cepat
 ```bash
-# Uji konsolidasi holding dan eliminasi bilateral
-python3 scripts/e2e-master-runner.py --scenario 01-06-01
+# Cari endpoint dan skema konsolidasi di Engine API
+python3 scripts/hfex.py search "holding"
+
+# ⚠️ Engine-only: E2E scenario tests membutuhkan
+# headless-company-books/scripts/e2e-master-runner.py
+# Contoh: python3 scripts/e2e-master-runner.py --scenario 01-06-01
 ```

@@ -21,9 +21,9 @@ Skill ini membekali agent dengan kapabilitas untuk mengaudit, menghitung, dan me
 
 ## 🚀 Perintah Cepat
 ```bash
-# Validasi jurnal pajak bulan berjalan
-python3 scripts/hfe.py report tax --period current
+# Cari endpoint dan skema pajak di Engine API
+python3 scripts/hfex.py search "pajak"
 
-# Ekspor draft SPT Masa PPN
-python3 scripts/hfe.py report efaktur --month 2026-08
+# ⚠️ Engine-only: Perintah report tax dan report efaktur membutuhkan
+# headless-company-books CLI. Gunakan hfex.py search untuk Experience Layer.
 ```
