@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""Unified HFE Introspection & Capability Discovery CLI (Public Distribution).
+"""HFEX Introspection & Capability Discovery CLI (Experience Layer).
 Pure Zero-Storage In-Memory Projection of HFE Canonical OpenAPI 3.1 Contract
-and Arbitrary Depth Plans (L0..LN) & Scenario (L0..L2) Indexing Engine.
+and Arbitrary Depth Plans (L0..LN) Indexing Engine.
+
+This is the Experience Layer adaptation of hfe.py. Engine-only subcommands
+(scenario, town) are not available here — use headless-company-books/scripts/hfe.py
+for those.
 """
 
 import sys
@@ -10,22 +14,16 @@ import glob
 import re
 import json
 import argparse
-import subprocess
 from typing import Dict, List, Any, Optional, Set
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PARENT_DIR = os.path.dirname(REPO_ROOT)
 OPENAPI_PATHS = [
-    os.path.join(REPO_ROOT, "hcb2", "service", "openapi.json"),
-    os.path.join(REPO_ROOT, "docs", "active", "reference", "openapi.json"),
-    os.path.join(REPO_ROOT, "hcb2", "openapi.json"),
-    os.path.join(REPO_ROOT, "openapi.json"),
-    os.path.join(PARENT_DIR, "headless-company-books", "docs", "active", "reference", "openapi.json"),
+    os.path.join(PARENT_DIR, "headless-company-books", "docs", "active", "api", "openapi-v1.json"),
     os.path.join(PARENT_DIR, "headless-company-books", "hcb2", "service", "openapi.json"),
-    os.path.join(PARENT_DIR, "headless-company-books", "openapi.json"),
+    os.path.join(REPO_ROOT, "openapi.json"),
 ]
 PLANS_DIR = os.path.join(REPO_ROOT, "docs", "active", "plans")
-SCENARIOS_DIR = os.path.join(REPO_ROOT, "docs", "active", "scenarios")
 
 def load_spec():
     for p in OPENAPI_PATHS:
@@ -36,6 +34,9 @@ def load_spec():
             except Exception:
                 continue
     print("Error: Could not locate canonical openapi.json", file=sys.stderr)
+    print("  Searched paths:", file=sys.stderr)
+    for p in OPENAPI_PATHS:
+        print(f"    {'✓' if os.path.exists(p) else '✗'} {p}", file=sys.stderr)
     sys.exit(1)
 
 def cmd_stats(spec, args):
@@ -166,7 +167,7 @@ def cmd_schema(spec, args):
             target, target_name = sspec, sname
             break
     if not target:
-        print(f"❌ Schema DTO '{name}' not found. Run 'hfe search {name}' to find matching types.", file=sys.stderr)
+        print(f"❌ Schema DTO '{name}' not found. Run 'hfex search {name}' to find matching types.", file=sys.stderr)
         sys.exit(1)
 
     print("=" * 70 + f"\n 📦 DTO SCHEMA: {target_name}\n Description: {target.get('description', 'No description provided')}\n" + "=" * 70)
@@ -285,7 +286,7 @@ def cmd_plan(args):
         print(json.dumps(matched_plans, indent=2))
         return
 
-    print("=" * 80 + f"\n 📑 HFE PLAN DISCOVERY (L0..LN)" + (f" | Search: '{query}'" if query else "") + (f" | Dim: {dim_filters}" if dim_filters else "") + f"\n" + "=" * 80)
+    print("=" * 80 + f"\n 📑 HFEX PLAN DISCOVERY (L0..LN)" + (f" | Search: '{query}'" if query else "") + (f" | Dim: {dim_filters}" if dim_filters else "") + f"\n" + "=" * 80)
     print(f" Found {len(matched_plans)} matching plan document(s) across repository:")
     for p in matched_plans:
         dims = p.get("dimensions", {})
@@ -296,100 +297,8 @@ def cmd_plan(args):
         print(f"      Status:     {p.get('status')} | Parent: {p.get('parent_id') or 'N/A'}\n      Dimensions: {dim_str}\n      Path:       {p.get('path')}")
     print("\n" + "=" * 80)
 
-def cmd_scenario(args):
-    action = (args.action or "list").strip().lower()
-    runner = os.path.join(REPO_ROOT, "scripts", "e2e-master-runner.py")
-    if action == "sync":
-        from radar.story_sync import sync_scenarios
-        res = sync_scenarios()
-        print("=" * 70 + "\n 🔄 HFE SCENARIO CRYPTOGRAPHIC SYNC\n" + "=" * 70)
-        print(f" • Total Scenarios Synced: {res['total_scenarios']}\n • Created: {len(res['created'])} | Updated: {len(res['updated'])} | In-Sync: {len(res['unchanged'])}\n • Ledger:  {res['ledger_path']} (Synced At: {res['synced_at']})\n" + "=" * 70 + "\n✅ Cryptographic state ledger is 100% up to date.")
-    elif action == "audit":
-        from radar.story_sync import audit_gaps
-        res = audit_gaps()
-        print("=" * 75 + "\n 🛡️  HFE SCENARIO 4-GATE AUDIT REPORT\n" + "=" * 75)
-        for line in res.summary_lines: print(f" {line}")
-        print("=" * 75)
-        if res.is_healthy:
-            print("✅ 0 GAPS DETECTED — All 17 scenarios satisfy 4-Gate Cryptographic Invariants.")
-        else:
-            print(f"❌ AUDIT FAILED — {len(res.gaps)} gap(s) detected.", file=sys.stderr)
-            sys.exit(1)
-    elif action == "diff":
-        from radar.story_sync import diff_scenarios
-        res = diff_scenarios()
-        print("=" * 70 + f"\n 🔍 HFE SCENARIO CRYPTOGRAPHIC DRIFT & DIFF (Last: {res['ledger_last_synced'] or 'Never'})\n" + "=" * 70)
-        if res['diff_count'] == 0:
-            print("✅ Zero drift detected. Disk state matches cryptographic ledger exactly.")
-        else:
-            print(f"⚠️ Found {res['diff_count']} drift item(s):")
-            for d in res['diffs']: print(f"  • [{d['type']}] {d['id']}: {d['title']} ({d['path']})")
-        print("=" * 70)
-    elif action == "list":
-        subprocess.run([sys.executable, runner, "--list"])
-    elif action in ("run", "exec"):
-        target = args.query or (args.extra_args[0] if args.extra_args else "")
-        cmd = [sys.executable, runner]
-        if target:
-            cmd.extend(["--scenario", target])
-        subprocess.run(cmd)
-    elif action in ("search", "find"):
-        query = args.query or (" ".join(args.extra_args) if args.extra_args else "")
-        search_terms = expand_search_terms(query) if query else set()
-        matched = []
-        for root, _, files in os.walk(SCENARIOS_DIR):
-            if "/templates" in root or "\\templates" in root:
-                continue
-            for f in sorted(files):
-                if not f.endswith(".md") or f in ("README.md", "crosswalk.md", "index.md"):
-                    continue
-                fpath = os.path.join(root, f)
-                with open(fpath, "r", encoding="utf-8", errors="ignore") as fp:
-                    content = fp.read()
-                mterms = [t for t in search_terms if t in content.lower()]
-                if mterms or not query:
-                    id_m = re.search(r"^id:\s*([^\n\r]+)", content, re.MULTILINE)
-                    title_m = re.search(r"^title:\s*([^\n\r]+)", content, re.MULTILINE)
-                    lvl_m = re.search(r"^level:\s*(\d+)", content, re.MULTILINE)
-                    sid = id_m.group(1).strip().strip("\"'") if id_m else f
-                    stitle = title_m.group(1).strip().strip("\"'") if title_m else f
-                    slvl = int(lvl_m.group(1)) if lvl_m else 2
-                    matched.append((sid, stitle, slvl, os.path.relpath(fpath, REPO_ROOT), ", ".join(sorted(set(mterms)))))
-        print("=" * 80 + f"\n 🌐 HFE SCENARIO SEARCH: '{query}'\n" + "=" * 80)
-        print(f" Found {len(matched)} matching scenario(s) in SSOT repository:")
-        for sid, title, lvl, path, terms in matched:
-            term_str = f" [Matched: '{terms}']" if terms else ""
-            print(f"\n • [L{lvl}] {sid}: {title}{term_str}\n      Path: {path}")
-        print("\n" + "=" * 80)
-
-def cmd_town(args):
-    engine_path = os.path.join(REPO_ROOT, "scripts", "agent_town", "world_sim.py")
-    action = (args.action or "sim").strip().lower()
-    cmd = [sys.executable, engine_path]
-    if action == "status":
-        cmd.append("--status")
-        if args.json:
-            cmd.append("--json")
-    else:
-        if args.days is not None:
-            cmd.extend(["--days", str(args.days)])
-        if args.speed:
-            cmd.extend(["--speed", args.speed])
-        if getattr(args, "hours", None):
-            cmd.extend(["--hours", args.hours])
-        if getattr(args, "drama_rate", None) is not None:
-            cmd.extend(["--drama-rate", str(args.drama_rate)])
-        if getattr(args, "novel", False):
-            cmd.append("--novel")
-        if args.json:
-            cmd.append("--json")
-    if args.extra_args:
-        cmd.extend(args.extra_args)
-    subprocess.run(cmd)
-
 def cmd_skill(args):
     skills_dir = os.path.join(REPO_ROOT, ".agents", "skills")
-    action = (args.action or "list").strip().lower()
     skills = []
     if os.path.exists(skills_dir):
         for sname in sorted(os.listdir(skills_dir)):
@@ -400,14 +309,14 @@ def cmd_skill(args):
                 desc_m = re.search(r'description:\s*["\']?(.*?)["\']?\s*\n', content)
                 desc = desc_m.group(1) if desc_m else "No description available"
                 skills.append((sname, desc, sfile))
-    print("=" * 80 + "\n 🏪 HFE AGENT SKILL MARKETPLACE & CATALOG (.agents/skills/)\n" + "=" * 80)
+    print("=" * 80 + "\n 🏪 HFEX AGENT SKILL CATALOG (.agents/skills/)\n" + "=" * 80)
     print(f" Registered Agent Skills: {len(skills)} skills available in ecosystem:")
     for name, desc, path in skills:
         print(f"\n • {name:22} : {desc}\n   Path: {os.path.relpath(path, REPO_ROOT)}")
     print("\n" + "=" * 80)
 
 def main():
-    parser = argparse.ArgumentParser(description="HFE Introspection & Capability Discovery CLI (Pure SSOT Derivation)")
+    parser = argparse.ArgumentParser(description="HFEX Introspection & Capability Discovery CLI (Experience Layer)")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("stats", help="Show global API statistics and metrics")
     p_domains = subparsers.add_parser("domains", help="List all capability domains and tags")
@@ -424,31 +333,13 @@ def main():
     p_plan.add_argument("--level", "-l", type=int, default=None, help="Filter by plan level (0..N)")
     p_plan.add_argument("--status", type=str, default=None, help="Filter by status (IMPLEMENTED, PROPOSED, READY_TO_BUILD, BACKLOG)")
     p_plan.add_argument("--json", action="store_true", help="Output results as JSON")
-    p_scen = subparsers.add_parser("scenario", help="Discover, search, and run Business Scenarios (L0..L2)")
-    p_scen.add_argument("action", nargs="?", default="list", help="Action: list, search, run")
-    p_scen.add_argument("query", nargs="?", default="", help="Search query or scenario ID to run")
-    p_scen.add_argument("extra_args", nargs="*", default=[], help="Additional arguments")
-    p_town = subparsers.add_parser("town", help="Headless Agent Town & Game Simulation Engine")
-    p_town.add_argument("action", nargs="?", default="sim", choices=["sim", "status"], help="Action: sim, status")
-    p_town.add_argument("--days", type=int, default=None, help="Number of virtual days to simulate")
-    p_town.add_argument("--actors", type=int, default=None, help="Number of autonomous actors")
-    p_town.add_argument("--speed", choices=["slow", "fast", "warp"], default=None, help="Simulation speed: slow, fast, warp")
-    p_town.add_argument("--hours", type=str, default=None, help="Operating hours: default, 24h, or <open>-<close>")
-    p_town.add_argument("--drama-rate", type=float, default=None, help="Drama probability rate (0.0 to 1.0)")
-    p_town.add_argument("--novel", action="store_true", help="Print full literary narrative novel chapters with dialogues")
-    p_town.add_argument("--json", action="store_true", help="Output raw telemetry JSON")
-    p_town.add_argument("extra_args", nargs="*", default=[], help="Additional arguments")
-    p_skill = subparsers.add_parser("skill", help="Explore HFE Agent Skills & Ecosystem Catalog")
+    p_skill = subparsers.add_parser("skill", help="Explore HFEX Agent Skills & Ecosystem Catalog")
     p_skill.add_argument("action", nargs="?", default="list", help="Action: list, info")
     p_skill.add_argument("query", nargs="?", default="", help="Skill name or query")
 
     args = parser.parse_args()
     if args.command == "plan":
         cmd_plan(args)
-    elif args.command == "scenario":
-        cmd_scenario(args)
-    elif args.command == "town":
-        cmd_town(args)
     elif args.command == "skill":
         cmd_skill(args)
     else:
