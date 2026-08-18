@@ -127,6 +127,10 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
     - *Playwright Headless Mount Gate:* Never declare Storybook verified solely via `npm run build-storybook`. Verification requires executing `node scripts/audit-storybook-playwright.cjs` asserting 100% pass across all stories in `index.json`.
 25. **Mandatory End-of-Session /learn Persistence Invariant.**
     - Whenever a user corrects an anti-pattern, architectural flaw, or spatial collision, the agent MUST trigger `/learn` before session close to persist the permanent invariant into `AGENTS.md` and prevent recurrence.
+26. **SDK Discrepancy & Core SSOT Escalation Protocol (Zero Local Workarounds Invariant).**
+    - *Zero Local Workarounds:* When a capability, schema field, or endpoint is missing, incompatible, or deficient in `@hfe/sdk`, writing ad-hoc local adapter workarounds, bypass fetch layers, or inventing shadow TypeScript interfaces in `hfe-pos` is **STRICTLY PROHIBITED**.
+    - *Mandatory Core Issue Filing:* The agent MUST file a structured Issue / Level 2 proposal for the HFE Core (`headless-company-books`) session containing: (1) POS Operational Need, (2) Contract Gap Specification, (3) Proposed Universal Accounting/Domain Primitive, and (4) Expected OpenAPI Schema Delta.
+    - *Upstream Resolution Loop:* The Core session implements the backend logic, updates `openapi.json`, and rebuilds `@hfe/sdk`. The POS frontend then simply adopts the new official SDK release cleanly without any local adapter baggage.
 
 ## Slot Reservation Rules
 
