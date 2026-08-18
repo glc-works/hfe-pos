@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const STORYBOOK_URL = 'http://localhost:6006';
-const BRAIN_DIR = '/Users/aldi/.gemini/antigravity/brain/b1389ef7-dd0b-4095-bbea-de93e1d65656';
+const BRAIN_DIR = process.env.BRAIN_DIR || require('path').join(require('os').homedir(), '.gemini', 'antigravity', 'brain', 'default-captures');
 
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
