@@ -71,8 +71,8 @@ account_code,account_name,debit_minor,credit_minor
 
 Setelah proses upload atau sinkronisasi API selesai, jalankan validasi integritas melalui CLI atau API:
 ```bash
-# Validasi integritas keseimbangan debet == kredit & rekonsiliasi matematis
-python3 scripts/hfe.py scenario audit
+# Validasi integritas keseimbangan & audit 10-pilar radar
+python3 scripts/hfex-rad0.py
 ```
 Sistem akan memastikan bahwa:
 1. Tidak ada saldo akun yang menggantung (*Zero Floating Imbalance*).

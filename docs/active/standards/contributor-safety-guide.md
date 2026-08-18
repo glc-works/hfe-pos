@@ -22,10 +22,10 @@ Panduan resmi keamanan kontribusi kode, protokol anti-drift, dan Standard Operat
    - Buat variasi story memenuhi **Matriks 4 Kuadran** (`Q1: Empty/Rp 0`, `Q2: Short`, `Q3: Overflow 1.8Miliar IDR`, `Q4: Multi-State/Split-Bill`).
    - Gunakan selalu komponen atom Tier 2 dari `@/ui` (`Button`, `Badge`, `PriceTag`, `CapacityBadge`).
 2. 🔄 **Saat Menyelaraskan Cerita & Dokumen Skenario**:
-   - Jalankan skrip sinkronisasi otomatis: `python3 scripts/hfe.py story sync` (atau `npm run story:sync`).
+   - Jalankan skrip audit storybook: `python3 scripts/radar/story_sync.py --audit`.
 3. 🧪 **Sebelum Melakukan Commit**:
    - Jalankan audit radar: `python3 scripts/hfex-rad0.py` dan `npm test`.
-   - Pastikan seluruh 9 pilar berstatus **`0 Critical Gaps / 100% Healthy`**.
+   - Pastikan seluruh 10 pilar berstatus **`0 Critical Gaps / 100% Healthy`**.
 4. 🚀 **Saat Mengakhiri Sesi Kerja**:
    - Lakukan commit bersih dengan conventional commits dan push ke remote: `git push origin main`.
 5. 🔬 **Saat Mengajukan Saran / Perubahan Desain Arsitektur (Implementation-First & Global Benchmarking)**:
