@@ -155,7 +155,7 @@ To ensure complete mathematical synergy with our 2-digit segmented naming conven
 - **Backend Repository (`headless-company-books`)**:
   - Contains **Produk 1 (HFE Core Engine)**.
   - **Single Source of Truth (SSOT)** for all Canonical Master Business Scenarios (`docs/active/scenarios/`).
-  - Master Orchestrator: `python3 scripts/hfe-rad0.py`
+  - Master Orchestrator: `python3 scripts/hfe-rad0.py` (in headless-company-books)
 - **Frontend Repository (`hfe-pos`)**:
   - Contains **HFE-X Platform (Produk 2..5: POS, ORDER, BOARD, CARD + Rebuilt BOOK)**.
   - Contains Thin Markdown Pointer Stubs and Frontend-Specific UI Interaction Scenarios.
@@ -338,7 +338,7 @@ Every Level 2 scenario document explicitly binds its deterministic verification 
 ### 12.3 Deterministic Incremental Failure Caching & Smart Re-Run (`--failed` / `-F`)
 The master runner maintains an execution state ledger in `.radar/e2e_state.json`. When a developer executes:
 ```bash
-python3 scripts/e2e-master-runner.py --failed
+python3 scripts/e2e-master-runner.py --failed  # ⚠️ Engine-only (headless-company-books)
 ```
 The runner instantly skips all green scenarios and re-executes only previously failed scenarios in sub-second latency.
 
@@ -353,7 +353,7 @@ To prevent noisy, informal, or raw proprietary data from polluting the scenario 
 To eliminate stale documentation and dual-maintenance drift across repositories:
 1. **`headless-company-books` is the Sole Master SSOT**: All canonical scenario definitions, YAML frontmatters, and 360° pairing matrices are exclusively authored and maintained in `docs/active/scenarios/` of `headless-company-books`.
 2. **`hfe-pos` Uses Thin Markdown Links**: The scenario directory in `hfe-pos` contains lightweight pointers referencing the master scenarios in `headless-company-books` plus pure frontend UI interaction scenarios.
-3. **Automated Cross-Repo Parity Sentinel**: `python3 scripts/hfe-rad0.py` and `python3 scripts/hfex-rad0.py` automatically verify link resolution integrity (0 broken links).
+3. **Automated Cross-Repo Parity Sentinel**: `python3 scripts/hfe-rad0.py` (in headless-company-books) and `python3 scripts/hfex-rad0.py` (in hfe-pos) automatically verify link resolution integrity (0 broken links).
 
 ---
 

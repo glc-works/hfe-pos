@@ -27,10 +27,18 @@ def _extract_script_refs(filepath: str) -> list[tuple[str, int, str]]:
     return refs
 
 
-def _is_comment_line(line: str) -> bool:
-    """Check if a line is a comment (bash # or markdown annotation)."""
+def _is_annotated_external(line: str) -> bool:
+    """Check if a line marks the reference as external/Engine-only/cross-repo."""
     stripped = line.lstrip()
-    return stripped.startswith("#") or stripped.startswith("⚠️") or stripped.startswith("//")
+    # Bash/code comment lines
+    if stripped.startswith("#") or stripped.startswith("//"):
+        return True
+    # Explicit Engine-only or cross-repo annotations anywhere on line
+    lower = line.lower()
+    return any(marker in lower for marker in [
+        "⚠️", "engine-only", "(in headless-company-books)",
+        "headless-company-books)", "engine repo",
+    ])
 
 
 def audit(root_dir: str = None) -> PillarResult:
@@ -40,6 +48,7 @@ def audit(root_dir: str = None) -> PillarResult:
     # Scan sources: agent skills, start.sh, AGENTS.md
     scan_patterns = [
         os.path.join(root_dir, ".agents", "skills", "**", "SKILL.md"),
+        os.path.join(root_dir, "docs", "active", "**", "*.md"),
         os.path.join(root_dir, "scripts", "start.sh"),
         os.path.join(root_dir, "AGENTS.md"),
         os.path.join(root_dir, "CLAUDE.md"),
@@ -61,7 +70,7 @@ def audit(root_dir: str = None) -> PillarResult:
             abs_path = os.path.join(root_dir, script_path)
             if os.path.isfile(abs_path):
                 valid_refs += 1
-            elif _is_comment_line(raw_line):
+            elif _is_annotated_external(raw_line):
                 # Engine-only annotated references are acceptable
                 annotated_refs += 1
             else:

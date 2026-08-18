@@ -6,7 +6,7 @@ description: "Remediate 38 broken references across hfe-pos scripts, agent skill
 tags: [development-plan, level-2, tooling, broken-links, hfex, remediation]
 parent_level_1: l1-25-engineering-platform-suite
 github_issue: 0
-status: Proposed
+status: Done
 ---
 
 # Level 2 Implementation Plan: HFEX Tooling Broken Link & Dead Reference Remediation
