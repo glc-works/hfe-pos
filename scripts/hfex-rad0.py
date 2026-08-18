@@ -39,7 +39,7 @@ def main():
         "--pillar", "-p",
         type=str,
         default=None,
-        help="Filter specific pillar (1..9 or core, pos, order, card, board, book, admin, storybook, parity)"
+        help="Filter specific pillar (1..10 or core, pos, order, card, board, book, admin, storybook, parity, tooling)"
     )
     parser.add_argument(
         "--matrix", "-M", "-m",

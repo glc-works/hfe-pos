@@ -1,4 +1,8 @@
 const { chromium } = require('playwright')
+const path = require('path')
+const os = require('os')
+
+const brainDir = process.env.BRAIN_DIR || path.join(os.homedir(), '.gemini', 'antigravity', 'brain', 'default-captures')
 
 async function run() {
   const browser = await chromium.launch({ headless: true })
@@ -6,7 +10,7 @@ async function run() {
     viewport: { width: 1280, height: 800 }
   })
   const page = await context.newPage()
-  await page.goto('http://localhost:3000/?app=cafe')
+  await page.goto('http://localhost:5173/?app=cafe')
   await page.waitForTimeout(800)
 
   // Click the compact view button in the command header (the middle grid icon)
@@ -33,7 +37,7 @@ async function run() {
   await page.waitForTimeout(600)
 
   await page.screenshot({
-    path: '/Users/aldi/.gemini/antigravity/brain/b1389ef7-dd0b-4095-bbea-de93e1d65656/screenshot_pos_compact_view.png',
+    path: brainDir + '/screenshot_pos_compact_view.png',
     fullPage: false
   })
   await browser.close()

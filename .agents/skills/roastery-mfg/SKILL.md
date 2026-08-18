@@ -21,6 +21,10 @@ Skill ini membekali agent untuk mengelola pabrik pengolahan biji kopi, kalkulasi
 
 ## 🚀 Perintah Cepat
 ```bash
-# Simulasi perakitan BOM roasting 100kg
-python3 scripts/e2e-master-runner.py --scenario 01-02-01
+# Cari endpoint dan skema roasting/BOM di Engine API
+python3 scripts/hfex.py search "roasting"
+
+# ⚠️ Engine-only: E2E scenario tests membutuhkan
+# headless-company-books/scripts/e2e-master-runner.py
+# Contoh: python3 scripts/e2e-master-runner.py --scenario 01-02-01
 ```

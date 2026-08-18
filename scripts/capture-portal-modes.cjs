@@ -2,11 +2,11 @@ const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch();
-  const brainDir = '/Users/aldi/.gemini/antigravity/brain/b1389ef7-dd0b-4095-bbea-de93e1d65656';
+  const brainDir = process.env.BRAIN_DIR || require('path').join(require('os').homedir(), '.gemini', 'antigravity', 'brain', 'default-captures');
 
   console.log('Capturing HfeCard Portal Views (Mobile 375x812)...');
   const page = await browser.newPage({ viewport: { width: 375, height: 812 } });
-  await page.goto('http://localhost:3000/?app=customer-portal');
+  await page.goto('http://localhost:5173/?app=customer-portal');
   await page.waitForTimeout(800);
 
   // 1. Capture LIFE Mode

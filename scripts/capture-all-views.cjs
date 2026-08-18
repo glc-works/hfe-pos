@@ -2,34 +2,34 @@ const { chromium } = require('playwright');
 
 (async () => {
   const browser = await chromium.launch();
-  const brainDir = '/Users/aldi/.gemini/antigravity/brain/b1389ef7-dd0b-4095-bbea-de93e1d65656';
+  const brainDir = process.env.BRAIN_DIR || require('path').join(require('os').homedir(), '.gemini', 'antigravity', 'brain', 'default-captures');
 
   const captures = [
     {
       name: 'POS Cashier Workstation (Desktop 1280x800)',
       file: 'screenshot_pos_cashier.png',
-      url: 'http://localhost:3000/?app=cafe',
+      url: 'http://localhost:5173/?app=cafe',
       width: 1280,
       height: 800,
     },
     {
       name: 'Customer Member Passbook (Mobile 375x812)',
       file: 'screenshot_customer_portal.png',
-      url: 'http://localhost:3000/?app=customer-portal',
+      url: 'http://localhost:5173/?app=customer-portal',
       width: 375,
       height: 812,
     },
     {
       name: 'Public Landing Storefront (Desktop 1280x800)',
       file: 'screenshot_landing_page.png',
-      url: 'http://localhost:3000/?app=landing',
+      url: 'http://localhost:5173/?app=landing',
       width: 1280,
       height: 800,
     },
     {
       name: 'Customer QR Menu & Cart (Mobile 375x812)',
       file: 'screenshot_customer_qr_mobile.png',
-      url: 'http://localhost:3000/?app=customer',
+      url: 'http://localhost:5173/?app=customer',
       width: 375,
       height: 812,
     },

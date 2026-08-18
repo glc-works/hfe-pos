@@ -42,8 +42,8 @@ npm test
 # 3. Menjalankan Typecheck TypeScript Mandatori
 npm run typecheck
 
-# 4. Sinkronisasi Skenario Storybook & Living Spec
-python3 scripts/hfe.py story sync
+# 4. Sinkronisasi & Audit Skenario Storybook
+python3 scripts/radar/story_sync.py --audit
 ```
 
 ---
