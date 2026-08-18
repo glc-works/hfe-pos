@@ -4,6 +4,9 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 BOLD="\033[1m"
 CYAN="\033[36m"
 GREEN="\033[32m"
@@ -23,36 +26,28 @@ echo ""
 echo -e " ${BOLD}[2] 🎭 Tonton Simulasi Roleplay 5 Tahun (Storytelling Drama)${RESET}"
 echo -e "     • Cerita Mas Budi dari Day-0 sampai Tahun ke-5 Audit WTP di terminal."
 echo ""
-echo -e " ${BOLD}[3] 🤖 Jalankan Simulasi Kota Otonom 30 Hari (Headless CLI)${RESET}"
-echo -e "     • Mensimulasikan 60 virtual ticks perdagangan & memverifikasi jurnal ganda."
-echo ""
-echo -e " ${BOLD}[4] 🧪 Jalankan Semua Pengujian & Audit Radar (Full CI/CD Health Check)${RESET}"
-echo -e "     • 93 file Vitest frontend, 220 tes Rust backend, & audit 9 pilar."
+echo -e " ${BOLD}[3] 🧪 Jalankan Semua Pengujian & Audit Radar (Full CI/CD Health Check)${RESET}"
+echo -e "     • Vitest frontend suite & audit pilar radar."
 echo ""
 echo -e " ${BOLD}[q] Keluar${RESET}"
 echo -e "${BOLD}${BLUE}========================================================================${RESET}"
-read -p " Masukkan pilihan [1-4 atau q]: " CHOICE
+read -p " Masukkan pilihan [1-3 atau q]: " CHOICE
 
 case "$CHOICE" in
   1)
     echo -e "\n${BOLD}${GREEN}🚀 Menyalakan Server Web World.Hfeit...${RESET}"
     echo -e " Silakan buka browser di: ${BOLD}${CYAN}http://localhost:5173${RESET}\n"
-    cd /Users/aldi/claudefiles/hfe-pos
+    cd "$REPO_ROOT"
     npm run dev
     ;;
   2)
     echo -e "\n${BOLD}${YELLOW}🎭 Memulai Simulasi Roleplay 5 Tahun...${RESET}\n"
-    python3 /Users/aldi/claudefiles/headless-company-books/scripts/roleplay-runner.py --horizon-years 5 --speed fast
+    python3 "$SCRIPT_DIR/roleplay-runner.py" --horizon-years 5 --speed fast
     ;;
   3)
-    echo -e "\n${BOLD}${CYAN}🤖 Menjalankan Simulasi Kota Otonom 30 Hari...${RESET}\n"
-    python3 /Users/aldi/claudefiles/headless-company-books/scripts/hfe.py town sim --days 30
-    ;;
-  4)
     echo -e "\n${BOLD}${GREEN}🧪 Menjalankan Audit Kesehatan Penuh...${RESET}\n"
-    python3 /Users/aldi/claudefiles/headless-company-books/scripts/hfe-rad0.py
-    python3 /Users/aldi/claudefiles/hfe-pos/scripts/hfex-rad0.py
-    cd /Users/aldi/claudefiles/hfe-pos && npm test -- --run
+    python3 "$SCRIPT_DIR/hfex-rad0.py"
+    cd "$REPO_ROOT" && npm test -- --run
     ;;
   q|Q)
     echo -e "\nSampai jumpa di World.Hfeit! 👋\n"
