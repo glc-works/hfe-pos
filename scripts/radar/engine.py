@@ -1,6 +1,6 @@
 """
 HFE-POS Master Radar Engine (hfex-rad0).
-Dispatches audits across all 9 modular frontend pillars, runs Vitest test suites,
+Dispatches audits across all 10 modular frontend pillars, runs Vitest test suites,
 and enforces POS-ENG-STD-001 & HFE-UI-STD-001 invariants.
 """
 
@@ -25,6 +25,7 @@ from . import (
     p7_capacity_utilisation,
     p8_bundle_budget,
     p9_git_hygiene,
+    p10_tooling_health,
     clone_detector,
     ast_scanner
 )
@@ -40,6 +41,7 @@ PILLAR_REGISTRY = {
     7: ("capacity_utilisation", p7_capacity_utilisation.audit),
     8: ("bundle_budget", p8_bundle_budget.audit),
     9: ("git_hygiene", p9_git_hygiene.audit),
+    10: ("tooling_health", p10_tooling_health.audit),
 }
 
 PILLAR_NAME_MAP = {
@@ -52,6 +54,7 @@ PILLAR_NAME_MAP = {
     "capacity_utilisation": 7, "capacity": 7, "util": 7, "zigzag": 7, "p7": 7,
     "bundle_budget": 8, "bundle": 8, "vite": 8, "chunks": 8, "p8": 8,
     "git_hygiene": 9, "git": 9, "hygiene": 9, "staging": 9, "hook": 9, "p9": 9,
+    "tooling_health": 10, "tooling": 10, "scripts": 10, "integrity": 10, "health": 10, "p10": 10,
 }
 
 def resolve_pillar_id(target: str) -> Optional[int]:
@@ -129,19 +132,20 @@ def run_radar(
 
     # Text Output
     print("\n" + "=" * 80)
-    print(" 🧭 HFE-POS MASTER RADAR & 9-PILLAR AUDITOR (hfex-rad0)")
+    print(" 🧭 HFE-POS MASTER RADAR & 10-PILLAR AUDITOR (hfex-rad0)")
     print("    Standard: POS-ENG-STD-001 & HFE-UI-STD-001")
     print("=" * 80)
 
+    total_pillars = len(PILLAR_REGISTRY)
     for r in results:
         status_icon = "✅" if r.is_healthy else "❌"
-        print(f"\n[{r.pillar_id}/9] {status_icon} {r.title}")
+        print(f"\n[{r.pillar_id}/{total_pillars}] {status_icon} {r.title}")
         for s in r.summary_lines:
             print(f"    {s}")
 
     print("\n" + "=" * 80)
     if total_gaps == 0:
-        print(f" 🎉 [AUDIT PASSED] 9/9 Pillars Healthy • 0 Critical Gaps ({elapsed:.2f}s)")
+        print(f" 🎉 [AUDIT PASSED] {total_pillars}/{total_pillars} Pillars Healthy • 0 Critical Gaps ({elapsed:.2f}s)")
     else:
         print(f" ⚠️ [AUDIT FAILED] Found {total_gaps} Critical Gap(s) across {len(results)} evaluated pillars ({elapsed:.2f}s)")
     print("=" * 80 + "\n")
@@ -167,7 +171,7 @@ def run_cadence(
 
     # Fast in-memory pillars for SMALL cadence (<0.5s)
     if cadence_upper in ("SMALL", "INNER"):
-        fast_pillars = [1, 2, 3, 5, 6, 7, 9]
+        fast_pillars = [1, 2, 3, 5, 6, 7, 9, 10]
         results = [PILLAR_REGISTRY[pid][1](root_dir=root_dir) for pid in fast_pillars]
         gaps = sum(len(r.gaps) for r in results)
         if as_json:

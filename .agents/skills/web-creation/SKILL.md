@@ -168,7 +168,7 @@ Semua komponen UI wajib ditempatkan secara disiplin pada salah satu dari 6 lapis
 
 ---
 
-## 🧭 PILAR 10: PROTOKOL AUDIT 9-PILAR & DETEKSI CELAH (*9-Pillar Radar & Gap Detection*)
+## 🧭 PILAR 10: PROTOKOL AUDIT 10-PILAR & DETEKSI CELAH (*10-Pillar Radar & Gap Detection*)
 
 Jalankan sentinel auditor otomatis untuk mendeteksi pelanggaran standar UI:
 
@@ -176,8 +176,8 @@ Jalankan sentinel auditor otomatis untuk mendeteksi pelanggaran standar UI:
 python3 scripts/hfex-rad0.py
 ```
 
-### 9 Pilar yang Diaudit Secara Otomatis:
-1. **Modularity (<500 baris)** • 2. **Tier 2 React Aria** • 3. **Spatial Isolation** • 4. **Vitest Suites (100+)** • 5. **OpenAPI Parity** • 6. **Tabular Numbers** • 7. **Capacity Utilisation** • 8. **Vite Bundle Budget (<1.500 KB)** • 9. **Git Hygiene**.
+### 10 Pilar yang Diaudit Secara Otomatis:
+1. **Modularity (<500 baris)** • 2. **Tier 2 React Aria** • 3. **Spatial Isolation** • 4. **Vitest Suites (100+)** • 5. **OpenAPI Parity** • 6. **Tabular Numbers** • 7. **Capacity Utilisation** • 8. **Vite Bundle Budget (<1.500 KB)** • 9. **Git Hygiene** • 10. **Tooling Health (Script Reference & Naming Integrity)**.
 
 ---
 
