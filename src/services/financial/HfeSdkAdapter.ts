@@ -1,6 +1,7 @@
 // --- HFE SDK PRODUCTION ADAPTER (POS-ENG-STD-001) ---
-// Official REST API Transport Layer for Hfe Core (Strict Fail-Closed)
+// Official REST API Transport Layer powered by @hfe/sdk (Strict Fail-Closed)
 
+import { HfeClient, HfeApiError as SdkApiError } from '@hfe/sdk'
 import {
   HfePosFinancialPort,
   CompanyBookSettingsResponse,
@@ -10,7 +11,7 @@ import {
   GenerateQrisPayload,
   QrisPaymentResponse,
   CashierShiftResponse,
-  CashierShiftCloseResponse
+  CashierShiftCloseResponse,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
 
@@ -43,69 +44,66 @@ export interface HfeSdkAdapterOptions {
   baseUrl?: string
   defaultBookId?: string
   timeoutMs?: number
+  token?: string
 }
 
 export class HfeSdkAdapter implements HfePosFinancialPort {
   readonly isSimulated = false
   readonly adapterName = 'HfeSdkAdapter'
 
-  private readonly baseUrl: string
+  private readonly client: HfeClient
   private readonly defaultBookId: string
   private readonly timeoutMs: number
 
   constructor(options?: HfeSdkAdapterOptions) {
-    this.baseUrl = options?.baseUrl || 'http://localhost:8080'
+    const baseUrl = options?.baseUrl || 'http://localhost:8080'
     this.defaultBookId = options?.defaultBookId || ''
     this.timeoutMs = options?.timeoutMs || 10000
+
+    this.client = new HfeClient({
+      baseUrl,
+      token: options?.token,
+      fetchFn: (...args) => globalThis.fetch(...args),
+    })
   }
 
   private resolveTargetBook(bookId?: string): string {
     const book = bookId || this.defaultBookId
     if (!book || book.trim() === '') {
-      throw new Error('companyBookId is required for ledger operations. Fail-closed: zero fallback default allowed.')
+      throw new Error(
+        'companyBookId is required for ledger operations. Fail-closed: zero fallback default allowed.'
+      )
     }
     return book
   }
 
-  private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const url = `${this.baseUrl}${path}`
+  private async request<T>(
+    method: string,
+    path: string,
+    options: { params?: Record<string, any>; body?: any; idempotencyKey?: string; headers?: Record<string, string> } = {}
+  ): Promise<T> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs)
 
     try {
-      const response = await fetch(url, {
-        ...init,
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          ...init?.headers,
-        },
-      })
-
-      if (!response.ok) {
-        let errorData: any
-        try {
-          errorData = await response.json()
-        } catch {
-          errorData = await response.text()
-        }
-        const errorMsg =
-          typeof errorData === 'object' && errorData?.message
-            ? errorData.message
-            : `Request failed with HTTP status ${response.status}`
-        throw new HfeApiError(response.status, errorMsg, errorData)
-      }
-
-      return (await response.json()) as T
+      return await this.client.request<T>(method, path, options)
     } catch (err: unknown) {
+      if (err instanceof SdkApiError) {
+        throw new HfeApiError(err.status, err.message, err.details)
+      }
       if (err instanceof HfeApiError) {
         throw err
       }
       if (err instanceof Error && err.name === 'AbortError') {
-        throw new HfeNetworkError(`Request timed out after ${this.timeoutMs}ms to ${url}`, err)
+        throw new HfeNetworkError(
+          `Request timed out after ${this.timeoutMs}ms to ${this.client.baseUrl}${path}`,
+          err
+        )
       }
-      throw new HfeNetworkError(`Network failure connecting to Hfe Core at ${url}`, err)
+      throw new HfeNetworkError(
+        `Network failure connecting to Hfe Core at ${this.client.baseUrl}${path}`,
+        err
+      )
     } finally {
       clearTimeout(timeoutId)
     }
@@ -113,9 +111,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
 
   async fetchProductCatalog(bookId?: string): Promise<MenuItem[]> {
     const targetBook = this.resolveTargetBook(bookId)
-    return this.request<MenuItem[]>(`/v1/company-books/${targetBook}/products`, {
-      method: 'GET',
-    })
+    return this.request<MenuItem[]>('GET', `/v1/company-books/${targetBook}/products`)
   }
 
   async resolveContact(
@@ -130,10 +126,11 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       phone: phone || '',
       display_name: name || '',
     }
-    return this.request<ResolveContactResponse>(`/v1/company-books/${targetBook}/contacts/resolve`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })
+    return this.request<ResolveContactResponse>(
+      'POST',
+      `/v1/company-books/${targetBook}/contacts/resolve`,
+      { body: payload }
+    )
   }
 
   async submitRetailTransaction(
@@ -168,13 +165,17 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       idempotency_key: idempotencyKey,
     }
 
-    return this.request<SubmitRetailTransactionResponse>(`/v1/company-books/${targetBook}/transactions`, {
-      method: 'POST',
-      headers: {
-        'X-Idempotency-Key': idempotencyKey,
-      },
-      body: JSON.stringify(bodyPayload),
-    })
+    return this.request<SubmitRetailTransactionResponse>(
+      'POST',
+      `/v1/company-books/${targetBook}/transactions`,
+      {
+        body: bodyPayload,
+        headers: {
+          'X-Idempotency-Key': idempotencyKey,
+        },
+        idempotencyKey,
+      }
+    )
   }
 
   async generateQrisPayment(
@@ -189,10 +190,11 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       merchant_name: payload.merchant_name,
     }
 
-    return this.request<QrisPaymentResponse>(`/v1/company-books/${targetBook}/payments/qris/generate`, {
-      method: 'POST',
-      body: JSON.stringify(bodyPayload),
-    })
+    return this.request<QrisPaymentResponse>(
+      'POST',
+      `/v1/company-books/${targetBook}/payments/qris/generate`,
+      { body: bodyPayload }
+    )
   }
 
   async openCashierShift(
@@ -201,13 +203,16 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     bookId?: string
   ): Promise<CashierShiftResponse> {
     const targetBook = this.resolveTargetBook(bookId)
-    return this.request<CashierShiftResponse>(`/v1/company-books/${targetBook}/shifts/open`, {
-      method: 'POST',
-      body: JSON.stringify({
-        cashier_id: cashierId,
-        initial_float: initialFloat,
-      }),
-    })
+    return this.request<CashierShiftResponse>(
+      'POST',
+      `/v1/company-books/${targetBook}/shifts/open`,
+      {
+        body: {
+          cashier_id: cashierId,
+          initial_float: initialFloat,
+        },
+      }
+    )
   }
 
   async closeCashierShift(
@@ -216,18 +221,22 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     bookId?: string
   ): Promise<CashierShiftCloseResponse> {
     const targetBook = this.resolveTargetBook(bookId)
-    return this.request<CashierShiftCloseResponse>(`/v1/company-books/${targetBook}/shifts/${shiftId}/close`, {
-      method: 'POST',
-      body: JSON.stringify({
-        reported_cash: reportedCash,
-      }),
-    })
+    return this.request<CashierShiftCloseResponse>(
+      'POST',
+      `/v1/company-books/${targetBook}/shifts/${shiftId}/close`,
+      {
+        body: {
+          reported_cash: reportedCash,
+        },
+      }
+    )
   }
 
   async fetchCompanyBookSettings(bookId?: string): Promise<CompanyBookSettingsResponse> {
     const targetBook = this.resolveTargetBook(bookId)
-    return this.request<CompanyBookSettingsResponse>(`/v1/company-books/${targetBook}/settings`, {
-      method: 'GET',
-    })
+    return this.request<CompanyBookSettingsResponse>(
+      'GET',
+      `/v1/company-books/${targetBook}/settings`
+    )
   }
 }
