@@ -15,4 +15,25 @@ export default defineConfig({
     port: 3000,
     host: true,
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react'
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons'
+            }
+            if (id.includes('@radix-ui') || id.includes('react-aria')) {
+              return 'vendor-ui'
+            }
+            return 'vendor-core'
+          }
+        },
+      },
+    },
+  },
 })
