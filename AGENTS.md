@@ -2,7 +2,7 @@
 
 `glc-works/hfe-pos` is the canonical repository for active work on the **Point of Sale (POS) & Retail Cashier Frontend Suite**.
 
-Read `ARCHITECTURE.md` first as the highest technical contract, then `DEVELOPMENT.md` for delivery process authority. `CLAUDE.md` and this file are contributor entry points only.
+Read `ARCHITECTURE.md` first as the highest technical contract, `docs/active/standards/HFE-OMBOK-STD-001.md` for Operations Management & Agent Rigor, then `DEVELOPMENT.md` for delivery process authority. `CLAUDE.md` and this file are contributor entry points only.
 
 ## Current product lifecycle state
 

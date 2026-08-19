@@ -313,12 +313,64 @@ def cmd_skill(args):
     print(f" Registered Agent Skills: {len(skills)} skills available in ecosystem:")
     for name, desc, path in skills:
         print(f"\n • {name:22} : {desc}\n   Path: {os.path.relpath(path, REPO_ROOT)}")
-    print("\n" + "=" * 80)
+def cmd_ombok(args):
+    std_file = os.path.join(REPO_ROOT, "docs", "active", "standards", "HFE-OMBOK-STD-001.md")
+    print("=" * 80 + "\n 🏛️  HFE-OMBOK-STD-001: OPERATIONS MANAGEMENT BODY OF KNOWLEDGE\n" + "=" * 80)
+    print(" APICS/ASCM OMBOK Framework & Agent Rigor Standard for HFE Commerce Suite\n" + "-" * 80)
+    print(" 1. BOM & Yield Shrinkage Loss (Domain II):")
+    print("    • 15% Moisture loss on roasting (SCN-01-02-01) resolved to GL 1102 & GL 5102 via Core.")
+    print(" 2. Spatial Capacity Utilization (Domain III):")
+    print("    • Real-time occupancy ratio required on table cards (👥 seatedGuests/maxCapacity Kursi).")
+    print("    • VIP minimum spend progress bar (RevPASH optimization).")
+    print(" 3. Work-Order Decomposition & TOC Dispatch (Domain III):")
+    print("    • Deterministic chit routing to Barista Bar vs Hot Kitchen to prevent bottleneck.")
+    print(" 4. Poka-Yoke & Mistake-Proofing (Domain IV - Lean Quality):")
+    print("    • Numpad speed keys & banknote ceiling guards (anti-calculation error).")
+    print(" 5. Agent Engineering Rigor (Autonomous Operations):")
+    print("    • Poka-Yoke: Hard Zero-Write Gate on review/feedback turns.")
+    print("    • Andon Cord: 6 Physical Quality Gates blocking commits on any failure.")
+    print("    • Theory of Constraints: Level 2 atomic micro-iterations (no big-bang rewrite).")
+    print("    • Kaizen: Mandatory /learn persistence to AGENTS.md on corrections.")
+    print("    • SSOT Upstream: Zero local workaround adapters; file Issue for Core.")
+    print("-" * 80 + f"\n Standard Authority: {os.path.relpath(std_file, REPO_ROOT)}\n" + "=" * 80)
+
+def cmd_rules(args):
+    print("=" * 80 + "\n 📜 HFE-POS CANONICAL AGENT INVARIANTS & 26 CODIFIED RULES (AGENTS.md)\n" + "=" * 80)
+    rules_summary = [
+        ("Rule 1-4", "Core Engineering Principles (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven)"),
+        ("Rule 5", "Single Source of Truth (SSOT) Everywhere - Zero State Drift"),
+        ("Rule 6", "Primary Pilot Consumer & Engine Purity Invariant (Zero backend logic leakage)"),
+        ("Rule 7", "Pure Viewport App Shell (100dvh) & Single Scroll Owner Invariant"),
+        ("Rule 8", "3-Tier Data Authority & Zero-Drift Resolution Rule (Upstream Check First)"),
+        ("Rule 9", "Mandatory Multi-Device & Mobile Viewport Stress-Testing (360px-390px)"),
+        ("Rule 10", "Apple HIG & Nielsen Norman Microcopy Standard (Verb-First, Zero-Parentheses)"),
+        ("Rule 11", "Mandatory Live Browser Inspection Protocol (DevMode 5173 vs Preview 4173)"),
+        ("Rule 12", "Universal Cross-Scenario Abstraction & Generalization Invariant (Anti-Silo)"),
+        ("Rule 13", "Universal Viewport SSOT & 3-Zone Header Budget Invariant (useViewport())"),
+        ("Rule 14", "The 6-Tier Atomic Domain Hierarchy & React Aria Engine"),
+        ("Rule 15", "Centralized Global Ecosystem Governance with Scoped Storefront Overrides"),
+        ("Rule 16", "Mathematical Proportion, Golden Ratio (61.8% : 38.2%) & 8-Point Spatial Grid"),
+        ("Rule 17", "Browser-to-Native App Parity Invariant (Zero-Web-Artifacts & Haptic Tactility)"),
+        ("Rule 18", "Hfe Core Endpoints & Universal Accounting Truth Invariant (@hfe/sdk 2.0.0)"),
+        ("Rule 19", "Mission-Critical Data Handling, Offline Persistence & Fail-Closed ACID Storage"),
+        ("Rule 20", "The 4 Core Experience Pillars (POS, CARD, BOARD, ORDER)"),
+        ("Rule 21", "State Management Separation & Universal Component Reuse Protocol"),
+        ("Rule 22", "The Proportional Tetris & Child-Slot Budget Invariant (Width >= 105px)"),
+        ("Rule 23", "Zero-Apology & Direct Iterative Post-Mortem Protocol (3-Part Retrospective)"),
+        ("Rule 24", "Storybook Purity, Single Viewport Ownership & Decoupled Platform Providers"),
+        ("Rule 25", "Mandatory End-of-Session /learn Persistence Invariant"),
+        ("Rule 26", "SDK Discrepancy & Core SSOT Escalation Protocol (Zero Local Workarounds)"),
+    ]
+    for code, desc in rules_summary:
+        print(f" • {code:12} : {desc}")
+    print("=" * 80)
 
 def main():
     parser = argparse.ArgumentParser(description="HFEX Introspection & Capability Discovery CLI (Experience Layer)")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("stats", help="Show global API statistics and metrics")
+    subparsers.add_parser("ombok", help="Show APICS/ASCM OMBOK operational & agent rigor standards")
+    subparsers.add_parser("rules", help="Show 26 canonical agent engineering rules from AGENTS.md")
     p_domains = subparsers.add_parser("domains", help="List all capability domains and tags")
     p_domains.add_argument("-v", "--verbose", action="store_true", help="List all endpoints per domain")
     p_search = subparsers.add_parser("search", help="Search endpoints and DTO schemas by keyword")
@@ -342,6 +394,10 @@ def main():
         cmd_plan(args)
     elif args.command == "skill":
         cmd_skill(args)
+    elif args.command == "ombok":
+        cmd_ombok(args)
+    elif args.command == "rules":
+        cmd_rules(args)
     else:
         spec = load_spec()
         if args.command == "stats":
@@ -355,3 +411,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
