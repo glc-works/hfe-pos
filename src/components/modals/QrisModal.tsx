@@ -18,7 +18,7 @@ export const QrisModal: React.FC<QrisModalProps> = ({ show, onCompletePayment })
         
         <div className="bg-white p-4 rounded-2xl shadow-inner border border-slate-200">
           <img 
-            src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=HFE-POS-CAFE-QRIS" 
+            src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=POS-HFEIT-CAFE-QRIS" 
             alt="QRIS Code" 
             className="w-44 h-44"
           />

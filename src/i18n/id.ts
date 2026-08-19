@@ -166,6 +166,6 @@ export const idTranslations: TranslationDictionary = {
     facilitiesTitle: 'Fasilitas & Kenyamanan Outlet Kafe',
     featuredMenuTitle: 'Menu Specialty Populer',
     viewAllCatalog: 'Lihat Seluruh Katalog',
-    hours: 'Jam Operasional: Setiap Hari 07:00 - 23:00 WIB • Powered by HFE Core Engine'
+    hours: 'Jam Operasional: Setiap Hari 07:00 - 23:00 WIB • Powered by CORE.Hfeit Engine'
   }
 }

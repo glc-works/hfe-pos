@@ -77,6 +77,13 @@ def main():
         help="Render 2D Orthogonal Matrix exclusively for Experience Plans (L0..LN)"
     )
     parser.add_argument(
+        "--cadence", "-c",
+        type=str,
+        choices=["small", "inner", "medium", "outer", "large", "live"],
+        default=None,
+        help="Execute specific verification cadence (small/inner, medium/outer, large/live)"
+    )
+    parser.add_argument(
         "--small",
         action="store_true",
         help="Run Google SMALL / INNER Cadence (<0.5s in-memory static guards: modularity, connector, ui-standards)"
@@ -177,6 +184,11 @@ def main():
     if args.matrix or args.group_by is not None:
         group_by = args.group_by if args.group_by else "PILLAR"
         sys.exit(render_dimension_matrix(group_by=group_by, as_json=args.json))
+
+    if args.cadence:
+        c_map = {"small": "SMALL", "inner": "SMALL", "medium": "MEDIUM", "outer": "MEDIUM", "large": "LARGE", "live": "LARGE"}
+        cad_name = c_map.get(args.cadence.lower(), "SMALL")
+        sys.exit(run_cadence(cadence=cad_name, target_level=args.level, as_json=args.json))
 
     if args.small or args.inner:
         sys.exit(run_cadence(cadence="SMALL", target_level=args.level, as_json=args.json))

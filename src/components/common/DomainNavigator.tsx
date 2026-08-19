@@ -51,7 +51,7 @@ export const DomainNavigator: React.FC<DomainNavigatorProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Globe className="w-3.5 h-3.5" /> Landing Page
+            <Globe className="w-3.5 h-3.5" /> BOARD.Hfeit
           </button>
 
           <button
@@ -63,7 +63,7 @@ export const DomainNavigator: React.FC<DomainNavigatorProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Smartphone className="w-3.5 h-3.5" /> Customer QR
+            <Smartphone className="w-3.5 h-3.5" /> ORDER.Hfeit
           </button>
 
           <button
@@ -75,7 +75,7 @@ export const DomainNavigator: React.FC<DomainNavigatorProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Store className="w-3.5 h-3.5" /> Cashier & Staff
+            <Store className="w-3.5 h-3.5" /> POS.Hfeit
           </button>
 
           <button
@@ -90,7 +90,7 @@ export const DomainNavigator: React.FC<DomainNavigatorProps> = ({
                 : 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/10'
             }`}
           >
-            <span>📚</span> Company Books
+            <span>📚</span> BOOK.Hfeit
           </button>
         </div>
 

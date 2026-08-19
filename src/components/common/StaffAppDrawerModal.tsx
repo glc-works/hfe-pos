@@ -30,7 +30,7 @@ export interface CoreAppTile {
 export const FIVE_CORE_APPS: CoreAppTile[] = [
   {
     id: 'barista-pos',
-    name: 'Kasir POS (Commerce Hub)',
+    name: 'POS.Hfeit (Commerce Workstation)',
     subtitle: 'Layanan kasir terpadu kafe, resto meja dine-in, takeaway, & barcode retail',
     features: ['Peta Meja & Dine-In', 'Takeaway & Delivery', 'Barcode Scanner Retail', 'Split Payment & EDC'],
     icon: <Users className="w-6 h-6" />,
@@ -57,7 +57,7 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
   },
   {
     id: 'hfe-company-book',
-    name: '📚 Company Books & Financial Ledger',
+    name: '📚 BOOK.Hfeit (Financial Ledger)',
     subtitle: 'Buku besar akuntansi, Bagan Akun SAK, Neraca, Laba Rugi, & Kepatuhan Pajak Resto PB1',
     features: ['Chart of Accounts SAK', 'TigerBeetle Double-Entry', 'Balance Sheet & P&L', 'Pajak Resto PB1 & e-Billing'],
     icon: <BookOpen className="w-6 h-6" />,
@@ -66,7 +66,7 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
   },
   {
     id: 'hfe-connect-hub',
-    name: '🧩 HFE Connect Hub (Ecosystem & Open Banking)',
+    name: '🧩 CORE.Hfeit Connect Hub',
     subtitle: 'Open Banking SNAP BI, Cloud Accounting Bridges, POS Terminals, & Beta Allowlist',
     features: ['SNAP BI Bank Feeds', 'ERP / Accounting Bridge', 'Hardware POS Integrations', 'Beta Tenant Gating'],
     icon: <Globe className="w-6 h-6" />,

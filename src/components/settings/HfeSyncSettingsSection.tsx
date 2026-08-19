@@ -47,7 +47,7 @@ export const HfeSyncSettingsSection: React.FC<HfeSyncSettingsSectionProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2">
-                <Building className="w-4 h-4 text-indigo-400" /> Profil PT & HFE Core Ledger REST API Connection
+                <Building className="w-4 h-4 text-indigo-400" /> Profil PT & CORE.Hfeit Ledger REST API Connection
               </h3>
               <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
                 <Radio className="w-3 h-3 text-emerald-400 animate-pulse" /> LIVE HFE SYNCED
@@ -132,7 +132,7 @@ export const HfeSyncSettingsSection: React.FC<HfeSyncSettingsSectionProps> = ({
             onClick={handlePushHfeCompanyProfile}
             className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs px-3.5 py-1.5 rounded-lg shadow flex items-center gap-1.5 w-full sm:w-auto justify-center"
           >
-            <Check className="w-3.5 h-3.5" /> Push & Sync ke HFE Core
+            <Check className="w-3.5 h-3.5" /> Push & Sync ke CORE.Hfeit
           </button>
         </div>
       </div>

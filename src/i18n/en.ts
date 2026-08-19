@@ -166,6 +166,6 @@ export const enTranslations: TranslationDictionary = {
     facilitiesTitle: 'Cafe Outlets & Amenities',
     featuredMenuTitle: 'Popular Specialty Menu',
     viewAllCatalog: 'View Full Catalog',
-    hours: 'Operating Hours: Daily 07:00 - 23:00 WIB • Powered by HFE Core Engine'
+    hours: 'Operating Hours: Daily 07:00 - 23:00 WIB • Powered by CORE.Hfeit Engine'
   }
 }
