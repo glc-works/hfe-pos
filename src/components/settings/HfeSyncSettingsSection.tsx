@@ -1,6 +1,7 @@
 import React from 'react'
-import { Building, Radio, RefreshCw, Building2, Store, Globe, FileCheck, Database, Check, CheckCircle2, Wifi, KeyRound } from 'lucide-react'
-import { HfeCompanyProfile } from '../../types/pos'
+import { Building, Radio, RefreshCw, Building2, Store, Globe, FileCheck, Database, Check, CheckCircle2, Wifi, KeyRound, Utensils, Calendar, ShoppingBag, Sparkles } from 'lucide-react'
+import { HfeCompanyProfile, BusinessOperatingArchetype } from '../../types/pos'
+import { useMerchantConfig } from '../../context/MerchantConfigContext'
 
 export interface HfeSyncSettingsSectionProps {
   hfeCompanyProfile: HfeCompanyProfile
@@ -25,6 +26,7 @@ export const HfeSyncSettingsSection: React.FC<HfeSyncSettingsSectionProps> = ({
   handleFetchHfeCompanyProfile,
   handlePushHfeCompanyProfile
 }) => {
+  const { operatingArchetype, setOperatingArchetype } = useMerchantConfig()
   const storefrontInfo = hfeCompanyProfile.storefrontInfo || {}
   const wifiPolicy = storefrontInfo.wifiAccessPolicy || 'after_payment'
   const wifiSsid = storefrontInfo.wifiSsid || ''
@@ -41,6 +43,110 @@ export const HfeSyncSettingsSection: React.FC<HfeSyncSettingsSectionProps> = ({
   }
   return (
     <>
+      {/* CARD 0: CARA KERJA USAHA & WORKFLOW OPERASIONAL POS (1-TAP ARCHETYPE) */}
+      <div className="bg-slate-900 border border-emerald-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                <Store className="w-4 h-4 text-emerald-400" /> Cara Kerja Usaha & Alur Kasir POS
+              </h3>
+              <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">
+                1-TAP CONFIG
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Pilih model usaha Anda, tampilan POS dan modul operasional otomatis menyesuaikan tanpa perlu konfigurasi rumit.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {/* ARCHETYPE 1: GERAI CEPAT */}
+          <div
+            onClick={() => setOperatingArchetype('quick-service-stall')}
+            className={`p-4 rounded-2xl border flex flex-col justify-between gap-3 cursor-pointer transition-all ${
+              operatingArchetype === 'quick-service-stall'
+                ? 'bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/40 shadow-lg'
+                : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-mono font-black text-amber-400 flex items-center gap-1.5">
+                  <ShoppingBag className="w-4 h-4" /> Gerai Cepat / Food Stall
+                </span>
+                {operatingArchetype === 'quick-service-stall' && (
+                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                )}
+              </div>
+              <p className="text-xs text-slate-300 font-bold">Food Stall • Food Truck • Kios Kopi • Ritel</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed mt-1.5">
+                Alur cepat: Tamu pesan di kasir langsung bayar. Peta meja dan booking otomatis dinonaktifkan untuk kecepatan maksimal.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] font-mono text-amber-300 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 font-bold">
+              ✓ Menu Langsung Checkout (Tanpa Meja)
+            </div>
+          </div>
+
+          {/* ARCHETYPE 2: KAFE KASUAL */}
+          <div
+            onClick={() => setOperatingArchetype('casual-dine-in')}
+            className={`p-4 rounded-2xl border flex flex-col justify-between gap-3 cursor-pointer transition-all ${
+              operatingArchetype === 'casual-dine-in'
+                ? 'bg-emerald-500/15 border-emerald-500 ring-2 ring-emerald-500/40 shadow-lg'
+                : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-mono font-black text-emerald-400 flex items-center gap-1.5">
+                  <Utensils className="w-4 h-4" /> Kafe & Resto Kasual
+                </span>
+                {operatingArchetype === 'casual-dine-in' && (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                )}
+              </div>
+              <p className="text-xs text-slate-300 font-bold">Kedai Kopi • Kafe Dine-in • Resto Kasual</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed mt-1.5">
+                Alur meja: Monitoring meja terisi, open tabs, merge bill, dan pemesanan takeaway dalam satu layar.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-300 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20 font-bold">
+              ✓ Peta Meja + Menu Katalog
+            </div>
+          </div>
+
+          {/* ARCHETYPE 3: RESTO LENGKAP */}
+          <div
+            onClick={() => setOperatingArchetype('full-service-resto')}
+            className={`p-4 rounded-2xl border flex flex-col justify-between gap-3 cursor-pointer transition-all ${
+              operatingArchetype === 'full-service-resto'
+                ? 'bg-purple-500/15 border-purple-500 ring-2 ring-purple-500/40 shadow-lg'
+                : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-mono font-black text-purple-400 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4" /> Resto Lengkap & Club
+                </span>
+                {operatingArchetype === 'full-service-resto' && (
+                  <CheckCircle2 className="w-4 h-4 text-purple-400" />
+                )}
+              </div>
+              <p className="text-xs text-slate-300 font-bold">Fine Dining • Beach Club • Lounge • Event Space</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed mt-1.5">
+                Alur lengkap: Reservasi jadwal kedatangan tamu VIP, DP pembayaran, zonasi multi-area, dan manajemen meja penuh.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] font-mono text-purple-300 bg-purple-500/10 px-2 py-1 rounded-lg border border-purple-500/20 font-bold">
+              ✓ Booking + Peta Meja + Menu
+            </div>
+          </div>
+        </div>
+      </div>
       {/* CARD 1: HFE COMPANY / PROFIL PT LEGAL ENTITY REST API INTEGRATION */}
       <div className="bg-slate-900 border border-indigo-500/40 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">

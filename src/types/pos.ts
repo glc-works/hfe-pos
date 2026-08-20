@@ -40,6 +40,14 @@ export interface TableReservation {
 }
 
 export type WifiAccessPolicy = 'always_visible' | 'after_payment' | 'disabled'
+export type BusinessOperatingArchetype = 'quick-service-stall' | 'casual-dine-in' | 'full-service-resto'
+
+export interface PosWorkflowToggles {
+  enableMenuCatalog: boolean
+  enableTableFloorPlan: boolean
+  enableBookingReservations: boolean
+  defaultPosMode: 'catalog' | 'tables' | 'booking'
+}
 
 export interface HfeCompanyProfile {
   companyBookId: string
@@ -52,25 +60,23 @@ export interface HfeCompanyProfile {
   hfeLedgerApiEndpoint: string
   isLiveHfeSynced?: boolean
   lastSyncedAt?: string
-
-  // 🌐 Cafe / Resto Storefront Social Media Links
+  operatingArchetype?: BusinessOperatingArchetype
+  workflowToggles?: PosWorkflowToggles
   socialMedia?: {
-    instagram?: string       // e.g. "@kopitiam.senopati"
-    tiktok?: string          // e.g. "@kopitiam_roastery"
-    whatsappOrder?: string   // e.g. "6281298765432"
-    googleMapsUrl?: string   // Google Maps location pin link
-    websiteUrl?: string      // e.g. "https://senopati.togrow.id"
+    instagram?: string
+    tiktok?: string
+    whatsappOrder?: string
+    googleMapsUrl?: string
+    websiteUrl?: string
   }
-
-  // ☕ Cafe / Resto Operational Landing Information
   storefrontInfo?: {
-    tagline?: string         // e.g. "Artisan Specialty Coffee & Fresh Pastry"
-    storyDescription?: string// Cafe history / brand story text
-    operatingHours?: string  // e.g. "Senin - Minggu: 07:00 - 22:00 WIB"
-    wifiSsid?: string        // e.g. "Kopitiam_Guest_Free"
-    wifiPassword?: string    // e.g. "kopiuenak2026"
-    wifiAccessPolicy?: WifiAccessPolicy // e.g. "always_visible" | "after_payment" | "disabled"
-    heroBannerUrl?: string   // High res cafe interior photo
+    tagline?: string
+    storyDescription?: string
+    operatingHours?: string
+    wifiSsid?: string
+    wifiPassword?: string
+    wifiAccessPolicy?: WifiAccessPolicy
+    heroBannerUrl?: string
   }
 }
 
@@ -396,103 +402,48 @@ export interface TeamMember {
 
 // --- EVENT TICKETING & WORKSHOP CLASS BOOKING TYPES ---
 export interface EventTicketItem {
-  id: string
-  title: string
-  category: 'music_event' | 'workshop_class' | 'sports_class' | 'seminar'
-  date: string
-  time: string
-  location: string
-  price: number
-  quotaTotal: number
-  quotaRemaining: number
-  instructorName?: string
-  description: string
-  bannerUrl?: string
-  includedBenefits?: string[]
+  id: string; title: string; category: 'music_event' | 'workshop_class' | 'sports_class' | 'seminar'
+  date: string; time: string; location: string; price: number; quotaTotal: number; quotaRemaining: number
+  instructorName?: string; description: string; bannerUrl?: string; includedBenefits?: string[]
 }
 
 export interface PurchasedEventTicket {
-  ticketCode: string
-  eventId: string
-  eventTitle: string
-  participantName: string
-  participantPhone: string
-  participantEmail?: string
-  quantity: number
-  totalAmountPaid: number
-  paymentMethod: string
-  purchasedAt: string
-  qrBarcodeData: string
-  status: 'valid' | 'used' | 'cancelled'
+  ticketCode: string; eventId: string; eventTitle: string; participantName: string; participantPhone: string
+  participantEmail?: string; quantity: number; totalAmountPaid: number; paymentMethod: string
+  purchasedAt: string; qrBarcodeData: string; status: 'valid' | 'used' | 'cancelled'
 }
 
 export interface InviteStaffPayload {
-  name: string
-  contact: string
-  role: StaffRole
+  name: string; contact: string; role: StaffRole
 }
 
 // --- PROMO PARTNERS & VOUCHER SETTINGS TYPES ---
 export interface PartnerContact {
-  id: string
-  name: string
-  category: 'bank' | 'merchant' | 'partner' | 'payment_gateway' | 'supplier' | 'loyalty'
-  brandName: string
-  logoUrl?: string
-  icon?: string
-  brandColor?: string
-  contactPerson?: string
-  email?: string
-  phone?: string
-  isVerifiedPartner?: boolean
+  id: string; name: string; category: 'bank' | 'merchant' | 'partner' | 'payment_gateway' | 'supplier' | 'loyalty'
+  brandName: string; logoUrl?: string; icon?: string; brandColor?: string; contactPerson?: string
+  email?: string; phone?: string; isVerifiedPartner?: boolean
 }
 
 export interface Voucher {
-  code: string
-  title: string
-  description: string
-  discountAmount: number
-  discountType: 'flat' | 'percentage'
-  minSpend?: number
-  expiryDate?: string
-  isStackable?: boolean
-  issuerOrigin: 'platform' | 'merchant' // Hfe Platform Partner vs Merchant Own
-  contactId?: string // Link to PartnerContact ID
-  sponsorType?: 'bank' | 'merchant' | 'partner' | 'loyalty'
-  sponsorName?: string
-  sponsorIcon?: string
-  sponsorLogoUrl?: string
-  sponsorBrandColor?: string
-  quantity?: number // Multi-voucher quantity indicator
-  termsAndConditions?: string[]
-  isActive?: boolean
+  code: string; title: string; description: string; discountAmount: number; discountType: 'flat' | 'percentage'
+  minSpend?: number; expiryDate?: string; isStackable?: boolean; issuerOrigin: 'platform' | 'merchant'
+  contactId?: string; sponsorType?: 'bank' | 'merchant' | 'partner' | 'loyalty'; sponsorName?: string
+  sponsorIcon?: string; sponsorLogoUrl?: string; sponsorBrandColor?: string; quantity?: number
+  termsAndConditions?: string[]; isActive?: boolean
 }
 
 // --- NOTIFICATION CENTER & SERVICE TICKETING TYPES (L2-POS-49) ---
 export type NotificationCategory = 'operational' | 'tickets' | 'feedback' | 'safety_allergen' | 'financial_shifts' | 'system'
 
 export interface HfeNotification {
-  id: string
-  title: string
-  message: string
-  category: NotificationCategory
-  timestamp: string
-  isRead: boolean
-  priority?: 'low' | 'normal' | 'high' | 'urgent'
-  actionUrl?: string
-  tableNumber?: string
-  metadata?: Record<string, any>
+  id: string; title: string; message: string; category: NotificationCategory; timestamp: string; isRead: boolean
+  priority?: 'low' | 'normal' | 'high' | 'urgent'; actionUrl?: string; tableNumber?: string; metadata?: Record<string, any>
 }
 
 export interface ServiceTicket {
-  id: string
-  tableNumber: string
-  type: 'bill_request' | 'waiter_call' | 'water_refill' | 'clean_table' | 'sommelier_advice'
-  status: 'open' | 'in_progress' | 'resolved'
-  createdAt: string
-  resolvedAt?: string
-  assignedStaffName?: string
-  notes?: string
+  id: string; tableNumber: string; type: 'bill_request' | 'waiter_call' | 'water_refill' | 'clean_table' | 'sommelier_advice'
+  status: 'open' | 'in_progress' | 'resolved'; createdAt: string; resolvedAt?: string; assignedStaffName?: string; notes?: string
 }
+
 // --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---
 export * from './identity'

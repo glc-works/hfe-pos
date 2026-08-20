@@ -1,4 +1,4 @@
-import { CafeThemeConfig, MenuItem, TableInfo, Order, CustomerProfile, StationConfig, HfeCompanyProfile, PropertyZoneConfig, HotelGuestFolio } from '../types/pos'
+import { CafeThemeConfig, MenuItem, TableInfo, Order, CustomerProfile, StationConfig, HfeCompanyProfile, PropertyZoneConfig, HotelGuestFolio, TableReservation } from '../types/pos'
 
 export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
   companyBookId: 'BOOK-CAFE-HQ-88',
@@ -9,6 +9,13 @@ export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
   nibPermit: '9120001234567',
   address: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
   hfeLedgerApiEndpoint: 'https://api.hfe.internal/v1/company-books/BOOK-CAFE-HQ-88',
+  operatingArchetype: 'casual-dine-in',
+  workflowToggles: {
+    enableMenuCatalog: true,
+    enableTableFloorPlan: true,
+    enableBookingReservations: false,
+    defaultPosMode: 'tables'
+  },
   storefrontInfo: {
     tagline: 'Artisan Specialty Coffee & Fresh Pastry',
     storyDescription: 'Pelopor kopi artisan dengan biji nusantara pilihan sejak 2020.',
@@ -366,22 +373,8 @@ export const INITIAL_ORDERS: Order[] = [
     table: 'MEJA-04',
     customerName: 'Aldi (QR)',
     items: [
-      {
-        ...PRODUCT_CATALOG[0],
-        price: 28000,
-        quantity: 1,
-        seatNumber: 'Seat 1',
-        seatCustomerContact: { name: 'Aldi', phone: '081298765432', favoriteDrink: 'Espresso Aren Latte', preferredMilk: 'Oat Milk (+Rp 5.000)', preferredSugar: '50%', allergenAlert: 'Alergi Lactose' },
-        milkOption: 'Oat Milk (+Rp 5.000)',
-        sugarLevel: '50%'
-      },
-      {
-        ...PRODUCT_CATALOG[5],
-        price: 58000,
-        quantity: 1,
-        seatNumber: 'Seat 1',
-        seatCustomerContact: { name: 'Aldi', phone: '081298765432' }
-      }
+      { ...PRODUCT_CATALOG[0], price: 28000, quantity: 1, seatNumber: 'Seat 1', seatCustomerContact: { name: 'Aldi', phone: '081298765432' }, milkOption: 'Oat Milk (+Rp 5.000)', sugarLevel: '50%' },
+      { ...PRODUCT_CATALOG[5], price: 58000, quantity: 1, seatNumber: 'Seat 1', seatCustomerContact: { name: 'Aldi', phone: '081298765432' } }
     ],
     status: 'brewing',
     createdAt: '19:42 WIB',
@@ -400,17 +393,8 @@ export const INITIAL_ORDERS: Order[] = [
     table: 'MEJA-08',
     customerName: 'Chef Mike',
     items: [
-      {
-        ...PRODUCT_CATALOG[2],
-        quantity: 2,
-        seatNumber: 'Seat 2',
-        seatCustomerContact: { name: 'Siti Rahma', phone: '081599887766' }
-      },
-      {
-        ...PRODUCT_CATALOG[4],
-        quantity: 1,
-        seatNumber: 'Seat 3'
-      }
+      { ...PRODUCT_CATALOG[2], quantity: 2, seatNumber: 'Seat 2', seatCustomerContact: { name: 'Siti Rahma', phone: '081599887766' } },
+      { ...PRODUCT_CATALOG[4], quantity: 1, seatNumber: 'Seat 3' }
     ],
     status: 'qc-passed',
     createdAt: '19:35 WIB',
@@ -464,4 +448,37 @@ export const OUTLET_BRANCHES = [
   { id: 'OUTLET-SENOPATI-01', name: 'Kopitiam Senopati & Roastery (HQ)', warehouse: 'WH-SENOPATI-01' },
   { id: 'OUTLET-BSD-02', name: 'Kopitiam BSD Breeze', warehouse: 'WH-BSD-02' },
   { id: 'OUTLET-BDG-03', name: 'Kopitiam Bandung Dago', warehouse: 'WH-BDG-03' }
+]
+
+export const MOCK_TABLE_RESERVATIONS: TableReservation[] = [
+  {
+    id: 'RSV-01',
+    customerName: 'Bpk. Alexander Pratama',
+    phone: '081299887711',
+    tableArea: '👑 VIP Room 01 (VIP-01)',
+    paxCount: 8,
+    reservationDate: '2026-08-20',
+    timeSlot: '19:00 WIB',
+    dpAmount: 500000,
+    dpStatus: 'paid_qris',
+    approvalPolicy: 'instant',
+    status: 'confirmed',
+    specialNotes: 'Ulang Tahun ke-40 • Min Spend Rp 2.500.000',
+    createdAt: '2026-08-20 10:30'
+  },
+  {
+    id: 'RSV-02',
+    customerName: 'Ibu Ratna Dewi (Corporate)',
+    phone: '081877665544',
+    tableArea: '🌿 Outdoor Garden (OUT-03)',
+    paxCount: 4,
+    reservationDate: '2026-08-20',
+    timeSlot: '19:30 WIB',
+    dpAmount: 200000,
+    dpStatus: 'paid_qris',
+    approvalPolicy: 'instant',
+    status: 'confirmed',
+    specialNotes: 'Meja dekat stopkontak laptop',
+    createdAt: '2026-08-20 14:15'
+  }
 ]

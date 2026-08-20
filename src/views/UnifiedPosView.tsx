@@ -8,10 +8,12 @@ import { PosCartSection } from '../components/pos/PosCartSection'
 import { PosTableFloorPlanSection } from '../components/pos/PosTableFloorPlanSection'
 import { PosMobileCartDrawer } from '../components/pos/PosMobileCartDrawer'
 import { PosCommandHeader } from '../components/pos/PosCommandHeader'
+import { PosBookingReservationsSection } from '../components/pos/PosBookingReservationsSection'
 import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsCluster'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useTranslation } from '../context/LanguageContext'
 import { useViewport } from '../context/ViewportContext'
+import { useMerchantConfig } from '../context/MerchantConfigContext'
 import { smartSearchFilter } from '../utils/searchThesaurus'
 
 export interface UnifiedPosViewProps {
@@ -55,7 +57,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
   const { formatPrice } = useTranslation()
-  const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog'>(enableTableFloorPlan ? 'tables' : 'catalog')
+  const { workflowToggles } = useMerchantConfig()
+  const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
+  const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
   const [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'unpaid' | 'paid' | 'available'>('all')
   const [selectedZoneId, setSelectedZoneId] = useState<PropertyZoneId>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -157,41 +161,22 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     alert(`🎉 Pembayaran ${selectedPOSTable?.name || 'Walk-In'} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))} LUNAS via ${posPayMethod.toUpperCase()}!`)
   }
 
+  const handleCloseAllModals = () => {
+    setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false)
+    setShowRoomChargeModal(false); setShowTableDetailDrawer(false); setShowTableGuestBindingDrawer(false)
+    setShowEditPinnedModal(false); setShowMobileCartDrawer(false); setIsAppDrawerOpen(false)
+    setShowNotificationCenter(false); setShowServiceTickets(false); setShowEventTicketCheckIn(false); setDirectQtyItem(null)
+  }
+
   useSpotlightShortcuts({
     onOpenSpotlight: () => setShowSpotlightModal(true),
-    onCloseModals: () => {
-      setShowSpotlightModal(false)
-      setShowCameraScanner(false)
-      setShowTableOpsModal(false)
-      setShowRoomChargeModal(false)
-      setShowTableDetailDrawer(false)
-      setShowTableGuestBindingDrawer(false)
-      setShowEditPinnedModal(false)
-      setShowMobileCartDrawer(false)
-      setIsAppDrawerOpen(false)
-      setShowNotificationCenter(false)
-      setShowServiceTickets(false)
-      setShowEventTicketCheckIn(false)
-      setDirectQtyItem(null)
-    },
+    onCloseModals: handleCloseAllModals,
     onFocusCatalog: () => setPosModeTab('catalog'),
-    onToggleFloorPlan: () => {
-      if (enableTableFloorPlan) setPosModeTab((prev) => (prev === 'tables' ? 'catalog' : 'tables'))
-    },
-    onQuickPayCash: () => {
-      setPosPayMethod('cash')
-      handleCheckoutAction()
-    },
-    onQuickPayQris: () => {
-      setPosPayMethod('qris')
-      handleCheckoutAction()
-    },
+    onToggleFloorPlan: () => { if (enableTableFloorPlan) setPosModeTab((p) => (p === 'tables' ? 'catalog' : 'tables')) },
+    onQuickPayCash: () => { setPosPayMethod('cash'); handleCheckoutAction() },
+    onQuickPayQris: () => { setPosPayMethod('qris'); handleCheckoutAction() },
     onSplitBill: () => setShowTableOpsModal(true),
-    onPrintReceipt: () => {
-      if (activeTableCartItems.length > 0 || (selectedPOSTable && selectedPOSTable.totalBill > 0)) {
-        handleCheckoutAction()
-      }
-    }
+    onPrintReceipt: () => { if (activeTableCartItems.length > 0 || (selectedPOSTable && selectedPOSTable.totalBill > 0)) handleCheckoutAction() }
   })
 
   const handleConfirmReassignWithReason = (_reason?: string) => {
@@ -256,7 +241,25 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-1 custom-scrollbar pb-36">
-            {posModeTab === 'tables' && enableTableFloorPlan && (
+            {posModeTab === 'booking' && (
+              <PosBookingReservationsSection
+                onCheckInReservation={(rsv) => {
+                  const target = tablesGrid.find(t => t.name === 'VIP-01' || t.name === 'OUT-03' || t.name === 'IND-01')
+                  if (target) {
+                    setSelectedPOSTable({
+                      ...target,
+                      status: 'occupied',
+                      customerName: rsv.customerName,
+                      totalBill: 0,
+                      orderCount: 0
+                    })
+                    setPosModeTab('catalog')
+                  }
+                }}
+              />
+            )}
+
+            {posModeTab === 'tables' && (
               <PosTableFloorPlanSection
                 tablesGrid={tablesGrid}
                 selectedPOSTable={selectedPOSTable}

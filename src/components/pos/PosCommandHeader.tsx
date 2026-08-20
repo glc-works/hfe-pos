@@ -14,7 +14,8 @@ import {
   Check,
   SlidersHorizontal,
   MapPin,
-  Clock
+  Clock,
+  Calendar
 } from 'lucide-react'
 import { TouchFilterSheet } from '../shared/TouchFilterSheet'
 import { useTranslation } from '../../context/LanguageContext'
@@ -25,9 +26,10 @@ import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { PropertyZoneConfig, PropertyZoneId, TableStatus } from '../../types/pos'
 
 export interface PosCommandHeaderProps {
-  posModeTab: 'tables' | 'catalog'
+  posModeTab: 'tables' | 'catalog' | 'booking'
   enableTableFloorPlan?: boolean
-  setPosModeTab: (tab: 'tables' | 'catalog') => void
+  enableBookingReservations?: boolean
+  setPosModeTab: (tab: 'tables' | 'catalog' | 'booking') => void
   onOpenAppDrawer: () => void
   onOpenGuestBinding: () => void
   onOpenScanner: () => void
@@ -56,6 +58,7 @@ export interface PosCommandHeaderProps {
 export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   posModeTab,
   enableTableFloorPlan = true,
+  enableBookingReservations = false,
   setPosModeTab,
   onOpenAppDrawer,
   onOpenGuestBinding,
@@ -82,6 +85,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   const { isMobile } = useViewport()
   const { unreadCount, openServiceTicketsCount } = useNotification()
   const { themeMode, toggleThemeMode } = useTheme()
+  const { workflowToggles } = useMerchantConfig()
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
   const totalAlerts = unreadCount + openServiceTicketsCount
@@ -116,9 +120,22 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
           <ChevronDown className="w-3 h-3 text-amber-500 dark:text-amber-400 group-hover:translate-y-0.5 transition-transform shrink-0" />
         </button>
 
-        {/* 2. CENTER: MASTER CUSTOM TABS (PETA MEJA / KATALOG MENU) */}
+        {/* 2. CENTER: MASTER CUSTOM TABS (BOOKING / PETA MEJA / KATALOG MENU) */}
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
-          {enableTableFloorPlan && (
+          {(workflowToggles?.enableBookingReservations ?? enableBookingReservations) && (
+            <button
+              type="button"
+              onClick={() => setPosModeTab('booking')}
+              className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer ${
+                posModeTab === 'booking' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5 shrink-0 text-purple-600 dark:text-purple-400" />
+              <span>{isMobile ? 'Booking' : 'Reservasi'}</span>
+            </button>
+          )}
+
+          {(workflowToggles?.enableTableFloorPlan ?? enableTableFloorPlan) && (
             <button
               type="button"
               onClick={() => setPosModeTab('tables')}
@@ -131,16 +148,18 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => setPosModeTab('catalog')}
-            className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer ${
-              posModeTab === 'catalog' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 shrink-0" />
-            <span>{isMobile ? 'Menu' : 'Katalog Menu'}</span>
-          </button>
+          {(workflowToggles?.enableMenuCatalog ?? true) && (
+            <button
+              type="button"
+              onClick={() => setPosModeTab('catalog')}
+              className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 whitespace-nowrap cursor-pointer ${
+                posModeTab === 'catalog' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 shrink-0" />
+              <span>{isMobile ? 'Menu' : 'Katalog Menu'}</span>
+            </button>
+          )}
         </div>
 
         {/* 3. RIGHT: UNIVERSAL ACTION SHORTCUT BUTTONS (100% INVARIANT) */}

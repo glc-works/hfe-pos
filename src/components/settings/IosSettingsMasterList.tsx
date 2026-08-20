@@ -62,10 +62,23 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
   onSelectSection,
   onPushProfile
 }) => {
-  const { vouchers, partnerContacts } = useMerchantConfig()
+  const { vouchers, partnerContacts, operatingArchetype } = useMerchantConfig()
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   const GROUPS: SettingsGroup[] = [
+    {
+      groupTitle: 'Model Usaha & Alur Kasir POS',
+      rows: [
+        {
+          id: 'profile',
+          icon: <Store className="w-4 h-4 text-emerald-300" />,
+          iconBg: 'bg-emerald-500/20 border-emerald-500/40',
+          title: 'Cara Kerja Usaha & Alur Kasir POS',
+          subtitle: 'Gerai Cepat (Tanpa Meja), Kafe Kasual (Meja), atau Resto Lengkap (Booking)',
+          value: operatingArchetype === 'quick-service-stall' ? '🛍️ Gerai Cepat' : operatingArchetype === 'full-service-resto' ? '👑 Resto Lengkap' : '☕ Kafe Kasual'
+        }
+      ]
+    },
     {
       groupTitle: 'Pemasaran & Program Promosi',
       rows: [

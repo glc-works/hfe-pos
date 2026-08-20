@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useRef, ReactNode } from 'react'
-import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig } from '../types/pos'
+import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig, BusinessOperatingArchetype, PosWorkflowToggles } from '../types/pos'
 import { BUILTIN_THEMES } from '../data/mockData'
 import { MARKETPLACE_THEMES } from '../data/marketplaceThemesData'
 import { DEFAULT_AVAILABLE_VOUCHERS } from '../data/mockVouchers'
@@ -38,7 +38,13 @@ export interface MerchantConfigContextType {
   viewportMode: ViewportModeType
   setViewportMode: (mode: ViewportModeType) => void
 
-  // 5. VOUCHERS & PROMO MANAGEMENT (SSOT)
+  // 5. OPERATING ARCHETYPE & POS WORKFLOW MODES (SSOT)
+  operatingArchetype: BusinessOperatingArchetype
+  setOperatingArchetype: (archetype: BusinessOperatingArchetype) => void
+  workflowToggles: PosWorkflowToggles
+  updateWorkflowToggles: (delta: Partial<PosWorkflowToggles>) => void
+
+  // 6. VOUCHERS & PROMO MANAGEMENT (SSOT)
   vouchers: Voucher[]
   partnerContacts: PartnerContact[]
   addVoucher: (voucher: Voucher) => void
@@ -47,7 +53,7 @@ export interface MerchantConfigContextType {
   toggleVoucherStatus: (code: string) => void
   addPartnerContact: (contact: PartnerContact) => void
 
-  // 6. MOCK RESEED / RESET TRIGGER
+  // 7. MOCK RESEED / RESET TRIGGER
   onResetMockState?: () => void
   setOnResetMockState: (fn: () => void) => void
 }
@@ -203,6 +209,70 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [viewportMode, setViewportMode] = useState<ViewportModeType>('responsive')
   const resetHandlerRef = useRef<(() => void) | null>(null)
 
+  // --- 5. OPERATING ARCHETYPE & POS WORKFLOW MODES ---
+  const [operatingArchetype, setOperatingArchetypeState] = useState<BusinessOperatingArchetype>(() => {
+    try {
+      const saved = localStorage.getItem('hfe_pos_operating_archetype')
+      if (saved === 'quick-service-stall' || saved === 'casual-dine-in' || saved === 'full-service-resto') return saved
+    } catch {}
+    return 'casual-dine-in'
+  })
+
+  const [workflowToggles, setWorkflowToggles] = useState<PosWorkflowToggles>(() => {
+    try {
+      const saved = localStorage.getItem('hfe_pos_workflow_toggles')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+      enableMenuCatalog: true,
+      enableTableFloorPlan: true,
+      enableBookingReservations: false,
+      defaultPosMode: 'tables'
+    }
+  })
+
+  const setOperatingArchetype = (archetype: BusinessOperatingArchetype) => {
+    setOperatingArchetypeState(archetype)
+    let newToggles: PosWorkflowToggles
+    if (archetype === 'quick-service-stall') {
+      newToggles = {
+        enableMenuCatalog: true,
+        enableTableFloorPlan: false,
+        enableBookingReservations: false,
+        defaultPosMode: 'catalog'
+      }
+    } else if (archetype === 'casual-dine-in') {
+      newToggles = {
+        enableMenuCatalog: true,
+        enableTableFloorPlan: true,
+        enableBookingReservations: false,
+        defaultPosMode: 'tables'
+      }
+    } else {
+      newToggles = {
+        enableMenuCatalog: true,
+        enableTableFloorPlan: true,
+        enableBookingReservations: true,
+        defaultPosMode: 'tables'
+      }
+    }
+    setWorkflowToggles(newToggles)
+    try {
+      localStorage.setItem('hfe_pos_operating_archetype', archetype)
+      localStorage.setItem('hfe_pos_workflow_toggles', JSON.stringify(newToggles))
+    } catch {}
+  }
+
+  const updateWorkflowToggles = (delta: Partial<PosWorkflowToggles>) => {
+    setWorkflowToggles(prev => {
+      const updated = { ...prev, ...delta }
+      try {
+        localStorage.setItem('hfe_pos_workflow_toggles', JSON.stringify(updated))
+      } catch {}
+      return updated
+    })
+  }
+
   // --- SINGLE DOOR MUTATORS ---
   const updateStorefrontConfig = (delta: Partial<StorefrontCustomizationConfig>) => {
     setStorefrontConfigState(prev => {
@@ -347,6 +417,10 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
         setActiveApp,
         viewportMode,
         setViewportMode,
+        operatingArchetype,
+        setOperatingArchetype,
+        workflowToggles,
+        updateWorkflowToggles,
         vouchers,
         partnerContacts,
         addVoucher,
