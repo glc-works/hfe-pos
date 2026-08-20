@@ -31,7 +31,6 @@ import { CustomerPortalView } from './views/CustomerPortalView'
 import { CompanyBookView } from './views/CompanyBookView'
 import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
 import { HfeitCorporateView } from './views/HfeitCorporateView'
-
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 
