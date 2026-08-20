@@ -184,8 +184,8 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
       <div
         key={table.id}
         onClick={() => handleTableClick(table)}
-        className={`${slotSpanClass} border rounded-2xl p-3 flex flex-col justify-between gap-1.5 ${
-          isCompactMode ? 'min-h-[72px] sm:min-h-[76px]' : 'min-h-[114px] sm:min-h-[122px]'
+        className={`${slotSpanClass} border rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between gap-1 sm:gap-1.5 ${
+          isCompactMode ? 'min-h-[72px] sm:min-h-[76px]' : (isMobile ? 'min-h-[94px]' : 'min-h-[114px] sm:min-h-[122px]')
         } transition-all duration-150 cursor-pointer relative overflow-hidden group active:scale-[0.98] ${
           isUnpaid
             ? 'bg-amber-500/10 border-amber-500/60 hover:border-amber-400 shadow-sm'
@@ -453,8 +453,8 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
         {/* LAYER 0: SMOOTH AREA SURFACE GEOMETRY (BACKDROP ISLANDS) */}
         <AreaSurfaceOverlay viewMode={viewMode} />
 
-        {/* LAYER 1: RIGID 4-COLUMN INTERACTIVE TABLE WIDGETS GRID */}
-        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        {/* LAYER 1: RIGID 4-COLUMN INTERACTIVE TABLE WIDGETS GRID (2-COL ON MOBILE) */}
+        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           {allTables.map(table => renderTableCard(table, false, true))}
         </div>
       </div>

@@ -170,7 +170,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
             <button
               type="button"
               onClick={onOpenNotifications}
-              className={`relative p-1 sm:px-2 sm:py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 border cursor-pointer ${
+              className={`hidden sm:flex relative p-1 sm:px-2 sm:py-1 rounded-xl text-xs font-bold transition-all items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 border cursor-pointer ${
                 totalAlerts > 0
                   ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-400 border-amber-500/40'
                   : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
@@ -189,7 +189,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
           <button
             type="button"
             onClick={onOpenScanner}
-            className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+            className="hidden sm:flex p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
             title="Scan Barcode Produk SKU"
           >
             <Camera className="w-3.5 h-3.5 shrink-0" />

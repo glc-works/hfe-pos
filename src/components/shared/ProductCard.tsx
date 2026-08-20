@@ -186,8 +186,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
         <div className="p-3 flex flex-col gap-1">
-          <div className="flex items-center justify-between gap-1">
-            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-slate-950 dark:group-hover:text-white">{product.name}</h4>
+          <div className="flex items-start justify-between gap-1 min-w-0">
+            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 line-clamp-2 leading-snug min-h-[32px] group-hover:text-slate-950 dark:group-hover:text-white flex-1 min-w-0">{product.name}</h4>
             {shouldShowSku && (
               <span className="text-[9px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-950 px-1 py-0.5 rounded border border-slate-200 dark:border-slate-800 shrink-0">
                 {product.hfeCategoryCode || product.id}
