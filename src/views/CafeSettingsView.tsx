@@ -100,12 +100,14 @@ export const CafeSettingsView: React.FC<CafeSettingsViewProps> = ({
   const { language, setLanguage, t } = useTranslation()
 
   const SECTION_TITLES: Record<SettingsSectionId, string> = {
-    profile: 'Profil PT & Legalitas Resto',
-    theme: 'Tema & Tampilan Visual',
-    language: 'Bahasa (Language)',
-    'tax-cash': 'Pajak PB1 & Kas Toko',
+    profile: t.settings.zone1NavTitle,
+    'tax-cash': t.settings.zone2NavTitle,
+    hardware: t.settings.zone3NavTitle,
+    'hfe-core': t.settings.zone4NavTitle,
+    theme: t.settings.themeSetting,
+    language: t.settings.languageSetting,
     team: 'Tim Staf & Akses PIN',
-    'po-expense': 'PO Supplier & Kas Kecil',
+    'po-expense': t.settings.purchaseOrders,
     reservations: 'Reservasi Meja & DP',
     crm: 'Database Pelanggan (CRM)',
     vouchers: 'Manajemen Kupon & Promo Mitra',
@@ -134,7 +136,7 @@ export const CafeSettingsView: React.FC<CafeSettingsViewProps> = ({
               onClick={() => setActiveSection(null)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 font-bold text-xs rounded-xl transition-all shadow-sm"
             >
-              <ChevronLeft className="w-4 h-4" /> Pengaturan
+              <ChevronLeft className="w-4 h-4" /> {t.common.back}
             </button>
 
             <h3 className="text-sm font-black text-white truncate text-center flex-1">
@@ -146,7 +148,7 @@ export const CafeSettingsView: React.FC<CafeSettingsViewProps> = ({
               onClick={handlePushHfeCompanyProfile}
               className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0"
             >
-              <Check className="w-3.5 h-3.5 stroke-[3]" /> Simpan
+              <Check className="w-3.5 h-3.5 stroke-[3]" /> {t.common.save}
             </button>
           </div>
 
@@ -231,6 +233,7 @@ export const CafeSettingsView: React.FC<CafeSettingsViewProps> = ({
               outletBranches={outletBranches}
               handleFetchHfeCompanyProfile={handleFetchHfeCompanyProfile}
               handlePushHfeCompanyProfile={handlePushHfeCompanyProfile}
+              defaultZoneTab="legal-profile"
             />
           )}
 
@@ -245,6 +248,37 @@ export const CafeSettingsView: React.FC<CafeSettingsViewProps> = ({
               outletBranches={outletBranches}
               handleFetchHfeCompanyProfile={handleFetchHfeCompanyProfile}
               handlePushHfeCompanyProfile={handlePushHfeCompanyProfile}
+              defaultZoneTab="financial-tax"
+            />
+          )}
+
+          {activeSection === 'hardware' && (
+            <HfeSyncSettingsSection
+              hfeCompanyProfile={hfeCompanyProfile}
+              setHfeCompanyProfile={setHfeCompanyProfile}
+              hfeBranchMode={hfeBranchMode}
+              setHfeBranchMode={setHfeBranchMode}
+              activeBranchId={activeBranchId}
+              setActiveBranchId={setActiveBranchId}
+              outletBranches={outletBranches}
+              handleFetchHfeCompanyProfile={handleFetchHfeCompanyProfile}
+              handlePushHfeCompanyProfile={handlePushHfeCompanyProfile}
+              defaultZoneTab="hardware"
+            />
+          )}
+
+          {activeSection === 'hfe-core' && (
+            <HfeSyncSettingsSection
+              hfeCompanyProfile={hfeCompanyProfile}
+              setHfeCompanyProfile={setHfeCompanyProfile}
+              hfeBranchMode={hfeBranchMode}
+              setHfeBranchMode={setHfeBranchMode}
+              activeBranchId={activeBranchId}
+              setActiveBranchId={setActiveBranchId}
+              outletBranches={outletBranches}
+              handleFetchHfeCompanyProfile={handleFetchHfeCompanyProfile}
+              handlePushHfeCompanyProfile={handlePushHfeCompanyProfile}
+              defaultZoneTab="hfe-core"
             />
           )}
 

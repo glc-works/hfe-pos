@@ -8,22 +8,26 @@ import {
   Store,
   Calendar,
   Contact,
-  Sparkles,
   CheckCircle2,
   ChevronRight,
   Search,
   Building,
-  ShieldCheck
+  ShieldCheck,
+  Printer,
+  Network,
+  Ticket
 } from 'lucide-react'
-import { Ticket } from 'lucide-react'
 import { HfeCompanyProfile, CafeThemeConfig } from '../../types/pos'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
+import { useTranslation } from '../../context/LanguageContext'
 
 export type SettingsSectionId =
   | 'profile'
+  | 'tax-cash'
+  | 'hardware'
+  | 'hfe-core'
   | 'theme'
   | 'language'
-  | 'tax-cash'
   | 'team'
   | 'po-expense'
   | 'reservations'
@@ -57,15 +61,51 @@ interface SettingsGroup {
 export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
   hfeCompanyProfile,
   activeTheme,
-  merchantTheme,
   language,
-  onSelectSection,
-  onPushProfile
+  onSelectSection
 }) => {
-  const { vouchers, partnerContacts, operatingArchetype } = useMerchantConfig()
+  const { t } = useTranslation()
+  const { vouchers, partnerContacts, operatingArchetype, pb1TaxMode } = useMerchantConfig()
   const [searchQuery, setSearchQuery] = useState<string>('')
 
   const GROUPS: SettingsGroup[] = [
+    {
+      groupTitle: '4-Zona Pengaturan Toko & Kasir',
+      rows: [
+        {
+          id: 'profile',
+          icon: <Building className="w-4 h-4 text-indigo-300" />,
+          iconBg: 'bg-indigo-500/20 border-indigo-500/40',
+          title: t.settings.zone1NavTitle,
+          subtitle: t.settings.zone1NavSubtitle,
+          value: hfeCompanyProfile.brandName.split('&')[0].trim()
+        },
+        {
+          id: 'tax-cash',
+          icon: <DollarSign className="w-4 h-4 text-emerald-300" />,
+          iconBg: 'bg-emerald-500/20 border-emerald-500/40',
+          title: t.settings.zone2NavTitle,
+          subtitle: t.settings.zone2NavSubtitle,
+          value: pb1TaxMode === 1 ? '10% Exclude' : pb1TaxMode === 2 ? '10% Include' : '0% Non-Tax'
+        },
+        {
+          id: 'hardware',
+          icon: <Printer className="w-4 h-4 text-indigo-300" />,
+          iconBg: 'bg-indigo-500/20 border-indigo-500/40',
+          title: t.settings.zone3NavTitle,
+          subtitle: t.settings.zone3NavSubtitle,
+          value: '58/80mm ESC/POS'
+        },
+        {
+          id: 'hfe-core',
+          icon: <Network className="w-4 h-4 text-emerald-300" />,
+          iconBg: 'bg-emerald-500/20 border-emerald-500/40',
+          title: t.settings.zone4NavTitle,
+          subtitle: t.settings.zone4NavSubtitle,
+          value: 'GL Synced'
+        }
+      ]
+    },
     {
       groupTitle: 'Model Usaha & Alur Kasir POS',
       rows: [
@@ -107,7 +147,7 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
           id: 'theme',
           icon: <Palette className="w-4 h-4 text-amber-300" />,
           iconBg: 'bg-amber-500/20 border-amber-500/40',
-          title: 'Tema & Tampilan Visual',
+          title: t.settings.themeSetting,
           subtitle: 'Kustomisasi mode Light / Dark & warna cafe',
           value: activeTheme.themeName.split('(')[0].trim()
         },
@@ -115,44 +155,15 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
           id: 'language',
           icon: <Globe className="w-4 h-4 text-blue-300" />,
           iconBg: 'bg-blue-500/20 border-blue-500/40',
-          title: 'Bahasa (Language)',
-          subtitle: 'Pilihan bahasa operasional & struk',
-          value: language === 'id' ? 'Bahasa Indonesia' : 'English'
-        }
-      ]
-    },
-    {
-      groupTitle: 'Keuangan & Pembukuan',
-      rows: [
-        {
-          id: 'tax-cash',
-          icon: <DollarSign className="w-4 h-4 text-emerald-300" />,
-          iconBg: 'bg-emerald-500/20 border-emerald-500/40',
-          title: 'Pajak Resto (PB1) & Kas Toko',
-          subtitle: 'Pengaturan PB1 10%, service fee, dan float kasir',
-          value: 'PB1 Exclude (10%)'
-        },
-        {
-          id: 'po-expense',
-          icon: <Package className="w-4 h-4 text-purple-300" />,
-          iconBg: 'bg-purple-500/20 border-purple-500/40',
-          title: 'PO Supplier & Kas Kecil (Expense)',
-          subtitle: 'Catat pembelian bahan baku & klaim pengeluaran harian',
-          value: '3 Transaksi'
+          title: t.settings.languageSetting,
+          subtitle: t.settings.languageSettingSub,
+          value: language === 'id' ? t.settings.indonesian : t.settings.english
         }
       ]
     },
     {
       groupTitle: 'Operasional Resto & Staf',
       rows: [
-        {
-          id: 'profile',
-          icon: <Store className="w-4 h-4 text-indigo-300" />,
-          iconBg: 'bg-indigo-500/20 border-indigo-500/40',
-          title: 'Profil PT & Legalitas Resto',
-          subtitle: 'Nama PT, NPWP, NIB, dan alamat cabang',
-          value: hfeCompanyProfile.brandName.split('&')[0].trim()
-        },
         {
           id: 'team',
           icon: <Users className="w-4 h-4 text-amber-300" />,
@@ -170,12 +181,12 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
           value: 'Instant Approval'
         },
         {
-          id: 'crm',
-          icon: <Contact className="w-4 h-4 text-teal-300" />,
-          iconBg: 'bg-teal-500/20 border-teal-500/40',
-          title: 'Database Pelanggan (CRM)',
-          subtitle: 'Riwayat pesanan tamu & poin loyalitas',
-          value: '12 Profil'
+          id: 'po-expense',
+          icon: <Package className="w-4 h-4 text-purple-300" />,
+          iconBg: 'bg-purple-500/20 border-purple-500/40',
+          title: t.settings.purchaseOrders,
+          subtitle: 'Catat pembelian bahan baku & klaim pengeluaran harian',
+          value: '3 Transaksi'
         }
       ]
     },
@@ -245,7 +256,7 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Cari pengaturan (Tema, Pajak, Tim Staf, Profil...)"
+          placeholder={t.common.search}
           className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 shadow-inner"
         />
         {searchQuery && (
@@ -254,7 +265,7 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
             onClick={() => setSearchQuery('')}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-white"
           >
-            Batal
+            {t.common.cancel}
           </button>
         )}
       </div>
@@ -270,7 +281,7 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
             <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden divide-y divide-slate-800/80 shadow-lg">
               {group.rows.map((row) => (
                 <div
-                  key={row.id}
+                  key={`${group.groupTitle}-${row.id}-${row.title}`}
                   onClick={() => onSelectSection(row.id)}
                   className="p-3.5 sm:p-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-800/50 active:bg-slate-800 transition-colors group"
                 >

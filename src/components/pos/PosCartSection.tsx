@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, Building2 } from 'lucide-react'
-import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata } from '../../types/pos'
+import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike } from 'lucide-react'
+import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import {
@@ -24,10 +24,13 @@ export interface PosCartSectionProps {
   subtotal: number
   pb1Tax: number
   grandTotal: number
+  packagingFee?: number
+  fulfillmentMode?: OrderFulfillmentMode
   hideHeader?: boolean
   cardMetadata?: CardTenderMetadata
   setPosPayMethod: (method: PosPayMethod) => void
   setPosCashGiven: (val: string) => void
+  setFulfillmentMode?: (mode: OrderFulfillmentMode) => void
   setCardMetadata?: (meta: CardTenderMetadata) => void
   onUpdateQty: (index: number, qty: number) => void
   onOpenDirectQtyModal: (item: CartItem, index: number) => void
@@ -44,9 +47,12 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   subtotal,
   pb1Tax,
   grandTotal,
+  packagingFee = 0,
+  fulfillmentMode = 'dine_in',
   hideHeader = false,
   setPosPayMethod,
   setPosCashGiven,
+  setFulfillmentMode,
   onUpdateQty,
   onOpenDirectQtyModal,
   onCheckout,
@@ -85,9 +91,43 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
+      {/* 3-MODE FULFILLMENT SELECTOR: DINE-IN | TAKEAWAY | DELIVERY */}
+      <div className="shrink-0 grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 mb-1.5">
+        <button
+          type="button"
+          onClick={() => setFulfillmentMode?.('dine_in')}
+          className={`py-1 px-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            fulfillmentMode === 'dine_in' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm font-extrabold border border-slate-200 dark:border-slate-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <UtensilsCrossed className="w-3 h-3 shrink-0 text-emerald-500" />
+          <span className="truncate">{t.cart.dineInModeLabel}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setFulfillmentMode?.('takeaway')}
+          className={`py-1 px-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            fulfillmentMode === 'takeaway' ? 'bg-amber-500 text-slate-950 shadow-sm font-extrabold border border-amber-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <ShoppingBag className="w-3 h-3 shrink-0" />
+          <span className="truncate">{t.cart.takeawayModeLabel}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setFulfillmentMode?.('delivery')}
+          className={`py-1 px-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            fulfillmentMode === 'delivery' ? 'bg-indigo-600 text-white shadow-sm font-extrabold border border-indigo-500' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Bike className="w-3 h-3 shrink-0 text-indigo-200" />
+          <span className="truncate">{t.cart.deliveryModeLabel}</span>
+        </button>
+      </div>
+
       {/* HEADER KERANJANG (PINNED TOP, HIDDEN WHEN IN MOBILE DRAWER) */}
       {!hideHeader && (
-        <div className="shrink-0 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
+        <div className="shrink-0 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <ShoppingBag className="w-4 h-4 text-indigo-500 dark:text-indigo-400" /> {t.cart.cashierCart}
           </h3>
@@ -100,10 +140,10 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                 title="Tambah Menu ke Keranjang"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Tambah Menu</span>
+                <span>{t.cart.addMoreMenu}</span>
               </button>
             )}
-            {selectedPOSTable && (
+            {selectedPOSTable && fulfillmentMode === 'dine_in' && (
               <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-500/30">
                 {selectedPOSTable.name}
               </span>
@@ -188,6 +228,12 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           <span>{t.cart.subtotal}</span>
           <span className="font-mono text-slate-800 dark:text-slate-200 whitespace-nowrap shrink-0">{formatPrice(subtotal)}</span>
         </div>
+        {packagingFee > 0 && (
+          <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
+            <span>{t.cart.packagingFeeLabel}</span>
+            <span className="font-mono whitespace-nowrap shrink-0">+{formatPrice(packagingFee)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>{t.cart.pb1Tax}</span>
           <span className="font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">{formatPrice(pb1Tax)}</span>
@@ -202,33 +248,21 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           <button
             type="button"
             onClick={() => setPosPayMethod('cash')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${
-              posPayMethod === 'cash'
-                ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold'
-                : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${posPayMethod === 'cash' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <Banknote className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCash}</span>
           </button>
           <button
             type="button"
             onClick={() => setPosPayMethod('qris')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${
-              posPayMethod === 'qris'
-                ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold'
-                : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${posPayMethod === 'qris' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <QrCode className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payQris}</span>
           </button>
           <button
             type="button"
             onClick={() => setPosPayMethod('card')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${
-              posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
-                ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold'
-                : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <CreditCard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCard}</span>
           </button>
@@ -243,8 +277,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                 {t.cart.edcSectionTitle}
               </span>
             </div>
-
-            {/* EDC CARD TENDER FORM */}
             <PosCardTenderForm
               posPayMethod={posPayMethod}
               internalCardType={internalCardType}
@@ -268,9 +300,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           <div className="flex flex-col gap-2 bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
             {/* TENDER CURRENCY SELECTOR (KISS MULTI-CURRENCY) */}
             <div className="flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-900">
-              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {t.cart.tenderCurrencyLabel}
-              </span>
+              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.cart.tenderCurrencyLabel}</span>
               <div className="flex items-center gap-1">
                 {ACCEPTED_TENDER_CURRENCIES.slice(0, 3).map((curr) => {
                   const isCurActive = tenderCurrency === curr.code
@@ -283,11 +313,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                         const converted = convertCurrency(grandTotal, baseCurrency, curr.code)
                         setPosCashGiven(converted.toString())
                       }}
-                      className={`px-1.5 py-0.5 rounded-lg text-[9px] font-mono font-bold border transition-all flex items-center gap-1 ${
-                        isCurActive
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm'
-                          : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
+                      className={`px-1.5 py-0.5 rounded-lg text-[9px] font-mono font-bold border transition-all flex items-center gap-1 ${isCurActive ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                     >
                       <span>{curr.flag}</span>
                       <span>{curr.code}</span>
@@ -310,31 +336,20 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setPosCashGiven(tenderGrandTotal.toString())}
-                className={`py-1.5 px-0.5 font-mono text-[9px] sm:text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${
-                  cashGivenNum === tenderGrandTotal && tenderGrandTotal > 0
-                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-md'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
+                className={`py-1.5 px-0.5 font-mono text-[9px] sm:text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${cashGivenNum === tenderGrandTotal && tenderGrandTotal > 0 ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
               >
                 {t.cart.exactCash}
               </button>
-              {cashPresets.map((preset) => {
-                const isSelected = cashGivenNum === preset.value
-                return (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    onClick={() => setPosCashGiven(preset.value.toString())}
-                    className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${
-                      isSelected
-                        ? 'bg-indigo-500 text-white border-indigo-400 font-extrabold shadow-md'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                )
-              })}
+              {cashPresets.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => setPosCashGiven(preset.value.toString())}
+                  className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${cashGivenNum === preset.value ? 'bg-indigo-500 text-white border-indigo-400 font-extrabold shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                >
+                  {preset.label}
+                </button>
+              ))}
             </div>
 
             {/* INPUT NOMINAL UANG TUNAI MANUAL & SPEED KEYS */}

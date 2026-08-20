@@ -124,10 +124,10 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="font-extrabold text-xs sm:text-base text-white tracking-tight leading-tight truncate">
+            <h1 className="font-extrabold text-xs sm:text-base text-white tracking-tight leading-tight truncate max-w-[120px] sm:max-w-none">
               {hfeCompanyProfile.brandName}
             </h1>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium flex items-center gap-1 truncate">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium flex items-center gap-1 truncate max-w-[120px] sm:max-w-none">
               <Building className="w-3 h-3 text-amber-500 shrink-0" /> <span className="truncate">{hfeCompanyProfile.ptLegalName}</span>
             </p>
           </div>
@@ -138,7 +138,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <button
             type="button"
             onClick={() => setShowSpotlightModal(true)}
-            className="bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-700 flex items-center gap-1.5 whitespace-nowrap shadow-sm transition-all"
+            className="p-1.5 sm:px-3 sm:py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 text-[11px] sm:text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5 whitespace-nowrap shadow-sm transition-all cursor-pointer"
             title="Pencarian Spotlight Publik (⌘K atau /)"
           >
             <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -148,32 +148,32 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <button
             type="button"
             onClick={() => setShowCustomizerModal(true)}
-            className="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-700 flex items-center gap-1 whitespace-nowrap shadow-sm transition-all"
+            className="hidden sm:flex bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-700 items-center gap-1 whitespace-nowrap shadow-sm transition-all cursor-pointer"
             title="Kustomisasi Tampilan Ruang Toko"
           >
             <Sliders className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>{isMobile ? 'Edit' : 'Kustomisasi'}</span>
+            <span>Kustomisasi</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveApp('customer-portal')}
-            className="bg-slate-900 hover:bg-slate-800 text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-amber-500/40 flex items-center gap-1.5 whitespace-nowrap shadow-sm hover:border-amber-400"
+            className="hidden md:flex bg-slate-900 hover:bg-slate-800 text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-amber-500/40 items-center gap-1.5 whitespace-nowrap shadow-sm hover:border-amber-400 cursor-pointer"
           >
             <CreditCard className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>{isMobile ? 'Member' : 'Kartu Member'}</span>
+            <span>Kartu Member</span>
           </button>
           <button
             type="button"
             onClick={onOpenReservationModal}
-            className="theme-customer-btn-primary text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1.5 whitespace-nowrap"
+            className="hidden sm:flex theme-customer-btn-primary text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl shadow items-center gap-1.5 whitespace-nowrap cursor-pointer"
           >
             <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
-            <span>{isMobile ? 'Booking' : t.landing.reserveTable}</span>
+            <span>{t.landing.reserveTable}</span>
           </button>
           <button
             type="button"
             onClick={onSwitchToCustomerApp}
-            className="bg-slate-900 hover:bg-slate-800 text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-800 flex items-center gap-1.5 whitespace-nowrap"
+            className="bg-slate-900 hover:bg-slate-800 text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-800 flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
           >
             <QrCode className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span>{isMobile ? 'Menu' : t.landing.scanQrOrder}</span>

@@ -8,6 +8,7 @@ export type CustomerLoginType = 'phone' | 'guest-name'
 export type PaymentPolicy = 'pay-first' | 'open-tab'
 export type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
 export type PosPayMethod = 'cash' | 'qris' | 'cc' | 'debit' | 'card'
+export type OrderFulfillmentMode = 'dine_in' | 'takeaway' | 'delivery'
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
 
 export interface CardTenderMetadata {

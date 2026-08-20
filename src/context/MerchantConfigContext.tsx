@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useRef, ReactNode } from 'react'
-import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig, BusinessOperatingArchetype, PosWorkflowToggles } from '../types/pos'
+import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig, BusinessOperatingArchetype, PosWorkflowToggles, PB1TaxMode, SupportedCurrency } from '../types/pos'
+import { CashierAudioService } from '../services/hardware/CashierAudioService'
 import { BUILTIN_THEMES } from '../data/mockData'
 import { MARKETPLACE_THEMES } from '../data/marketplaceThemesData'
 import { DEFAULT_AVAILABLE_VOUCHERS } from '../data/mockVouchers'
@@ -10,11 +11,23 @@ export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape'
 export type ThemeModeType = 'light' | 'dark' | 'system'
 
 export interface MerchantConfigContextType {
-  // 1. BILLING & PAYMENT POLICY
+  // 1. BILLING & FINANCIAL POLICY
   paymentPolicy: PaymentPolicy
   setPaymentPolicy: (policy: PaymentPolicy) => void
+  pb1TaxMode: PB1TaxMode
+  setPb1TaxMode: (mode: PB1TaxMode) => void
+  takeawaySurcharge: number
+  setTakeawaySurcharge: (fee: number) => void
+  primaryCurrency: SupportedCurrency
+  setPrimaryCurrency: (currency: SupportedCurrency) => void
+  initialCashFloat: number
+  setInitialCashFloat: (amt: number) => void
 
-  // 2. THEME & VISUAL IDENTITY
+  // 2. HARDWARE & CASHIER WORKSTATION
+  soundBeeperEnabled: boolean
+  setSoundBeeperEnabled: (enabled: boolean) => void
+
+  // 3. THEME & VISUAL IDENTITY
   themeMode: ThemeModeType
   setThemeMode: (mode: ThemeModeType) => void
   toggleThemeMode: () => void
@@ -27,24 +40,24 @@ export interface MerchantConfigContextType {
   deleteSavedTheme: (name: string) => void
   allAvailableThemes: CafeThemeConfig[]
 
-  // 3. STOREFRONT CUSTOMIZATION (LANDING PAGE & QR ORDER)
+  // 4. STOREFRONT CUSTOMIZATION (LANDING PAGE & QR ORDER)
   storefrontConfig: StorefrontCustomizationConfig
   updateStorefrontConfig: (delta: Partial<StorefrontCustomizationConfig>) => void
   resetStorefrontConfig: () => void
 
-  // 4. RUNTIME APP & VIEWPORT
+  // 5. RUNTIME APP & VIEWPORT
   activeApp: PrimaryDomainApp | 'cfd'
   setActiveApp: (app: PrimaryDomainApp | 'cfd') => void
   viewportMode: ViewportModeType
   setViewportMode: (mode: ViewportModeType) => void
 
-  // 5. OPERATING ARCHETYPE & POS WORKFLOW MODES (SSOT)
+  // 6. OPERATING ARCHETYPE & POS WORKFLOW MODES (SSOT)
   operatingArchetype: BusinessOperatingArchetype
   setOperatingArchetype: (archetype: BusinessOperatingArchetype) => void
   workflowToggles: PosWorkflowToggles
   updateWorkflowToggles: (delta: Partial<PosWorkflowToggles>) => void
 
-  // 6. VOUCHERS & PROMO MANAGEMENT (SSOT)
+  // 7. VOUCHERS & PROMO MANAGEMENT (SSOT)
   vouchers: Voucher[]
   partnerContacts: PartnerContact[]
   addVoucher: (voucher: Voucher) => void
@@ -53,7 +66,7 @@ export interface MerchantConfigContextType {
   toggleVoucherStatus: (code: string) => void
   addPartnerContact: (contact: PartnerContact) => void
 
-  // 7. MOCK RESEED / RESET TRIGGER
+  // 8. MOCK RESEED / RESET TRIGGER
   onResetMockState?: () => void
   setOnResetMockState: (fn: () => void) => void
 }
@@ -61,14 +74,45 @@ export interface MerchantConfigContextType {
 const MerchantConfigContext = createContext<MerchantConfigContextType | undefined>(undefined)
 
 export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // 1. Payment Policy
+  // 1. Payment & Financial Policy
   const [paymentPolicy, setPaymentPolicyState] = useState<PaymentPolicy>(() => {
     try {
       const stored = localStorage.getItem('hfe_payment_policy')
       return stored === 'pay-first' || stored === 'open-tab' ? stored : 'pay-first'
-    } catch {
-      return 'pay-first'
-    }
+    } catch { return 'pay-first' }
+  })
+
+  const [pb1TaxMode, setPb1TaxModeState] = useState<PB1TaxMode>(() => {
+    try {
+      const stored = localStorage.getItem('hfe_pb1_tax_mode')
+      return stored !== null ? (Number(stored) as PB1TaxMode) : 1
+    } catch { return 1 }
+  })
+
+  const [takeawaySurcharge, setTakeawaySurchargeState] = useState<number>(() => {
+    try {
+      const stored = localStorage.getItem('hfe_takeaway_surcharge')
+      return stored !== null ? Number(stored) : 2000
+    } catch { return 2000 }
+  })
+
+  const [primaryCurrency, setPrimaryCurrencyState] = useState<SupportedCurrency>(() => {
+    try {
+      const stored = localStorage.getItem('hfe_primary_currency') as SupportedCurrency
+      return stored || 'IDR'
+    } catch { return 'IDR' }
+  })
+
+  const [initialCashFloat, setInitialCashFloatState] = useState<number>(() => {
+    try {
+      const stored = localStorage.getItem('hfe_initial_cash_float')
+      return stored !== null ? Number(stored) : 500000
+    } catch { return 500000 }
+  })
+
+  // 2. Hardware Beeper
+  const [soundBeeperEnabled, setSoundBeeperEnabledState] = useState<boolean>(() => {
+    return CashierAudioService.getInstance().isEnabled()
   })
 
   // 2. Theme Mode ('light' | 'dark' | 'system')
@@ -299,9 +343,27 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   }
   const setPaymentPolicy = (policy: PaymentPolicy) => {
     setPaymentPolicyState(policy)
-    try {
-      localStorage.setItem('hfe_payment_policy', policy)
-    } catch {}
+    try { localStorage.setItem('hfe_payment_policy', policy) } catch {}
+  }
+  const setPb1TaxMode = (mode: PB1TaxMode) => {
+    setPb1TaxModeState(mode)
+    try { localStorage.setItem('hfe_pb1_tax_mode', String(mode)) } catch {}
+  }
+  const setTakeawaySurcharge = (fee: number) => {
+    setTakeawaySurchargeState(fee)
+    try { localStorage.setItem('hfe_takeaway_surcharge', String(fee)) } catch {}
+  }
+  const setPrimaryCurrency = (curr: SupportedCurrency) => {
+    setPrimaryCurrencyState(curr)
+    try { localStorage.setItem('hfe_primary_currency', curr) } catch {}
+  }
+  const setInitialCashFloat = (amt: number) => {
+    setInitialCashFloatState(amt)
+    try { localStorage.setItem('hfe_initial_cash_float', String(amt)) } catch {}
+  }
+  const setSoundBeeperEnabled = (enabled: boolean) => {
+    setSoundBeeperEnabledState(enabled)
+    CashierAudioService.getInstance().setEnabled(enabled)
   }
 
   const setCustomerTheme = (theme: CafeThemeConfig) => {
@@ -319,63 +381,46 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   }
 
   const saveCustomTheme = (name: string, theme: CafeThemeConfig) => {
-    const updated = [
-      ...savedThemes.filter(t => t.themeId !== theme.themeId),
-      { ...theme, themeName: name, isCustomTheme: true }
-    ]
+    const updated = [...savedThemes.filter(t => t.themeId !== theme.themeId), { ...theme, themeName: name, isCustomTheme: true }]
     setSavedThemes(updated)
-    try {
-      localStorage.setItem('hfe_custom_saved_templates', JSON.stringify(updated))
-    } catch {}
+    try { localStorage.setItem('hfe_custom_saved_templates', JSON.stringify(updated)) } catch {}
   }
 
   const deleteSavedTheme = (themeId: string) => {
     const updated = savedThemes.filter(t => t.themeId !== themeId)
     setSavedThemes(updated)
-    try {
-      localStorage.setItem('hfe_custom_saved_templates', JSON.stringify(updated))
-    } catch {}
+    try { localStorage.setItem('hfe_custom_saved_templates', JSON.stringify(updated)) } catch {}
   }
 
   // --- VOUCHER CRUD MUTATORS ---
   const addVoucher = (voucher: Voucher) => {
     const updated = [voucher, ...vouchers.filter(v => v.code !== voucher.code)]
     setVouchers(updated)
-    try {
-      localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated))
-    } catch {}
+    try { localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated)) } catch {}
   }
 
   const updateVoucher = (code: string, delta: Partial<Voucher>) => {
     const updated = vouchers.map(v => v.code === code ? { ...v, ...delta } : v)
     setVouchers(updated)
-    try {
-      localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated))
-    } catch {}
+    try { localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated)) } catch {}
   }
 
   const deleteVoucher = (code: string) => {
     const updated = vouchers.filter(v => v.code !== code)
     setVouchers(updated)
-    try {
-      localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated))
-    } catch {}
+    try { localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated)) } catch {}
   }
 
   const toggleVoucherStatus = (code: string) => {
     const updated = vouchers.map(v => v.code === code ? { ...v, isActive: !v.isActive } : v)
     setVouchers(updated)
-    try {
-      localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated))
-    } catch {}
+    try { localStorage.setItem('hfe_merchant_vouchers', JSON.stringify(updated)) } catch {}
   }
 
   const addPartnerContact = (contact: PartnerContact) => {
     const updated = [contact, ...partnerContacts.filter(c => c.id !== contact.id)]
     setPartnerContacts(updated)
-    try {
-      localStorage.setItem('hfe_partner_contacts', JSON.stringify(updated))
-    } catch {}
+    try { localStorage.setItem('hfe_partner_contacts', JSON.stringify(updated)) } catch {}
   }
 
   const setOnResetMockState = (fn: () => void) => {
@@ -397,39 +442,26 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   return (
     <MerchantConfigContext.Provider
       value={{
-        paymentPolicy,
-        setPaymentPolicy,
-        themeMode,
-        setThemeMode,
-        toggleThemeMode,
-        customerTheme,
-        setCustomerTheme,
-        merchantTheme,
-        setMerchantTheme,
-        savedThemes,
-        saveCustomTheme,
-        deleteSavedTheme,
+        paymentPolicy, setPaymentPolicy,
+        pb1TaxMode, setPb1TaxMode,
+        takeawaySurcharge, setTakeawaySurcharge,
+        primaryCurrency, setPrimaryCurrency,
+        initialCashFloat, setInitialCashFloat,
+        soundBeeperEnabled, setSoundBeeperEnabled,
+        themeMode, setThemeMode, toggleThemeMode,
+        customerTheme, setCustomerTheme,
+        merchantTheme, setMerchantTheme,
+        savedThemes, saveCustomTheme, deleteSavedTheme,
         allAvailableThemes,
-        storefrontConfig,
-        updateStorefrontConfig,
-        resetStorefrontConfig,
-        activeApp,
-        setActiveApp,
-        viewportMode,
-        setViewportMode,
-        operatingArchetype,
-        setOperatingArchetype,
-        workflowToggles,
-        updateWorkflowToggles,
-        vouchers,
-        partnerContacts,
-        addVoucher,
-        updateVoucher,
-        deleteVoucher,
-        toggleVoucherStatus,
+        storefrontConfig, updateStorefrontConfig, resetStorefrontConfig,
+        activeApp, setActiveApp,
+        viewportMode, setViewportMode,
+        operatingArchetype, setOperatingArchetype,
+        workflowToggles, updateWorkflowToggles,
+        vouchers, partnerContacts,
+        addVoucher, updateVoucher, deleteVoucher, toggleVoucherStatus,
         addPartnerContact,
-        onResetMockState,
-        setOnResetMockState
+        onResetMockState, setOnResetMockState
       }}
     >
       {children}

@@ -115,9 +115,9 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
   const readyOrders = sortedOrders.filter(o => o.status === 'ready' || o.status === 'qc-passed')
 
   return (
-    <main className="flex-1 p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
+    <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
       {/* UNIFIED HEADER & MODE TOGGLE */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shrink-0">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${isFineDiningActive ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400'}`}>
             {isFineDiningActive ? <Flame className="w-6 h-6 animate-pulse" /> : <ChefHat className="w-6 h-6" />}
@@ -142,30 +142,34 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
         {/* MODE SWITCHER TAB */}
         <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto no-scrollbar gap-1">
           <button
+            type="button"
             onClick={() => setIsFineDiningActive(false)}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all touch-manipulation cursor-pointer ${
               !isFineDiningActive ? 'bg-indigo-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Utensils className="w-3.5 h-3.5" /> Dapur Regular
           </button>
           <button
+            type="button"
             onClick={() => setIsFineDiningActive(true)}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all touch-manipulation cursor-pointer ${
               isFineDiningActive ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Flame className="w-3.5 h-3.5" /> Chef Course Firing
           </button>
           <button
+            type="button"
             onClick={() => setActiveStaffSurface('checker-qc')}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-teal-300 hover:bg-slate-850 transition-all"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-teal-300 hover:bg-slate-850 transition-all touch-manipulation cursor-pointer"
           >
             <BadgeCheck className="w-3.5 h-3.5 text-teal-400" /> Checker QC
           </button>
           <button
+            type="button"
             onClick={() => setActiveStaffSurface('server-waiter')}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-purple-300 hover:bg-slate-850 transition-all"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-purple-300 hover:bg-slate-850 transition-all touch-manipulation cursor-pointer"
           >
             <Footprints className="w-3.5 h-3.5 text-purple-400" /> Server Runner
           </button>

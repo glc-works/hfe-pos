@@ -106,6 +106,11 @@ export interface TranslationDictionary {
     viewCartAction: string
     payAction: string
     takeawayLabel: string
+    dineInModeLabel: string
+    takeawayModeLabel: string
+    deliveryModeLabel: string
+    packagingFeeLabel: string
+    queueNumberLabel: string
   }
   hostStand: {
     title: string
@@ -162,6 +167,11 @@ export interface TranslationDictionary {
   }
   settings: {
     title: string
+    subtitle: string
+    saveChanges: string
+    saving: string
+    savedSuccess: string
+    backToSettings: string
     languageSetting: string
     languageSettingSub: string
     indonesian: string
@@ -169,6 +179,108 @@ export interface TranslationDictionary {
     themeSetting: string
     companyProfile: string
     purchaseOrders: string
+
+    // 4 Zones Navigation & Headers
+    zone1NavTitle: string
+    zone1NavSubtitle: string
+    zone2NavTitle: string
+    zone2NavSubtitle: string
+    zone3NavTitle: string
+    zone3NavSubtitle: string
+    zone4NavTitle: string
+    zone4NavSubtitle: string
+
+    // Zone 1: Profil Usaha & Legalitas
+    zone1Heading: string
+    zone1Desc: string
+    ptLegalName: string
+    ptLegalNamePlaceholder: string
+    brandName: string
+    brandNamePlaceholder: string
+    taxIdNpwp: string
+    taxIdNpwpPlaceholder: string
+    nibPermit: string
+    nibPermitPlaceholder: string
+    storeAddress: string
+    storeAddressPlaceholder: string
+    logoUrl: string
+    logoUrlPlaceholder: string
+
+    // Zone 2: Kebijakan Finansial & Pajak PB1
+    zone2Heading: string
+    zone2Desc: string
+    pb1TaxTitle: string
+    pb1TaxSub: string
+    pb1Exclude: string
+    pb1ExcludeDesc: string
+    pb1Include: string
+    pb1IncludeDesc: string
+    pb1Disabled: string
+    pb1DisabledDesc: string
+    takeawaySurcharge: string
+    takeawaySurchargeSub: string
+    primaryCurrency: string
+    primaryCurrencySub: string
+    paymentPolicyTitle: string
+    paymentPolicySub: string
+    payFirst: string
+    payFirstDesc: string
+    openTab: string
+    openTabDesc: string
+    initialCashFloat: string
+    initialCashFloatSub: string
+
+    // Zone 3: Perangkat Keras & Kasir
+    zone3Heading: string
+    zone3Desc: string
+    printerConnectionTitle: string
+    printerConnectionSub: string
+    bluetooth: string
+    usbCable: string
+    virtualPos: string
+    activePrinterDevice: string
+    paperWidthTitle: string
+    paperWidthSub: string
+    paper58mm: string
+    paper58mmDesc: string
+    paper80mm: string
+    paper80mmDesc: string
+    hardwareAutomationTitle: string
+    autoCutter: string
+    autoCutterDesc: string
+    autoKickDrawer: string
+    autoKickDrawerDesc: string
+    soundBeeper: string
+    soundBeeperDesc: string
+    hardwareDiagnosticsTitle: string
+    testPrintReceipt: string
+    testKickDrawer: string
+    testSoundBeeper: string
+    printing: string
+    testPrintSuccess: string
+    testDrawerSuccess: string
+    testBeeperSuccess: string
+
+    // Zone 4: Integrasi Hfe Core SSOT
+    zone4Heading: string
+    zone4Desc: string
+    liveSyncedBadge: string
+    companyBookId: string
+    ledgerApiEndpoint: string
+    resyncFromApi: string
+    pushToCoreHfe: string
+    multiBranchTitle: string
+    multiBranchDesc: string
+    activeBranch: string
+    dimensionalTagging: string
+    dimensionalTaggingDesc: string
+    multiBookHierarchy: string
+    multiBookHierarchyDesc: string
+    subAccountCoa: string
+    subAccountCoaDesc: string
+    recommendedBadge: string
+    enterpriseBadge: string
+    auditBadge: string
   }
   landing: {
     heroTag: string

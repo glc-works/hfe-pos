@@ -14,17 +14,23 @@ export interface ReceiptDataPayload {
   phone?: string
   receiptNumber: string
   tableName?: string
+  queueNumber?: string
+  orderType?: 'dine-in' | 'takeaway' | 'delivery' | string
   cashierName?: string
   timestamp: string
   items: ReceiptItemLine[]
   subtotal: number
   taxPb1: number
   serviceFee?: number
+  packagingFee?: number
   discount?: number
   total: number
   paymentMethod: string
   amountTendered?: number
   changeDue?: number
+  glPostingId?: string
+  transactionRef?: string
+  sha256Hash?: string
   wifiSsid?: string
   wifiPassword?: string
   footerNote?: string
@@ -130,9 +136,40 @@ export class EscPosEncoder {
 
     this.dashedLine(paperWidth)
 
-    // 2. Transaction Metadata (Left aligned)
+    // 2. Fulfillment Banner & Transaction Metadata (Left aligned)
+    let fulfillmentBanner = ''
+    if (data.orderType === 'dine-in') {
+      if (data.tableName) {
+        const cleanTable = data.tableName.toUpperCase().startsWith('MEJA')
+          ? data.tableName.toUpperCase()
+          : `MEJA ${data.tableName.toUpperCase()}`
+        fulfillmentBanner = `[ DINE-IN - ${cleanTable} ]`
+      } else {
+        fulfillmentBanner = `[ DINE-IN ]`
+      }
+    } else if (data.orderType === 'takeaway') {
+      const q = data.queueNumber || (data.tableName && data.tableName.toLowerCase().includes('antrean') ? data.tableName : (data.tableName ? `#${data.tableName}` : ''))
+      if (q) {
+        const cleanQ = q.toUpperCase().includes('ANTREAN') ? q.toUpperCase() : `ANTREAN ${q.startsWith('#') ? q : `#${q}`}`
+        fulfillmentBanner = `[ TAKEAWAY - ${cleanQ} ]`
+      } else {
+        fulfillmentBanner = `[ TAKEAWAY ]`
+      }
+    } else if (data.orderType === 'delivery') {
+      fulfillmentBanner = `[ DELIVERY ]`
+    }
+
+    if (fulfillmentBanner) {
+      this.align('center')
+      this.bold(true).textLine(fulfillmentBanner).bold(false)
+      this.dashedLine(paperWidth)
+    }
+
     this.align('left')
     this.twoColumn(`Struk: ${data.receiptNumber}`, data.timestamp, paperWidth)
+    if (data.transactionRef) {
+      this.twoColumn(`Ref: ${data.transactionRef}`, '', paperWidth)
+    }
     if (data.tableName) {
       this.twoColumn(`Meja: ${data.tableName}`, data.cashierName ? `Kasir: ${data.cashierName}` : '', paperWidth)
     }
@@ -157,6 +194,9 @@ export class EscPosEncoder {
     }
     if (data.serviceFee && data.serviceFee > 0) {
       this.twoColumn('Service Charge', `Rp ${data.serviceFee.toLocaleString('id-ID')}`, paperWidth)
+    }
+    if (data.packagingFee && data.packagingFee > 0) {
+      this.twoColumn('Biaya Kemasan', `Rp ${data.packagingFee.toLocaleString('id-ID')}`, paperWidth)
     }
     if (data.discount && data.discount > 0) {
       this.twoColumn('Diskon / Promo', `-Rp ${data.discount.toLocaleString('id-ID')}`, paperWidth)
@@ -188,6 +228,12 @@ export class EscPosEncoder {
 
     // 6. Footer Note (Centered)
     this.align('center')
+    if (data.glPostingId) {
+      this.textLine(`GL Post ID: ${data.glPostingId}`)
+    }
+    if (data.sha256Hash) {
+      this.textLine(`HCB Verify: ${data.sha256Hash.substring(0, 16)}...`)
+    }
     this.textLine(data.footerNote || 'Terima kasih atas kunjungan Anda!')
     this.textLine('Powered by CORE.Hfeit Engine')
 

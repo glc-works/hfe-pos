@@ -28,6 +28,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         address: receiptData.storeAddress,
         receiptNumber: receiptData.receiptNo,
         tableName: receiptData.tableNo,
+        queueNumber: receiptData.queueNo,
+        orderType: receiptData.orderType,
         cashierName: receiptData.cashierName || 'Kasir',
         timestamp: receiptData.timestamp,
         items: receiptData.items.map((i) => ({
@@ -39,10 +41,14 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         subtotal: receiptData.subtotal,
         taxPb1: receiptData.pb1Tax,
         serviceFee: receiptData.serviceCharge,
+        packagingFee: receiptData.packagingFee,
         total: receiptData.grandTotal,
         paymentMethod: receiptData.paymentMethod || 'cash',
         amountTendered: receiptData.cashGiven,
-        changeDue: receiptData.changeReturned
+        changeDue: receiptData.changeReturned,
+        glPostingId: receiptData.glPostingId,
+        transactionRef: receiptData.transactionRef,
+        sha256Hash: receiptData.sha256Hash
       })
     } catch {
       window.print()

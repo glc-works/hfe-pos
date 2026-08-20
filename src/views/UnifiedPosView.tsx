@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { ShoppingBag, ArrowRight } from 'lucide-react'
-import { TableStatus, MenuItem, OrderTicket, StaffSurfaceMode, CartItem, PosPayMethod, ViewportModeType, PropertyZoneId } from '../types/pos'
+import { TableStatus, MenuItem, OrderTicket, StaffSurfaceMode, CartItem, PosPayMethod, ViewportModeType, PropertyZoneId, OrderFulfillmentMode } from '../types/pos'
 import { PROPERTY_ZONES } from '../data/mockData'
 import { PosFavoritesBar } from '../components/pos/PosFavoritesBar'
 import { PosCatalogGrid } from '../components/pos/PosCatalogGrid'
@@ -60,6 +60,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const { workflowToggles } = useMerchantConfig()
   const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
+  const [fulfillmentMode, setFulfillmentMode] = useState<OrderFulfillmentMode>('dine_in')
   const [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'unpaid' | 'paid' | 'available'>('all')
   const [selectedZoneId, setSelectedZoneId] = useState<PropertyZoneId>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -141,9 +142,10 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     return []
   }, [cartItems, selectedPOSTable, orders, productCatalog])
 
+  const packagingFee = fulfillmentMode === 'takeaway' ? 2000 : 0
   const subtotal = useMemo(() => activeTableCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0), [activeTableCartItems])
   const pb1Tax = useMemo(() => Math.round(subtotal * 0.1), [subtotal])
-  const grandTotal = useMemo(() => (cartItems.length > 0 || !selectedPOSTable ? subtotal + pb1Tax : selectedPOSTable.totalBill || subtotal + pb1Tax), [cartItems, selectedPOSTable, subtotal, pb1Tax])
+  const grandTotal = useMemo(() => (cartItems.length > 0 || !selectedPOSTable ? subtotal + pb1Tax + packagingFee : selectedPOSTable.totalBill || (subtotal + pb1Tax + packagingFee)), [cartItems, selectedPOSTable, subtotal, pb1Tax, packagingFee])
   const totalCartItemsCount = useMemo(() => activeTableCartItems.reduce((acc, item) => acc + item.quantity, 0), [activeTableCartItems])
   const unpaidCount = useMemo(() => tablesGrid.filter((t) => (t.status === 'open-tab' || t.status === 'occupied') && t.totalBill > 0).length, [tablesGrid])
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
@@ -158,7 +160,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     setCartItems([])
     setPosCashGiven('')
     setShowMobileCartDrawer(false)
-    alert(`🎉 Pembayaran ${selectedPOSTable?.name || 'Walk-In'} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))} LUNAS via ${posPayMethod.toUpperCase()}!`)
+    alert(`🎉 Pembayaran ${selectedPOSTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))} LUNAS via ${posPayMethod.toUpperCase()}!`)
   }
 
   const handleCloseAllModals = () => {
@@ -320,8 +322,11 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               subtotal={subtotal}
               pb1Tax={pb1Tax}
               grandTotal={grandTotal}
+              packagingFee={packagingFee}
+              fulfillmentMode={fulfillmentMode}
               setPosPayMethod={setPosPayMethod}
               setPosCashGiven={setPosCashGiven}
+              setFulfillmentMode={setFulfillmentMode}
               onUpdateQty={handleUpdateQty}
               onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
               onCheckout={handleCheckoutAction}
@@ -361,8 +366,8 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               </div>
               <div className="flex items-center gap-1.5 bg-slate-950 text-white hover:bg-slate-900 px-3.5 py-2 rounded-xl text-xs font-black shrink-0 shadow-md">
                 <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{t.cart.payAction}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{fulfillmentMode === 'takeaway' ? `${t.cart.takeawayModeLabel} • ${t.cart.payAction} ➔` : t.cart.payAction}</span>
+                {fulfillmentMode !== 'takeaway' && <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />}
               </div>
             </button>
           ) : posModeTab === 'tables' ? (
@@ -419,75 +424,46 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         subtotal={subtotal}
         pb1Tax={pb1Tax}
         grandTotal={grandTotal}
+        packagingFee={packagingFee}
+        fulfillmentMode={fulfillmentMode}
         onClose={() => setShowMobileCartDrawer(false)}
         setPosPayMethod={setPosPayMethod}
         setPosCashGiven={setPosCashGiven}
+        setFulfillmentMode={setFulfillmentMode}
         onUpdateQty={handleUpdateQty}
         onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
         onCheckout={handleCheckoutAction}
         onOpenSplitPayment={() => setShowTableOpsModal(true)}
         onToggleOrderMode={() => {
-          if (selectedPOSTable) {
-            setSelectedPOSTable(null)
-          } else {
-            setShowMobileCartDrawer(false)
-            setPosModeTab('tables')
-          }
+          if (selectedPOSTable) setSelectedPOSTable(null)
+          else { setShowMobileCartDrawer(false); setPosModeTab('tables') }
         }}
-        onSwitchToCatalog={() => {
-          setShowMobileCartDrawer(false)
-          setPosModeTab('catalog')
-        }}
+        onSwitchToCatalog={() => { setShowMobileCartDrawer(false); setPosModeTab('catalog') }}
       />
 
       <UnifiedPosModalsCluster
-        showCameraScanner={showCameraScanner}
-        setShowCameraScanner={setShowCameraScanner}
-        handleScanSuccess={handleScanSuccess}
-        directQtyItem={directQtyItem}
-        setDirectQtyItem={setDirectQtyItem}
-        handleUpdateQty={handleUpdateQty}
-        showTableOpsModal={showTableOpsModal}
-        setShowTableOpsModal={setShowTableOpsModal}
-        tablesGrid={tablesGrid}
-        reassignFromTable={reassignFromTable}
-        setReassignFromTable={setReassignFromTable}
-        reassignTargetTable={reassignTargetTable}
-        setReassignTargetTable={setReassignTargetTable}
+        showCameraScanner={showCameraScanner} setShowCameraScanner={setShowCameraScanner}
+        handleScanSuccess={handleScanSuccess} directQtyItem={directQtyItem} setDirectQtyItem={setDirectQtyItem}
+        handleUpdateQty={handleUpdateQty} showTableOpsModal={showTableOpsModal} setShowTableOpsModal={setShowTableOpsModal}
+        tablesGrid={tablesGrid} reassignFromTable={reassignFromTable} setReassignFromTable={setReassignFromTable}
+        reassignTargetTable={reassignTargetTable} setReassignTargetTable={setReassignTargetTable}
         handleConfirmReassignWithReason={handleConfirmReassignWithReason}
-        showRoomChargeModal={showRoomChargeModal}
-        setShowRoomChargeModal={setShowRoomChargeModal}
-        grandTotal={grandTotal}
-        subtotal={subtotal}
-        pb1Tax={pb1Tax}
-        selectedPOSTable={selectedPOSTable}
+        showRoomChargeModal={showRoomChargeModal} setShowRoomChargeModal={setShowRoomChargeModal}
+        grandTotal={grandTotal} subtotal={subtotal} pb1Tax={pb1Tax} selectedPOSTable={selectedPOSTable}
         handleConfirmRoomCharge={handleConfirmRoomCharge}
-        showTableDetailDrawer={showTableDetailDrawer}
-        setShowTableDetailDrawer={setShowTableDetailDrawer}
-        setPosModeTab={setPosModeTab}
-        setShowMobileCartDrawer={setShowMobileCartDrawer}
-        showTableGuestBindingDrawer={showTableGuestBindingDrawer}
-        setShowTableGuestBindingDrawer={setShowTableGuestBindingDrawer}
+        showTableDetailDrawer={showTableDetailDrawer} setShowTableDetailDrawer={setShowTableDetailDrawer}
+        setPosModeTab={setPosModeTab} setShowMobileCartDrawer={setShowMobileCartDrawer}
+        showTableGuestBindingDrawer={showTableGuestBindingDrawer} setShowTableGuestBindingDrawer={setShowTableGuestBindingDrawer}
         setSelectedPOSTable={setSelectedPOSTable}
-        showEditPinnedModal={showEditPinnedModal}
-        setShowEditPinnedModal={setShowEditPinnedModal}
-        productCatalog={productCatalog}
-        pinnedItemIds={pinnedItemIds}
-        setPinnedItemIds={setPinnedItemIds}
-        isAppDrawerOpen={isAppDrawerOpen}
-        setIsAppDrawerOpen={setIsAppDrawerOpen}
-        activeStaffSurface={activeStaffSurface}
-        setActiveStaffSurface={setActiveStaffSurface}
-        showNotificationCenter={showNotificationCenter}
-        setShowNotificationCenter={setShowNotificationCenter}
-        showServiceTickets={showServiceTickets}
-        setShowServiceTickets={setShowServiceTickets}
-        showEventTicketCheckIn={showEventTicketCheckIn}
-        setShowEventTicketCheckIn={setShowEventTicketCheckIn}
-        showSpotlightModal={showSpotlightModal}
-        setShowSpotlightModal={setShowSpotlightModal}
-        handleAddToCart={handleAddToCart}
-        handleTableClick={handleTableClick}
+        showEditPinnedModal={showEditPinnedModal} setShowEditPinnedModal={setShowEditPinnedModal}
+        productCatalog={productCatalog} pinnedItemIds={pinnedItemIds} setPinnedItemIds={setPinnedItemIds}
+        isAppDrawerOpen={isAppDrawerOpen} setIsAppDrawerOpen={setIsAppDrawerOpen}
+        activeStaffSurface={activeStaffSurface} setActiveStaffSurface={setActiveStaffSurface}
+        showNotificationCenter={showNotificationCenter} setShowNotificationCenter={setShowNotificationCenter}
+        showServiceTickets={showServiceTickets} setShowServiceTickets={setShowServiceTickets}
+        showEventTicketCheckIn={showEventTicketCheckIn} setShowEventTicketCheckIn={setShowEventTicketCheckIn}
+        showSpotlightModal={showSpotlightModal} setShowSpotlightModal={setShowSpotlightModal}
+        handleAddToCart={handleAddToCart} handleTableClick={handleTableClick}
       />
     </div>
   )
