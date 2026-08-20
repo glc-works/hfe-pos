@@ -92,6 +92,18 @@ export const DomainNavigator: React.FC<DomainNavigatorProps> = ({
           >
             <span>📚</span> BOOK.Hfeit
           </button>
+
+          <button
+            type="button"
+            onClick={() => onSwitchDomain('hfeit-corporate')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-xs transition-all ${
+              activeApp === 'hfeit-corporate'
+                ? 'bg-amber-400 text-slate-950 shadow font-black ring-2 ring-amber-300'
+                : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+            }`}
+          >
+            <span>🌐</span> hfeit.com
+          </button>
         </div>
 
         {/* QUICK PAYMENT POLICY SWITCHER (MERCHANT POLICY DEV TESTING) */}

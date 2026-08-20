@@ -30,6 +30,7 @@ import { ConnectHubAdminView } from './views/ConnectHubAdminView'
 import { CustomerPortalView } from './views/CustomerPortalView'
 import { CompanyBookView } from './views/CompanyBookView'
 import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
+import { HfeitCorporateView } from './views/HfeitCorporateView'
 
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
@@ -437,6 +438,10 @@ function AppMain() {
         )}
 
         {config.activeApp === 'design-system' && <ComponentShowcaseView />}
+
+        {config.activeApp === 'hfeit-corporate' && (
+          <HfeitCorporateView onNavigateToApp={(app) => config.setActiveApp(app as any)} />
+        )}
       </div>
 
       {/* DEV-ONLY FLOATING QUICK SETTINGS (AUTOMATICALLY STRIPPED IN PROD) */}
