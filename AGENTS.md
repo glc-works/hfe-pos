@@ -234,6 +234,70 @@ For every execution or coding task, agents MUST execute the closed verification 
 5. **Step 5: Structured Delivery Report:** Present:
    - **Gaps Found (Temuan Cacat):** Self-identified issues during audit.
    - **Solutions Applied (Solusi Diterapkan):** Concrete code/layout fixes made.
-   - **Decisions / Clarifications Ahead (Opsi / Keputusan User):** Strategic trade-offs requiring user direction (if any).
 
+## The 6-Tier Architecture Invariant: Complete WHAT TO DO & WHAT NOT TO DO Contract (DOs & DON'Ts)
 
+Every component, token, widget, layout, and view in this codebase MUST strictly comply with the following 6-Tier behavioral contracts:
+
+### 🟣 Tier 1: Design Tokens & Typography Foundation (`src/index.css` & Tailwind)
+- **✅ WHAT TO DO:**
+  - Use semantic CSS variables (`bg-canvas`, `text-primary`, `border-subtle`) that dynamically adapt to `.light` and `.dark` themes.
+  - Render all currency amounts, taxes, totals, and elapsed timers strictly with `font-mono tabular-nums`.
+  - Use semantic micro-glyphs (**`👥`** Table, **`🍽️`** Dine-in, **`🛍️`** Takeaway, **`⏱️`** Timer, **`👑`** VIP, **`🛵`** Delivery, **`🏷️`** Queue) to conserve horizontal character width.
+  - Enforce spatial multiples of 4px/8px for all paddings, gaps, and border radii.
+- **❌ WHAT NOT TO DO:**
+  - DO NOT hardcode arbitrary raw hex colors (e.g. `bg-[#1a202c]`, `text-[#333]`) directly in JSX elements.
+  - DO NOT use proportional standard fonts for monetary amounts (prevents layout jitter and digit clipping).
+  - DO NOT use verbose multi-word labels on compact grids (e.g. avoid *"Kapasitas 4 Meja"* when `👥 4` is required).
+  - DO NOT use odd/arbitrary pixel margins (e.g. `p-[13px]`, `gap-[7px]`) that cause sub-pixel antialiasing blur.
+
+### 🔵 Tier 2: React Aria Atoms & Headless Primitives (`src/ui/`)
+- **✅ WHAT TO DO:**
+  - Enforce minimum touch target size $\ge 44\text{px} \times 44\text{px}$ on mobile viewports (`min-h-[44px]`).
+  - Provide instant tactile visual feedback `<16ms` (`active:scale-95`, `touch-action: manipulation`).
+  - Keep atom components pure and presentational (pure props, zero domain dependencies).
+- **❌ WHAT NOT TO DO:**
+  - DO NOT create small interactive buttons ($\le 32\text{px}$) that are prone to cashier mis-taps during rush hours.
+  - DO NOT allow browser 300ms double-tap zoom delay or default grey tap-highlight boxes (`-webkit-tap-highlight-color`).
+  - DO NOT import business domain state (e.g. `useCart`, `orders`, `tablesGrid`) into `src/ui/*` primitives.
+
+### 🟢 Tier 3: Domain Slot Widgets (`src/components/shared/`)
+- **✅ WHAT TO DO:**
+  - Enforce minimum readable child card width $\ge 105\text{px} - 110\text{px}$ in all floor plans and catalog grids.
+  - Use multi-line wrapping for product titles (`line-clamp-2 leading-snug min-h-[32px]`) so names remain fully legible.
+  - Enforce Orthogonal Visual Channels (1 Channel = 1 Semantic State, e.g. Border color for occupancy).
+- **❌ WHAT NOT TO DO:**
+  - DO NOT squeeze child cards below $105\text{px}$ by forcing excessive columns into compact containers.
+  - DO NOT use single-line `truncate` on product titles that clips critical item names (e.g. *"Espresso Aren L..."*).
+  - DO NOT stack redundant status indicators (e.g. amber border + amber dot + "TERISI" badge all at once).
+
+### 🟡 Tier 4: Widget Clusters & Assemblies (`src/components/pos/`, `src/components/tables/`)
+- **✅ WHAT TO DO:**
+  - Present an always-visible 3-Mode Fulfillment Bar: `[ 🍽️ Makan di Tempat ] [ 🛍️ Bungkus ] [ 🛵 Pesan Antar ]`.
+  - Use clean monolithic capsule pills (`[ 🍽️ Meja OUT-04 ▾ ]`) with subtle dropdown chevrons.
+  - Provide 12-digit card tender input (8-digit BIN prefix + 4-digit last4) with auto-bank detection and approval code.
+- **❌ WHAT NOT TO DO:**
+  - DO NOT hide takeaway/walk-in mode switching inside nested table buttons.
+  - DO NOT create nested button anti-patterns ("boxes inside boxes", e.g. mini badges inside buttons).
+  - DO NOT require cashiers to type full 16-digit card numbers (PCI-DSS violation).
+
+### 🟠 Tier 5: Master Layout Templates (`src/layouts/`)
+- **✅ WHAT TO DO:**
+  - Enforce Pure Viewport App Shell `100dvh` and exactly ONE scroll owner per active view (`<main className="flex-1 min-h-0 overflow-y-auto overscroll-contain">`).
+  - Enforce strict 340px total header pixel budget on compact mobile screens ($\le 390\text{px}$) with AT MOST 2 right action icons.
+  - Use Golden Ratio dual-pane split ($61.8\% : 38.2\%$) on landscape POS terminals.
+- **❌ WHAT NOT TO DO:**
+  - DO NOT allow nested scrollbars or scroll-trapping (multiple elements declaring `overflow-y-auto`).
+  - DO NOT use `min-h-screen` on root cashier containers that trigger mobile browser rubber-band bounce reloads.
+  - DO NOT crowd mobile headers with 4-5 action icons that collide with brand titles.
+
+### 🔴 Tier 6: Smart Screens & Surface Switcher (`src/views/`)
+- **✅ WHAT TO DO:**
+  - Provide instant Surface Switching across all 6 core experiences: `POS (Barista/Retail)`, `CFD (Customer Facing Display)`, `KDS (Kitchen/Bar)`, `CARD (Passbook)`, `BOARD (Landing)`, `ORDER (QR)`, and `CONFIG (4-Zone Settings)`.
+  - Separate ephemeral UI state (Context) from asynchronous server entities (TanStack Query).
+  - Enforce 100% i18n localization dictionary binding (`t.*`) across all JSX text, labels, and receipts.
+  - Ensure ACID disk storage in `IndexedDB` for offline mutations before confirming success.
+- **❌ WHAT NOT TO DO:**
+  - DO NOT trap the cashier in one view without quick access to KDS or Settings.
+  - DO NOT rely solely on RAM/LocalStorage for financial transaction queues without IndexedDB persistence.
+  - DO NOT leave raw hardcoded strings in JSX.
