@@ -232,12 +232,12 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
 
   return (
     <div className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950">
-      <main className={`flex-1 min-h-0 w-full h-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-3 sm:gap-4 ${
+      <main className={`flex-1 min-h-0 w-full h-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-2 sm:gap-4 ${
         isMobile
-          ? 'flex flex-col overflow-y-auto overscroll-contain pb-36'
+          ? 'flex flex-col overflow-hidden'
           : 'grid grid-cols-12 overflow-hidden'
       }`}>
-        <div className={isMobile ? 'w-full flex flex-col gap-3' : 'md:col-span-7 lg:col-span-8 flex flex-col h-full min-h-0 gap-2 overflow-hidden'}>
+        <div className={isMobile ? 'w-full h-full min-h-0 flex flex-col gap-2 overflow-hidden' : 'md:col-span-7 lg:col-span-8 flex flex-col h-full min-h-0 gap-2 overflow-hidden'}>
           <div className="shrink-0 z-20">
             <PosCommandHeader
               posModeTab={posModeTab}
@@ -266,7 +266,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
             />
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-1 custom-scrollbar">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-1 custom-scrollbar pb-36">
             {posModeTab === 'tables' && enableTableFloorPlan && (
               <PosTableFloorPlanSection
                 tablesGrid={tablesGrid}

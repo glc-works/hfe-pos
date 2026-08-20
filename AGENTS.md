@@ -131,6 +131,23 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
     - *Zero Local Workarounds:* When a capability, schema field, or endpoint is missing, incompatible, or deficient in `@hfe/sdk`, writing ad-hoc local adapter workarounds, bypass fetch layers, or inventing shadow TypeScript interfaces in `hfe-pos` is **STRICTLY PROHIBITED**.
     - *Mandatory Core Issue Filing:* The agent MUST file a structured Issue / Level 2 proposal for the HFE Core (`headless-company-books`) session containing: (1) POS Operational Need, (2) Contract Gap Specification, (3) Proposed Universal Accounting/Domain Primitive, and (4) Expected OpenAPI Schema Delta.
     - *Upstream Resolution Loop:* The Core session implements the backend logic, updates `openapi.json`, and rebuilds `@hfe/sdk`. The POS frontend then simply adopts the new official SDK release cleanly without any local adapter baggage.
+27. **The "Mobile NUMERO UNO" & Zero-Tolerance Visual Clipping Protocol.**
+    - *Mobile-First Absolute Authority:* Mobile (360px – 390px) is the primary benchmark and highest authority (*NUMERO UNO*). Every UI component and layout MUST be designed, tested, and verified on compact mobile screens before desktop expansion.
+    - *Strict 340px Header Budget:* On screens $\le 390\text{px}$, the top header row MUST NOT exceed 340px total width. AT MOST 2 action icons in the right zone (`Theme` + `Search`). Secondary icons (*Sambut, Bell, Scan*) MUST declare `hidden sm:flex` or collapse into drawers.
+    - *Multi-Line Typographic Wrapping:* Single-row `truncate` on product names is STRICTLY FORBIDDEN. Product titles MUST use `line-clamp-2 text-xs font-bold leading-snug min-h-[32px]` so all words remain fully legible.
+    - *High-Density Floor Plan Grid:* Mobile table layout MUST strictly use `grid-cols-2 gap-2` (never a wasteful single-column layout).
+28. **Pure Single Scroll Owner & Zero-Trapping Guarantee.**
+    - *Single Scroll Owner Invariant:* Exactly ONE element per active screen view is permitted to declare `overflow-y-auto`.
+    - *Parent Constraint:* Root layout MUST strictly enforce `h-full min-h-0 overflow-hidden flex flex-col`.
+    - *Fixed Control Strips:* Headers, command bars, search inputs, and category strips MUST declare `shrink-0 z-20` (fixed/sticky at top).
+    - *Content Canvas Ownership:* The active content canvas (catalog grid or floor plan) is the SOLE scroll owner (`flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pb-36`). Declaring nested `overflow-y-auto` on both parent `<main>` and child containers simultaneously is PROHIBITED.
+29. **Mandatory Adversarial Visual Audit (Anti "Fake Green" Rule).**
+    - *Visual Render Scrutiny:* Never declare a task complete solely because unit tests pass or buttons can be clicked. The agent MUST visually inspect rendered screenshots for edge bleeds, text clipping, and minimum touch target size ($\ge 44\text{px}$).
+    - *Multi-Entry Point & Negative Path Stress-Testing:* Audits MUST test all real cashier paths:
+      - Direct Walk-in / Takeaway without selecting a table.
+      - Add-On order dispatch to an already occupied table.
+      - Table switching / relocation with items in cart.
+      - Empty cart checkout guards with constructive guidance.
 
 ## Slot Reservation Rules
 
