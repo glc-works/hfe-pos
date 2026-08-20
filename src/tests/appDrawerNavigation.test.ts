@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { FIVE_CORE_APPS } from '../components/common/StaffAppDrawerModal'
 
 describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
-  it('should contain consolidated core apps including connect hub', () => {
-    expect(FIVE_CORE_APPS.length).toBe(7)
+  it('should contain consolidated core apps including connect hub and admin mode', () => {
+    expect(FIVE_CORE_APPS.length).toBe(8)
 
     const appNames = FIVE_CORE_APPS.map((c) => c.name)
     expect(appNames).toContain('POS.Hfeit (Commerce Workstation)')
@@ -13,6 +13,7 @@ describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
     expect(appNames).toContain('🧩 CORE.Hfeit Connect Hub')
     expect(appNames).toContain('Gudang, Inventori & Multi-Cabang')
     expect(appNames).toContain('Pengaturan Toko & Tim (Management)')
+    expect(appNames).toContain('🛡️ Mode Admin (Merchant & User Hub)')
   })
 
   it('should include core workstation IDs in the app launcher', () => {
@@ -24,6 +25,7 @@ describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
     expect(allAppIds).toContain('hfe-connect-hub')
     expect(allAppIds).toContain('warehouse-mgmt')
     expect(allAppIds).toContain('cafe-config')
+    expect(allAppIds).toContain('admin-hub')
   })
 
   it('should have valid metadata, icons, and colors for all app tiles', () => {

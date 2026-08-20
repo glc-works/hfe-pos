@@ -90,6 +90,15 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
     icon: <Settings className="w-6 h-6" />,
     color: 'from-slate-700 via-slate-800 to-slate-900',
     badge: 'Back-Office'
+  },
+  {
+    id: 'admin-hub',
+    name: '🛡️ Mode Admin (Merchant & User Hub)',
+    subtitle: 'Kelola tenancy merchant, langganan SaaS, paket toko, serta roster staf RBAC & PIN',
+    features: ['Multi-Tenant Merchant Hub', 'Paket SaaS & Feature Flags', 'Roster Staf & User RBAC', 'Reset PIN Kasir 6-Digit'],
+    icon: <ShieldCheck className="w-6 h-6" />,
+    color: 'from-purple-600 via-indigo-700 to-slate-900',
+    badge: 'Admin Operator'
   }
 ]
 
