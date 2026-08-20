@@ -8,6 +8,8 @@ import {
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
+  UniversalMultiTenderRequest,
+  UniversalMultiTenderResponse,
   GenerateQrisPayload,
   QrisPaymentResponse,
   CashierShiftResponse,
@@ -180,6 +182,36 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     return this.request<SubmitRetailTransactionResponse>(
       'POST',
       `/v1/company-books/${targetBook}/transactions`,
+      {
+        body: bodyPayload,
+        headers: {
+          'X-Idempotency-Key': idempotencyKey,
+        },
+        idempotencyKey,
+      }
+    )
+  }
+
+  async settleUniversalMultiTender(
+    payload: UniversalMultiTenderRequest,
+    bookId?: string
+  ): Promise<UniversalMultiTenderResponse> {
+    const targetBook = this.resolveTargetBook(bookId)
+    const idempotencyKey = payload.idempotency_key || generateUUIDv4()
+
+    const bodyPayload = {
+      document_reference_id: payload.document_reference_id,
+      total_obligation_minor: payload.total_obligation_minor,
+      tenders: payload.tenders,
+      discrepancies: payload.discrepancies || [],
+      cashier_id: payload.cashier_id,
+      notes: payload.notes,
+      idempotency_key: idempotencyKey,
+    }
+
+    return this.request<UniversalMultiTenderResponse>(
+      'POST',
+      `/v1/company-books/${targetBook}/settlements/multi-tender`,
       {
         body: bodyPayload,
         headers: {

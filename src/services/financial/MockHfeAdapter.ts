@@ -7,6 +7,8 @@ import {
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
+  UniversalMultiTenderRequest,
+  UniversalMultiTenderResponse,
   GenerateQrisPayload,
   QrisPaymentResponse,
   CashierShiftResponse,
@@ -155,6 +157,51 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       grand_total: payload.grand_total,
       idempotency_key: payload.idempotency_key || `IDEMP-SIM-${Date.now()}`,
       ledger_journal_id: journalId,
+      gl_entries_posted: glEntries,
+      isSimulated: true,
+    })
+  }
+
+  async settleUniversalMultiTender(
+    payload: UniversalMultiTenderRequest,
+    _bookId?: string
+  ): Promise<UniversalMultiTenderResponse> {
+    const totalTendered = payload.tenders.reduce((sum, t) => sum + t.amount_minor, 0)
+    const totalDiscrepancy = (payload.discrepancies || []).reduce((sum, d) => sum + d.amount_minor, 0)
+
+    const nowIso = new Date().toISOString()
+    const settlementId = `SETTLE-SIM-${Date.now()}`
+    const journalId = `JRN-SETTLE-SIM-${Date.now()}`
+
+    const glEntries: GlPostingEntry[] = []
+
+    payload.tenders.forEach((t) => {
+      glEntries.push({
+        account:
+          t.gl_account_override ||
+          (t.tender_type === 'cash' ? '1010-Kas Kasir' : '1020-Bank QRIS/EDC Clearing'),
+        account_name: `Tender ${t.tender_type.toUpperCase()}`,
+        debit: t.amount_minor,
+        credit: 0,
+      })
+    })
+
+    glEntries.push({
+      account: '4010-Pendapatan Penjualan Resto F&B',
+      account_name: 'F&B Restaurant Sales',
+      debit: 0,
+      credit: payload.total_obligation_minor,
+    })
+
+    return Promise.resolve({
+      settlement_id: settlementId,
+      document_reference_id: payload.document_reference_id,
+      total_obligation_minor: payload.total_obligation_minor,
+      total_tendered_minor: totalTendered,
+      total_discrepancy_minor: totalDiscrepancy,
+      status: 'settled',
+      settled_at: nowIso,
+      journal_posting_id: journalId,
       gl_entries_posted: glEntries,
       isSimulated: true,
     })

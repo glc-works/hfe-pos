@@ -127,6 +127,51 @@ export interface CashierShiftCloseResponse {
   isSimulated?: boolean
 }
 
+export type PaymentTenderType =
+  | 'cash'
+  | 'qris'
+  | 'card_debit'
+  | 'card_credit'
+  | 'hotel_room_folio'
+  | 'voucher_credit'
+  | 'bank_transfer'
+
+export interface TenderItemPayload {
+  tender_type: PaymentTenderType
+  amount_minor: number
+  reference_id?: string
+  gl_account_override?: string
+}
+
+export interface DiscrepancyItemPayload {
+  discrepancy_type: 'rounding_adjustment' | 'tip_income' | 'merchant_discount_fee' | 'cash_shortage' | 'cash_overage'
+  amount_minor: number
+  reason?: string
+}
+
+export interface UniversalMultiTenderRequest {
+  document_reference_id: string
+  total_obligation_minor: number
+  tenders: TenderItemPayload[]
+  discrepancies?: DiscrepancyItemPayload[]
+  cashier_id?: string
+  notes?: string
+  idempotency_key?: string
+}
+
+export interface UniversalMultiTenderResponse {
+  settlement_id: string
+  document_reference_id: string
+  total_obligation_minor: number
+  total_tendered_minor: number
+  total_discrepancy_minor: number
+  status: string
+  settled_at: string
+  journal_posting_id: string
+  gl_entries_posted?: GlPostingEntry[]
+  isSimulated?: boolean
+}
+
 export interface HfePosFinancialPort {
   readonly isSimulated: boolean
   readonly adapterName: string
@@ -153,6 +198,14 @@ export interface HfePosFinancialPort {
     payload: SubmitRetailTransactionPayload,
     bookId?: string
   ): Promise<SubmitRetailTransactionResponse>
+
+  /**
+   * Settle complex transactions with multiple tenders and adjustments
+   */
+  settleUniversalMultiTender(
+    payload: UniversalMultiTenderRequest,
+    bookId?: string
+  ): Promise<UniversalMultiTenderResponse>
 
   /**
    * Generate QRIS payment dynamic payload with fee split

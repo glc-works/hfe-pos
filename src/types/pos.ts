@@ -108,6 +108,9 @@ export interface MenuItem {
   milkOption?: 'Whole Milk' | 'Fresh Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)' | string
   bomIngredients?: BomIngredient[]
   preparationSteps?: string[]
+  wholesalePrice?: number
+  wholesaleMinQty?: number
+  barcode?: string
 }
 
 export interface SeatCustomerContact {
