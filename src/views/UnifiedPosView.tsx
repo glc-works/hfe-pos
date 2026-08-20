@@ -2,24 +2,13 @@ import React, { useState, useMemo } from 'react'
 import { ShoppingBag, ArrowRight } from 'lucide-react'
 import { TableStatus, MenuItem, OrderTicket, StaffSurfaceMode, CartItem, PosPayMethod, ViewportModeType, PropertyZoneId } from '../types/pos'
 import { PROPERTY_ZONES } from '../data/mockData'
-import { DirectQtyInputModal } from '../components/pos/DirectQtyInputModal'
-import { CashierCameraScannerModal } from '../components/pos/CashierCameraScannerModal'
-import { TableOpsModal } from '../components/tables/TableOpsModal'
-import { TableDetailDrawer } from '../components/tables/TableDetailDrawer'
-import { TableGuestBindingDrawer } from '../components/tables/TableGuestBindingDrawer'
-import { RoomChargeModal } from '../components/pos/RoomChargeModal'
 import { PosFavoritesBar } from '../components/pos/PosFavoritesBar'
 import { PosCatalogGrid } from '../components/pos/PosCatalogGrid'
 import { PosCartSection } from '../components/pos/PosCartSection'
 import { PosTableFloorPlanSection } from '../components/pos/PosTableFloorPlanSection'
 import { PosMobileCartDrawer } from '../components/pos/PosMobileCartDrawer'
-import { EditPinnedFavoritesModal } from '../components/pos/EditPinnedFavoritesModal'
 import { PosCommandHeader } from '../components/pos/PosCommandHeader'
-import { StaffAppDrawerModal } from '../components/common/StaffAppDrawerModal'
-import { SpotlightOmniSearchModal } from '../components/common/SpotlightOmniSearchModal'
-import { NotificationCenterDrawer } from '../components/notifications/NotificationCenterDrawer'
-import { ServiceTicketingDrawer } from '../components/notifications/ServiceTicketingDrawer'
-import { EventTicketCheckInModal } from '../components/notifications/EventTicketCheckInModal'
+import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsCluster'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useTranslation } from '../context/LanguageContext'
 import { useViewport } from '../context/ViewportContext'
@@ -340,23 +329,81 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         )}
       </main>
 
-      {/* MOBILE FLOATING CART DOCK */}
-      {isMobile && ((activeTableCartItems.length > 0 && grandTotal > 0) || (selectedPOSTable && selectedPOSTable.totalBill > 0)) && (
-        <div className="absolute bottom-0 inset-x-0 z-40 px-3.5 pt-4 pb-[max(env(safe-area-inset-bottom,16px),16px)] flex justify-center pointer-events-none animate-slideUp" style={{ background: 'linear-gradient(to top, rgba(2, 6, 23, 0.98) 70%, rgba(2, 6, 23, 0.85) 85%, transparent 100%)' }}>
-          <button type="button" onClick={() => setShowMobileCartDrawer(true)} className="w-full max-w-md bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center justify-between font-bold text-xs border border-emerald-400/60 transition-all touch-manipulation pointer-events-auto backdrop-blur-md active:scale-[0.98]">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="bg-slate-950 text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-mono font-black shrink-0 shadow-sm">{totalCartItemsCount > 0 ? `${totalCartItemsCount}x` : `${selectedPOSTable?.orderCount || 1}x`}</div>
-              <div className="flex flex-col text-left leading-tight min-w-0">
-                <span className="font-black text-sm font-mono whitespace-nowrap text-slate-950">{formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))}</span>
-                {selectedPOSTable && <span className="text-[10px] text-slate-900/80 font-bold font-mono truncate max-w-[150px]">{selectedPOSTable.name} {selectedPOSTable.customerName ? `• ${selectedPOSTable.customerName}` : ''}</span>}
+      {/* MOBILE & TABLET PORTRAIT PERSISTENT SMART BOTTOM DOCK */}
+      {isMobile && (
+        <div
+          className="absolute bottom-0 inset-x-0 z-40 px-3.5 pt-4 pb-[max(env(safe-area-inset-bottom,16px),16px)] flex justify-center pointer-events-none animate-slideUp lg:hidden"
+          style={{ background: 'linear-gradient(to top, rgba(2, 6, 23, 0.98) 70%, rgba(2, 6, 23, 0.85) 85%, transparent 100%)' }}
+        >
+          {((activeTableCartItems.length > 0 && grandTotal > 0) || (selectedPOSTable && selectedPOSTable.totalBill > 0)) ? (
+            <button
+              type="button"
+              onClick={() => setShowMobileCartDrawer(true)}
+              className="w-full max-w-md bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center justify-between font-bold text-xs border border-emerald-400/60 transition-all touch-manipulation pointer-events-auto backdrop-blur-md active:scale-[0.98] cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="bg-slate-950 text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-mono font-black shrink-0 shadow-sm">
+                  {totalCartItemsCount > 0 ? `${totalCartItemsCount}x` : `${selectedPOSTable?.orderCount || 1}x`}
+                </div>
+                <div className="flex flex-col text-left leading-tight min-w-0">
+                  <span className="font-black text-sm font-mono whitespace-nowrap text-slate-950">
+                    {formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))}
+                  </span>
+                  {selectedPOSTable && (
+                    <span className="text-[10px] text-slate-900/80 font-bold font-mono truncate max-w-[150px]">
+                      {selectedPOSTable.name} {selectedPOSTable.customerName ? `• ${selectedPOSTable.customerName}` : ''}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 bg-slate-950 text-white hover:bg-slate-900 px-3.5 py-2 rounded-xl text-xs font-black shrink-0 shadow-md">
-              <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Bayar</span>
-              <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
-            </div>
-          </button>
+              <div className="flex items-center gap-1.5 bg-slate-950 text-white hover:bg-slate-900 px-3.5 py-2 rounded-xl text-xs font-black shrink-0 shadow-md">
+                <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Bayar</span>
+                <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+              </div>
+            </button>
+          ) : posModeTab === 'tables' ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPOSTable(null)
+                setPosModeTab('catalog')
+              }}
+              className="w-full max-w-md bg-slate-900/90 hover:bg-slate-800 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center justify-between font-bold text-xs border border-slate-700/60 transition-all touch-manipulation pointer-events-auto backdrop-blur-md active:scale-[0.98] cursor-pointer group"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-lg text-xs font-bold shrink-0">
+                  🛍️ Walk-In
+                </div>
+                <span className="text-xs text-slate-300 truncate">
+                  Pesanan Cepat (Bungkus / Takeaway)
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-amber-400 text-xs font-black shrink-0 group-hover:translate-x-0.5 transition-transform">
+                <span>Buka Menu</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowMobileCartDrawer(true)}
+              className="w-full max-w-md bg-slate-900/90 hover:bg-slate-800 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center justify-between font-bold text-xs border border-slate-700/60 transition-all touch-manipulation pointer-events-auto backdrop-blur-md active:scale-[0.98] cursor-pointer group"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded-lg text-xs font-mono font-bold shrink-0">
+                  0x
+                </div>
+                <span className="text-xs text-slate-300 truncate">
+                  {selectedPOSTable ? `Meja ${selectedPOSTable.name}` : 'Keranjang Kasir (0 Item)'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-slate-400 text-xs font-bold shrink-0">
+                <span>Lihat Keranjang</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </button>
+          )}
         </div>
       )}
 
@@ -376,119 +423,68 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
         onCheckout={handleCheckoutAction}
         onOpenSplitPayment={() => setShowTableOpsModal(true)}
+        onToggleOrderMode={() => {
+          if (selectedPOSTable) {
+            setSelectedPOSTable(null)
+          } else {
+            setShowMobileCartDrawer(false)
+            setPosModeTab('tables')
+          }
+        }}
+        onSwitchToCatalog={() => {
+          setShowMobileCartDrawer(false)
+          setPosModeTab('catalog')
+        }}
       />
 
-      <CashierCameraScannerModal show={showCameraScanner} onClose={() => setShowCameraScanner(false)} onScanSuccess={handleScanSuccess} />
-
-      <DirectQtyInputModal
-        show={Boolean(directQtyItem)}
-        itemName={directQtyItem?.item.name}
-        currentQty={directQtyItem?.item.quantity || 1}
-        onClose={() => setDirectQtyItem(null)}
-        onConfirmQty={(newQty) => { if (directQtyItem) { handleUpdateQty(directQtyItem.index, newQty); setDirectQtyItem(null) } }}
-      />
-
-      <TableOpsModal
-        show={showTableOpsModal}
+      <UnifiedPosModalsCluster
+        showCameraScanner={showCameraScanner}
+        setShowCameraScanner={setShowCameraScanner}
+        handleScanSuccess={handleScanSuccess}
+        directQtyItem={directQtyItem}
+        setDirectQtyItem={setDirectQtyItem}
+        handleUpdateQty={handleUpdateQty}
+        showTableOpsModal={showTableOpsModal}
+        setShowTableOpsModal={setShowTableOpsModal}
         tablesGrid={tablesGrid}
         reassignFromTable={reassignFromTable}
         setReassignFromTable={setReassignFromTable}
         reassignTargetTable={reassignTargetTable}
         setReassignTargetTable={setReassignTargetTable}
-        onClose={() => setShowTableOpsModal(false)}
-        onConfirmReassign={handleConfirmReassignWithReason}
-        onConfirmSplit={() => setShowTableOpsModal(false)}
-        onConfirmJoin={() => setShowTableOpsModal(false)}
-      />
-
-      <RoomChargeModal
-        show={showRoomChargeModal}
-        onClose={() => setShowRoomChargeModal(false)}
-        totalBill={grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0)}
+        handleConfirmReassignWithReason={handleConfirmReassignWithReason}
+        showRoomChargeModal={showRoomChargeModal}
+        setShowRoomChargeModal={setShowRoomChargeModal}
+        grandTotal={grandTotal}
         subtotal={subtotal}
-        taxPB1={pb1Tax}
-        tableName={selectedPOSTable?.name || 'Walk-In'}
-        onConfirmRoomCharge={handleConfirmRoomCharge}
-      />
-
-      <TableDetailDrawer
-        show={showTableDetailDrawer}
-        table={selectedPOSTable}
-        onClose={() => setShowTableDetailDrawer(false)}
-        onAddItemsToTable={() => { setShowTableDetailDrawer(false); setPosModeTab('catalog') }}
-        onCheckoutTable={() => { setShowTableDetailDrawer(false); setShowMobileCartDrawer(true) }}
-        onUnjoinTable={() => setShowTableDetailDrawer(false)}
-        onPartialSeatCheckout={() => { setShowTableDetailDrawer(false); setShowMobileCartDrawer(true) }}
-      />
-
-      <TableGuestBindingDrawer
-        show={showTableGuestBindingDrawer}
-        table={selectedPOSTable}
-        onClose={() => setShowTableGuestBindingDrawer(false)}
-        onBindGuest={(guestData) => {
-          if (selectedPOSTable) {
-            setSelectedPOSTable({ ...selectedPOSTable, status: 'occupied', customerName: guestData.name, totalBill: 0, orderCount: 0 })
-          }
-          setShowTableGuestBindingDrawer(false)
-        }}
-      />
-
-      <EditPinnedFavoritesModal
-        show={showEditPinnedModal}
+        pb1Tax={pb1Tax}
+        selectedPOSTable={selectedPOSTable}
+        handleConfirmRoomCharge={handleConfirmRoomCharge}
+        showTableDetailDrawer={showTableDetailDrawer}
+        setShowTableDetailDrawer={setShowTableDetailDrawer}
+        setPosModeTab={setPosModeTab}
+        setShowMobileCartDrawer={setShowMobileCartDrawer}
+        showTableGuestBindingDrawer={showTableGuestBindingDrawer}
+        setShowTableGuestBindingDrawer={setShowTableGuestBindingDrawer}
+        setSelectedPOSTable={setSelectedPOSTable}
+        showEditPinnedModal={showEditPinnedModal}
+        setShowEditPinnedModal={setShowEditPinnedModal}
         productCatalog={productCatalog}
-        currentPinnedIds={pinnedItemIds}
-        onClose={() => setShowEditPinnedModal(false)}
-        onSavePinnedFavorites={(newIds) => setPinnedItemIds(newIds)}
-      />
-
-      <StaffAppDrawerModal
-        isOpen={isAppDrawerOpen}
-        onClose={() => setIsAppDrawerOpen(false)}
+        pinnedItemIds={pinnedItemIds}
+        setPinnedItemIds={setPinnedItemIds}
+        isAppDrawerOpen={isAppDrawerOpen}
+        setIsAppDrawerOpen={setIsAppDrawerOpen}
         activeStaffSurface={activeStaffSurface}
-        onSelectSurface={(surface) => { setIsAppDrawerOpen(false); setActiveStaffSurface?.(surface) }}
-      />
-
-      <NotificationCenterDrawer
-        isOpen={showNotificationCenter}
-        onClose={() => setShowNotificationCenter(false)}
-        onOpenServiceTickets={() => setShowServiceTickets(true)}
-        onOpenTicketValidator={() => setShowEventTicketCheckIn(true)}
-      />
-
-      <ServiceTicketingDrawer
-        isOpen={showServiceTickets}
-        onClose={() => setShowServiceTickets(false)}
-      />
-
-      <EventTicketCheckInModal
-        isOpen={showEventTicketCheckIn}
-        onClose={() => setShowEventTicketCheckIn(false)}
-      />
-
-      <SpotlightOmniSearchModal
-        isOpen={showSpotlightModal}
-        onClose={() => setShowSpotlightModal(false)}
-        onSelectProduct={(item) => {
-          handleAddToCart(item)
-          setPosModeTab('catalog')
-        }}
-        onSelectTable={(tableId) => {
-          const found = tablesGrid.find((t) => t.id === tableId || t.name === tableId)
-          if (found) handleTableClick(found)
-        }}
-        onOpenStorefrontStudio={() => {
-          if (setActiveStaffSurface) setActiveStaffSurface('cafe-config')
-        }}
-        onOpenScanner={() => setShowCameraScanner(true)}
-        onOpenTableOps={() => setShowTableOpsModal(true)}
-        onOpenGuestBinding={() => setShowTableGuestBindingDrawer(true)}
-        onOpenNotifications={() => setShowNotificationCenter(true)}
-        onNavigateApp={(appId) => {
-          if (appId === 'kds') setActiveStaffSurface?.('kds-screen')
-          else if (appId === 'insights') setActiveStaffSurface?.('barista-pos')
-          else if (appId === 'customer-portal') setActiveStaffSurface?.('barista-pos')
-          else if (setActiveStaffSurface) setActiveStaffSurface(appId as StaffSurfaceMode)
-        }}
+        setActiveStaffSurface={setActiveStaffSurface}
+        showNotificationCenter={showNotificationCenter}
+        setShowNotificationCenter={setShowNotificationCenter}
+        showServiceTickets={showServiceTickets}
+        setShowServiceTickets={setShowServiceTickets}
+        showEventTicketCheckIn={showEventTicketCheckIn}
+        setShowEventTicketCheckIn={setShowEventTicketCheckIn}
+        showSpotlightModal={showSpotlightModal}
+        setShowSpotlightModal={setShowSpotlightModal}
+        handleAddToCart={handleAddToCart}
+        handleTableClick={handleTableClick}
       />
     </div>
   )
