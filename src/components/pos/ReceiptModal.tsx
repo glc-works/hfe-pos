@@ -1,6 +1,7 @@
 import React from 'react'
 import { X, Printer, Send, CheckCircle2, ShieldCheck, Share2 } from 'lucide-react'
 import { ReceiptData, formatThermalReceiptText } from '../../services/receiptPrinter'
+import { ThermalPrinterService } from '../../services/hardware/ThermalPrinterService'
 
 export interface ReceiptModalProps {
   show: boolean
@@ -19,8 +20,33 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
   const receiptText = formatThermalReceiptText(receiptData)
 
-  const handlePrintPhysical = () => {
-    window.print()
+  const handlePrintPhysical = async () => {
+    try {
+      const printer = ThermalPrinterService.getInstance()
+      await printer.printReceipt({
+        storeName: receiptData.storeName || 'Kopi Nusantara Senopati',
+        address: receiptData.storeAddress,
+        receiptNumber: receiptData.receiptNo,
+        tableName: receiptData.tableNo,
+        cashierName: receiptData.cashierName || 'Kasir',
+        timestamp: receiptData.timestamp,
+        items: receiptData.items.map((i) => ({
+          name: i.name,
+          qty: i.qty,
+          price: i.price,
+          total: i.price * i.qty
+        })),
+        subtotal: receiptData.subtotal,
+        taxPb1: receiptData.pb1Tax,
+        serviceFee: receiptData.serviceCharge,
+        total: receiptData.grandTotal,
+        paymentMethod: receiptData.paymentMethod || 'cash',
+        amountTendered: receiptData.cashGiven,
+        changeDue: receiptData.changeReturned
+      })
+    } catch {
+      window.print()
+    }
   }
 
   const handleWaShare = () => {
