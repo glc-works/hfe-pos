@@ -1,5 +1,5 @@
 import React from 'react'
-import { X, Printer, Send, CheckCircle2, ShieldCheck, Share2 } from 'lucide-react'
+import { X, Printer, Send, CheckCircle2, Share2 } from 'lucide-react'
 import { ReceiptData, formatThermalReceiptText } from '../../services/receiptPrinter'
 import { ThermalPrinterService } from '../../services/hardware/ThermalPrinterService'
 
@@ -84,14 +84,6 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         <div className="bg-white text-slate-950 font-mono text-[11px] p-4 rounded-2xl border border-slate-300 shadow-inner overflow-y-auto max-h-80 select-all leading-tight">
           <pre className="whitespace-pre-wrap font-mono">{receiptText}</pre>
         </div>
-
-        {/* HCB INTEGRITY BADGE */}
-        {receiptData.sha256Hash && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-2.5 flex items-center gap-2 text-emerald-400 text-xs">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-            <span className="truncate">Terverifikasi Jurnal HCB: <strong>{receiptData.sha256Hash.substring(0, 12)}...</strong></span>
-          </div>
-        )}
 
         {/* BUTTON ACTIONS */}
         <div className="grid grid-cols-2 gap-2 pt-1">

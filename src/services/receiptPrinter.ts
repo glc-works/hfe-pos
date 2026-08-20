@@ -97,12 +97,6 @@ export function formatThermalReceiptText(data: ReceiptData): string {
     text += `Kembalian     : Rp ${(data.changeReturned || 0).toLocaleString('id-ID')}\n`
   }
   text += `${doubleLine}\n`
-  if (data.glPostingId) {
-    text += `GL Post ID: ${data.glPostingId}\n`
-  }
-  if (data.sha256Hash) {
-    text += `HCB Verify: ${data.sha256Hash.substring(0, 16)}...\n`
-  }
   text += `${centerText('Terima Kasih Atas Kunjungan Anda!')}\n`
 
   return text

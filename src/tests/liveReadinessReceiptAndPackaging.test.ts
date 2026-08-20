@@ -49,9 +49,9 @@ describe('Production Live-Readiness: Receipt Formatting & Offline Queue Resilien
       expect(receiptText).toContain('Subtotal')
       expect(receiptText).toContain('PB1 Tax (10%)')
       expect(receiptText).toContain('Service Fee')
-      // Assert GL posting ID and SHA256 verification
-      expect(receiptText).toContain('GL Post ID: GL-POST-2026-0820-9941')
-      expect(receiptText).toContain('HCB Verify: a1b2c3d4e5f67890...')
+      // Assert clean customer receipt without developer hashes
+      expect(receiptText).not.toContain('GL Post ID')
+      expect(receiptText).not.toContain('HCB Verify')
     })
 
     it('formats Takeaway thermal receipt with Queue #08 and Takeaway Packaging Fee', () => {
@@ -91,7 +91,7 @@ describe('Production Live-Readiness: Receipt Formatting & Offline Queue Resilien
       // Assert cash tender & change
       expect(receiptText).toContain('Tunai Diterima: Rp 200.000')
       expect(receiptText).toContain('Kembalian     : Rp 42.000')
-      expect(receiptText).toContain('GL Post ID: GL-POST-TKW-7782')
+      expect(receiptText).not.toContain('GL Post ID')
     })
 
     it('formats Delivery thermal receipt banner', () => {

@@ -204,7 +204,7 @@ describe('User Journey Test Loop Iterations (Poin 1 - 5 Deep Validation)', () =>
       expect(receiptText).toContain('KOPI SENOPATI HQ')
       expect(receiptText).toContain('REC-2026-0816-042')
       expect(receiptText).toContain('Kembalian     : Rp 38.400')
-      expect(receiptText).toContain('HCB Verify: e3b0c44298fc1c14...')
+      expect(receiptText).not.toContain('HCB Verify')
     })
   })
 
