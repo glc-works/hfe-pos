@@ -1,5 +1,5 @@
 import React from 'react'
-import { ShoppingBag, X, ArrowRightLeft, UtensilsCrossed } from 'lucide-react'
+import { ShoppingBag, X, UtensilsCrossed, ChevronDown } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod } from '../../types/pos'
 import { PosCartSection } from './PosCartSection'
 import { useTranslation } from '../../context/LanguageContext'
@@ -56,35 +56,31 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
         {/* MOBILE GRAB HANDLE */}
         <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mt-3 mb-1 sm:hidden shrink-0" />
 
-        {/* 1. SINGLE UNIFIED DRAWER HEADER WITH ERGONOMIC TABLE PILL */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shrink-0 gap-2">
-          {/* UNIFIED LARGE TOUCH PILL FOR TABLE / ORDER MODE SWITCH */}
+        {/* 1. SINGLE UNIFIED DRAWER HEADER WITH CLEAN SELECTOR PILL */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shrink-0 gap-2">
+          {/* UNIFIED MONOLITHIC SELECTOR PILL (ZERO NESTED MINI-BADGES) */}
           {onToggleOrderMode ? (
             <button
               type="button"
               onClick={onToggleOrderMode}
-              className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 shadow-sm active:scale-97 transition-all cursor-pointer min-h-[40px] min-w-0"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-sm active:scale-97 transition-all cursor-pointer min-h-[38px] min-w-0 group"
               title="Ganti Meja / Mode Pesanan"
             >
-              <div className="w-7 h-7 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
+              <div className="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
                 {selectedPOSTable ? <UtensilsCrossed className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
               </div>
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-xs font-black text-slate-900 dark:text-white truncate">
-                  {selectedPOSTable ? `${t.customer.tableNo} ${selectedPOSTable.name}` : 'Takeaway / Walk-in'}
-                </span>
-                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-lg border border-amber-500/20 shrink-0">
-                  {t.cart.changeTablePill}
-                </span>
-              </div>
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                {selectedPOSTable ? `${t.customer.tableNo} ${selectedPOSTable.name}` : t.cart.takeawayLabel}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-500 transition-colors shrink-0" />
             </button>
           ) : (
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
+              <div className="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
                 <ShoppingBag className="w-3.5 h-3.5" />
               </div>
-              <span className="text-xs font-black text-slate-900 dark:text-white truncate">
-                {selectedPOSTable ? `Meja ${selectedPOSTable.name}` : t.cart.mobileCartTitle}
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                {selectedPOSTable ? `${t.customer.tableNo} ${selectedPOSTable.name}` : t.cart.mobileCartTitle}
               </span>
             </div>
           )}

@@ -100,6 +100,12 @@ export interface TranslationDictionary {
     openMobileCart: string
     mobileCartTitle: string
     changeTablePill: string
+    quickOrderLabel: string
+    openMenuAction: string
+    emptyCartLabel: string
+    viewCartAction: string
+    payAction: string
+    takeawayLabel: string
   }
   hostStand: {
     title: string

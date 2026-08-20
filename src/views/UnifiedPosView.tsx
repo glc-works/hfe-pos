@@ -56,7 +56,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
-  const { formatPrice } = useTranslation()
+  const { t, formatPrice } = useTranslation()
   const { workflowToggles } = useMerchantConfig()
   const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
@@ -361,7 +361,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               </div>
               <div className="flex items-center gap-1.5 bg-slate-950 text-white hover:bg-slate-900 px-3.5 py-2 rounded-xl text-xs font-black shrink-0 shadow-md">
                 <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Bayar</span>
+                <span>{t.cart.payAction}</span>
                 <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
               </div>
             </button>
@@ -376,14 +376,14 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
             >
               <div className="flex items-center gap-2 min-w-0">
                 <div className="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-lg text-xs font-bold shrink-0">
-                  🛍️ Walk-In
+                  🛍️ {t.cart.takeawayLabel}
                 </div>
                 <span className="text-xs text-slate-300 truncate">
-                  Pesanan Cepat (Bungkus / Takeaway)
+                  {t.cart.quickOrderLabel}
                 </span>
               </div>
               <div className="flex items-center gap-1 text-amber-400 text-xs font-black shrink-0 group-hover:translate-x-0.5 transition-transform">
-                <span>Buka Menu</span>
+                <span>{t.cart.openMenuAction}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </button>
@@ -398,11 +398,11 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
                   0x
                 </div>
                 <span className="text-xs text-slate-300 truncate">
-                  {selectedPOSTable ? `Meja ${selectedPOSTable.name}` : 'Keranjang Kasir (0 Item)'}
+                  {selectedPOSTable ? `${t.customer.tableNo} ${selectedPOSTable.name}` : t.cart.emptyCartLabel}
                 </span>
               </div>
               <div className="flex items-center gap-1 text-slate-400 text-xs font-bold shrink-0">
-                <span>Lihat Keranjang</span>
+                <span>{t.cart.viewCartAction}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </button>

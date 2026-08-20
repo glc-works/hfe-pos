@@ -99,7 +99,13 @@ export const idTranslations: TranslationDictionary = {
     processPayment: 'Bayar Sekarang ➔',
     openMobileCart: 'Buka Keranjang / Bayar',
     mobileCartTitle: 'Keranjang Kasir Mobile',
-    changeTablePill: 'Ganti ▾'
+    changeTablePill: 'Ganti ▾',
+    quickOrderLabel: 'Pesanan Langsung / Bungkus',
+    openMenuAction: 'Buka Menu',
+    emptyCartLabel: 'Keranjang Kosong',
+    viewCartAction: 'Lihat Keranjang',
+    payAction: 'Bayar',
+    takeawayLabel: 'Takeaway'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',

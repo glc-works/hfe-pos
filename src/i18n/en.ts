@@ -99,7 +99,13 @@ export const enTranslations: TranslationDictionary = {
     processPayment: 'Process Payment ➔',
     openMobileCart: 'Open Cart / Checkout',
     mobileCartTitle: 'Mobile Cashier Cart',
-    changeTablePill: 'Switch ▾'
+    changeTablePill: 'Switch ▾',
+    quickOrderLabel: 'Quick Takeaway Order',
+    openMenuAction: 'Open Menu',
+    emptyCartLabel: 'Cart Empty',
+    viewCartAction: 'View Cart',
+    payAction: 'Pay',
+    takeawayLabel: 'Takeaway'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',
