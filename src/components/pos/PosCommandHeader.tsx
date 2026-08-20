@@ -11,8 +11,12 @@ import {
   LayoutGrid,
   Grid,
   List,
-  Check
+  Check,
+  SlidersHorizontal,
+  MapPin,
+  Clock
 } from 'lucide-react'
+import { TouchFilterSheet } from '../shared/TouchFilterSheet'
 import { useTranslation } from '../../context/LanguageContext'
 import { useViewport } from '../../context/ViewportContext'
 import { useNotification } from '../../context/NotificationContext'
@@ -78,7 +82,8 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   const { isMobile } = useViewport()
   const { unreadCount, openServiceTicketsCount } = useNotification()
   const { themeMode, toggleThemeMode } = useTheme()
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
   const totalAlerts = unreadCount + openServiceTicketsCount
 
   const currentZone = propertyZones.find(z => z.id === activeZoneId) || propertyZones[0]
@@ -212,138 +217,40 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
 
       {/* TIER 2: LOCAL CONTEXTUAL GROUPING & VIEW PREFERENCE STRIP (36px) */}
       <div className="px-2.5 py-1 flex items-center justify-between gap-2 bg-slate-50/80 dark:bg-slate-950/40 h-10 relative">
-        {/* TAB 1: PETA MEJA CONTEXTUAL STRIP */}
+        {/* TAB 1: PETA MEJA CONTEXTUAL STRIP (1-TAP TOUCH-FRIENDLY MASTER FILTER) */}
         {posModeTab === 'tables' && (
           <>
-            {/* LEFT: TOUCH-FRIENDLY AREA DROPDOWN */}
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-indigo-500/10 to-slate-100 dark:from-indigo-500/20 dark:to-slate-800 hover:from-indigo-500/20 text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white border border-indigo-500/30 dark:border-indigo-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
-              >
-                <span>{currentZone?.icon || '📍'}</span>
-                <span className="truncate max-w-[120px] sm:max-w-[150px]">{currentZone?.name || 'Semua Area'}</span>
-                <span className="text-[10px] font-mono bg-indigo-500/20 dark:bg-indigo-500/40 px-1.5 py-0.2 rounded-full text-indigo-700 dark:text-white font-bold">
+            {/* 1-TAP TOUCH-FRIENDLY MASTER FILTER TRIGGER */}
+            <button
+              type="button"
+              onClick={() => setIsFilterSheetOpen(true)}
+              className="flex-1 min-w-0 flex items-center justify-between gap-2 px-3 py-1.5 bg-gradient-to-r from-indigo-500/10 via-slate-100 to-slate-100 dark:from-indigo-500/20 dark:via-slate-900 dark:to-slate-900 hover:from-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 dark:border-indigo-500/40 rounded-xl text-xs font-bold transition-all shadow-sm group active:scale-[0.99] cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5 min-w-0 truncate">
+                <span className="text-sm shrink-0">{currentZone?.icon || '🏢'}</span>
+                <span className="truncate font-black">{currentZone?.name || 'Semua Area'}</span>
+                <span className="text-slate-400 font-normal shrink-0">•</span>
+                <span className={`text-[11px] font-bold shrink-0 ${
+                  tableStatusFilter === 'unpaid' ? 'text-amber-500 font-black' : tableStatusFilter === 'available' ? 'text-emerald-500 font-black' : 'text-slate-600 dark:text-slate-400'
+                }`}>
+                  {tableStatusFilter === 'unpaid' ? '⏳ Tagihan' : tableStatusFilter === 'available' ? '🟢 Kosong' : 'Semua Meja'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[10px] font-mono bg-indigo-500/20 dark:bg-indigo-500/40 px-2 py-0.5 rounded-full text-indigo-700 dark:text-white font-black">
                   {scopedTotal}
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 group-hover:translate-y-0.5 transition-transform" />
-              </button>
+                <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 group-hover:rotate-45 transition-transform" />
+              </div>
+            </button>
 
-              {isDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
-                  <div className="absolute top-full left-0 mt-1.5 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
-                    <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800/80">
-                      Pilih Lantai / Zona Area
-                    </div>
-                    {propertyZones.map((zone) => {
-                      const isSelected = activeZoneId === zone.id
-                      const count = zone.id === 'all'
-                        ? tablesGrid.length
-                        : tablesGrid.filter(t => (t.zoneId || (t.name.startsWith('OUT') ? 'outdoor-garden' : t.name.startsWith('IND') ? 'indoor-ac' : t.name.startsWith('VIP') ? 'vip-private' : t.name.startsWith('POOL') ? 'poolside-cabana' : t.name.startsWith('ROOF') ? 'rooftop-skybar' : 'indoor-ac')) === zone.id).length
-
-                      return (
-                        <button
-                          key={zone.id}
-                          type="button"
-                          onClick={() => {
-                            if (onSelectZone) onSelectZone(zone.id)
-                            setIsDropdownOpen(false)
-                          }}
-                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-2 text-left touch-manipulation cursor-pointer ${
-                            isSelected
-                              ? 'bg-indigo-500 text-white font-black shadow-md'
-                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-sm">{zone.icon || '📍'}</span>
-                            <span className="truncate">{zone.name}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                              isSelected ? 'bg-indigo-400/40 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                            }`}>
-                              {count} Meja
-                            </span>
-                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* RIGHT: 3-SEGMENT STATUS PILLS (SEMUA, TAGIHAN, KOSONG) + PINDAH MEJA + VIEW SWITCHER */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-              {setTableStatusFilter && (
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/80 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
-                  {/* 1. SEMUA MEJA (RESET FILTER) */}
-                  <button
-                    type="button"
-                    onClick={() => setTableStatusFilter('all')}
-                    className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
-                      tableStatusFilter === 'all'
-                        ? 'bg-indigo-500 text-white font-black shadow-sm'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                    title="Tampilkan Semua Meja (Reset Filter)"
-                  >
-                    <span>Semua</span>
-                    <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
-                      tableStatusFilter === 'all' ? 'bg-indigo-400/40 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400'
-                    }`}>
-                      {scopedTotal}
-                    </span>
-                  </button>
-
-                  {/* 2. TAGIHAN */}
-                  <button
-                    type="button"
-                    onClick={() => setTableStatusFilter('unpaid')}
-                    className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
-                      tableStatusFilter === 'unpaid'
-                        ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                        : 'text-amber-600 dark:text-amber-400 hover:bg-amber-500/10'
-                    }`}
-                    title="Filter Meja Belum Lunas"
-                  >
-                    <span>⏳ Tagihan</span>
-                    <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
-                      tableStatusFilter === 'unpaid' ? 'bg-slate-950 text-amber-400' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                    }`}>
-                      {scopedUnpaid}
-                    </span>
-                  </button>
-
-                  {/* 3. KOSONG */}
-                  <button
-                    type="button"
-                    onClick={() => setTableStatusFilter('available')}
-                    className={`px-2 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1 whitespace-nowrap touch-manipulation cursor-pointer ${
-                      tableStatusFilter === 'available'
-                        ? 'bg-emerald-500 text-slate-950 font-black shadow-sm'
-                        : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
-                    }`}
-                    title="Filter Meja Kosong"
-                  >
-                    <span>🟢 Kosong</span>
-                    <span className={`font-mono text-[10px] px-1 py-0.2 rounded-full font-bold ${
-                      tableStatusFilter === 'available' ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                    }`}>
-                      {scopedAvailable}
-                    </span>
-                  </button>
-                </div>
-              )}
-
+            {/* RIGHT ACTIONS: PINDAH MEJA + DESKTOP VIEW SWITCHER */}
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={onOpenTableOps}
-                className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-850 text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+                className="p-1.5 sm:px-2.5 sm:py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
                 title="Operasi Meja (Pindah Meja / Gabung Tagihan)"
               >
                 <ArrowRightLeft className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
@@ -351,7 +258,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               </button>
 
               {setViewMode && (
-                <div className="hidden sm:flex items-center gap-0.5 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
+                <div className="hidden md:flex items-center gap-0.5 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
                   <button
                     type="button"
                     onClick={() => setViewMode('grid')}
@@ -370,21 +277,56 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                     }`}
                     title="Compact View"
                   >
-                    <Grid className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('list')}
-                    className={`p-1 rounded-lg text-xs font-bold transition-all ${
-                      viewMode === 'list' ? 'bg-white dark:bg-white text-slate-950 shadow font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                    title="List View"
-                  >
-                    <List className="w-3.5 h-3.5" />
+                    <LayoutGrid className="w-3.5 h-3.5 rotate-45" />
                   </button>
                 </div>
               )}
             </div>
+
+            {/* TOUCH FILTER SHEET MODAL */}
+            <TouchFilterSheet
+              isOpen={isFilterSheetOpen}
+              onClose={() => setIsFilterSheetOpen(false)}
+              title="Filter Peta Meja & Lantai"
+              subtitle="Pilih area lantai, status tagihan kasir, dan preferensi tampilan"
+              activeCountBadge={scopedTotal}
+              onResetAll={() => {
+                if (onSelectZone) onSelectZone('all')
+                if (setTableStatusFilter) setTableStatusFilter('all')
+              }}
+              sections={[
+                {
+                  id: 'zones',
+                  title: 'Lantai / Zona Area',
+                  icon: <MapPin className="w-3.5 h-3.5 text-indigo-500" />,
+                  selected: activeZoneId,
+                  onSelect: (zId) => onSelectZone?.(zId),
+                  options: propertyZones.map((z) => {
+                    const count = z.id === 'all'
+                      ? tablesGrid.length
+                      : tablesGrid.filter(t => (t.zoneId || (t.name.startsWith('OUT') ? 'outdoor-garden' : t.name.startsWith('IND') ? 'indoor-ac' : t.name.startsWith('VIP') ? 'vip-private' : t.name.startsWith('POOL') ? 'poolside-cabana' : t.name.startsWith('ROOF') ? 'rooftop-skybar' : 'indoor-ac')) === z.id).length
+                    return {
+                      id: z.id,
+                      label: z.name,
+                      icon: z.icon,
+                      badgeCount: count
+                    }
+                  })
+                },
+                {
+                  id: 'status',
+                  title: 'Status Tagihan Meja',
+                  icon: <Clock className="w-3.5 h-3.5 text-amber-500" />,
+                  selected: tableStatusFilter,
+                  onSelect: (sId) => setTableStatusFilter?.(sId),
+                  options: [
+                    { id: 'all', label: 'Semua Status Meja', icon: '🏢', badgeCount: scopedTotal },
+                    { id: 'unpaid', label: 'Belum Lunas (Open Tab)', icon: '⏳', badgeCount: scopedUnpaid, badgeColor: 'bg-amber-500 text-slate-950', description: 'Ada tagihan aktif di kasir' },
+                    { id: 'available', label: 'Meja Kosong (Siap Pakai)', icon: '🟢', badgeCount: scopedAvailable, badgeColor: 'bg-emerald-500 text-slate-950', description: 'Siap untuk tamu baru' }
+                  ]
+                }
+              ]}
+            />
           </>
         )}
 
@@ -395,7 +337,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
             <div className="relative shrink-0">
               <button
                 type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                 className="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-amber-500/10 to-slate-100 dark:from-amber-500/20 dark:to-slate-800 hover:from-amber-500/20 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-white border border-amber-500/30 dark:border-amber-500/40 rounded-xl text-xs font-black transition-all shadow-sm group touch-manipulation cursor-pointer"
               >
                 <span>☕</span>
@@ -408,9 +350,9 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                 <ChevronDown className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 group-hover:translate-y-0.5 transition-transform" />
               </button>
 
-              {isDropdownOpen && (
+              {isCategoryDropdownOpen && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                  <div className="fixed inset-0 z-40" onClick={() => setIsCategoryDropdownOpen(false)} />
                   <div className="absolute top-full left-0 mt-1.5 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn backdrop-blur-xl">
                     <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-800/80">
                       Pilih Kategori Menu
@@ -423,7 +365,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
                           type="button"
                           onClick={() => {
                             if (setSelectedCategory) setSelectedCategory(cat)
-                            setIsDropdownOpen(false)
+                            setIsCategoryDropdownOpen(false)
                           }}
                           className={`w-full px-3 py-2 rounded-xl text-xs font-bold capitalize transition-all flex items-center justify-between gap-2 text-left touch-manipulation cursor-pointer ${
                             isSelected
