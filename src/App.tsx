@@ -454,28 +454,28 @@ function AppMain() {
         setQrStepView={setQrStepView}
       />
 
-      {/* SCENARIO LIVE PLAYER & DEV TOOLKIT */}
-      <ScenarioPlayerWidget
-        activeStaffSurface={activeStaffSurface}
-        setActiveStaffSurface={setActiveStaffSurface}
-      />
-
-      {/* FLOATKIT DEV PACK (RENDERED AT VERY END TO GUARANTEE ZERO DOM-ORDER INTERFERENCE) */}
-      <FloatKit
-        activeStaffSurface={activeStaffSurface}
-        setActiveStaffSurface={setActiveStaffSurface}
-      />
+      {/* DEV TOOLS (ZERO OVERLAYS IN PRODUCTION, TOGGLEABLE VIA ?dev=true OR ?dev=false) */}
+      {typeof window !== 'undefined' &&
+        (window.location.search.includes('dev=true') ||
+          (import.meta.env.DEV && !window.location.search.includes('dev=false'))) && (
+          <>
+            <ScenarioPlayerWidget
+              activeStaffSurface={activeStaffSurface}
+              setActiveStaffSurface={setActiveStaffSurface}
+            />
+            <FloatKit
+              activeStaffSurface={activeStaffSurface}
+              setActiveStaffSurface={setActiveStaffSurface}
+            />
+          </>
+        )}
     </div>
   )
 }
 
 function ViewportConsumerWrapper({ children }: { children: React.ReactNode }) {
   const config = useMerchantConfig()
-  return (
-    <ViewportProvider viewportMode={config.viewportMode}>
-      {children}
-    </ViewportProvider>
-  )
+  return <ViewportProvider viewportMode={config.viewportMode}>{children}</ViewportProvider>
 }
 
 export default function App() {
