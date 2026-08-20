@@ -24,6 +24,7 @@ export interface PosCartSectionProps {
   subtotal: number
   pb1Tax: number
   grandTotal: number
+  hideHeader?: boolean
   cardMetadata?: CardTenderMetadata
   setPosPayMethod: (method: PosPayMethod) => void
   setPosCashGiven: (val: string) => void
@@ -43,6 +44,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   subtotal,
   pb1Tax,
   grandTotal,
+  hideHeader = false,
   setPosPayMethod,
   setPosCashGiven,
   onUpdateQty,
@@ -83,30 +85,32 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
-      {/* HEADER KERANJANG (PINNED TOP) */}
-      <div className="shrink-0 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <ShoppingBag className="w-4 h-4 text-indigo-500 dark:text-indigo-400" /> {t.cart.cashierCart}
-        </h3>
-        <div className="flex items-center gap-2">
-          {onSwitchToCatalog && (
-            <button
-              type="button"
-              onClick={onSwitchToCatalog}
-              className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
-              title="Tambah Menu ke Keranjang"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Tambah Menu</span>
-            </button>
-          )}
-          {selectedPOSTable && (
-            <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-500/30">
-              {selectedPOSTable.name}
-            </span>
-          )}
+      {/* HEADER KERANJANG (PINNED TOP, HIDDEN WHEN IN MOBILE DRAWER) */}
+      {!hideHeader && (
+        <div className="shrink-0 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <ShoppingBag className="w-4 h-4 text-indigo-500 dark:text-indigo-400" /> {t.cart.cashierCart}
+          </h3>
+          <div className="flex items-center gap-2">
+            {onSwitchToCatalog && (
+              <button
+                type="button"
+                onClick={onSwitchToCatalog}
+                className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
+                title="Tambah Menu ke Keranjang"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Tambah Menu</span>
+              </button>
+            )}
+            {selectedPOSTable && (
+              <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-500/30">
+                {selectedPOSTable.name}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* DAFTAR ITEM KERANJANG (INTERNAL SCROLL OWNER) */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 my-1.5 flex flex-col gap-2">
@@ -171,7 +175,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                 className="w-full py-1.5 border border-dashed border-slate-300 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 font-bold text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-98 mt-1"
               >
                 <Plus className="w-3 h-3" />
-                <span>+ Tambah Menu Lainnya</span>
+                <span>Tambah Menu Lainnya</span>
               </button>
             )}
           </>

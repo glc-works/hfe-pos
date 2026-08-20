@@ -133,8 +133,8 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       if (extracted.length > 0) return extracted
       if (selectedPOSTable.totalBill > 0) {
         return [
-          { ...productCatalog[0], name: `${productCatalog[0].name} (${selectedPOSTable.name})`, price: 28000, quantity: 1 },
-          { ...productCatalog[1], name: `${productCatalog[1].name} (${selectedPOSTable.name})`, price: 32000, quantity: 1 }
+          { ...productCatalog[0], name: productCatalog[0].name, price: 28000, quantity: 1 },
+          { ...productCatalog[1], name: productCatalog[1].name, price: 32000, quantity: 1 }
         ]
       }
     }
@@ -296,9 +296,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
             )}
           </div>
 
-          {/* 3. SPEED KEYS FAVORITES BAR: ALWAYS DOCKED ON DESKTOP DUAL-PANE FOR 1-TAP SPEED ORDERING ACROSS TABLES & CATALOG */}
-          {(!isMobile || posModeTab === 'catalog') && (
-            <div className="shrink-0">
+          {/* 3. QUICK ACTION / SPEED KEYS: ONLY ON WIDE VIEW (TABLET & DESKTOP) */}
+          {!isMobile && (
+            <div className="shrink-0 hidden md:block">
               <PosFavoritesBar
                 pinnedFavorites={pinnedFavorites}
                 isImageUrl={isImageUrl}
