@@ -191,8 +191,13 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       if (p && ['landing', 'customer', 'cafe', 'cfd', 'design-system', 'customer-portal'].includes(p)) {
         return p
       }
+      const host = window.location.hostname.toLowerCase()
+      if (host.startsWith('order.')) return 'customer'
+      if (host.startsWith('board.')) return 'landing'
+      if (host.startsWith('card.')) return 'customer-portal'
+      if (host.startsWith('pos.') || host.startsWith('book.') || host.startsWith('admin.')) return 'cafe'
     }
-    return 'customer'
+    return 'cafe'
   })
 
   const [viewportMode, setViewportMode] = useState<ViewportModeType>('responsive')

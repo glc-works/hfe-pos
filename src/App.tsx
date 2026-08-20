@@ -36,7 +36,16 @@ import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './type
 
 function AppMain() {
   const config = useMerchantConfig()
-  const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>('barista-pos')
+  const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>(() => {
+    if (typeof window !== 'undefined') {
+      const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
+      if (surfaceParam) return surfaceParam
+      const host = window.location.hostname.toLowerCase()
+      if (host.startsWith('admin.')) return 'admin-hub'
+      if (host.startsWith('book.')) return 'hfe-company-book'
+    }
+    return 'barista-pos'
+  })
   const [qrStepView, setQrStepView] = useState<'catalog' | 'checkout'>('catalog')
   const [isCustomerSessionActive] = useState<boolean>(true)
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
