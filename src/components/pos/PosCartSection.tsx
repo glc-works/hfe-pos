@@ -73,23 +73,13 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
     posPayMethod === 'debit' ? 'debit' : 'cc'
   )
   const [selectedBank, setSelectedBank] = useState<string>('BCA')
-  const [cardPrefix, setCardPrefix] = useState<string>('4123')
-  const [cardLast3, setCardLast3] = useState<string>('789')
-  const [cardTier, setCardTier] = useState<string>('World')
-  const [cardNetwork, setCardNetwork] = useState<'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'other'>('visa')
+  const [cardPrefix, setCardPrefix] = useState<string>('45563321')
+  const [cardLast4, setCardLast4] = useState<string>('9876')
+  const [cardNetwork, setCardNetwork] = useState<'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'discover' | 'unionpay' | 'other'>('visa')
   const [approvalCode, setApprovalCode] = useState<string>('')
 
-  const handleCardPrefixChange = (val: string) => {
-    const cleaned = val.replace(/\D/g, '').slice(0, 4)
-    setCardPrefix(cleaned)
-    if (cleaned.startsWith('4')) setCardNetwork('visa')
-    else if (/^(5[1-5]|2)/.test(cleaned)) setCardNetwork('mastercard')
-    else if (/^(5899|1946|60)/.test(cleaned)) setCardNetwork('gpn')
-    else if (/^(34|37)/.test(cleaned)) setCardNetwork('amex')
-    else if (cleaned.startsWith('35')) setCardNetwork('jcb')
-  }
-
-  const handleCardLast3Change = (val: string) => setCardLast3(val.replace(/\D/g, '').slice(0, 3))
+  const handleCardPrefixChange = (val: string) => setCardPrefix(val.replace(/\D/g, '').slice(0, 8))
+  const handleCardLast4Change = (val: string) => setCardLast4(val.replace(/\D/g, '').slice(0, 4))
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
@@ -256,14 +246,14 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               internalCardType={internalCardType}
               selectedBank={selectedBank}
               cardPrefix={cardPrefix}
-              cardLast3={cardLast3}
+              cardLast4={cardLast4}
               cardNetwork={cardNetwork}
               approvalCode={approvalCode}
               setInternalCardType={setInternalCardType}
               setPosPayMethod={setPosPayMethod}
               setSelectedBank={setSelectedBank}
               onCardPrefixChange={handleCardPrefixChange}
-              onCardLast3Change={handleCardLast3Change}
+              onCardLast4Change={handleCardLast4Change}
               setApprovalCode={setApprovalCode}
             />
           </div>
