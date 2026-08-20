@@ -210,7 +210,7 @@ export const MerchantListSection: React.FC<MerchantListSectionProps> = ({
                     </td>
                     <td className="py-3.5 px-4 font-mono text-[11px] text-indigo-300">
                       <span className="flex items-center gap-1">
-                        {merchant.subdomain}.pos.hfeit.com
+                        order.hfeit.com/{merchant.subdomain}
                         <ExternalLink className="w-3 h-3 text-slate-500" />
                       </span>
                     </td>

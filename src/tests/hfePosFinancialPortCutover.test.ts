@@ -61,10 +61,12 @@ describe('Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)', () =>
     })
 
     it('FAIL-CLOSED: should throw HfeApiError with exact status code when server returns 4xx or 5xx', async () => {
+      const errBody = JSON.stringify({ message: 'Invalid COA account mapping for item PRD-01' })
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 422,
-        json: async () => ({ message: 'Invalid COA account mapping for item PRD-01' }),
+        json: async () => JSON.parse(errBody),
+        text: async () => errBody,
       } as Response)
 
       await expect(adapter.submitRetailTransaction(samplePayload)).rejects.toThrow(HfeApiError)
@@ -79,15 +81,17 @@ describe('Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)', () =>
     })
 
     it('should include mandatory X-Idempotency-Key header on transaction submission', async () => {
+      const successBody = JSON.stringify({
+        tx_id: 'TX-LIVE-1001',
+        status: 'posted',
+        created_at: new Date().toISOString(),
+        grand_total: 57500,
+        idempotency_key: 'custom-idemp-key-123',
+      })
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({
-          tx_id: 'TX-LIVE-1001',
-          status: 'posted',
-          created_at: new Date().toISOString(),
-          grand_total: 57500,
-          idempotency_key: 'custom-idemp-key-123',
-        }),
+        json: async () => JSON.parse(successBody),
+        text: async () => successBody,
       } as Response)
       global.fetch = mockFetch
 
@@ -118,10 +122,12 @@ describe('Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)', () =>
           cost_centers: [{ id: 'CC-01', name: 'Senopati', code: 'BR-01' }],
         },
       }
+      const settingsBody = JSON.stringify(mockSettings)
 
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => mockSettings,
+        json: async () => JSON.parse(settingsBody),
+        text: async () => settingsBody,
       } as Response)
 
       const settings = await adapter.fetchCompanyBookSettings('BOOK-CAFE-HQ-88')

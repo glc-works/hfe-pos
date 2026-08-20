@@ -89,7 +89,19 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       return await this.client.request<T>(method, path, options)
     } catch (err: unknown) {
       if (err instanceof SdkApiError) {
-        throw new HfeApiError(err.status, err.message, err.details)
+        let detailMsg = err.message
+        if (err.rawBody) {
+          try {
+            const parsed = JSON.parse(err.rawBody)
+            if (parsed.message) {
+              detailMsg = parsed.message
+            }
+          } catch {
+            // ignore
+          }
+        }
+        const finalMsg = `Hfe Core API Error (${err.status}): ${detailMsg}`
+        throw new HfeApiError(err.status, finalMsg, err.details || err.rawBody)
       }
       if (err instanceof HfeApiError) {
         throw err

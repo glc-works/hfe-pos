@@ -82,8 +82,8 @@ export const MerchantDetailModal: React.FC<MerchantDetailModalProps> = ({
           {/* STOREFRONT DOMAIN & CONTACT INFO */}
           <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col gap-2.5 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Subdomain Storefront:</span>
-              <span className="font-mono text-indigo-300 font-bold">{merchant.subdomain}.pos.hfeit.com</span>
+              <span className="text-slate-400">Namespace Storefront:</span>
+              <span className="font-mono text-indigo-300 font-bold">order.hfeit.com/{merchant.subdomain}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Email Owner:</span>
