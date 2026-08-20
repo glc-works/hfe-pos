@@ -5,6 +5,7 @@ import { ReservationModal } from './ReservationModal'
 import { ModifierModal } from './ModifierModal'
 import { QrisModal } from './QrisModal'
 import { RecipeBomModal } from './RecipeBomModal'
+import { PwaInstallPromptModal } from '../shared/PwaInstallPromptModal'
 import { PRODUCT_CATALOG } from '../../data/mockData'
 import { MenuItem, CustomerProfile, HfeCompanyProfile } from '../../types/pos'
 
@@ -37,6 +38,8 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
 }) => {
   return (
     <>
+      <PwaInstallPromptModal />
+
       {showLoginModal && (
         <LoginModal
           show={showLoginModal}
