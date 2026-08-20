@@ -91,7 +91,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   const scopedAvailable = scopedTables.filter(t => t.status === 'free').length
 
   return (
-    <header className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg shrink-0 select-none overflow-hidden flex flex-col z-20">
+    <header className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg shrink-0 select-none overflow-visible relative flex flex-col z-20">
       {/* TIER 1: GLOBAL COMMAND & IDENTITY BAR (42px) */}
       <div className="px-2.5 py-1.5 flex items-center justify-between gap-2 h-11">
         {/* 1. LEFT: SINGLE-DOOR APP SUITE LAUNCHER & OUTLET IDENTITY */}

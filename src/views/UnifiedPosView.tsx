@@ -97,6 +97,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     setSelectedPOSTable(table)
     if (table.status === 'occupied' || table.status === 'open-tab') {
       setShowTableDetailDrawer(true)
+    } else {
+      // 1-Tap Fast Checkout: Empty table immediately routes to Product Catalog
+      setPosModeTab('catalog')
     }
   }
 
