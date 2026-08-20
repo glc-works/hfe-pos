@@ -1,7 +1,8 @@
-import React, { useRef } from 'react'
-import { CreditCard, CheckCircle2, ShieldCheck, Sparkles, Hash } from 'lucide-react'
+import React from 'react'
+import { CreditCard, CheckCircle2, Hash } from 'lucide-react'
 import { PosPayMethod } from '../../types/pos'
-import { identifyCardBin, CardNetworkType, CardInstrumentType } from '../../utils/cardBinEngine'
+import { useTranslation } from '../../context/LanguageContext'
+import { identifyCardBin } from '../../utils/cardBinEngine'
 
 export interface PosCardTenderFormProps {
   posPayMethod: PosPayMethod
@@ -38,6 +39,7 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
   onCardLast4Change,
   setApprovalCode
 }) => {
+  const { t } = useTranslation()
   const effectiveLast4 = cardLast4 || cardLast3
   const binInfo = identifyCardBin(cardPrefix)
 
@@ -83,10 +85,10 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
         <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
           <span className="flex items-center gap-1.5">
             <CreditCard className="w-3.5 h-3.5 text-indigo-400" />
-            Nomor Kartu (8 Depan + 4 Belakang)
+            {t.cart.cardNumberLabel}
           </span>
           <span className="text-[9px] text-slate-500 font-mono">
-            {fullNumberRaw.length}/12 Digit
+            {fullNumberRaw.length}/12
           </span>
         </label>
 
@@ -122,7 +124,7 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
                 : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
             }`}
           >
-            {binInfo.cardType === 'credit' ? 'Kartu Kredit' : 'Kartu Debit'}
+            {binInfo.cardType === 'credit' ? t.cart.creditCardBadge : t.cart.debitCardBadge}
           </span>
         </div>
 
@@ -133,7 +135,7 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
 
           <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold shrink-0">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>{approvalCode ? `Appr: ${approvalCode}` : 'Terverifikasi'}</span>
+            <span>{approvalCode ? `Appr: ${approvalCode}` : t.cart.cardVerified}</span>
           </div>
         </div>
       </div>
@@ -143,16 +145,16 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
         <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
           <span className="flex items-center gap-1">
             <Hash className="w-3 h-3 text-amber-400" />
-            Kode Approval EDC (Opsional dari Slip Mesin)
+            {t.cart.approvalCodeLabel}
           </span>
-          <span className="text-[9px] text-slate-500 font-mono">Bila ada</span>
+          <span className="text-[9px] text-slate-500 font-mono">{t.cart.approvalOptional}</span>
         </label>
         <input
           type="text"
           maxLength={8}
           value={approvalCode}
           onChange={(e) => setApprovalCode(e.target.value.toUpperCase())}
-          placeholder="Contoh: 882104"
+          placeholder="882104"
           className="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-mono text-center placeholder-slate-600 focus:outline-none shadow-inner font-bold tracking-wider"
         />
       </div>

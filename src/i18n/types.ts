@@ -82,7 +82,15 @@ export interface TranslationDictionary {
     cardTierLabel: string
     cardNetworkLabel: string
     maskedPreviewLabel: string
+    cardNumberLabel: string
     approvalCodeLabel: string
+    approvalOptional: string
+    edcSectionTitle: string
+    tenderCurrencyLabel: string
+    addMoreMenu: string
+    cardVerified: string
+    creditCardBadge: string
+    debitCardBadge: string
     cashGivenPrompt: string
     exactCash: string
     exactCashPaid: string
@@ -91,6 +99,7 @@ export interface TranslationDictionary {
     processPayment: string
     openMobileCart: string
     mobileCartTitle: string
+    changeTablePill: string
   }
   hostStand: {
     title: string

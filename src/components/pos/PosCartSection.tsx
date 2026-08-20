@@ -175,7 +175,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                 className="w-full py-1.5 border border-dashed border-slate-300 dark:border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 font-bold text-[10px] flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-98 mt-1"
               >
                 <Plus className="w-3 h-3" />
-                <span>Tambah Menu Lainnya</span>
+                <span>{t.cart.addMoreMenu}</span>
               </button>
             )}
           </>
@@ -240,7 +240,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5">
               <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 font-mono flex items-center gap-1">
                 <CreditCard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                Detail EDC & Settlement Akuntansi
+                {t.cart.edcSectionTitle}
               </span>
             </div>
 
@@ -269,7 +269,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             {/* TENDER CURRENCY SELECTOR (KISS MULTI-CURRENCY) */}
             <div className="flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-900">
               <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Mata Uang Diterima:
+                {t.cart.tenderCurrencyLabel}
               </span>
               <div className="flex items-center gap-1">
                 {ACCEPTED_TENDER_CURRENCIES.slice(0, 3).map((curr) => {

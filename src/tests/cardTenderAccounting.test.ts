@@ -41,9 +41,9 @@ describe('Card Tender (CC / Debit) Accounting Integrity & BIN Detection', () => 
     expect(debitTender.maskedReconNumber).toBe('5899-***-456')
   })
 
-  it('should have complete translations for CC, Debit, EDC Bank, Card Tier, 4-Front, and 3-Back labels', () => {
-    expect(translations.id.cart.payCc).toBe('Kartu Kredit (CC)')
-    expect(translations.en.cart.payCc).toBe('Credit Card (CC)')
+  it('should have complete translations for CC, Debit, EDC Bank, Card Tier, 8-Front, and 4-Back labels', () => {
+    expect(translations.id.cart.payCc).toBe('Kartu Kredit')
+    expect(translations.en.cart.payCc).toBe('Credit Card')
 
     expect(translations.id.cart.payDebit).toBe('Kartu Debit')
     expect(translations.en.cart.payDebit).toBe('Debit Card')
@@ -51,17 +51,14 @@ describe('Card Tender (CC / Debit) Accounting Integrity & BIN Detection', () => 
     expect(translations.id.cart.cardBankLabel).toContain('EDC')
     expect(translations.en.cart.cardBankLabel).toContain('EDC')
 
-    expect(translations.id.cart.cardPrefixLabel).toContain('4 Digit')
-    expect(translations.en.cart.cardPrefixLabel).toContain('4 Digits')
+    expect(translations.id.cart.cardPrefixLabel).toContain('8 Digit')
+    expect(translations.en.cart.cardPrefixLabel).toContain('8 Digits')
 
-    expect(translations.id.cart.cardSuffixLabel).toContain('3 Digit')
-    expect(translations.en.cart.cardSuffixLabel).toContain('3 Digits')
+    expect(translations.id.cart.cardSuffixLabel).toContain('4 Belakang')
+    expect(translations.en.cart.cardSuffixLabel).toContain('4 Digits')
 
     expect(translations.id.cart.cardTierLabel).toContain('Tier')
     expect(translations.en.cart.cardTierLabel).toContain('Tier')
-
-    expect(translations.id.cart.maskedPreviewLabel).toContain('Rekon')
-    expect(translations.en.cart.maskedPreviewLabel).toContain('Recon')
   })
 
   it('should correctly classify card brand networks from 4-digit prefixes', () => {

@@ -148,6 +148,16 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
       - Add-On order dispatch to an already occupied table.
       - Table switching / relocation with items in cart.
       - Empty cart checkout guards with constructive guidance.
+30. **Single-Line Concise Microcopy Standard (Telegraphic $\le 18\text{ char}$ Invariant).**
+    - *Zero-Wrapped Labels:* All form labels, action titles, and card headers MUST NOT exceed 18 characters on mobile. Text MUST fit cleanly on a single line on compact 360px–390px viewports without wrapping to 2 lines.
+    - *Zero Parentheses inside Form Titles:* Explanatory text and secondary hints belong in placeholders (`placeholder="Opsional"`) or trailing badge indicators, NEVER co-located as parenthesized strings `(...)` inside label headers.
+    - *Concise Telegraphic Vocabulary:* Use crisp industry terms (`No. Kartu`, `Kode Approval`, `Uang Diterima:`, `Kembalian:`) instead of verbose explanatory sentences.
+31. **Single Container Header Ownership (Anti-Duplicate Header Invariant).**
+    - *Single Header per Screen:* When a presenter component (such as `PosCartSection`) is nested inside a container drawer or modal (such as `PosMobileCartDrawer`), the child MUST receive `hideHeader={true}`. Rendering duplicate headers, repeated table badges, or multiple add-to-cart buttons on the same active screen is STRICTLY PROHIBITED.
+    - *Unified Touch Pill:* Table / order mode switchers in drawer headers MUST be rendered as a single unified capsule button with a minimum touch area of $40\text{px} \times 40\text{px}$ (`min-h-[40px]`).
+32. **100% i18n Dictionary Purity (Zero Hardcoded JSX Strings Invariant).**
+    - *Zero Hardcoded UI Strings:* Every visible string (button labels, headers, placeholders, helper tags, badge descriptions) MUST be bound strictly through `useTranslation()` (`t.*`) in `src/i18n/`.
+    - *Synchronized Lexicon:* Any newly added or revised translation keys MUST be updated synchronously across `src/i18n/types.ts`, `src/i18n/id.ts`, and `src/i18n/en.ts`.
 
 ## Slot Reservation Rules
 

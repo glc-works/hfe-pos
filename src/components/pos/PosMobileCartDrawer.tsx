@@ -71,10 +71,10 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
               </div>
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="text-xs font-black text-slate-900 dark:text-white truncate">
-                  {selectedPOSTable ? `Meja ${selectedPOSTable.name}` : 'Takeaway / Walk-in'}
+                  {selectedPOSTable ? `${t.customer.tableNo} ${selectedPOSTable.name}` : 'Takeaway / Walk-in'}
                 </span>
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-lg border border-amber-500/20 shrink-0">
-                  Ganti ▾
+                  {t.cart.changeTablePill}
                 </span>
               </div>
             </button>
