@@ -8,6 +8,13 @@ Read `ARCHITECTURE.md` first as the highest technical contract, `docs/active/sta
 
 As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or customer data.
 
+The next intended lifecycle state is **invite-only, manually approved early access**. Early access
+does not mean production, does not authorize production claims or production deployment, and may
+not be silently reclassified because participants or real-world evidence exist. Before accepting
+real-user/customer data, update this lifecycle section through review with the applicable data,
+support, export, and rollback controls. Only an explicit founder production declaration recorded
+in reviewed repository authority may change the product state to production.
+
 ## Seven Guiding Principles
 
 1. **Think before coding.** State assumptions explicitly, push back on unnecessary complexity, and ask rather than guess.
