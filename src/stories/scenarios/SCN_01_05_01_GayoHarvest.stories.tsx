@@ -137,7 +137,7 @@ export const BiologicalAssetRegistryView: React.FC<GayoHarvestScenarioProps> = (
                     type="number"
                     data-testid="input-harvest-kg"
                     value={cherryKg || ''}
-                    onChange={(e) => setCherryKg(parseFloat(e.target.value) || 0)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCherryKg(parseFloat(e.target.value) || 0)}
                     placeholder="0 kg"
                     className="bg-slate-900 border-slate-800 text-sm font-mono text-white"
                   />

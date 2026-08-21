@@ -103,7 +103,7 @@ export const Step3TaxAndFloatSettings: React.FC<Props> = ({ data, onChange }) =>
           <Input
             type="number"
             value={data.initialKasFloat}
-            onChange={(e) => onChange({ initialKasFloat: Math.max(0, parseInt(e.target.value) || 0) })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ initialKasFloat: Math.max(0, parseInt(e.target.value) || 0) })}
             placeholder="500000"
             className="h-9 text-xs font-bold font-mono tabular-nums"
           />

@@ -49,7 +49,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
             <Input
               type="text"
               value={data.brandName}
-              onChange={(e) => onChange({ brandName: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ brandName: e.target.value })}
               placeholder="Artisan Coffee & Eatery"
               className="h-9 text-xs"
             />
@@ -63,7 +63,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
             <Input
               type="text"
               value={data.logoUrl}
-              onChange={(e) => onChange({ logoUrl: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ logoUrl: e.target.value })}
               placeholder="https://domain.id/logo.png"
               className="h-9 text-xs"
             />
@@ -77,7 +77,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
             <Input
               type="text"
               value={data.address}
-              onChange={(e) => onChange({ address: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ address: e.target.value })}
               placeholder="Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan"
               className="h-9 text-xs"
             />
@@ -91,7 +91,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
             <Input
               type="text"
               value={data.instagram}
-              onChange={(e) => onChange({ instagram: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ instagram: e.target.value })}
               placeholder="@artisancoffee.id"
               className="h-9 text-xs"
             />
@@ -105,7 +105,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
             <Input
               type="text"
               value={data.whatsappOrder}
-              onChange={(e) => onChange({ whatsappOrder: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ whatsappOrder: e.target.value })}
               placeholder="6281298765432"
               className="h-9 text-xs"
             />
@@ -150,7 +150,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
         <Input
           type="text"
           value={data.capacityScale || ''}
-          onChange={(e) => onChange({ capacityScale: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ capacityScale: e.target.value })}
           placeholder="Atau ketik kustom, misal: 20 Meja (👥 3/4), 20kg Batch Oven, 50 Ha Lahan..."
           className="h-8 text-xs"
         />
@@ -204,7 +204,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
             <Input
               type="text"
               value={data.wifiSsid}
-              onChange={(e) => onChange({ wifiSsid: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ wifiSsid: e.target.value })}
               placeholder="Artisan_Guest_WiFi"
               className="h-9 text-xs"
             />
@@ -217,7 +217,7 @@ export const Step2BrandAndSocialProfile: React.FC<Props> = ({ data, onChange }) 
             <Input
               type="text"
               value={data.wifiPassword}
-              onChange={(e) => onChange({ wifiPassword: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange({ wifiPassword: e.target.value })}
               placeholder="kopiuenak2026"
               className="h-9 text-xs"
             />

@@ -86,7 +86,7 @@ export const RoastingBOMAssemblyView: React.FC<RoastingAssemblyProps> = ({
                   type="number"
                   data-testid="input-green-beans"
                   value={batch.greenBeanKg || ''}
-                  onChange={(e) => handleUpdateKg(parseFloat(e.target.value) || 0)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateKg(parseFloat(e.target.value) || 0)}
                   placeholder="0 kg"
                   className="bg-slate-950 border-slate-800 text-sm font-mono text-white"
                 />
