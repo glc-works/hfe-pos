@@ -15,6 +15,8 @@ import {
   formatLocaleNumber
 } from '../../utils/localeNumberFormat'
 import { PosCardTenderForm } from './PosCardTenderForm'
+import { SegmentedControl, Button } from '@/ui'
+import { GLYPHS } from '../../tokens/designTokens'
 
 export interface PosCartSectionProps {
   cartItems: CartItem[]
@@ -92,38 +94,17 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
       {/* 3-MODE FULFILLMENT SELECTOR: DINE-IN | TAKEAWAY | DELIVERY */}
-      <div className="shrink-0 grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 mb-1.5">
-        <button
-          type="button"
-          onClick={() => setFulfillmentMode?.('dine_in')}
-          className={`py-1 px-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-            fulfillmentMode === 'dine_in' ? 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white shadow-sm font-extrabold border border-slate-200 dark:border-slate-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <UtensilsCrossed className="w-3 h-3 shrink-0 text-emerald-500" />
-          <span className="truncate">{t.cart.dineInModeLabel}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setFulfillmentMode?.('takeaway')}
-          className={`py-1 px-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-            fulfillmentMode === 'takeaway' ? 'bg-amber-500 text-slate-950 shadow-sm font-extrabold border border-amber-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <ShoppingBag className="w-3 h-3 shrink-0" />
-          <span className="truncate">{t.cart.takeawayModeLabel}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setFulfillmentMode?.('delivery')}
-          className={`py-1 px-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-            fulfillmentMode === 'delivery' ? 'bg-indigo-600 text-white shadow-sm font-extrabold border border-indigo-500' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Bike className="w-3 h-3 shrink-0 text-indigo-200" />
-          <span className="truncate">{t.cart.deliveryModeLabel}</span>
-        </button>
-      </div>
+      <SegmentedControl
+        options={[
+          { value: 'dine_in', label: t.cart.dineInModeLabel, icon: GLYPHS.DINE_IN },
+          { value: 'takeaway', label: t.cart.takeawayModeLabel, icon: GLYPHS.TAKEAWAY },
+          { value: 'delivery', label: t.cart.deliveryModeLabel, icon: GLYPHS.DELIVERY }
+        ]}
+        value={fulfillmentMode}
+        onChange={(val) => setFulfillmentMode?.(val as OrderFulfillmentMode)}
+        size="sm"
+        className="mb-1.5 shrink-0"
+      />
 
       {/* HEADER KERANJANG (PINNED TOP, HIDDEN WHEN IN MOBILE DRAWER) */}
       {!hideHeader && (
@@ -456,26 +437,29 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         {/* TOMBOL AKSI UTAMA: SPLIT BILL & CHECKOUT PROCESS */}
         <div className="flex items-center gap-2 pt-1">
           {onOpenSplitPayment && (
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="md"
               onClick={onOpenSplitPayment}
-              className="py-3 px-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shrink-0 whitespace-nowrap"
+              icon={<Scissors className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />}
+              className="rounded-2xl shrink-0"
               title="Split Tagihan per Meja / Kursi"
             >
-              <Scissors className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
-              <span>{t.cart.splitBill}</span>
-            </button>
+              {t.cart.splitBill}
+            </Button>
           )}
 
-          <button
-            type="button"
+          <Button
+            variant="emerald"
+            size="md"
+            fullWidth
             onClick={onCheckout}
             disabled={cartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)}
-            className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black rounded-2xl text-xs sm:text-sm shadow-xl transition-all flex items-center justify-center gap-2 touch-manipulation whitespace-nowrap"
+            icon={<CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />}
+            className="rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm"
           >
-            <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />
-            <span>{t.cart.processPayment}</span>
-          </button>
+            {t.cart.processPayment}
+          </Button>
         </div>
       </div>
     </div>

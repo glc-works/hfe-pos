@@ -3,6 +3,7 @@ import { ShoppingBag, X, UtensilsCrossed, ChevronDown, Bike } from 'lucide-react
 import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode } from '../../types/pos'
 import { PosCartSection } from './PosCartSection'
 import { useTranslation } from '../../context/LanguageContext'
+import { IconButton } from '@/ui'
 
 export interface PosMobileCartDrawerProps {
   show: boolean
@@ -101,14 +102,14 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
           )}
 
           {/* 1 SINGLE CLOSE BUTTON */}
-          <button
-            type="button"
+          <IconButton
+            aria-label="Tutup Keranjang"
+            icon={<X className="w-4 h-4" />}
+            size="sm"
+            variant="ghost"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer min-h-[36px]"
-            title="Tutup Keranjang"
-          >
-            <X className="w-4 h-4" />
-          </button>
+            className="shrink-0 rounded-full"
+          />
         </div>
 
         {/* 2. CART BODY */}
