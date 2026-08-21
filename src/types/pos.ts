@@ -1,8 +1,8 @@
 // --- HFE POS CORE DOMAIN TYPES ---
 
-export type PrimaryDomainApp = 'landing' | 'customer' | 'cafe' | 'design-system' | 'customer-portal' | 'hfeit-corporate'
+export type PrimaryDomainApp = 'landing' | 'customer' | 'cafe' | 'design-system' | 'customer-portal' | 'hfeit-corporate' | 'gallery'
 export type StaffSurfaceMode = 'barista-pos' | 'kds-screen' | 'checker-qc' | 'server-waiter' | 'cafe-config' | 'retail-pos' | 'scan-go' | 'fine-dining-kds' | 'sommelier' | 'maitre-d'
- | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights' | 'hfe-connect-hub' | 'hfe-company-book' | 'admin-hub' | 'merchant-hub'
+ | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights' | 'hfe-connect-hub' | 'hfe-company-book' | 'admin-hub' | 'merchant-hub' | 'gallery'
 export type KdsViewModeType = 'kanban' | 'list' | 'workorder'
 export type CustomerLoginType = 'phone' | 'guest-name'
 export type PaymentPolicy = 'pay-first' | 'open-tab'

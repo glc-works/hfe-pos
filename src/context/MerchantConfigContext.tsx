@@ -241,16 +241,21 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [activeApp, setActiveApp] = useState<PrimaryDomainApp | 'cfd'>(() => {
     if (typeof window !== 'undefined') {
       const p = new URLSearchParams(window.location.search).get('app') as PrimaryDomainApp
-      if (p && ['landing', 'customer', 'cafe', 'cfd', 'design-system', 'customer-portal'].includes(p)) {
+      if (p && ['landing', 'customer', 'cafe', 'cfd', 'design-system', 'customer-portal', 'gallery'].includes(p)) {
         return p
       }
+      const surfaceParam = new URLSearchParams(window.location.search).get('surface')
+      if (surfaceParam === 'gallery') return 'gallery'
+      if (surfaceParam) return 'cafe'
+
       let host = window.location.hostname.toLowerCase()
       if (host.startsWith('dev-')) host = host.slice(4)
       if (host.startsWith('dev.')) host = host.slice(4)
       if (host.startsWith('order.') || host.startsWith('qr.')) return 'customer'
-      if (host.startsWith('board.') || host.startsWith('store.') || host.startsWith('menu.') || host === 'hfeit.com' || host === 'localhost') return 'landing'
       if (host.startsWith('card.') || host.startsWith('member.') || host.startsWith('pass.')) return 'customer-portal'
+      if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'
       if (host.startsWith('pos.') || host.startsWith('book.') || host.startsWith('admin.') || host.startsWith('hub.') || host.startsWith('kds.')) return 'cafe'
+      if (host.startsWith('board.') || host.startsWith('store.') || host.startsWith('menu.') || host === 'hfeit.com' || host === 'localhost') return 'landing'
     }
     return 'cafe'
   })
