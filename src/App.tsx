@@ -4,10 +4,8 @@ import { LanguageProvider } from './context/LanguageContext'
 import { MerchantConfigProvider, useMerchantConfig } from './context/MerchantConfigContext'
 import { NotificationProvider } from './context/NotificationContext'
 import { ViewportProvider } from './context/ViewportContext'
-import { FloatKit } from './components/dev/FloatKit'
 import { StaffSubNavigator } from './components/common/StaffSubNavigator'
 import { GlobalModals } from './components/modals/GlobalModals'
-import { ScenarioPlayerWidget } from './components/shared/ScenarioPlayerWidget'
 import { useHfeSync } from './hooks/useHfeSync'
 import { useTableState } from './hooks/useTableState'
 import { useCart } from './hooks/useCart'
@@ -443,22 +441,6 @@ function AppMain() {
         setCustomerProfiles={setCustomerProfiles}
         setQrStepView={setQrStepView}
       />
-
-      {/* DEV TOOLS (ZERO OVERLAYS IN PRODUCTION, TOGGLEABLE VIA ?dev=true OR ?dev=false) */}
-      {typeof window !== 'undefined' &&
-        (window.location.search.includes('dev=true') ||
-          (import.meta.env.DEV && !window.location.search.includes('dev=false'))) && (
-          <>
-            <ScenarioPlayerWidget
-              activeStaffSurface={activeStaffSurface}
-              setActiveStaffSurface={setActiveStaffSurface}
-            />
-            <FloatKit
-              activeStaffSurface={activeStaffSurface}
-              setActiveStaffSurface={setActiveStaffSurface}
-            />
-          </>
-        )}
     </div>
   )
 }
