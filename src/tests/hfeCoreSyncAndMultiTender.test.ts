@@ -43,6 +43,21 @@ describe('Hfe Core SSOT Synchronization & Universal Multi-Tender Settlement', ()
     })
 
     it('settles universal multi-tender request and returns valid journal posting & settlement metadata', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            settlement_id: 'SETTLE-CORE-001',
+            document_reference_id: 'DOC-INV-2026-0817-01',
+            total_obligation_minor: 35000000,
+            total_tendered_minor: 35000000,
+            total_discrepancy_minor: 0,
+            status: 'settled',
+            settled_at: new Date().toISOString(),
+            journal_posting_id: 'POST-CORE-001',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      )
       const request: UniversalMultiTenderRequest = {
         document_reference_id: 'DOC-INV-2026-0817-01',
         total_obligation_minor: 35000000,
@@ -63,6 +78,7 @@ describe('Hfe Core SSOT Synchronization & Universal Multi-Tender Settlement', ()
       expect(response.settlement_id).toBeDefined()
       expect(response.journal_posting_id).toBeDefined()
       expect(response.settled_at).toBeDefined()
+      fetchSpy.mockRestore()
     })
   })
 

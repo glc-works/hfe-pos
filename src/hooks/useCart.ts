@@ -227,7 +227,7 @@ export function useCart(options: UseCartOptions) {
       onOrderSubmitted?.(newOrder)
       setCart([])
       setQrStepView('catalog')
-      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur! Terkoneksi dengan Hfe Ledger (${hfeCompanyProfile.ptLegalName}).`)
+      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur (${hfeCompanyProfile.ptLegalName}). Status pembukuan: belum dimulai.`)
     }
   }
 
@@ -252,7 +252,7 @@ export function useCart(options: UseCartOptions) {
     setCart([])
     setQrStepView('catalog')
     setLoyaltyPoints(prev => prev + Math.floor(grandTotalBill / 10000))
-    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur & Terposting ke Hfe Engine (${hfeCompanyProfile.ptLegalName}).`)
+    alert(`Pesanan meja ${selectedTable} masuk KDS Dapur (${hfeCompanyProfile.ptLegalName}). Status pembukuan: menunggu verifikasi Hfe CORE.`)
   }
 
   const clearCart = () => setCart([])
