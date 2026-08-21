@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { HfeCompanyProfile } from '../../types/pos'
+import { TextInput, Button, Badge } from '@/ui'
 
 export interface HfeCoreIntegrationZoneProps {
   hfeCompanyProfile: HfeCompanyProfile
@@ -55,43 +56,30 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-xl border border-emerald-500/30 flex items-center gap-1.5 shrink-0">
-            <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
-            {t.settings.liveSyncedBadge}
-          </span>
-        </div>
+        <Badge variant="emerald" glyph="📡">
+          {t.settings.liveSyncedBadge}
+        </Badge>
       </div>
 
       {/* 1. BOOK ID & REST API ENDPOINT */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-            <Database className="w-3.5 h-3.5 text-indigo-400" />
-            {t.settings.companyBookId}
-          </label>
-          <input
-            type="text"
-            value={hfeCompanyProfile.companyBookId}
-            onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, companyBookId: e.target.value }))}
-            className="bg-slate-950 border border-slate-800 text-indigo-300 text-xs rounded-xl px-3.5 py-2.5 font-mono font-bold focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
-            placeholder="UUID Book ID"
-          />
-        </div>
+        <TextInput
+          label={t.settings.companyBookId}
+          leadingIcon={<Database className="w-4 h-4 text-indigo-400" />}
+          value={hfeCompanyProfile.companyBookId}
+          onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, companyBookId: e.target.value }))}
+          className="font-mono font-bold text-indigo-300"
+          placeholder="UUID Book ID"
+        />
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-            <Network className="w-3.5 h-3.5 text-emerald-400" />
-            {t.settings.ledgerApiEndpoint}
-          </label>
-          <input
-            type="text"
-            value={hfeCompanyProfile.hfeLedgerApiEndpoint}
-            onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, hfeLedgerApiEndpoint: e.target.value }))}
-            className="bg-slate-950 border border-slate-800 text-emerald-400 text-xs rounded-xl px-3.5 py-2.5 font-mono focus:outline-none focus:border-emerald-500 transition-colors shadow-inner"
-            placeholder="http://localhost:8080/v1"
-          />
-        </div>
+        <TextInput
+          label={t.settings.ledgerApiEndpoint}
+          leadingIcon={<Network className="w-4 h-4 text-emerald-400" />}
+          value={hfeCompanyProfile.hfeLedgerApiEndpoint}
+          onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, hfeLedgerApiEndpoint: e.target.value }))}
+          className="font-mono text-emerald-400"
+          placeholder="http://localhost:8080/v1"
+        />
       </div>
 
       {/* SYNC ACTIONS STRIP */}
@@ -102,23 +90,24 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
             onClick={handleFetchHfeCompanyProfile}
-            className="flex-1 sm:flex-initial bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/30 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow"
+            icon={<RefreshCw className="w-3.5 h-3.5 text-indigo-400" />}
           >
-            <RefreshCw className="w-3.5 h-3.5 text-indigo-400" />
-            <span>{t.settings.resyncFromApi}</span>
-          </button>
+            {t.settings.resyncFromApi}
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="md"
             onClick={handlePushHfeCompanyProfile}
-            className="flex-1 sm:flex-initial bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-lg flex items-center justify-center gap-1.5 transition-all"
+            icon={<Check className="w-3.5 h-3.5 stroke-[3]" />}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white"
           >
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-            <span>{t.settings.pushToCoreHfe}</span>
-          </button>
+            {t.settings.pushToCoreHfe}
+          </Button>
         </div>
       </div>
 
@@ -139,7 +128,7 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
             <select
               value={activeBranchId}
               onChange={(e) => setActiveBranchId(e.target.value)}
-              className="bg-transparent text-indigo-300 font-mono font-bold focus:outline-none"
+              className="bg-transparent text-indigo-300 font-mono font-bold focus:outline-none cursor-pointer"
             >
               {outletBranches.map(b => (
                 <option key={b.id} value={b.id} className="bg-slate-900 text-white">{b.name}</option>
@@ -201,7 +190,7 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
             </span>
           </div>
 
-          {/* OPTION 3: SUB-ACCOUNT COA */}
+          {/* OPTION 3: SUB-ACCOUNT SEGMENTATION */}
           <div
             onClick={() => setHfeBranchMode('sub_account')}
             className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 cursor-pointer transition-all ${
@@ -212,7 +201,7 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-indigo-400 uppercase">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">
                   {t.settings.auditBadge}
                 </span>
                 {hfeBranchMode === 'sub_account' && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
@@ -222,8 +211,8 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
                 {t.settings.subAccountCoaDesc}
               </p>
             </div>
-            <span className="text-[9px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold w-fit">
-              STRICT COA
+            <span className="text-[9px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700 font-bold w-fit">
+              SINGLE GL
             </span>
           </div>
         </div>

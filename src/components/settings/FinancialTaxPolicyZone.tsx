@@ -2,7 +2,8 @@ import React from 'react'
 import { DollarSign, Percent, ShoppingBag, Coins, CreditCard, Banknote } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
-import { PB1TaxMode, SupportedCurrency } from '../../types/pos'
+import { SupportedCurrency } from '../../types/pos'
+import { TextInput, Badge } from '@/ui'
 
 export const FinancialTaxPolicyZone: React.FC = () => {
   const { t } = useTranslation()
@@ -44,10 +45,9 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold shrink-0">
-          <Coins className="w-3.5 h-3.5" />
-          <span>PB1: {pb1TaxMode === 1 ? '10% Exclude' : pb1TaxMode === 2 ? '10% Include' : '0% Non-Tax'}</span>
-        </div>
+        <Badge variant="emerald" glyph="🪙">
+          PB1: {pb1TaxMode === 1 ? '10% Exclude' : pb1TaxMode === 2 ? '10% Include' : '0% Non-Tax'}
+        </Badge>
       </div>
 
       {/* 1. PB1 RESTAURANT TAX TREATMENT SELECTOR */}
@@ -65,7 +65,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           <button
             type="button"
             onClick={() => setPb1TaxMode(1)}
-            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all ${
+            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all cursor-pointer ${
               pb1TaxMode === 1
                 ? 'bg-emerald-500/15 border-emerald-500 text-white ring-1 ring-emerald-500/40 shadow-lg'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -82,7 +82,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           <button
             type="button"
             onClick={() => setPb1TaxMode(2)}
-            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all ${
+            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all cursor-pointer ${
               pb1TaxMode === 2
                 ? 'bg-emerald-500/15 border-emerald-500 text-white ring-1 ring-emerald-500/40 shadow-lg'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -99,7 +99,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           <button
             type="button"
             onClick={() => setPb1TaxMode(0)}
-            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all ${
+            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all cursor-pointer ${
               pb1TaxMode === 0
                 ? 'bg-slate-800 border-slate-600 text-white ring-1 ring-slate-500'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -118,22 +118,17 @@ export const FinancialTaxPolicyZone: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
         {/* TAKEAWAY SURCHARGE */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-            <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
-            {t.settings.takeawaySurcharge}
-          </label>
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-amber-400">Rp</span>
-            <input
-              type="number"
-              min={0}
-              step={500}
-              value={takeawaySurcharge}
-              onChange={(e) => setTakeawaySurcharge(Math.max(0, Number(e.target.value) || 0))}
-              className="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl pl-10 pr-3.5 py-2.5 font-mono font-bold focus:outline-none focus:border-amber-500 transition-colors shadow-inner"
-            />
-          </div>
-          <p className="text-[10px] text-slate-500">{t.settings.takeawaySurchargeSub}</p>
+          <TextInput
+            label={t.settings.takeawaySurcharge}
+            leadingIcon={<ShoppingBag className="w-4 h-4 text-amber-400" />}
+            type="number"
+            min={0}
+            step={500}
+            value={takeawaySurcharge}
+            onChange={(e) => setTakeawaySurcharge(Math.max(0, Number(e.target.value) || 0))}
+            className="font-mono font-bold"
+          />
+          <p className="text-[10px] text-slate-500 pl-1">{t.settings.takeawaySurchargeSub}</p>
         </div>
 
         {/* PRIMARY CURRENCY */}
@@ -145,7 +140,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           <select
             value={primaryCurrency}
             onChange={(e) => setPrimaryCurrency(e.target.value as SupportedCurrency)}
-            className="bg-slate-950 border border-slate-800 text-indigo-300 text-xs rounded-xl px-3.5 py-2.5 font-mono font-bold focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
+            className="min-h-[44px] h-11 bg-slate-950 border border-slate-800 text-indigo-300 text-xs sm:text-sm rounded-xl px-3.5 font-mono font-bold focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
           >
             {CURRENCIES.map(c => (
               <option key={c.code} value={c.code}>
@@ -153,27 +148,22 @@ export const FinancialTaxPolicyZone: React.FC = () => {
               </option>
             ))}
           </select>
-          <p className="text-[10px] text-slate-500">{t.settings.primaryCurrencySub}</p>
+          <p className="text-[10px] text-slate-500 pl-1">{t.settings.primaryCurrencySub}</p>
         </div>
 
         {/* INITIAL CASH FLOAT */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-            <Banknote className="w-3.5 h-3.5 text-emerald-400" />
-            {t.settings.initialCashFloat}
-          </label>
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-emerald-400">Rp</span>
-            <input
-              type="number"
-              min={0}
-              step={50000}
-              value={initialCashFloat}
-              onChange={(e) => setInitialCashFloat(Math.max(0, Number(e.target.value) || 0))}
-              className="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-xl pl-10 pr-3.5 py-2.5 font-mono font-bold focus:outline-none focus:border-emerald-500 transition-colors shadow-inner"
-            />
-          </div>
-          <p className="text-[10px] text-slate-500">{t.settings.initialCashFloatSub}</p>
+          <TextInput
+            label={t.settings.initialCashFloat}
+            leadingIcon={<Banknote className="w-4 h-4 text-emerald-400" />}
+            type="number"
+            min={0}
+            step={50000}
+            value={initialCashFloat}
+            onChange={(e) => setInitialCashFloat(Math.max(0, Number(e.target.value) || 0))}
+            className="font-mono font-bold"
+          />
+          <p className="text-[10px] text-slate-500 pl-1">{t.settings.initialCashFloatSub}</p>
         </div>
       </div>
 
@@ -191,7 +181,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           <button
             type="button"
             onClick={() => setPaymentPolicy('pay-first')}
-            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all ${
+            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all cursor-pointer ${
               paymentPolicy === 'pay-first'
                 ? 'bg-amber-500/15 border-amber-500 text-white ring-1 ring-amber-500/40 shadow-lg'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -207,7 +197,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           <button
             type="button"
             onClick={() => setPaymentPolicy('open-tab')}
-            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all ${
+            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1.5 transition-all cursor-pointer ${
               paymentPolicy === 'open-tab'
                 ? 'bg-indigo-500/15 border-indigo-500 text-white ring-1 ring-indigo-500/40 shadow-lg'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'

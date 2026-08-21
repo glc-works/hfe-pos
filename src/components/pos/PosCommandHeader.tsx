@@ -24,6 +24,8 @@ import { useNotification } from '../../context/NotificationContext'
 import { useTheme } from '../../context/ThemeContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { PropertyZoneConfig, PropertyZoneId, TableStatus } from '../../types/pos'
+import { SegmentedControl, KbdBadge, Badge } from '@/ui'
+import { GLYPHS } from '../../tokens/designTokens'
 
 export interface PosCommandHeaderProps {
   posModeTab: 'tables' | 'catalog' | 'booking'
@@ -186,7 +188,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
             >
               <Search className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden md:inline text-[11px]">Cari</span>
-              <kbd className="hidden md:inline-flex px-1 py-0.2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[9px] font-mono text-slate-600 dark:text-slate-400 font-bold">⌘K</kbd>
+              <span className="hidden md:inline-flex"><KbdBadge>⌘K</KbdBadge></span>
             </button>
           )}
 

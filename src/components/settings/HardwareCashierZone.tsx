@@ -20,6 +20,7 @@ import {
   PaperWidth
 } from '../../services/hardware/ThermalPrinterService'
 import { CashierAudioService } from '../../services/hardware/CashierAudioService'
+import { ToggleSwitch, Button, Badge } from '@/ui'
 
 export const HardwareCashierZone: React.FC = () => {
   const { t } = useTranslation()
@@ -61,20 +62,17 @@ export const HardwareCashierZone: React.FC = () => {
     printerService.updateConfig({ paperWidth: width })
   }
 
-  const handleToggleAutoCut = () => {
-    const next = !autoCut
+  const handleToggleAutoCut = (next: boolean) => {
     setAutoCut(next)
     printerService.updateConfig({ autoCut: next })
   }
 
-  const handleToggleAutoKick = () => {
-    const next = !autoKickDrawer
+  const handleToggleAutoKick = (next: boolean) => {
     setAutoKickDrawer(next)
     printerService.updateConfig({ autoKickDrawerOnCash: next })
   }
 
-  const handleToggleSound = () => {
-    const next = !soundBeeperEnabled
+  const handleToggleSound = (next: boolean) => {
     setSoundBeeperEnabled(next)
     if (next) {
       CashierAudioService.getInstance().playBeep(880, 100)
@@ -98,9 +96,17 @@ export const HardwareCashierZone: React.FC = () => {
   }
 
   const handleTestBeeper = () => {
-    CashierAudioService.getInstance().playSuccessChime()
+    CashierAudioService.getInstance().playBeep(1200, 200)
     showStatus(t.settings.testBeeperSuccess)
   }
+
+  const CONNECTION_OPTIONS = [
+    { id: 'simulated', label: t.settings.virtualPos, icon: <Radio className="w-4 h-4 text-slate-400" /> },
+    { id: 'bluetooth', label: t.settings.bluetooth, icon: <Bluetooth className="w-4 h-4 text-blue-400" /> },
+    { id: 'usb', label: t.settings.usbCable, icon: <Usb className="w-4 h-4 text-emerald-400" /> }
+  ]
+
+  const isConnected = currentStatus.status === 'connected'
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col gap-5 shadow-xl animate-fadeIn">
@@ -120,38 +126,31 @@ export const HardwareCashierZone: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[11px] font-mono font-bold text-emerald-400">
-            {currentStatus.deviceName}
-          </span>
-        </div>
+        <Badge variant={isConnected ? 'emerald' : 'amber'} glyph="🖨️">
+          {connectionType.toUpperCase()} {paperWidth}mm • {isConnected ? 'Online' : 'Ready'}
+        </Badge>
       </div>
 
       {statusMsg && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-2xl text-emerald-400 text-xs font-bold flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
+        <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-xl text-xs font-mono flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" />
           <span>{statusMsg}</span>
         </div>
       )}
 
-      {/* 1. CONNECTION INTERFACE */}
+      {/* 1. CONNECTION TYPE SELECTOR */}
       <div className="flex flex-col gap-2">
         <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
           <Sliders className="w-3.5 h-3.5 text-indigo-400" />
           {t.settings.printerConnectionTitle}
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          {[
-            { id: 'bluetooth', label: t.settings.bluetooth, icon: <Bluetooth className="w-4 h-4" /> },
-            { id: 'usb', label: t.settings.usbCable, icon: <Usb className="w-4 h-4" /> },
-            { id: 'simulated', label: t.settings.virtualPos, icon: <Radio className="w-4 h-4" /> }
-          ].map((conn) => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {CONNECTION_OPTIONS.map((conn) => (
             <button
               key={conn.id}
               type="button"
               onClick={() => handleConnectionChange(conn.id as PrinterConnectionType)}
-              className={`p-3 rounded-2xl border flex items-center justify-center gap-2 transition-all ${
+              className={`p-3 rounded-2xl border flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 connectionType === conn.id
                   ? 'bg-indigo-600/20 border-indigo-500 text-white font-bold ring-1 ring-indigo-400 shadow-md'
                   : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -174,7 +173,7 @@ export const HardwareCashierZone: React.FC = () => {
           <button
             type="button"
             onClick={() => handlePaperWidthChange(58)}
-            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1 transition-all ${
+            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1 transition-all cursor-pointer ${
               paperWidth === 58
                 ? 'bg-indigo-600/20 border-indigo-500 text-white ring-1 ring-indigo-400 shadow-md'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -190,7 +189,7 @@ export const HardwareCashierZone: React.FC = () => {
           <button
             type="button"
             onClick={() => handlePaperWidthChange(80)}
-            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1 transition-all ${
+            className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between gap-1 transition-all cursor-pointer ${
               paperWidth === 80
                 ? 'bg-indigo-600/20 border-indigo-500 text-white ring-1 ring-indigo-400 shadow-md'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -213,64 +212,34 @@ export const HardwareCashierZone: React.FC = () => {
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {/* AUTO-CUTTER */}
-          <button
-            type="button"
-            onClick={handleToggleAutoCut}
-            className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
-              autoCut
-                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-950 border-slate-800 text-slate-500'
-            }`}
-          >
-            <div className="flex flex-col text-left pr-2">
-              <span className="text-xs font-bold text-slate-200">{t.settings.autoCutter}</span>
-              <span className="text-[10px] text-slate-400">{t.settings.autoCutterDesc}</span>
-            </div>
-            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${autoCut ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800'}`}>
-              {autoCut && <Check className="w-3 h-3 stroke-[3]" />}
-            </span>
-          </button>
+          <div className="p-3 rounded-2xl border border-slate-800 bg-slate-950 flex items-center justify-between">
+            <ToggleSwitch
+              checked={autoCut}
+              onChange={handleToggleAutoCut}
+              label={t.settings.autoCutter}
+              description={t.settings.autoCutterDesc}
+            />
+          </div>
 
           {/* AUTO KICK DRAWER */}
-          <button
-            type="button"
-            onClick={handleToggleAutoKick}
-            className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
-              autoKickDrawer
-                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-950 border-slate-800 text-slate-500'
-            }`}
-          >
-            <div className="flex flex-col text-left pr-2">
-              <span className="text-xs font-bold text-slate-200">{t.settings.autoKickDrawer}</span>
-              <span className="text-[10px] text-slate-400">{t.settings.autoKickDrawerDesc}</span>
-            </div>
-            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${autoKickDrawer ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800'}`}>
-              {autoKickDrawer && <Check className="w-3 h-3 stroke-[3]" />}
-            </span>
-          </button>
+          <div className="p-3 rounded-2xl border border-slate-800 bg-slate-950 flex items-center justify-between">
+            <ToggleSwitch
+              checked={autoKickDrawer}
+              onChange={handleToggleAutoKick}
+              label={t.settings.autoKickDrawer}
+              description={t.settings.autoKickDrawerDesc}
+            />
+          </div>
 
           {/* SOUND BEEPER */}
-          <button
-            type="button"
-            onClick={handleToggleSound}
-            className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
-              soundBeeperEnabled
-                ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                : 'bg-slate-950 border-slate-800 text-slate-500'
-            }`}
-          >
-            <div className="flex flex-col text-left pr-2">
-              <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                {soundBeeperEnabled ? <Volume2 className="w-3.5 h-3.5 text-amber-400" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
-                {t.settings.soundBeeper}
-              </span>
-              <span className="text-[10px] text-slate-400">{t.settings.soundBeeperDesc}</span>
-            </div>
-            <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${soundBeeperEnabled ? 'bg-amber-500 text-slate-950' : 'bg-slate-800'}`}>
-              {soundBeeperEnabled && <Check className="w-3 h-3 stroke-[3]" />}
-            </span>
-          </button>
+          <div className="p-3 rounded-2xl border border-slate-800 bg-slate-950 flex items-center justify-between">
+            <ToggleSwitch
+              checked={soundBeeperEnabled}
+              onChange={handleToggleSound}
+              label={t.settings.soundBeeper}
+              description={t.settings.soundBeeperDesc}
+            />
+          </div>
         </div>
       </div>
 
@@ -281,33 +250,33 @@ export const HardwareCashierZone: React.FC = () => {
           {t.settings.hardwareDiagnosticsTitle}
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
             disabled={isPrinting}
             onClick={handleTestPrint}
-            className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2 shadow"
+            icon={<Printer className="w-4 h-4 text-indigo-400" />}
           >
-            <Printer className="w-3.5 h-3.5 text-indigo-400" />
             {isPrinting ? t.settings.printing : t.settings.testPrintReceipt}
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
             onClick={handleTestDrawer}
-            className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2 shadow"
+            icon={<DollarSign className="w-4 h-4 text-emerald-400" />}
           >
-            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
             {t.settings.testKickDrawer}
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
             onClick={handleTestBeeper}
-            className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2 shadow"
+            icon={<Volume2 className="w-4 h-4 text-amber-400" />}
           >
-            <Volume2 className="w-3.5 h-3.5 text-amber-400" />
             {t.settings.testSoundBeeper}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -121,6 +121,30 @@ def check_pillar_4_accounting_truth():
         if "financial_kernel" not in sdk_text and "/transactions" not in sdk_text:
             violations.append("Pillar IV [Ledger]: 'HfeSdkAdapter.ts' missing transaction endpoint integration.")
 
+def check_pillar_5_atomic_layer_architecture():
+    """Verify Pillar V: 6-Tier Atomic Architecture & Primitives Presence."""
+    tokens_file = SRC_DIR / "tokens" / "designTokens.ts"
+    if not tokens_file.exists():
+        violations.append("Pillar V [Tier 1 Tokens]: 'src/tokens/designTokens.ts' is missing.")
+    else:
+        tokens_text = tokens_file.read_text(encoding="utf-8")
+        for token_group in ["GLYPHS", "SPACING_GRID", "TYPOGRAPHY_TOKENS", "SEMANTIC_COLORS", "FULFILLMENT_TOKENS"]:
+            if token_group not in tokens_text:
+                violations.append(f"Pillar V [Tier 1 Tokens]: 'designTokens.ts' missing token group '{token_group}'.")
+
+    ui_barrel = SRC_DIR / "ui" / "index.ts"
+    if not ui_barrel.exists():
+        violations.append("Pillar V [Tier 2 Atoms]: 'src/ui/index.ts' barrel is missing.")
+    else:
+        ui_text = ui_barrel.read_text(encoding="utf-8")
+        for atom in [
+            "Button", "IconButton", "SegmentedControl", "TextInput", "Input",
+            "ToggleSwitch", "KbdBadge", "Badge", "Card", "StatusPill",
+            "Divider", "PriceTag", "CapacityBadge", "TimerPill", "MinSpendPill"
+        ]:
+            if atom not in ui_text:
+                violations.append(f"Pillar V [Tier 2 Atoms]: 'src/ui/index.ts' missing export for atom '{atom}'.")
+
 def main():
     print("==================================================")
     print(" 🛡️ Hfe Universal UI & Standards Auditor (HFE-UI-STD-001)")
@@ -130,6 +154,7 @@ def main():
     check_pillar_2_microcopy_and_experience_pillars()
     check_pillar_3_offline_acid()
     check_pillar_4_accounting_truth()
+    check_pillar_5_atomic_layer_architecture()
 
     if violations:
         print(f"\n❌ [AUDIT FAILED] Found {len(violations)} standard violation(s):\n")
@@ -138,11 +163,12 @@ def main():
         print("\nPlease fix these violations to satisfy HFE-UI-STD-001.")
         sys.exit(1)
     else:
-        print("\n✅ [AUDIT PASSED] 100% Compliant with HFE-UI-STD-001 (Pillars I - IV).")
+        print("\n✅ [AUDIT PASSED] 100% Compliant with HFE-UI-STD-001 (Pillars I - V).")
         print("   • Pillar I   (Hardware Viewport & Cross-Browser Parity): PASSED")
         print("   • Pillar II  (Experience Pillars: POS, CARD, BOARD, ORDER): PASSED")
         print("   • Pillar III (Offline ACID Resilience & Durability):     PASSED")
         print("   • Pillar IV  (Universal Accounting Truth & Idempotency): PASSED")
+        print("   • Pillar V   (6-Tier Atomic Architecture & Primitives):  PASSED")
         sys.exit(0)
 
 if __name__ == "__main__":

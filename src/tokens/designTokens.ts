@@ -109,3 +109,10 @@ export const SEMANTIC_COLORS = {
     DELIVERY: { glyph: GLYPHS.DELIVERY, labelKey: 'deliveryModeLabel', color: 'sky' }
   }
 } as const
+
+export const FULFILLMENT_TOKENS = {
+  DINE_IN: { glyph: GLYPHS.DINE_IN, labelKey: 'dineInModeLabel', color: 'emerald' },
+  TAKEAWAY: { glyph: GLYPHS.TAKEAWAY, labelKey: 'takeawayModeLabel', color: 'amber' },
+  DELIVERY: { glyph: GLYPHS.DELIVERY, labelKey: 'deliveryModeLabel', color: 'sky' }
+} as const
+

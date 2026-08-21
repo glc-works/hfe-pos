@@ -1,7 +1,8 @@
 import React from 'react'
-import { X, Printer, Send, CheckCircle2, Share2 } from 'lucide-react'
+import { X, Printer, Send, CheckCircle2 } from 'lucide-react'
 import { ReceiptData, formatThermalReceiptText } from '../../services/receiptPrinter'
 import { ThermalPrinterService } from '../../services/hardware/ThermalPrinterService'
+import { Button, IconButton } from '@/ui'
 
 export interface ReceiptModalProps {
   show: boolean
@@ -75,9 +76,13 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             <h3 className="text-sm font-bold text-white">Struk Pelunasan Pembayaran</h3>
           </div>
-          <button type="button" onClick={onClose} className="p-1 text-slate-400 hover:text-white bg-slate-800 rounded-xl">
-            <X className="w-4 h-4" />
-          </button>
+          <IconButton
+            aria-label="Tutup Modal"
+            icon={<X className="w-4 h-4" />}
+            size="sm"
+            variant="ghost"
+            onClick={onClose}
+          />
         </div>
 
         {/* PRINTER RECEIPT PREVIEW (58mm / 80mm Thermal Layout) */}
@@ -87,20 +92,24 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
         {/* BUTTON ACTIONS */}
         <div className="grid grid-cols-2 gap-2 pt-1">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="md"
             onClick={handleWaShare}
-            className="py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all"
+            icon={<Send className="w-4 h-4 text-emerald-400" />}
+            className="text-emerald-400 border-emerald-500/30"
           >
-            <Send className="w-4 h-4 text-emerald-400" /> Kirim Struk WA
-          </button>
-          <button
-            type="button"
+            Kirim Struk WA
+          </Button>
+
+          <Button
+            variant="emerald"
+            size="md"
             onClick={handlePrintPhysical}
-            className="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md"
+            icon={<Printer className="w-4 h-4 text-slate-950" />}
           >
-            <Printer className="w-4 h-4" /> Cetak Thermal (ESC/POS)
-          </button>
+            Cetak Struk ESC/POS
+          </Button>
         </div>
       </div>
     </div>
