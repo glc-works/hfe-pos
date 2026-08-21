@@ -8,6 +8,7 @@ export * from './HfePosFinancialPort'
 export * from './HfeSdkAdapter'
 export * from './MockHfeAdapter'
 export * from './OfflineIntentQueue'
+export * from './coreDemoEnvironment'
 
 export type FinancialPortMode = 'production' | 'mock' | 'auto'
 
