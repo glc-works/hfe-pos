@@ -49,6 +49,7 @@ export interface HfeSdkAdapterOptions {
   timeoutMs?: number
   token?: string
   authorityContextId?: string
+  fetchFn?: typeof globalThis.fetch
 }
 
 export class HfeSdkAdapter implements HfePosFinancialPort {
@@ -69,7 +70,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     this.client = new HfeClient({
       baseUrl,
       token: options?.token,
-      fetchFn: (...args) => globalThis.fetch(...args),
+      fetchFn: options?.fetchFn || ((...args) => globalThis.fetch(...args)),
     })
   }
 

@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "guard:modularity": "python3 scripts/check-modularity.py",
     "guard:connector": "python3 scripts/validate-connector.py",
+    "proof:flagship": "vite-node scripts/flagship-stateful-proof.ts",
     "ci": "./scripts/ci-local.sh"
   },
   "dependencies": {
