@@ -158,6 +158,10 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
 32. **100% i18n Dictionary Purity (Zero Hardcoded JSX Strings Invariant).**
     - *Zero Hardcoded UI Strings:* Every visible string (button labels, headers, placeholders, helper tags, badge descriptions) MUST be bound strictly through `useTranslation()` (`t.*`) in `src/i18n/`.
     - *Synchronized Lexicon:* Any newly added or revised translation keys MUST be updated synchronously across `src/i18n/types.ts`, `src/i18n/id.ts`, and `src/i18n/en.ts`.
+33. **Strict Cloud & MCP Infrastructure Tool Isolation Gate (Zero-Surprise Deployment Invariant).**
+    - *Absolute Cloud Tool Blacklist on Exploratory Turns:* On any turn asking for advice, comparison, review, or strategy (*"coba cek"*, *"opsi 1 atau 2"*, *"bagaimana strateginya"*), calling ANY external cloud, hosting, or deployment MCP tool (`hostinger-mcp-server`, AWS APIs, DNS mutation, remote provisioning) is STRICTLY PROHIBITED. The agent MUST output only visible text analysis.
+    - *Decoupled Confirmation Token:* Approval for local repository code changes (e.g., `"gas"`, `"terapkan"`) NEVER confers authorization to modify external infrastructure or trigger deployments. External infrastructure mutations require a dedicated, explicit directive (e.g., `"deploy sekarang ke [target]"`).
+    - *Mandatory Pre-Action Infrastructure Blueprint:* Before touching any external server or DNS record, the agent must clearly detail the exact target, ports, and actions, and await explicit sign-off.
 
 ## Slot Reservation Rules
 
