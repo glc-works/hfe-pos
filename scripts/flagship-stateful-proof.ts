@@ -17,6 +17,7 @@ export interface FlagshipStatefulProofEvidence {
   postingStateRevision: string
   sourceObjectId: string
   stableEffectKey: string
+  idempotencyReplayVerified: true
 }
 
 function required(values: EnvironmentValues, key: string): string {
@@ -52,6 +53,17 @@ export async function runFlagshipStatefulProof(
   if (!settlement.posting_verified || !settlement.posting_state_revision) {
     throw new Error('canonical posting verification evidence is required')
   }
+  const replay = await adapter.settleUniversalMultiTender({
+    document_kind: 'pos_retail_order',
+    document_reference_id: documentReferenceId,
+    total_obligation_minor: totalObligationMinor,
+    tenders: [{ tender_type: 'cash', amount_minor: totalObligationMinor }],
+    idempotency_key: idempotencyKey,
+    notes: 'Hfe POS invite-only flagship stateful proof',
+  })
+  if (!replay.posting_verified || replay.journal_posting_id !== settlement.journal_posting_id) {
+    throw new Error('idempotency replay did not resolve to the original canonical posting')
+  }
 
   return {
     schemaVersion: 1,
@@ -67,6 +79,7 @@ export async function runFlagshipStatefulProof(
     postingStateRevision: settlement.posting_state_revision,
     sourceObjectId: documentReferenceId,
     stableEffectKey: idempotencyKey,
+    idempotencyReplayVerified: true,
   }
 }
 

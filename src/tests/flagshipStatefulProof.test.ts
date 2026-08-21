@@ -34,6 +34,36 @@ describe('flagship stateful proof command', () => {
           state_revision: 8,
         }),
       } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({
+          settlement_id: 'SETTLEMENT-001',
+          document_reference_id: 'ORDER-001',
+          total_obligation_minor: 150000,
+          total_tendered_minor: 150000,
+          total_discrepancy_minor: 0,
+          status: 'settled',
+          settled_at: '2026-08-21T06:00:00.000Z',
+          journal_posting_id: 'POSTING-001',
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({
+          book_id: 'BOOK-001',
+          finality: 'final',
+          financial_date: '2026-08-21',
+          functional_currency: 'IDR',
+          id: 'POSTING-001',
+          source_capability: 'pos',
+          source_object_id: 'ORDER-001',
+          source_version: 1,
+          stable_effect_key: 'IDEMPOTENCY-001',
+          state_revision: 8,
+        }),
+      } as Response)
 
     const evidence = await runFlagshipStatefulProof({
       HFE_CORE_ENVIRONMENT: 'staging',
@@ -55,6 +85,8 @@ describe('flagship stateful proof command', () => {
     expect(evidence.postingStateRevision).toBe('8')
     expect(evidence.sourceObjectId).toBe('ORDER-001')
     expect(evidence.stableEffectKey).toBe('IDEMPOTENCY-001')
+    expect(evidence.idempotencyReplayVerified).toBe(true)
+    expect(fetchFn).toHaveBeenCalledTimes(4)
     expect(JSON.stringify(evidence)).not.toContain('must-not-appear')
   })
 })
