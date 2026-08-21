@@ -244,9 +244,11 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       if (p && ['landing', 'customer', 'cafe', 'cfd', 'design-system', 'customer-portal'].includes(p)) {
         return p
       }
-      const host = window.location.hostname.toLowerCase()
+      let host = window.location.hostname.toLowerCase()
+      if (host.startsWith('dev-')) host = host.slice(4)
+      if (host.startsWith('dev.')) host = host.slice(4)
       if (host.startsWith('order.') || host.startsWith('qr.')) return 'customer'
-      if (host.startsWith('board.') || host.startsWith('store.') || host.startsWith('menu.')) return 'landing'
+      if (host.startsWith('board.') || host.startsWith('store.') || host.startsWith('menu.') || host === 'hfeit.com' || host === 'localhost') return 'landing'
       if (host.startsWith('card.') || host.startsWith('member.') || host.startsWith('pass.')) return 'customer-portal'
       if (host.startsWith('pos.') || host.startsWith('book.') || host.startsWith('admin.') || host.startsWith('hub.') || host.startsWith('kds.')) return 'cafe'
     }

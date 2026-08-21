@@ -39,7 +39,9 @@ function AppMain() {
     if (typeof window !== 'undefined') {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
       if (surfaceParam) return surfaceParam
-      const host = window.location.hostname.toLowerCase()
+      let host = window.location.hostname.toLowerCase()
+      if (host.startsWith('dev-')) host = host.slice(4)
+      if (host.startsWith('dev.')) host = host.slice(4)
       if (host.startsWith('admin.') || host.startsWith('hub.')) return 'admin-hub'
       if (host.startsWith('book.') || host.startsWith('ledger.')) return 'hfe-company-book'
       if (host.startsWith('kds.') || host.startsWith('kitchen.')) return 'kds-screen'
