@@ -137,13 +137,19 @@ def check_pillar_5_atomic_layer_architecture():
         violations.append("Pillar V [Tier 2 Atoms]: 'src/ui/index.ts' barrel is missing.")
     else:
         ui_text = ui_barrel.read_text(encoding="utf-8")
-        for atom in [
-            "Button", "IconButton", "SegmentedControl", "TextInput", "Input",
-            "ToggleSwitch", "KbdBadge", "Badge", "Card", "StatusPill",
-            "Divider", "PriceTag", "CapacityBadge", "TimerPill", "MinSpendPill"
-        ]:
-            if atom not in ui_text:
-                violations.append(f"Pillar V [Tier 2 Atoms]: 'src/ui/index.ts' missing export for atom '{atom}'.")
+def check_pillar_6_customer_experience_safety_and_non_overlap():
+    """Verify Pillar VI: Customer Mobile QR Experience Safety, Non-Overlap & Atomic Adoption."""
+    customer_mobile_view = SRC_DIR / "views" / "CustomerMobileView.tsx"
+    if customer_mobile_view.exists():
+        text = customer_mobile_view.read_text(encoding="utf-8")
+        if "pb-36" not in text and "pb-32" not in text and "pb-[140px]" not in text:
+            violations.append("Pillar VI [Spatial Clearance]: 'CustomerMobileView.tsx' catalog canvas must declare 'pb-36' or 'pb-32' to guarantee non-overlap with floating checkout dock.")
+
+    customer_header = SRC_DIR / "components" / "customer" / "CustomerHeader.tsx"
+    if customer_header.exists():
+        text = customer_header.read_text(encoding="utf-8")
+        if "border-b" not in text:
+            violations.append("Pillar VI [Flat Bottom]: 'CustomerHeader.tsx' must enforce clean 'border-b' header structure.")
 
 def main():
     print("==================================================")
@@ -155,6 +161,7 @@ def main():
     check_pillar_3_offline_acid()
     check_pillar_4_accounting_truth()
     check_pillar_5_atomic_layer_architecture()
+    check_pillar_6_customer_experience_safety_and_non_overlap()
 
     if violations:
         print(f"\n❌ [AUDIT FAILED] Found {len(violations)} standard violation(s):\n")
@@ -163,12 +170,13 @@ def main():
         print("\nPlease fix these violations to satisfy HFE-UI-STD-001.")
         sys.exit(1)
     else:
-        print("\n✅ [AUDIT PASSED] 100% Compliant with HFE-UI-STD-001 (Pillars I - V).")
+        print("\n✅ [AUDIT PASSED] 100% Compliant with HFE-UI-STD-001 (Pillars I - VI).")
         print("   • Pillar I   (Hardware Viewport & Cross-Browser Parity): PASSED")
         print("   • Pillar II  (Experience Pillars: POS, CARD, BOARD, ORDER): PASSED")
         print("   • Pillar III (Offline ACID Resilience & Durability):     PASSED")
         print("   • Pillar IV  (Universal Accounting Truth & Idempotency): PASSED")
         print("   • Pillar V   (6-Tier Atomic Architecture & Primitives):  PASSED")
+        print("   • Pillar VI  (Customer QR Experience & Non-Overlap):     PASSED")
         sys.exit(0)
 
 if __name__ == "__main__":

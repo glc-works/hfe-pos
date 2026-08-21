@@ -319,7 +319,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
         {/* 2. SCROLLABLE MENU CONTENT (FLEX-1 OVERFLOW-Y-AUTO) */}
         <main 
           ref={scrollContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3.5 sm:p-4 flex flex-col gap-4 pb-32"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3.5 sm:p-4 flex flex-col gap-4 pb-36"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'thin' }}
         >
           {qrStepView === 'catalog' && (

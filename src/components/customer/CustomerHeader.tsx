@@ -89,8 +89,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
         className="shrink-0 z-30 border-b backdrop-blur-xl px-3.5 pt-[max(env(safe-area-inset-top,8px),8px)] pb-2.5 flex flex-col gap-2.5 transition-all theme-customer-header"
         style={{ 
           backgroundColor: `${headerBg}`, 
-          borderColor,
-          boxShadow: isLight ? '0 4px 16px -2px rgba(0,0,0,0.05)' : '0 4px 20px -2px rgba(0,0,0,0.4)'
+          borderColor
         }}
       >
         {/* ROW 1: 3-TOUCH-ZONE CLEAN ARCHITECTURE */}

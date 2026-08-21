@@ -10,6 +10,7 @@ import { PayFirstPaymentSection } from './PayFirstPaymentSection'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useTranslation } from '../../context/LanguageContext'
 import { PriceTag } from '../../ui/PriceTag'
+import { Button } from '../../ui/Button'
 
 export interface CustomerCheckoutViewProps {
   selectedTable: string
@@ -459,9 +460,11 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
         </div>
 
         {/* Submit Order Button */}
-        <button
+        <Button
+          variant="emerald"
+          size="lg"
           onClick={handleSubmitOrder}
-          className="w-full theme-customer-btn-primary font-extrabold text-xs sm:text-sm py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-1 touch-manipulation active:scale-[0.98] text-center"
+          className="w-full font-extrabold text-xs sm:text-sm py-3.5 shadow-lg flex items-center justify-center gap-2 mt-1"
         >
           {paymentPolicy === 'pay-first' ? (
             <>
@@ -474,7 +477,7 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
               <span className="whitespace-nowrap">{t.customer.sendOrderToKitchen}</span>
             </>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Voucher Selection Modal Drawer */}
