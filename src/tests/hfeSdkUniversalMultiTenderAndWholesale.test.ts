@@ -58,12 +58,29 @@ describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2
     }
 
     const resJson = JSON.stringify(mockSuccessResponse)
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => JSON.parse(resJson),
-      text: async () => resJson,
-    } as Response)
+    const postingReadBack = JSON.stringify({
+      book_id: 'BOOK-TEST-01',
+      finality: 'final',
+      financial_date: '2026-08-22',
+      functional_currency: 'IDR',
+      id: 'JRN-7711',
+      source_capability: 'pos',
+      source_object_id: 'DOC-BILL-8899',
+      source_version: 1,
+      stable_effect_key: 'idemp-multi-tender-7711',
+      state_revision: 7,
+    })
+    const mockFetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => resJson,
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => postingReadBack,
+      } as Response)
     global.fetch = mockFetch
 
     const request = {
@@ -79,7 +96,7 @@ describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2
 
     const result = await adapter.settleUniversalMultiTender(request)
 
-    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
     const callArgs = mockFetch.mock.calls[0]
     const headers = callArgs[1]?.headers as Record<string, string>
 
@@ -91,6 +108,55 @@ describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2
     expect(rawBody).not.toContain('9007199254740992')
     expect(result.settlement_id).toBe('SETTLE-LIVE-7711')
     expect(result.status).toBe('settled')
+    expect(result.posting_verified).toBe(true)
+    expect(result.posting_state_revision).toBe('7')
+  })
+
+  it('fails closed when posting read-back does not match the settlement source', async () => {
+    const adapter = new HfeSdkAdapter({
+      baseUrl: 'http://localhost:8080',
+      defaultBookId: 'BOOK-TEST-01',
+      authorityContextId: 'AUTH-CONTEXT-01',
+    })
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({
+          settlement_id: 'SETTLE-LIVE-7711',
+          document_reference_id: 'DOC-BILL-8899',
+          total_obligation_minor: 150000,
+          total_tendered_minor: 150000,
+          total_discrepancy_minor: 0,
+          status: 'settled',
+          settled_at: new Date().toISOString(),
+          journal_posting_id: 'JRN-7711',
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({
+          book_id: 'BOOK-TEST-01',
+          finality: 'final',
+          financial_date: '2026-08-22',
+          functional_currency: 'IDR',
+          id: 'JRN-7711',
+          source_capability: 'pos',
+          source_object_id: 'A-DIFFERENT-DOCUMENT',
+          source_version: 1,
+          stable_effect_key: 'idemp-multi-tender-7711',
+          state_revision: 7,
+        }),
+      } as Response)
+
+    await expect(adapter.settleUniversalMultiTender({
+      document_kind: 'pos_retail_order',
+      document_reference_id: 'DOC-BILL-8899',
+      total_obligation_minor: '150000',
+      tenders: [{ tender_type: 'cash', amount_minor: '150000' }],
+      idempotency_key: 'idemp-multi-tender-7711',
+    })).rejects.toThrow('CORE posting read-back did not match settlement source')
   })
 
   it('should calculate wholesale volume price tier when quantity meets MOQ threshold', () => {

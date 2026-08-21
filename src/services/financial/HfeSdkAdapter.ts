@@ -243,7 +243,27 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
         },
         body: bodyPayload,
       })
-      return response.body
+      const posting = await this.client.operations.getPosting({
+        path: {
+          book: targetBook,
+          posting: response.body.journal_posting_id,
+        },
+      })
+      if (
+        posting.body.id !== response.body.journal_posting_id ||
+        posting.body.source_object_id !== payload.document_reference_id ||
+        posting.body.stable_effect_key !== idempotencyKey
+      ) {
+        throw new HfeApiError(
+          409,
+          'CORE posting read-back did not match settlement source or idempotency key'
+        )
+      }
+      return {
+        ...response.body,
+        posting_verified: true,
+        posting_state_revision: String(posting.body.state_revision),
+      }
     } catch (err: unknown) {
       if (err instanceof SdkApiError) throw new HfeApiError(err.status, err.message, err.details || err.rawBody)
       if (err instanceof HfeApiError) throw err

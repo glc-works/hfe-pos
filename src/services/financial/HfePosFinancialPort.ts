@@ -169,6 +169,8 @@ export interface UniversalMultiTenderResponse {
   status: string
   settled_at: string
   journal_posting_id: string
+  posting_verified?: boolean
+  posting_state_revision?: string
   gl_entries_posted?: GlPostingEntry[]
   isSimulated?: boolean
 }
