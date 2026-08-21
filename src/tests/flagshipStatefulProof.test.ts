@@ -72,6 +72,8 @@ describe('flagship stateful proof command', () => {
       HFE_CORE_AUTHORITY_CONTEXT_ID: 'AUTHORITY-001',
       HFE_CORE_ACCESS_TOKEN: 'must-not-appear',
       HFE_CORE_ADMISSION_RECEIPT_ID: 'ADMISSION-001',
+      HFE_CORE_ADMISSION_PARTICIPANT_ID: 'PARTICIPANT-001',
+      HFE_CORE_ADMISSION_SCOPE: 'flagship-pos-demo',
       HFE_CORE_ADMISSION_APPROVED_BY: 'founder@hfeit.com',
       HFE_CORE_ADMISSION_APPROVED_AT: '2026-08-20T00:00:00.000Z',
       HFE_CORE_ADMISSION_EXPIRES_AT: '2026-08-30T00:00:00.000Z',
@@ -86,6 +88,8 @@ describe('flagship stateful proof command', () => {
     expect(evidence.sourceObjectId).toBe('ORDER-001')
     expect(evidence.stableEffectKey).toBe('IDEMPOTENCY-001')
     expect(evidence.idempotencyReplayVerified).toBe(true)
+    expect(evidence.admissionParticipantId).toBe('PARTICIPANT-001')
+    expect(evidence.admissionScope).toBe('flagship-pos-demo')
     expect(fetchFn).toHaveBeenCalledTimes(4)
     expect(JSON.stringify(evidence)).not.toContain('must-not-appear')
   })

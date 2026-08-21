@@ -9,6 +9,8 @@ export interface CoreDemoConfig {
   /** Operational early-access evidence only; Hfe CORE still enforces token, membership, and authority. */
   admission: {
     receiptId: string
+    participantId: string
+    scope: 'flagship-pos-demo'
     approvedBy: string
     approvedAt: string
     expiresAt: string
@@ -20,6 +22,8 @@ export interface CoreDemoConfig {
     authorityContextId: string
     tokenConfigured: true
     admissionReceiptId: string
+    admissionParticipantId: string
+    admissionScope: 'flagship-pos-demo'
     admissionApprovedBy: string
     admissionExpiresAt: string
   }
@@ -68,6 +72,11 @@ export function resolveCoreDemoEnvironment(
   const authorityContextId = required(values, 'HFE_CORE_AUTHORITY_CONTEXT_ID')
   const accessToken = required(values, 'HFE_CORE_ACCESS_TOKEN')
   const admissionReceiptId = required(values, 'HFE_CORE_ADMISSION_RECEIPT_ID')
+  const admissionParticipantId = required(values, 'HFE_CORE_ADMISSION_PARTICIPANT_ID')
+  const admissionScope = required(values, 'HFE_CORE_ADMISSION_SCOPE')
+  if (admissionScope !== 'flagship-pos-demo') {
+    throw new Error('HFE_CORE_ADMISSION_SCOPE must be flagship-pos-demo')
+  }
   const admissionApprovedBy = required(values, 'HFE_CORE_ADMISSION_APPROVED_BY')
   const admissionApprovedAt = requiredTimestamp(values, 'HFE_CORE_ADMISSION_APPROVED_AT')
   const admissionExpiresAt = requiredTimestamp(values, 'HFE_CORE_ADMISSION_EXPIRES_AT')
@@ -85,6 +94,8 @@ export function resolveCoreDemoEnvironment(
     accessToken,
     admission: {
       receiptId: admissionReceiptId,
+      participantId: admissionParticipantId,
+      scope: admissionScope,
       approvedBy: admissionApprovedBy,
       approvedAt: admissionApprovedAt.text,
       expiresAt: admissionExpiresAt.text,
@@ -96,6 +107,8 @@ export function resolveCoreDemoEnvironment(
       authorityContextId,
       tokenConfigured: true,
       admissionReceiptId,
+      admissionParticipantId,
+      admissionScope,
       admissionApprovedBy,
       admissionExpiresAt: admissionExpiresAt.text,
     },

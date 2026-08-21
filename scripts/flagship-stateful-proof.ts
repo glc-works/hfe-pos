@@ -12,6 +12,8 @@ export interface FlagshipStatefulProofEvidence {
   companyBookId: string
   authorityContextId: string
   admissionReceiptId: string
+  admissionParticipantId: string
+  admissionScope: 'flagship-pos-demo'
   settlementId: string
   postingId: string
   postingStateRevision: string
@@ -74,6 +76,8 @@ export async function runFlagshipStatefulProof(
     companyBookId: config.companyBookId,
     authorityContextId: config.authorityContextId,
     admissionReceiptId: config.admission.receiptId,
+    admissionParticipantId: config.admission.participantId,
+    admissionScope: config.admission.scope,
     settlementId: settlement.settlement_id,
     postingId: settlement.journal_posting_id,
     postingStateRevision: settlement.posting_state_revision,
