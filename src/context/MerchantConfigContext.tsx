@@ -245,10 +245,10 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
         return p
       }
       const host = window.location.hostname.toLowerCase()
-      if (host.startsWith('order.')) return 'customer'
-      if (host.startsWith('board.')) return 'landing'
-      if (host.startsWith('card.')) return 'customer-portal'
-      if (host.startsWith('pos.') || host.startsWith('book.') || host.startsWith('admin.')) return 'cafe'
+      if (host.startsWith('order.') || host.startsWith('qr.')) return 'customer'
+      if (host.startsWith('board.') || host.startsWith('store.') || host.startsWith('menu.')) return 'landing'
+      if (host.startsWith('card.') || host.startsWith('member.') || host.startsWith('pass.')) return 'customer-portal'
+      if (host.startsWith('pos.') || host.startsWith('book.') || host.startsWith('admin.') || host.startsWith('hub.') || host.startsWith('kds.')) return 'cafe'
     }
     return 'cafe'
   })

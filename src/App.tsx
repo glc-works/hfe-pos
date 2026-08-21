@@ -42,8 +42,9 @@ function AppMain() {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
       if (surfaceParam) return surfaceParam
       const host = window.location.hostname.toLowerCase()
-      if (host.startsWith('admin.')) return 'admin-hub'
-      if (host.startsWith('book.')) return 'hfe-company-book'
+      if (host.startsWith('admin.') || host.startsWith('hub.')) return 'admin-hub'
+      if (host.startsWith('book.') || host.startsWith('ledger.')) return 'hfe-company-book'
+      if (host.startsWith('kds.') || host.startsWith('kitchen.')) return 'kds-screen'
     }
     return 'barista-pos'
   })
