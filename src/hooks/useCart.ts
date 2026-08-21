@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CartItem, MenuItem, PaymentPolicy, PB1TaxMode, OrderTicket, CustomerProfile } from '../types/pos'
+import { createPendingFinancialState } from '../services/financial/flagshipFinancialState'
 
 export interface UseCartOptions {
   productCatalog: MenuItem[]
@@ -209,8 +210,9 @@ export function useCart(options: UseCartOptions) {
     if (paymentPolicy === 'pay-first') {
       setShowQRISModal(true)
     } else {
+      const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`
       const newOrder: OrderTicket = {
-        id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+        id: orderId,
         table: selectedTable,
         customerName: loginType === 'phone' ? 'Customer HP' : guestName,
         phone: loginType === 'phone' ? customerPhone : undefined,
@@ -222,7 +224,13 @@ export function useCart(options: UseCartOptions) {
         tipAmount: selectedTipAmount,
         status: 'placed',
         timeElapsedMinutes: 1,
-        createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        financialState: {
+          status: 'not_started',
+          sourceOrderId: orderId,
+          idempotencyKey: `POS-${orderId}`,
+          displayLabel: 'Not started',
+        },
       }
       onOrderSubmitted?.(newOrder)
       setCart([])
@@ -233,8 +241,9 @@ export function useCart(options: UseCartOptions) {
 
   const handleCompletePayFirstQRIS = (selectedTable: string, setQrStepView: (v: 'catalog' | 'checkout') => void) => {
     setShowQRISModal(false)
+    const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`
     const newOrder: OrderTicket = {
-      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: orderId,
       table: selectedTable,
       customerName: loginType === 'phone' ? 'Customer HP' : guestName,
       phone: loginType === 'phone' ? customerPhone : undefined,
@@ -246,7 +255,8 @@ export function useCart(options: UseCartOptions) {
       tipAmount: selectedTipAmount,
       status: 'processing',
       timeElapsedMinutes: 1,
-      createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      financialState: createPendingFinancialState(orderId, `POS-${orderId}`),
     }
     onOrderSubmitted?.(newOrder)
     setCart([])

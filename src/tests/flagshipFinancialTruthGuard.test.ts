@@ -35,6 +35,8 @@ describe('P0 flagship financial truth guard', () => {
     expect(source).not.toContain('Terkoneksi dengan Hfe Ledger')
     expect(source).toContain('Status pembukuan: menunggu verifikasi Hfe CORE')
     expect(source).toContain('Status pembukuan: belum dimulai')
+    expect(source).toContain("financialState: createPendingFinancialState(orderId, `POS-${orderId}`)")
+    expect(source).toContain("status: 'not_started'")
   })
 
   it('does not send CORE requests to an untrusted origin', async () => {

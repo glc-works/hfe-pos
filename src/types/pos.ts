@@ -1,5 +1,7 @@
 // --- HFE POS CORE DOMAIN TYPES ---
 
+import { FlagshipFinancialState } from './financial'
+
 export type PrimaryDomainApp = 'landing' | 'customer' | 'cafe' | 'design-system' | 'customer-portal' | 'hfeit-corporate'
 export type StaffSurfaceMode = 'barista-pos' | 'kds-screen' | 'checker-qc' | 'server-waiter' | 'cafe-config' | 'retail-pos' | 'scan-go' | 'fine-dining-kds' | 'sommelier' | 'maitre-d'
  | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights' | 'hfe-connect-hub' | 'hfe-company-book' | 'admin-hub' | 'merchant-hub'
@@ -155,6 +157,7 @@ export interface OrderTicket {
   timeElapsedMinutes: number
   createdAt: string
   waiterCall?: string
+  financialState?: FlagshipFinancialState
 }
 
 export interface Order extends OrderTicket {
