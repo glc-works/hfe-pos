@@ -38,8 +38,12 @@ describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2
     expect(totalCredit).toBe(100000)
   })
 
-  it('should attach mandatory X-Idempotency-Key on multi-tender in HfeSdkAdapter', async () => {
-    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080', defaultBookId: 'BOOK-TEST-01' })
+  it('uses generated settlement headers and preserves int64 digits on the wire', async () => {
+    const adapter = new HfeSdkAdapter({
+      baseUrl: 'http://localhost:8080',
+      defaultBookId: 'BOOK-TEST-01',
+      authorityContextId: 'AUTH-CONTEXT-01',
+    } as any)
 
     const mockSuccessResponse = {
       settlement_id: 'SETTLE-LIVE-7711',
@@ -55,20 +59,22 @@ describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2
     const resJson = JSON.stringify(mockSuccessResponse)
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
+      status: 200,
       json: async () => JSON.parse(resJson),
       text: async () => resJson,
     } as Response)
     global.fetch = mockFetch
 
-    const request: UniversalMultiTenderRequest = {
+    const request = {
+      document_kind: 'pos_retail_order',
       document_reference_id: 'DOC-BILL-8899',
-      total_obligation_minor: 150000,
+      total_obligation_minor: '9007199254740993',
       tenders: [
-        { tender_type: 'card_debit', amount_minor: 100000, reference_id: 'BCA-EDC-9901' },
-        { tender_type: 'cash', amount_minor: 50000 }
+        { tender_type: 'card_debit', amount_minor: '9007199254740000', reference_id: 'BCA-EDC-9901' },
+        { tender_type: 'cash', amount_minor: '993' }
       ],
       idempotency_key: 'idemp-multi-tender-7711'
-    }
+    } as any
 
     const result = await adapter.settleUniversalMultiTender(request)
 
@@ -76,7 +82,12 @@ describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2
     const callArgs = mockFetch.mock.calls[0]
     const headers = callArgs[1]?.headers as Record<string, string>
 
-    expect(headers['X-Idempotency-Key']).toBe('idemp-multi-tender-7711')
+    expect(headers['X-CBook-Authority-Context']).toBe('AUTH-CONTEXT-01')
+    expect(headers['Idempotency-Key']).toBe('idemp-multi-tender-7711')
+    const rawBody = callArgs[1]?.body as string
+    expect(rawBody).toContain('"total_obligation_minor":9007199254740993')
+    expect(rawBody).toContain('"amount_minor":9007199254740000')
+    expect(rawBody).not.toContain('9007199254740992')
     expect(result.settlement_id).toBe('SETTLE-LIVE-7711')
     expect(result.status).toBe('settled')
   })

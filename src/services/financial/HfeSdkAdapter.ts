@@ -1,7 +1,7 @@
 // --- HFE SDK PRODUCTION ADAPTER (POS-ENG-STD-001) ---
 // Official REST API Transport Layer powered by @hfe/sdk (Strict Fail-Closed)
 
-import { HfeClient, HfeApiError as SdkApiError } from '@hfe/sdk'
+import { HfeClient, HfeApiError as SdkApiError, Int64String, UniversalMultiTenderSettlementRequest } from '@hfe/sdk'
 import {
   HfePosFinancialPort,
   CompanyBookSettingsResponse,
@@ -47,6 +47,7 @@ export interface HfeSdkAdapterOptions {
   defaultBookId?: string
   timeoutMs?: number
   token?: string
+  authorityContextId?: string
 }
 
 export class HfeSdkAdapter implements HfePosFinancialPort {
@@ -56,17 +57,32 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
   private readonly client: HfeClient
   private readonly defaultBookId: string
   private readonly timeoutMs: number
+  private readonly authorityContextId: string
 
   constructor(options?: HfeSdkAdapterOptions) {
     const baseUrl = options?.baseUrl || 'http://localhost:8080'
     this.defaultBookId = options?.defaultBookId || ''
     this.timeoutMs = options?.timeoutMs || 10000
+    this.authorityContextId = options?.authorityContextId || ''
 
     this.client = new HfeClient({
       baseUrl,
       token: options?.token,
       fetchFn: (...args) => globalThis.fetch(...args),
     })
+  }
+
+  private resolveAuthorityContext(): string {
+    if (!this.authorityContextId.trim()) throw new Error('authorityContextId is required for financial mutations')
+    return this.authorityContextId
+  }
+
+  private toInt64String(value: number | string): Int64String {
+    const normalized = typeof value === 'number' ? String(value) : value
+    if (!/^-?\d+$/.test(normalized) || (typeof value === 'number' && !Number.isSafeInteger(value))) {
+      throw new Error('minor-unit amount must be a lossless integer string or safe integer')
+    }
+    return normalized as Int64String
   }
 
   private resolveTargetBook(bookId?: string): string {
@@ -199,27 +215,39 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     const targetBook = this.resolveTargetBook(bookId)
     const idempotencyKey = payload.idempotency_key || generateUUIDv4()
 
-    const bodyPayload = {
+    if (!payload.document_kind?.trim()) throw new Error('document_kind is required for settlement')
+    const bodyPayload: UniversalMultiTenderSettlementRequest = {
+      document_kind: payload.document_kind,
       document_reference_id: payload.document_reference_id,
-      total_obligation_minor: payload.total_obligation_minor,
-      tenders: payload.tenders,
-      discrepancies: payload.discrepancies || [],
-      cashier_id: payload.cashier_id,
-      notes: payload.notes,
-      idempotency_key: idempotencyKey,
+      total_obligation_minor: this.toInt64String(payload.total_obligation_minor),
+      tenders: payload.tenders.map((tender) => ({
+        tender_kind: tender.tender_type,
+        amount_minor: this.toInt64String(tender.amount_minor),
+        ...(tender.reference_id ? { instrument_reference: tender.reference_id } : {}),
+      })),
+      discrepancies: (payload.discrepancies || []).map((discrepancy) => ({
+        discrepancy_kind: discrepancy.discrepancy_type,
+        amount_minor: this.toInt64String(discrepancy.amount_minor),
+        ...(discrepancy.reason ? { reason: discrepancy.reason } : {}),
+      })),
+      ...(payload.notes ? { settlement_notes: payload.notes } : {}),
     }
 
-    return this.request<UniversalMultiTenderResponse>(
-      'POST',
-      `/v1/company-books/${targetBook}/settlements/multi-tender`,
-      {
-        body: bodyPayload,
+    try {
+      const response = await this.client.operations.settleUniversalMultiTender({
+        path: { book: targetBook },
         headers: {
-          'X-Idempotency-Key': idempotencyKey,
+          'X-CBook-Authority-Context': this.resolveAuthorityContext(),
+          'Idempotency-Key': idempotencyKey,
         },
-        idempotencyKey,
-      }
-    )
+        body: bodyPayload,
+      })
+      return response.body
+    } catch (err: unknown) {
+      if (err instanceof SdkApiError) throw new HfeApiError(err.status, err.message, err.details || err.rawBody)
+      if (err instanceof HfeApiError) throw err
+      throw new HfeNetworkError('Network failure connecting to Hfe Core settlement operation', err)
+    }
   }
 
   async generateQrisPayment(

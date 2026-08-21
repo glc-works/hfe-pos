@@ -166,8 +166,8 @@ export class MockHfeAdapter implements HfePosFinancialPort {
     payload: UniversalMultiTenderRequest,
     _bookId?: string
   ): Promise<UniversalMultiTenderResponse> {
-    const totalTendered = payload.tenders.reduce((sum, t) => sum + t.amount_minor, 0)
-    const totalDiscrepancy = (payload.discrepancies || []).reduce((sum, d) => sum + d.amount_minor, 0)
+    const totalTendered = payload.tenders.reduce((sum, t) => sum + Number(t.amount_minor), 0)
+    const totalDiscrepancy = (payload.discrepancies || []).reduce((sum, d) => sum + Number(d.amount_minor), 0)
 
     const nowIso = new Date().toISOString()
     const settlementId = `SETTLE-SIM-${Date.now()}`
@@ -181,7 +181,7 @@ export class MockHfeAdapter implements HfePosFinancialPort {
           t.gl_account_override ||
           (t.tender_type === 'cash' ? '1010-Kas Kasir' : '1020-Bank QRIS/EDC Clearing'),
         account_name: `Tender ${t.tender_type.toUpperCase()}`,
-        debit: t.amount_minor,
+        debit: Number(t.amount_minor),
         credit: 0,
       })
     })
@@ -190,7 +190,7 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       account: '4010-Pendapatan Penjualan Resto F&B',
       account_name: 'F&B Restaurant Sales',
       debit: 0,
-      credit: payload.total_obligation_minor,
+      credit: Number(payload.total_obligation_minor),
     })
 
     return Promise.resolve({

@@ -138,20 +138,21 @@ export type PaymentTenderType =
 
 export interface TenderItemPayload {
   tender_type: PaymentTenderType
-  amount_minor: number
+  amount_minor: number | string
   reference_id?: string
   gl_account_override?: string
 }
 
 export interface DiscrepancyItemPayload {
   discrepancy_type: 'rounding_adjustment' | 'tip_income' | 'merchant_discount_fee' | 'cash_shortage' | 'cash_overage'
-  amount_minor: number
+  amount_minor: number | string
   reason?: string
 }
 
 export interface UniversalMultiTenderRequest {
+  document_kind?: string
   document_reference_id: string
-  total_obligation_minor: number
+  total_obligation_minor: number | string
   tenders: TenderItemPayload[]
   discrepancies?: DiscrepancyItemPayload[]
   cashier_id?: string
@@ -162,9 +163,9 @@ export interface UniversalMultiTenderRequest {
 export interface UniversalMultiTenderResponse {
   settlement_id: string
   document_reference_id: string
-  total_obligation_minor: number
-  total_tendered_minor: number
-  total_discrepancy_minor: number
+  total_obligation_minor: number | string
+  total_tendered_minor: number | string
+  total_discrepancy_minor: number | string
   status: string
   settled_at: string
   journal_posting_id: string
