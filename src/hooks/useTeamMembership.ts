@@ -7,6 +7,7 @@ export interface AccessControlEvaluator {
   canAccessPos: boolean
   canAccessKds: boolean
   canAccessShiftReconcile: boolean
+  canAccessMerchantHub: boolean
 }
 
 export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
@@ -18,6 +19,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessPos: true,
         canAccessKds: true,
         canAccessShiftReconcile: true,
+        canAccessMerchantHub: true,
       }
     case 'cashier':
       return {
@@ -25,6 +27,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessPos: true,
         canAccessKds: false,
         canAccessShiftReconcile: true,
+        canAccessMerchantHub: false,
       }
     case 'barista':
     case 'chef':
@@ -34,6 +37,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessPos: false,
         canAccessKds: true,
         canAccessShiftReconcile: false,
+        canAccessMerchantHub: false,
       }
     case 'waiter':
     case 'courier':
@@ -42,6 +46,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessPos: true,
         canAccessKds: false,
         canAccessShiftReconcile: false,
+        canAccessMerchantHub: false,
       }
     case 'sommelier':
       return {
@@ -49,6 +54,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessPos: true,
         canAccessKds: true,
         canAccessShiftReconcile: false,
+        canAccessMerchantHub: false,
       }
     case 'warehouse_keeper':
       return {
@@ -56,6 +62,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessPos: false,
         canAccessKds: false,
         canAccessShiftReconcile: false,
+        canAccessMerchantHub: false,
       }
     default:
       return {
@@ -63,6 +70,7 @@ export function evaluateAccessControl(role: StaffRole): AccessControlEvaluator {
         canAccessPos: false,
         canAccessKds: false,
         canAccessShiftReconcile: false,
+        canAccessMerchantHub: false,
       }
   }
 }

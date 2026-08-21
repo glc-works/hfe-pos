@@ -14,7 +14,8 @@ import {
   Check,
   Globe,
   BookOpen,
-  Download
+  Download,
+  Store
 } from 'lucide-react'
 import { PwaInstallPromptModal } from '../shared/PwaInstallPromptModal'
 import { StaffSurfaceMode } from '../../types/pos'
@@ -101,6 +102,15 @@ export const FIVE_CORE_APPS: CoreAppTile[] = [
     icon: <ShieldCheck className="w-6 h-6" />,
     color: 'from-purple-600 via-indigo-700 to-slate-900',
     badge: 'Admin Operator'
+  },
+  {
+    id: 'merchant-hub',
+    name: '🏠 Merchant Home / Hub (Pusat Bisnis)',
+    subtitle: 'Payouts saldo siap cair, laba kotor riil BOM, cetak stiker QR meja, domain BYOD, & pajak PB1',
+    features: ['💰 Saldo Siap Cair (H+1)', '📊 Laba Kotor Riil HPP/BOM', '🖨️ Batch PDF QR Meja 01-30', '🌐 Domain Manager & Pajak PB1'],
+    icon: <Store className="w-6 h-6" />,
+    color: 'from-purple-600 via-purple-700 to-indigo-900',
+    badge: 'Owner Hub'
   }
 ]
 

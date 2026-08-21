@@ -31,6 +31,7 @@ import { CustomerPortalView } from './views/CustomerPortalView'
 import { CompanyBookView } from './views/CompanyBookView'
 import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
 import { HfeitCorporateView } from './views/HfeitCorporateView'
+import { MerchantHomeHubView } from './views/MerchantHomeHubView'
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 
@@ -236,42 +237,23 @@ function AppMain() {
             scannedSeat={table.scannedSeat}
             activeTheme={config.customerTheme}
             isCustomerSessionActive={isCustomerSessionActive}
-            loginType={cart.loginType}
-            customerPhone={cart.customerPhone}
-            guestName={cart.guestName}
-            customerAvatar={cart.customerAvatar}
-            setCustomerAvatar={cart.setCustomerAvatar}
-            loyaltyPoints={cart.loyaltyPoints}
-            productCatalog={PRODUCT_CATALOG}
-            reservationPolicyMode={table.reservationPolicyMode}
-            priceVisibilityMode={table.priceVisibilityMode}
-            customerAppDisplayMode={table.customerAppDisplayMode}
-            cart={cart.cart}
-            totalCartCount={cart.totalCartCount}
-            grandTotalBill={cart.grandTotalBill}
-            previousOrders={orders}
-            tablesGrid={table.tablesGrid}
-            qrStepView={qrStepView}
-            promoCodeInput={cart.promoCodeInput}
-            appliedPromo={cart.appliedPromo}
-            redeemedVoucher={cart.redeemedVoucher}
-            serviceFeeRate={cart.serviceFeeRate}
-            calculatedServiceFee={cart.calculatedServiceFee}
-            taxPB1Mode={cart.taxPB1Mode}
-            calculatedPB1Tax={cart.calculatedPB1Tax}
-            selectedTipAmount={cart.selectedTipAmount}
-            paymentPolicy={config.paymentPolicy}
-            rawSubtotal={cart.rawSubtotal}
-            setShowReservationModal={table.setShowReservationModal}
-            setShowLoginModal={setShowLoginModal}
-            setQrStepView={setQrStepView}
-            setPromoCodeInput={cart.setPromoCodeInput}
-            setSelectedTipAmount={cart.setSelectedTipAmount}
-            setPaymentPolicy={config.setPaymentPolicy}
-            handleReorderSameItem={cart.handleAddToCart}
-            handleAddToCart={cart.handleAddToCart}
-            handleUpdateQty={cart.handleUpdateQty}
-            handleApplyPromo={cart.handleApplyPromo}
+            loginType={cart.loginType} customerPhone={cart.customerPhone} guestName={cart.guestName}
+            customerAvatar={cart.customerAvatar} setCustomerAvatar={cart.setCustomerAvatar}
+            loyaltyPoints={cart.loyaltyPoints} productCatalog={PRODUCT_CATALOG}
+            reservationPolicyMode={table.reservationPolicyMode} priceVisibilityMode={table.priceVisibilityMode}
+            customerAppDisplayMode={table.customerAppDisplayMode} cart={cart.cart}
+            totalCartCount={cart.totalCartCount} grandTotalBill={cart.grandTotalBill}
+            previousOrders={orders} tablesGrid={table.tablesGrid} qrStepView={qrStepView}
+            promoCodeInput={cart.promoCodeInput} appliedPromo={cart.appliedPromo}
+            redeemedVoucher={cart.redeemedVoucher} serviceFeeRate={cart.serviceFeeRate}
+            calculatedServiceFee={cart.calculatedServiceFee} taxPB1Mode={cart.taxPB1Mode}
+            calculatedPB1Tax={cart.calculatedPB1Tax} selectedTipAmount={cart.selectedTipAmount}
+            paymentPolicy={config.paymentPolicy} rawSubtotal={cart.rawSubtotal}
+            setShowReservationModal={table.setShowReservationModal} setShowLoginModal={setShowLoginModal}
+            setQrStepView={setQrStepView} setPromoCodeInput={cart.setPromoCodeInput}
+            setSelectedTipAmount={cart.setSelectedTipAmount} setPaymentPolicy={config.setPaymentPolicy}
+            handleReorderSameItem={cart.handleAddToCart} handleAddToCart={cart.handleAddToCart}
+            handleUpdateQty={cart.handleUpdateQty} handleApplyPromo={cart.handleApplyPromo}
             handleSubmitOrder={() => cart.handleSubmitOrder(table.selectedTable, setQrStepView)}
             onSettleOpenTab={handleSettleOpenTab}
             onSwitchToLandingPage={() => config.setActiveApp('landing')}
@@ -424,6 +406,9 @@ function AppMain() {
             {activeStaffSurface === 'customer-crm' && <CustomerContactsView />}
             {activeStaffSurface === 'admin-hub' && (
               <AdminMerchantUserView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
+            )}
+            {activeStaffSurface === 'merchant-hub' && (
+              <MerchantHomeHubView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
             )}
           </div>
         )}

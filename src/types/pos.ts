@@ -2,7 +2,7 @@
 
 export type PrimaryDomainApp = 'landing' | 'customer' | 'cafe' | 'design-system' | 'customer-portal' | 'hfeit-corporate'
 export type StaffSurfaceMode = 'barista-pos' | 'kds-screen' | 'checker-qc' | 'server-waiter' | 'cafe-config' | 'retail-pos' | 'scan-go' | 'fine-dining-kds' | 'sommelier' | 'maitre-d'
- | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights' | 'hfe-connect-hub' | 'hfe-company-book' | 'admin-hub'
+ | 'warehouse-mgmt' | 'branch-mgmt' | 'customer-crm' | 'hfe-insights' | 'hfe-connect-hub' | 'hfe-company-book' | 'admin-hub' | 'merchant-hub'
 export type KdsViewModeType = 'kanban' | 'list' | 'workorder'
 export type CustomerLoginType = 'phone' | 'guest-name'
 export type PaymentPolicy = 'pay-first' | 'open-tab'
@@ -118,6 +118,7 @@ export interface MenuItem {
   wholesalePrice?: number
   wholesaleMinQty?: number
   barcode?: string
+  variants?: { name: string; options: { name: string; priceDelta?: number }[] }[]
 }
 
 export interface SeatCustomerContact {
@@ -315,6 +316,12 @@ export type QrMenuLayoutMode = 'grid_2col' | 'list_compact' | 'story_cards'
 
 export interface StorefrontCustomizationConfig {
   // 1. Landing Page Studio
+  storeName?: string
+  storefrontSubdomain?: string
+  storefrontCustomDomain?: string
+  storefrontTagline?: string
+  storefrontHeroImage?: string
+  currency?: SupportedCurrency
   heroHeadline: string
   heroTagline: string
   heroBannerUrl: string

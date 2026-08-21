@@ -3,7 +3,7 @@ import { FIVE_CORE_APPS } from '../components/common/StaffAppDrawerModal'
 
 describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
   it('should contain consolidated core apps including connect hub and admin mode', () => {
-    expect(FIVE_CORE_APPS.length).toBe(8)
+    expect(FIVE_CORE_APPS.length).toBe(9)
 
     const appNames = FIVE_CORE_APPS.map((c) => c.name)
     expect(appNames).toContain('POS.Hfeit (Commerce Workstation)')
@@ -14,6 +14,7 @@ describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
     expect(appNames).toContain('Gudang, Inventori & Multi-Cabang')
     expect(appNames).toContain('Pengaturan Toko & Tim (Management)')
     expect(appNames).toContain('🛡️ Mode Admin (Merchant & User Hub)')
+    expect(appNames).toContain('🏠 Merchant Home / Hub (Pusat Bisnis)')
   })
 
   it('should include core workstation IDs in the app launcher', () => {
@@ -26,6 +27,7 @@ describe('App Drawer Launchpad Grid Navigation (L2-POS-35 & L2-POS-36)', () => {
     expect(allAppIds).toContain('warehouse-mgmt')
     expect(allAppIds).toContain('cafe-config')
     expect(allAppIds).toContain('admin-hub')
+    expect(allAppIds).toContain('merchant-hub')
   })
 
   it('should have valid metadata, icons, and colors for all app tiles', () => {

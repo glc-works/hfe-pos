@@ -27,3 +27,5 @@ export * from './StaffWorkstationView'
 export * from './UnifiedKdsView'
 export * from './UnifiedPosView'
 export * from './WarehouseManagementView'
+export * from './MerchantHomeHubView'
+

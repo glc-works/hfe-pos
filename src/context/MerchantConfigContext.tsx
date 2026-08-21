@@ -41,6 +41,9 @@ export interface MerchantConfigContextType {
   allAvailableThemes: CafeThemeConfig[]
 
   // 4. STOREFRONT CUSTOMIZATION (LANDING PAGE & QR ORDER)
+  storeName: string
+  storefrontSubdomain: string
+  storefrontCustomDomain: string
   storefrontConfig: StorefrontCustomizationConfig
   updateStorefrontConfig: (delta: Partial<StorefrontCustomizationConfig>) => void
   resetStorefrontConfig: () => void
@@ -453,6 +456,9 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
         merchantTheme, setMerchantTheme,
         savedThemes, saveCustomTheme, deleteSavedTheme,
         allAvailableThemes,
+        storeName: storefrontConfig.storeName || 'Kopi Nusantara',
+        storefrontSubdomain: storefrontConfig.storefrontSubdomain || 'kopinusantara',
+        storefrontCustomDomain: storefrontConfig.storefrontCustomDomain || '',
         storefrontConfig, updateStorefrontConfig, resetStorefrontConfig,
         activeApp, setActiveApp,
         viewportMode, setViewportMode,

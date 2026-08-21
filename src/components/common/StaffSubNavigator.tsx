@@ -37,7 +37,8 @@ const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; icon: React.ReactN
   'cafe-config': { name: 'Owner Settings', icon: <Settings className="w-3.5 h-3.5" />, color: 'bg-slate-600' },
   'customer-crm': { name: 'Customer CRM', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-blue-600' },
   'hfe-connect-hub': { name: '🧩 HFE Connect Hub', icon: <Globe className="w-3.5 h-3.5" />, color: 'bg-sky-500' },
-  'admin-hub': { name: '🛡️ Mode Admin', icon: <ShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-600' }
+  'admin-hub': { name: '🛡️ Mode Admin', icon: <ShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-600' },
+  'merchant-hub': { name: '🏠 Merchant Hub (Owner)', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-purple-600' }
 }
 
 export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
