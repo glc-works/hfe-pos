@@ -40,11 +40,20 @@ export function verifyPostingReadBack(
       failureReason: 'stable_effect_mismatch',
     }
   }
+  if (!evidence.stateRevision?.trim()) {
+    return {
+      ...pending,
+      status: 'failed',
+      displayLabel: 'Accounting verification failed',
+      failureReason: 'missing_posting_revision',
+    }
+  }
   return {
     ...pending,
     status: 'posted',
     displayLabel: 'Posted to CORE',
     postingId: evidence.postingId,
+    postingStateRevision: evidence.stateRevision,
     failureReason: undefined,
   }
 }

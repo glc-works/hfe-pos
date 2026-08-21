@@ -3,6 +3,7 @@ import { MockHfeAdapter } from '../services/financial/MockHfeAdapter'
 import { HfeSdkAdapter } from '../services/financial/HfeSdkAdapter'
 import { UniversalMultiTenderRequest } from '../services/financial/HfePosFinancialPort'
 import { MenuItem } from '../types/pos'
+import { createPendingFinancialState, verifyPostingReadBack } from '../services/financial/flagshipFinancialState'
 
 describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2-POS-91)', () => {
   it('should settle multi-tender transaction in MockHfeAdapter with balanced GL entries', async () => {
@@ -142,5 +143,52 @@ describe('Universal Multi-Tender Settlement & Wholesale Volume Pricing Suite (L2
     expect(bulkOrder.isWholesale).toBe(true)
     expect(bulkOrder.total).toBe(1860000)
     expect(bulkOrder.savings).toBe(360000)
+  })
+
+  it('creates a governed reversal only for a verified posting revision', async () => {
+    const adapter = new HfeSdkAdapter({
+      baseUrl: 'http://localhost:8080',
+      defaultBookId: 'BOOK-TEST-01',
+      authorityContextId: 'AUTH-CONTEXT-01',
+    })
+    const verified = verifyPostingReadBack(
+      createPendingFinancialState('ORDER-001', 'IDEMP-001'),
+      {
+        postingId: 'POST-001',
+        sourceObjectId: 'ORDER-001',
+        stableEffectKey: 'IDEMP-001',
+        stateRevision: '7',
+      }
+    )
+    const responseBody = JSON.stringify({
+      approval_request_id: 'APPROVAL-001',
+      content_sha256: 'sha256:reversal',
+      id: 'REVERSAL-001',
+      original_posting_id: 'POST-001',
+      reason: 'Customer refund approved',
+      requested_by_principal_id: 'PRINCIPAL-001',
+      reversal_financial_date: '2026-08-22',
+      state: 'requested',
+      state_revision: 1,
+    })
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      text: async () => responseBody,
+    } as Response)
+    global.fetch = mockFetch
+
+    const reversal = await adapter.createPostingReversal(
+      verified,
+      'Customer refund approved',
+      '2026-08-22',
+      'REVERSAL-IDEMP-001'
+    )
+
+    expect(reversal.id).toBe('REVERSAL-001')
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/postings/POST-001/reversal-requests')
+    expect((init?.headers as Record<string, string>)['If-Match']).toBe('7')
+    expect((init?.headers as Record<string, string>)['Idempotency-Key']).toBe('REVERSAL-IDEMP-001')
   })
 })

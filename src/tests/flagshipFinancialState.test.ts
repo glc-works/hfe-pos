@@ -16,6 +16,7 @@ describe('flagship financial state', () => {
       postingId: 'POST-001',
       sourceObjectId: 'ORDER-OTHER',
       stableEffectKey: 'IDEMP-001',
+      stateRevision: '7',
     })
 
     expect(mismatched.status).toBe('failed')
@@ -28,11 +29,13 @@ describe('flagship financial state', () => {
       postingId: 'POST-001',
       sourceObjectId: 'ORDER-001',
       stableEffectKey: 'IDEMP-001',
+      stateRevision: '7',
     })
 
     expect(verified.status).toBe('posted')
     expect(verified.displayLabel).toBe('Posted to CORE')
     expect(verified.postingId).toBe('POST-001')
+    expect(verified.postingStateRevision).toBe('7')
   })
 
   it('rejects read-back evidence without a canonical posting identity', () => {
@@ -41,9 +44,21 @@ describe('flagship financial state', () => {
       postingId: '',
       sourceObjectId: 'ORDER-001',
       stableEffectKey: 'IDEMP-001',
+      stateRevision: '7',
     })
 
     expect(unbound.status).toBe('failed')
     expect(unbound.displayLabel).not.toContain('Posted')
+  })
+
+  it('does not verify a posting without its optimistic concurrency revision', () => {
+    const pending = createPendingFinancialState('ORDER-001', 'IDEMP-001')
+    const unversioned = verifyPostingReadBack(pending, {
+      postingId: 'POST-001',
+      sourceObjectId: 'ORDER-001',
+      stableEffectKey: 'IDEMP-001',
+    } as any)
+
+    expect(unversioned.status).toBe('failed')
   })
 })

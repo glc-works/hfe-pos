@@ -1,7 +1,7 @@
 // --- HFE SDK PRODUCTION ADAPTER (POS-ENG-STD-001) ---
 // Official REST API Transport Layer powered by @hfe/sdk (Strict Fail-Closed)
 
-import { HfeClient, HfeApiError as SdkApiError, Int64String, UniversalMultiTenderSettlementRequest } from '@hfe/sdk'
+import { HfeClient, HfeApiError as SdkApiError, Int64String, ReversalRequest, UniversalMultiTenderSettlementRequest } from '@hfe/sdk'
 import {
   HfePosFinancialPort,
   CompanyBookSettingsResponse,
@@ -16,6 +16,7 @@ import {
   CashierShiftCloseResponse,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
+import { FlagshipFinancialState } from '../../types/financial'
 
 export class HfeNetworkError extends Error {
   constructor(message: string, public readonly cause?: unknown) {
@@ -247,6 +248,50 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       if (err instanceof SdkApiError) throw new HfeApiError(err.status, err.message, err.details || err.rawBody)
       if (err instanceof HfeApiError) throw err
       throw new HfeNetworkError('Network failure connecting to Hfe Core settlement operation', err)
+    }
+  }
+
+  async createPostingReversal(
+    financialState: FlagshipFinancialState,
+    reason: string,
+    reversalFinancialDate: string,
+    idempotencyKey: string,
+    bookId?: string
+  ): Promise<ReversalRequest> {
+    if (
+      financialState.status !== 'posted' ||
+      !financialState.postingId ||
+      !financialState.postingStateRevision
+    ) {
+      throw new Error('verified posting identity and revision are required for reversal')
+    }
+    if (!reason.trim()) throw new Error('reversal reason is required')
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(reversalFinancialDate)) {
+      throw new Error('reversal financial date must use YYYY-MM-DD')
+    }
+    if (!idempotencyKey.trim()) throw new Error('reversal idempotency key is required')
+
+    try {
+      const response = await this.client.operations.createReversalRequest({
+        path: {
+          book: this.resolveTargetBook(bookId),
+          posting: financialState.postingId,
+        },
+        headers: {
+          'X-CBook-Authority-Context': this.resolveAuthorityContext(),
+          'Idempotency-Key': idempotencyKey,
+          'If-Match': financialState.postingStateRevision,
+        },
+        body: {
+          reason,
+          reversal_financial_date: reversalFinancialDate,
+        },
+      })
+      return response.body
+    } catch (err: unknown) {
+      if (err instanceof SdkApiError) throw new HfeApiError(err.status, err.message, err.details || err.rawBody)
+      if (err instanceof HfeApiError) throw err
+      throw new HfeNetworkError('Network failure connecting to Hfe Core reversal operation', err)
     }
   }
 
