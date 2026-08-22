@@ -22,7 +22,7 @@ echo "[Step 4/7] Running Typecheck (tsc)..."
 npx tsc --noEmit
 
 echo ""
-echo "[Step 5/7] Running Linter (eslint)..."
+echo "[Step 5/7] Running Rust Linter (Biome)..."
 npm run lint
 
 echo ""

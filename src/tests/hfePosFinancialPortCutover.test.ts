@@ -220,7 +220,7 @@ describe('Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)', () =>
     it('should retrieve pending intents and update lifecycle status without fake ledger confirmation', async () => {
       const intent = await queue.enqueueIntent(samplePayload, 'BOOK-CAFE-HQ-88')
 
-      let pending = await queue.getPendingIntents()
+      const pending = await queue.getPendingIntents()
       expect(pending.length).toBe(1)
       expect(pending[0].status).toBe('pending_sync')
 

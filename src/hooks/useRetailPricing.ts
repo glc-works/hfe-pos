@@ -74,7 +74,7 @@ export function useRetailPricing() {
   const addItemByBarcode = useCallback((item: RetailProductPriceInfo, qty: number = 1) => {
     setRetailCart((prevCart) => {
       const existingIndex = prevCart.findIndex((i) => i.barcode === item.barcode)
-      let updatedCart = [...prevCart]
+      const updatedCart = [...prevCart]
 
       if (existingIndex >= 0) {
         const currentItem = updatedCart[existingIndex]

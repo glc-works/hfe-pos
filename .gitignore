@@ -26,3 +26,7 @@ dist-ssr
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Build Caches
+*.tsbuildinfo
+.tsbuildinfo

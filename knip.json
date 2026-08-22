@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/**/index.ts",
+    "src/**/*.stories.tsx",
+    "src/tests/**/*.test.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignoreDependencies": [
+    "@chromatic-com/storybook",
+    "@storybook/*",
+    "playwright"
+  ],
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "unlisted": "error",
+    "exports": "off",
+    "types": "off",
+    "duplicates": "off"
+  }
+}
