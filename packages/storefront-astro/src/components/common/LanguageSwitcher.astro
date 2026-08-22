@@ -1,0 +1,46 @@
+---
+interface Props {
+  currentLang: 'id' | 'en'
+}
+
+const { currentLang = 'id' } = Astro.props
+---
+
+<div class="inline-flex items-center p-0.5 rounded-full bg-slate-900/80 border border-white/10 text-xs font-mono backdrop-blur-md">
+  <a
+    href="?lang=id"
+    id="lang-btn-id"
+    class={`px-2.5 py-1 rounded-full transition-all duration-200 ${
+      currentLang === 'id'
+        ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+        : 'text-slate-400 hover:text-white'
+    }`}
+    title="Bahasa Indonesia"
+  >
+    🇮🇩 ID
+  </a>
+  <a
+    href="?lang=en"
+    id="lang-btn-en"
+    class={`px-2.5 py-1 rounded-full transition-all duration-200 ${
+      currentLang === 'en'
+        ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+        : 'text-slate-400 hover:text-white'
+    }`}
+    title="English"
+  >
+    🇬🇧 EN
+  </a>
+</div>
+
+<script>
+  function handleLangClick(lang: string) {
+    document.cookie = `hfe_lang=${lang}; path=/; max-age=31536000; SameSite=Lax`
+    try {
+      localStorage.setItem('hfe_language', lang)
+    } catch (_) {}
+  }
+
+  document.getElementById('lang-btn-id')?.addEventListener('click', () => handleLangClick('id'))
+  document.getElementById('lang-btn-en')?.addEventListener('click', () => handleLangClick('en'))
+</script>

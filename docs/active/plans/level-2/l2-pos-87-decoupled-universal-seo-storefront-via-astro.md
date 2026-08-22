@@ -12,7 +12,7 @@
 Menggabungkan halaman etalase publik merchant (`board.hfeit.com/[namespace]`) ke dalam client-side React SPA (`hfe-pos`) membebani browser dengan bundle JavaScript besar, memperlambat First Contentful Paint (FCP) pada jaringan 3G/4G, serta tidak optimal untuk crawler Googlebot dan media sosial (WhatsApp / Instagram / Twitter preview).
 
 ### Solusi:
-Membangun sub-package **`packages/storefront-astro`** berbasis **Astro 5.x (SSR/SSG di Cloudflare Edge)** dengan arsitektur *Islands of Interactivity*, menghasilkan Core Web Vitals 100/100, Schema.org `Restaurant` & `MenuItem` JSON-LD terindeks Google, dan deep-link transfer keranjang (*Cart Handoff*) instan ke `order.hfeit.com/[namespace]`.
+Membangun sub-package **`packages/storefront-astro`** berbasis **Astro 7.2 (SSR/SSG di Cloudflare Edge)** dengan arsitektur *Islands of Interactivity*, *Server Islands*, dan *`<ClientRouter />` View Transitions*, menghasilkan Core Web Vitals 100/100, Schema.org `Restaurant` & `MenuItem` JSON-LD terindeks Google, dan deep-link transfer keranjang (*Cart Handoff*) instan ke `order.hfeit.com/[namespace]`.
 
 ---
 

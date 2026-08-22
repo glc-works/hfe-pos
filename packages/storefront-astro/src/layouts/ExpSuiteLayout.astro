@@ -1,0 +1,99 @@
+---
+import { ClientRouter } from 'astro:transitions'
+import LanguageSwitcher from '../components/common/LanguageSwitcher.astro'
+import type { SupportedLanguage } from '../i18n/translations'
+
+interface Props {
+  title: string
+  description?: string
+  currentLang?: SupportedLanguage
+}
+
+const {
+  title = 'EXP.Hfeit — The Unified Commerce & Experience Suite',
+  description = 'Satu ekosistem terpadu untuk kasir, pesanan QR meja, loyalitas member, etalase publik, dan pembukuan otomatis tanpa selisih.',
+  currentLang = 'id'
+} = Astro.props
+---
+
+<!DOCTYPE html>
+<html lang={currentLang} class="dark bg-slate-950 text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#020617" />
+    
+    <!-- OpenGraph / Social Preview -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="EXP.Hfeit" />
+    
+    <!-- Astro View Transitions -->
+    <ClientRouter />
+    
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    
+    <style is:global>
+      body {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow-x: hidden;
+      }
+      code, kbd, samp, pre {
+        font-family: 'JetBrains Mono', monospace;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-950 flex flex-col justify-between">
+    <!-- Top Sticky Header -->
+    <header class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <a href="/exp" class="flex items-center gap-2 text-white font-extrabold text-lg tracking-tight">
+          <span class="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-slate-950 font-black text-sm">
+            E
+          </span>
+          <span>EXP<span class="text-amber-400">.Hfeit</span></span>
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-xs sm:text-sm text-slate-300 font-medium">
+          <a href="#products-sextet" class="hover:text-white transition-colors">6 Produk</a>
+          <a href="#demo-section" class="hover:text-white transition-colors">Alur Transaksi</a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <LanguageSwitcher currentLang={currentLang} />
+        <a
+          href="/onboarding"
+          class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm transition-all"
+        >
+          Daftar Gratis ➔
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Page Content Slot -->
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-slate-950 py-12 px-4 sm:px-6 text-center text-xs text-slate-400 font-mono">
+      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          © 2026 HFE IT. All rights reserved. • EXP.Hfeit Experience Layer
+        </div>
+        <div class="flex items-center gap-4 text-slate-300">
+          <a href="/exp" class="hover:text-white">EXP.Hfeit</a>
+          <a href="/board" class="hover:text-white">BOARD.Hfeit</a>
+          <a href="/pos" class="hover:text-white">POS.Hfeit</a>
+          <a href="/onboarding" class="text-amber-400 hover:underline">Daftar Usaha</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
