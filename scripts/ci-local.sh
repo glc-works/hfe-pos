@@ -22,8 +22,9 @@ echo "[Step 4/8] Running Typecheck (tsc)..."
 npx tsc --noEmit
 
 echo ""
-echo "[Step 5/8] Running Rust Linter (Biome)..."
+echo "[Step 5/8] Running Rust Linter (Biome) & Secret Scanner (Secretlint)..."
 npm run lint
+npm run lint:secrets
 
 echo ""
 echo "[Step 6/8] Running Unit Tests..."
