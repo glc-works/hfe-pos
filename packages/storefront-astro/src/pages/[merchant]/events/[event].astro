@@ -1,0 +1,84 @@
+---
+// --- BOARD.HFEIT.COM/[NAMESPACE]/EVENTS/[EVENT] - DETAIL EVENT SEO ---
+import MerchantStorefrontLayout from '../../../layouts/MerchantStorefrontLayout.astro';
+import StickyActionDock from '../../../components/navigation/StickyActionDock.astro';
+import { resolveStorefrontData } from '../../../lib/merchantDataResolver';
+import { buildOrderHandoffUrl } from '../../../lib/channelGovernance';
+
+const { merchant, event } = Astro.params;
+const merchantSlug = merchant || 'senopati-kopitiam';
+const eventId = (event || 'evt-001').toUpperCase();
+
+const data = await resolveStorefrontData(merchantSlug);
+const { profile, events, channels } = data;
+const eventItem = events.find((e) => e.id.toUpperCase() === eventId) || events[0];
+
+const buyTicketUrl = buildOrderHandoffUrl({
+  merchantSlug,
+  mode: 'takeaway',
+  addItemId: eventItem.id,
+  quantity: 1,
+});
+---
+
+<MerchantStorefrontLayout
+  title={`${eventItem.name} — ${profile.businessName}`}
+  description={`${eventItem.description} • E-Tiket Gate-In ${eventItem.formattedPrice}`}
+  image={eventItem.image}
+  canonicalUrl={`https://board.hfeit.com/${merchantSlug}/events/${eventItem.id.toLowerCase()}`}
+>
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs font-mono text-slate-400">
+    <a href={`/${merchantSlug}`} class="hover:text-purple-400 transition-colors">← Kembali ke {profile.businessName}</a>
+    <span>/</span>
+    <span class="text-slate-200 truncate">{eventItem.name}</span>
+  </nav>
+
+  <!-- Event Detail Card -->
+  <div class="rounded-3xl border border-purple-500/30 bg-slate-900/80 backdrop-blur-2xl p-4 sm:p-6 shadow-2xl space-y-6">
+    <div class="aspect-video w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
+      <img src={eventItem.image} alt={eventItem.name} class="w-full h-full object-cover" />
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30">
+          📅 {eventItem.eventDetails?.eventDate || 'Jadwal Mendatang'}
+        </span>
+        <span class="text-xs font-bold text-amber-400 font-mono">
+          🔥 Sisa {eventItem.eventDetails?.remainingSeats || 5} Kursi Tersedia
+        </span>
+      </div>
+
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white leading-tight">{eventItem.name}</h1>
+      <p class="text-sm text-slate-300 leading-relaxed">{eventItem.description}</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs font-mono">
+        <div>
+          <span class="text-slate-400 block">👤 Instruktur / Speaker:</span>
+          <span class="text-slate-200 font-bold">{eventItem.eventDetails?.instructorName || 'Tim Ahli HFE'}</span>
+        </div>
+        <div>
+          <span class="text-slate-400 block">📍 Lokasi / Ruangan:</span>
+          <span class="text-slate-200 font-bold">{eventItem.eventDetails?.venueArea || profile.address}</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+        <div>
+          <span class="text-xs text-slate-400 block font-mono">Investasi Tiket / Orang</span>
+          <span class="text-2xl font-extrabold text-white font-mono">{eventItem.formattedPrice}</span>
+        </div>
+
+        <a
+          href={buyTicketUrl}
+          class="py-3.5 px-6 rounded-2xl bg-purple-600 hover:bg-purple-500 active:scale-[0.98] text-white font-bold text-sm text-center transition-all shadow-lg"
+        >
+          <span>🎟️ Amankan E-Tiket Sekarang ➔</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <StickyActionDock merchantSlug={merchantSlug} channels={channels} />
+</MerchantStorefrontLayout>

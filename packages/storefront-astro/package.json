@@ -1,0 +1,26 @@
+{
+  "name": "@hfe/storefront-astro",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BOARD.Hfeit — Universal Decoupled High-Performance SEO Storefront via Astro 5.x",
+  "scripts": {
+    "dev": "astro dev --port 4321",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/tailwind": "^5.1.5",
+    "astro": "^5.0.0",
+    "clsx": "^2.1.1",
+    "lucide-astro": "^0.475.0",
+    "tailwind-merge": "^2.6.0",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

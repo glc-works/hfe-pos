@@ -1,0 +1,84 @@
+---
+// --- MODUL 4: KATALOG MENU PUBLIK SEO (2-KOLOM MOBILE ANTI-TRUNCATION) ---
+import type { StorefrontMenuItem } from '../../lib/merchantDataResolver';
+import { buildOrderHandoffUrl } from '../../lib/channelGovernance';
+
+interface Props {
+  catalog: StorefrontMenuItem[];
+  merchantSlug: string;
+}
+
+const { catalog, merchantSlug } = Astro.props;
+
+// Group items by category
+const categories = Array.from(new Set(catalog.map((i) => i.category)));
+---
+
+<section class="w-full space-y-4">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="text-base">🍽️</span>
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Katalog Menu & Produk Unggulan</h3>
+    </div>
+    <span class="text-[11px] font-mono text-slate-400">{catalog.length} Menu Tersedia</span>
+  </div>
+
+  <!-- Menu Grid (2-Kolom Rapat Mobile Numero Uno) -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+    {catalog.map((item) => {
+      const orderItemUrl = buildOrderHandoffUrl({
+        merchantSlug,
+        mode: 'dine_in',
+        addItemId: item.id,
+        quantity: 1,
+      });
+
+      return (
+        <div class="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-2.5 sm:p-3 shadow-md hover:border-slate-700 transition-all group">
+          <div class="space-y-2">
+            <!-- Food/Drink Photo with Aspect Ratio -->
+            <div class="aspect-[4/3] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 relative">
+              <img
+                src={item.image}
+                alt={item.name}
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+              {item.isFeatured && (
+                <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-amber-500 text-slate-950 shadow">
+                  ⭐ Favorit
+                </span>
+              )}
+            </div>
+
+            <!-- Title & Description (Line-Clamp 2 Anti-Truncation) -->
+            <div>
+              <span class="text-[10px] font-mono text-slate-400 uppercase">{item.category}</span>
+              <h4 class="text-xs sm:text-sm font-bold text-slate-100 line-clamp-2 leading-snug min-h-[32px]">
+                {item.name}
+              </h4>
+              <p class="text-[11px] text-slate-400 line-clamp-2 leading-tight mt-0.5 hidden sm:block">
+                {item.description}
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Price & Action Row -->
+          <div class="pt-2 border-t border-slate-800/80 mt-2 flex items-center justify-between gap-1">
+            <span class="text-xs sm:text-sm font-extrabold text-slate-100 font-mono tracking-tight">
+              {item.formattedPrice}
+            </span>
+
+            <a
+              href={orderItemUrl}
+              class="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 hover:text-slate-950 active:scale-95 text-amber-400 border border-amber-500/30 font-bold text-[10px] transition-all flex items-center gap-0.5 shrink-0"
+              title={`Pesan ${item.name}`}
+            >
+              <span>+ Pesan</span>
+            </a>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</section>

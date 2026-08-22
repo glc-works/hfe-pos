@@ -1,0 +1,70 @@
+---
+// --- MODUL 3: EVENT & WORKSHOP MASTERCLASS (PRODUK CATEGORY: 'EVENT_TICKET') ---
+import type { StorefrontMenuItem } from '../../lib/merchantDataResolver';
+import { buildOrderHandoffUrl } from '../../lib/channelGovernance';
+
+interface Props {
+  events: StorefrontMenuItem[];
+  merchantSlug: string;
+}
+
+const { events, merchantSlug } = Astro.props;
+if (!events || events.length === 0) return null;
+---
+
+<section class="w-full space-y-3">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="text-base">🎟️</span>
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Event & Kelas Workshop Mendatang</h3>
+    </div>
+    <span class="text-[11px] font-mono text-purple-400">E-Tiket Gate-In QR</span>
+  </div>
+
+  <div class="grid grid-cols-1 gap-3">
+    {events.map((event) => {
+      const buyTicketUrl = buildOrderHandoffUrl({
+        merchantSlug,
+        mode: 'takeaway',
+        addItemId: event.id,
+        quantity: 1,
+      });
+
+      return (
+        <div class="rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-950/20 via-slate-900/80 to-slate-950 p-4 shadow-xl grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+          <div class="sm:col-span-4 aspect-video sm:aspect-square rounded-xl overflow-hidden border border-slate-800 shrink-0">
+            <img src={event.image} alt={event.name} class="w-full h-full object-cover" />
+          </div>
+
+          <div class="sm:col-span-8 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                📅 {event.eventDetails?.eventDate || 'Segera Hadir'}
+              </span>
+              <span class="text-xs font-bold text-amber-400 font-mono">
+                🔥 Sisa {event.eventDetails?.remainingSeats || 5} Kursi
+              </span>
+            </div>
+
+            <h4 class="text-base font-bold text-white leading-tight">{event.name}</h4>
+            <p class="text-xs text-slate-300 line-clamp-2">{event.description}</p>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+              <div>
+                <span class="text-[10px] text-slate-400 block font-mono">Harga Tiket / Orang</span>
+                <span class="text-base font-extrabold text-slate-100 font-mono">{event.formattedPrice}</span>
+              </div>
+
+              <a
+                href={buyTicketUrl}
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-bold text-xs transition-all shadow-md flex items-center gap-1.5"
+              >
+                <span>Beli E-Tiket ➔</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</section>

@@ -18,6 +18,14 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
     googleMapsUrl: 'https://maps.google.com/?q=Senopati+Jakarta',
     website: 'https://kopitiamsenopati.id'
   },
+  channels: {
+    enableDineInQr: true,
+    enableTakeaway: true,
+    enableOnlineDelivery: true,
+    enableTableReservation: true,
+    enableEventTicketing: true,
+    isEmergencyBusyMode: false
+  },
 
   // 2. QR Order Customer Space Studio
   greetingMessage: 'Selamat datang di Kopitiam Senopati! Silakan pilih menu dan nikmati waktu santai Anda.',

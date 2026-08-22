@@ -1,0 +1,86 @@
+---
+// --- MODUL 5: RESERVASI MEJA RESTORAN & JANJI TEMU ---
+import type { ResolvedMerchantProfile } from '../../lib/merchantDataResolver';
+
+interface Props {
+  profile: ResolvedMerchantProfile;
+  enabled: boolean;
+}
+
+const { profile, enabled } = Astro.props;
+if (!enabled) return null;
+---
+
+<section class="w-full rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-xl space-y-4">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="text-base">🗓️</span>
+      <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Reservasi Meja & Booking Area</h3>
+    </div>
+    <span class="text-[11px] font-mono text-emerald-400">Konfirmasi Cepat</span>
+  </div>
+
+  <form
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+    onsubmit="event.preventDefault(); alert('Permintaan reservasi berhasil dikirim ke kasir! Tim kami akan mengonfirmasi via WhatsApp.');"
+  >
+    <div class="space-y-1">
+      <label class="text-[11px] text-slate-400 font-mono">📅 Tanggal Kunjungan</label>
+      <input
+        type="date"
+        required
+        class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+      />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[11px] text-slate-400 font-mono">⏰ Jam Kedatangan</label>
+      <select
+        required
+        class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+      >
+        <option value="12:00">12:00 WIB (Makan Siang)</option>
+        <option value="15:00">15:00 WIB (Kopi Sore)</option>
+        <option value="19:00" selected>19:00 WIB (Makan Malam)</option>
+        <option value="20:30">20:30 WIB (Late Dinner)</option>
+      </select>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[11px] text-slate-400 font-mono">👥 Jumlah Tamu</label>
+      <select
+        required
+        class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+      >
+        <option value="2">2 Orang (Pasangan / Meja 2)</option>
+        <option value="4" selected>4 Orang (Keluarga / Teman)</option>
+        <option value="6">6 Orang (Grup Meja Besar)</option>
+        <option value="10">10+ Orang (VIP Private Room)</option>
+      </select>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[11px] text-slate-400 font-mono">🌿 Pilihan Area</label>
+      <select
+        required
+        class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+      >
+        <option value="indoor">❄️ Indoor AC (Bebas Asap)</option>
+        <option value="outdoor" selected>🌿 Outdoor Garden</option>
+        <option value="vip">👑 VIP Private Room (Min. Spend)</option>
+      </select>
+    </div>
+
+    <div class="sm:col-span-2 lg:col-span-4 flex items-center justify-between pt-2">
+      <span class="text-[11px] text-slate-400">
+        📍 {profile.address} • Tanpa Biaya Reservasi
+      </span>
+      <button
+        type="submit"
+        class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs transition-all shadow-md"
+      >
+        <span>Ajukan Reservasi Meja ➔</span>
+      </button>
+    </div>
+  </form>
+</section>

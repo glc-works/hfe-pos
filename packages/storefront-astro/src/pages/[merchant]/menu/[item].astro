@@ -1,0 +1,82 @@
+---
+// --- BOARD.HFEIT.COM/[NAMESPACE]/MENU/[ITEM] - DETAIL MENU SEO ---
+import MerchantStorefrontLayout from '../../../layouts/MerchantStorefrontLayout.astro';
+import JsonLdMenuItem from '../../../components/seo/JsonLdMenuItem.astro';
+import StickyActionDock from '../../../components/navigation/StickyActionDock.astro';
+import { resolveStorefrontData } from '../../../lib/merchantDataResolver';
+import { buildOrderHandoffUrl } from '../../../lib/channelGovernance';
+
+const { merchant, item } = Astro.params;
+const merchantSlug = merchant || 'senopati-kopitiam';
+const itemId = (item || 'mn-001').toUpperCase();
+
+const data = await resolveStorefrontData(merchantSlug);
+const { profile, catalog, channels } = data;
+const menuItem = catalog.find((i) => i.id.toUpperCase() === itemId) || catalog[0];
+
+const directOrderUrl = buildOrderHandoffUrl({
+  merchantSlug,
+  mode: 'dine_in',
+  addItemId: menuItem.id,
+  quantity: 1,
+});
+---
+
+<MerchantStorefrontLayout
+  title={`${menuItem.name} — ${profile.businessName}`}
+  description={`${menuItem.description} • Harga ${menuItem.formattedPrice}`}
+  image={menuItem.image}
+  canonicalUrl={`https://board.hfeit.com/${merchantSlug}/menu/${menuItem.id.toLowerCase()}`}
+>
+  <JsonLdMenuItem slot="head" item={menuItem} merchantSlug={merchantSlug} merchantName={profile.businessName} />
+
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs font-mono text-slate-400">
+    <a href={`/${merchantSlug}`} class="hover:text-amber-400 transition-colors">← Kembali ke {profile.businessName}</a>
+    <span>/</span>
+    <span class="text-slate-200 truncate">{menuItem.name}</span>
+  </nav>
+
+  <!-- Product Detail Card -->
+  <div class="rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-2xl p-4 sm:p-6 shadow-2xl grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
+    <div class="sm:col-span-6 aspect-square rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
+      <img src={menuItem.image} alt={menuItem.name} class="w-full h-full object-cover" />
+    </div>
+
+    <div class="sm:col-span-6 space-y-4">
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          {menuItem.category}
+        </span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-2 leading-tight">{menuItem.name}</h1>
+        <p class="text-xl font-extrabold text-amber-400 font-mono mt-1">{menuItem.formattedPrice}</p>
+      </div>
+
+      <p class="text-sm text-slate-300 leading-relaxed">{menuItem.description}</p>
+
+      {menuItem.allergens && menuItem.allergens.length > 0 && (
+        <div class="space-y-1">
+          <span class="text-xs text-slate-400 font-mono">⚠️ Informasi Alergen:</span>
+          <div class="flex flex-wrap gap-1.5">
+            {menuItem.allergens.map((allergen) => (
+              <span class="px-2 py-0.5 rounded-md bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[11px] font-mono">
+                {allergen}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div class="pt-4 border-t border-slate-800">
+        <a
+          href={directOrderUrl}
+          class="w-full py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold text-sm text-center transition-all shadow-lg flex items-center justify-center gap-2"
+        >
+          <span>🛒 Pesan {menuItem.name} Sekarang ➔</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <StickyActionDock merchantSlug={merchantSlug} channels={channels} />
+</MerchantStorefrontLayout>

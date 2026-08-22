@@ -1,0 +1,46 @@
+---
+// --- BOARD.HFEIT.COM/[NAMESPACE] - MERCHANT PUBLIC STOREFRONT ---
+import MerchantStorefrontLayout from '../../layouts/MerchantStorefrontLayout.astro';
+import HeroProfileSection from '../../components/hero/HeroProfileSection.astro';
+import PromoHubSection from '../../components/promo/PromoHubSection.astro';
+import EventTicketingSection from '../../components/events/EventTicketingSection.astro';
+import PublicMenuCatalog from '../../components/catalog/PublicMenuCatalog.astro';
+import TableReservationForm from '../../components/reservation/TableReservationForm.astro';
+import StickyActionDock from '../../components/navigation/StickyActionDock.astro';
+import JsonLdRestaurant from '../../components/seo/JsonLdRestaurant.astro';
+import { resolveStorefrontData } from '../../lib/merchantDataResolver';
+
+const { merchant } = Astro.params;
+const merchantSlug = merchant || 'senopati-kopitiam';
+
+// Resolve SSOT Merchant Data from Hfe Core
+const data = await resolveStorefrontData(merchantSlug);
+const { profile, catalog, events, promos, channels } = data;
+---
+
+<MerchantStorefrontLayout
+  title={`${profile.businessName} • Menu, Promo & Reservasi Resmi`}
+  description={`${profile.tagline} — ${profile.storyDescription}`}
+  image={profile.heroCoverUrl}
+  canonicalUrl={`https://board.hfeit.com/${merchantSlug}`}
+>
+  <JsonLdRestaurant slot="head" profile={profile} catalog={catalog} />
+
+  <!-- 1. Hero & Profile Section -->
+  <HeroProfileSection profile={profile} />
+
+  <!-- 2. Promo Hub Section (sales::discounts) -->
+  <PromoHubSection promos={promos} />
+
+  <!-- 3. Event & Workshop Section (category === 'event_ticket') -->
+  <EventTicketingSection events={events} merchantSlug={merchantSlug} />
+
+  <!-- 4. Public Menu Catalog (SEO Schema.org) -->
+  <PublicMenuCatalog catalog={catalog} merchantSlug={merchantSlug} />
+
+  <!-- 5. Table Reservation Form -->
+  <TableReservationForm profile={profile} enabled={channels.enableTableReservation} />
+
+  <!-- 6. Sticky Floating Action Dock (Under 1-Thumb Reach) -->
+  <StickyActionDock merchantSlug={merchantSlug} channels={channels} />
+</MerchantStorefrontLayout>

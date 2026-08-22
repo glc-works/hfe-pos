@@ -1,0 +1,33 @@
+---
+// --- JSON-LD STRUCTURED DATA: INDIVIDUAL MENU ITEM (SCHEMA.ORG) ---
+import type { StorefrontMenuItem } from '../../lib/merchantDataResolver';
+
+interface Props {
+  item: StorefrontMenuItem;
+  merchantSlug: string;
+  merchantName: string;
+}
+
+const { item, merchantSlug, merchantName } = Astro.props;
+
+const itemSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MenuItem',
+  name: item.name,
+  description: item.description,
+  image: item.image,
+  url: `https://board.hfeit.com/${merchantSlug}/menu/${item.id.toLowerCase()}`,
+  offers: {
+    '@type': 'Offer',
+    price: item.price,
+    priceCurrency: 'IDR',
+    availability: 'https://schema.org/InStock',
+    seller: {
+      '@type': 'Restaurant',
+      name: merchantName,
+    },
+  },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(itemSchema)} />

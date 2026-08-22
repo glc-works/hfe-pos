@@ -1,0 +1,54 @@
+---
+// --- JSON-LD STRUCTURED DATA: RESTAURANT & OPENING HOURS (SCHEMA.ORG) ---
+import type { ResolvedMerchantProfile, StorefrontMenuItem } from '../../lib/merchantDataResolver';
+
+interface Props {
+  profile: ResolvedMerchantProfile;
+  catalog: StorefrontMenuItem[];
+}
+
+const { profile, catalog } = Astro.props;
+
+const schemaData = {
+  '@context': 'https://schema.org',
+  '@type': 'Restaurant',
+  name: profile.businessName,
+  legalName: profile.legalName,
+  description: profile.storyDescription,
+  image: profile.heroCoverUrl,
+  url: `https://board.hfeit.com/${profile.slug}`,
+  telephone: profile.socialLinks.whatsapp || '+6281234567890',
+  priceRange: '$$',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: profile.address,
+    addressLocality: profile.city,
+    addressCountry: 'ID',
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: profile.rating,
+    reviewCount: profile.reviewCount,
+    bestRating: '5',
+    worstRating: '1',
+  },
+  hasMenu: {
+    '@type': 'Menu',
+    name: 'Katalog Menu Publik Resmi',
+    hasMenuItem: catalog.map((item) => ({
+      '@type': 'MenuItem',
+      name: item.name,
+      description: item.description,
+      image: item.image,
+      offers: {
+        '@type': 'Offer',
+        price: item.price,
+        priceCurrency: 'IDR',
+        availability: 'https://schema.org/InStock',
+      },
+    })),
+  },
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(schemaData)} />

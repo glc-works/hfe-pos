@@ -314,6 +314,15 @@ export interface StorefrontSocialLinks {
 
 export type QrMenuLayoutMode = 'grid_2col' | 'list_compact' | 'story_cards'
 
+export interface StorefrontChannelToggles {
+  enableDineInQr: boolean
+  enableTakeaway: boolean
+  enableOnlineDelivery: boolean
+  enableTableReservation: boolean
+  enableEventTicketing: boolean
+  isEmergencyBusyMode: boolean
+}
+
 export interface StorefrontCustomizationConfig {
   // 1. Landing Page Studio
   storeName?: string
@@ -332,6 +341,7 @@ export interface StorefrontCustomizationConfig {
   brandStoryText: string
   operatingHoursText: string
   socialLinks: StorefrontSocialLinks
+  channels?: StorefrontChannelToggles
 
   // 2. QR Order Customer Space Studio
   greetingMessage: string
