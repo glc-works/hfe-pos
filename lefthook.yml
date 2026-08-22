@@ -1,0 +1,9 @@
+pre-commit:
+  parallel: true
+  commands:
+    modularity:
+      run: python3 scripts/check-modularity.py
+    connector:
+      run: python3 scripts/validate-connector.py
+    biome-lint:
+      run: npx biome lint src

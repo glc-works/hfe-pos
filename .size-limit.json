@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Main Application JS",
+    "path": "dist/assets/index-*.js",
+    "limit": "350 kB",
+    "gzip": true
+  },
+  {
+    "name": "React Vendor Runtime",
+    "path": "dist/assets/vendor-react-*.js",
+    "limit": "75 kB",
+    "gzip": true
+  },
+  {
+    "name": "Tailwind & Stylesheet",
+    "path": "dist/assets/index-*.css",
+    "limit": "30 kB",
+    "gzip": true
+  }
+]

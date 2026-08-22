@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# HFE-POS Git Pre-Commit Sentinel (<100ms Fast Verification Guard)
+# Runs hfex-rad0 small cadence before commits
+# ==============================================================================
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+echo "🛡️ [PRE-COMMIT] Executing hfex-rad0 Small Cadence Sentinel..."
+python3 "${ROOT_DIR}/scripts/hfex-rad0.py" --small >/dev/null 2>&1 || {
+    echo "❌ [PRE-COMMIT BLOCKED] Fast small cadence check failed."
+    echo "   Run 'python3 scripts/hfex-rad0.py' to inspect gaps."
+    exit 1
+}
+
+echo "✅ [PRE-COMMIT] Fast Sentinel Passed Cleanly."
+exit 0

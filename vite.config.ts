@@ -42,4 +42,18 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/tests/**',
+        'src/**/*.stories.tsx',
+        'src/types/**',
+        'src/main.tsx',
+      ],
+    },
+  },
 })
