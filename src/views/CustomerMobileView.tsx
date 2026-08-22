@@ -271,13 +271,16 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
               >
                 <div 
                   className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 shadow-sm"
-                  style={{ backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}
+                  style={{ backgroundColor: activeTheme.primaryAccentHex, color: '#020617' }}
                 >
                   <Receipt className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1">
-                    <span className="text-[10px] uppercase font-bold tracking-wider font-mono text-amber-500">
+                    <span
+                      className="text-[10px] uppercase font-bold tracking-wider font-mono"
+                      style={{ color: isLight ? '#92400e' : '#fcd34d' }}
+                    >
                       Open Bill Aktif
                     </span>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -307,7 +310,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
                   className="text-[11px] font-black px-3 py-1 rounded-lg shadow transition-all active:scale-95 flex items-center gap-1"
                   style={{
                     backgroundColor: activeTheme.primaryAccentHex,
-                    color: isLight ? '#ffffff' : '#020617'
+                    color: isLight ? '#020617' : '#020617'
                   }}
                 >
                   <QrCode className="w-3 h-3" />

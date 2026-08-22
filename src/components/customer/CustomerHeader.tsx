@@ -130,14 +130,14 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
               </div>
 
               {/* TABLE & SEAT STATUS SUBTITLE PILL */}
-              <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold mt-0.5" style={{ color: activeTheme.primaryAccentHex }}>
+              <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold mt-0.5" style={{ color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex }}>
                 <LockIcon className="w-2.5 h-2.5 shrink-0" />
                 <span className="truncate">{selectedTable} • {scannedSeat}</span>
                 <span 
                   className="text-[9px] font-sans font-bold px-1.5 py-0.2 rounded shrink-0 border"
                   style={{ 
                     backgroundColor: `${activeTheme.primaryAccentHex}15`, 
-                    color: activeTheme.primaryAccentHex,
+                    color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex,
                     borderColor: `${activeTheme.primaryAccentHex}30`
                   }}
                 >
@@ -172,7 +172,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                 type="button"
                 onClick={() => setShowLoginModal(true)}
                 className="font-black text-xs px-3.5 py-2 rounded-xl shadow transition-all touch-manipulation"
-                style={{ backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}
+                style={{ backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#020617' : '#020617' }}
               >
                 Masuk
               </button>
@@ -201,7 +201,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                       ? activeTheme.primaryAccentHex 
                       : (isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)'),
                     color: isCatActive 
-                      ? (isLight ? '#ffffff' : '#020617') 
+                      ? (isLight ? '#020617' : '#020617') 
                       : textColor,
                     borderColor: isCatActive 
                       ? activeTheme.primaryAccentHex 

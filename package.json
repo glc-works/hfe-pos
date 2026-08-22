@@ -16,9 +16,12 @@
     "build-storybook": "storybook build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test e2e/flagship-one-transaction-one-truth.spec.ts && npm run rotate:test",
+    "test:e2e": "playwright test && npm run rotate:test",
     "test:e2e:ui": "playwright test --ui",
+    "test:flagship": "playwright test e2e/flagship-one-transaction-one-truth.spec.ts && npm run rotate:test",
     "test:visual": "playwright test e2e/visual-regression.spec.ts && npm run rotate:test",
+    "test:contrast": "playwright test e2e/theme-contrast-audit.spec.ts && npm run rotate:test",
+    "test:all": "./scripts/ci-local.sh && npm run test:e2e",
     "rotate:test": "python3 scripts/rotate-test-results.py",
     "clean:test": "rm -rf test-results playwright-report blob-report coverage",
     "typecheck": "tsc --noEmit",
@@ -50,6 +53,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.10",
     "@chromatic-com/storybook": "^3.2.2",
     "@playwright/test": "^1.62.1",

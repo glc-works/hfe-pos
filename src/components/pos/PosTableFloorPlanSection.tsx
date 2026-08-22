@@ -201,20 +201,20 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
               {/* ROW 1: TABLE ID (LEFT) & UTILISATION (RIGHT) — EXACTLY 2 ELEMENTS */}
               <div className="flex items-center justify-between gap-1 min-w-0">
                 <div className="flex items-center gap-1 min-w-0 truncate">
-                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                  <span className="font-mono font-black text-xs text-white truncate">
+                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                  <span className="font-mono font-black text-xs text-slate-900 dark:text-white truncate">
                     {displayTableName}
                   </span>
                 </div>
 
                 {/* RIGHT ANCHOR: HEADCOUNT UTILISATION */}
-                <span className="font-mono font-bold text-[10px] sm:text-[11px] text-amber-300 shrink-0 whitespace-nowrap">
+                <span className="font-mono font-bold text-[10px] sm:text-[11px] text-amber-800 dark:text-amber-300 shrink-0 whitespace-nowrap">
                   👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
                 </span>
               </div>
 
               {/* ROW 2: FULL WIDTH MONETARY LINE (EXACTLY 1 ELEMENT — ZERO CLIPPING) */}
-              <div className="pt-1 border-t border-slate-800/70 flex items-center justify-center min-w-0">
+              <div className="pt-1 border-t border-slate-200 dark:border-slate-800/70 flex items-center justify-center min-w-0">
                 {table.totalBill > 0 ? (
                   <PriceTag
                     amount={table.totalBill}
@@ -225,7 +225,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
                     className="font-black text-xs sm:text-sm"
                   />
                 ) : (
-                  <span className="font-mono font-black text-xs sm:text-sm text-emerald-400">
+                  <span className="font-mono font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">
                     {language === 'en' ? 'PAID' : 'LUNAS'}
                   </span>
                 )}
@@ -235,8 +235,8 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
               {table.minSpend && (
                 <div className={`text-[9px] sm:text-[10px] font-mono font-bold rounded px-1.5 py-0.5 text-center mt-0.5 whitespace-nowrap truncate ${
                   minSpendShortfall > 0
-                    ? 'text-amber-400 bg-amber-500/15 border border-amber-500/30'
-                    : 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/30'
+                    ? 'text-amber-800 dark:text-amber-400 bg-amber-500/15 border border-amber-500/30'
+                    : 'text-emerald-800 dark:text-emerald-400 bg-emerald-500/15 border border-emerald-500/30'
                 }`}>
                   {minSpendShortfall > 0
                     ? `👑 ${minSpendProgress}% • Sisa ${formatCompactPrice(minSpendShortfall)}`
@@ -249,16 +249,16 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             <>
               <div className="flex items-center justify-between gap-1 min-w-0">
                 <div className="flex items-center gap-1 min-w-0 truncate">
-                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />}
-                  <span className="font-mono font-black text-xs text-white truncate">
+                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                  <span className="font-mono font-black text-xs text-slate-900 dark:text-white truncate">
                     {displayTableName}
                   </span>
                 </div>
-                <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono font-medium shrink-0 whitespace-nowrap">
+                <span className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 font-mono font-medium shrink-0 whitespace-nowrap">
                   👥 {table.maxCapacity || table.pax || 4}
                 </span>
               </div>
-              <div className="text-center text-[10px] font-mono text-slate-500 group-hover:text-slate-300 transition-colors py-0.5 whitespace-nowrap">
+              <div className="text-center text-[10px] font-mono text-slate-600 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-300 transition-colors py-0.5 whitespace-nowrap">
                 + {language === 'en' ? 'Available' : 'Kosong'}
               </div>
             </>
@@ -270,11 +270,11 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
               {/* ROW 1: HEADER (ID LEFT • UTILISATION CENTER • TIMER RIGHT) */}
               <div className="flex items-center justify-between gap-1 min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0 truncate">
-                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-                  <span className="font-mono font-black text-xs sm:text-sm text-white whitespace-nowrap">
+                  {isVip && <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
+                  <span className="font-mono font-black text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap">
                     {isVip ? table.name : displayTableName}
                   </span>
-                  <span className="font-mono font-bold text-[11px] text-amber-300 shrink-0">
+                  <span className="font-mono font-bold text-[11px] text-amber-800 dark:text-amber-300 shrink-0">
                     👥 {table.seatedGuests || table.pax || 2}/{table.maxCapacity || table.pax || 4}
                   </span>
                 </div>
@@ -283,10 +283,10 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
                 {table.seatedDurationMinutes ? (
                   <div className={`flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0 ${
                     table.seatedDurationMinutes > 40
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      : 'bg-slate-800 text-slate-300 border border-slate-700'
+                      ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                   }`}>
-                    <Clock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                    <Clock className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400 shrink-0" />
                     <span>{table.seatedDurationMinutes}m</span>
                   </div>
                 ) : null}
@@ -294,15 +294,15 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
 
               {/* ROW 2: GUEST NAME & MENU GLYPH / VIP COMPACT PROGRESS */}
               <div className="flex items-center justify-between gap-1.5 min-w-0">
-                <span className="text-[11px] font-medium text-slate-200 truncate flex-1 min-w-0">
+                <span className="text-[11px] font-medium text-slate-800 dark:text-slate-200 truncate flex-1 min-w-0">
                   {table.customerName || t.pos?.walkInGuest || (language === 'en' ? 'Walk-In' : 'Tamu Walk-In')}
                 </span>
                 {minSpendProgress !== null ? (
-                  <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 rounded shrink-0">
+                  <span className="text-[9px] font-mono font-bold text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/30 px-1.5 py-0.2 rounded shrink-0">
                     👑 {minSpendProgress}%
                   </span>
                 ) : (
-                  <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.2 rounded shrink-0">
+                  <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-1.5 py-0.2 rounded shrink-0">
                     🍽️ {table.orderCount || 2}
                   </span>
                 )}
@@ -310,17 +310,17 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
 
               {/* VIP INTEGRATED MICRO PROGRESS BAR (1px SLIM) */}
               {minSpendProgress !== null && (
-                <div className="w-full bg-slate-800 h-1 rounded-full overflow-hidden -my-0.5">
+                <div className="w-full bg-slate-200 dark:bg-slate-800 h-1 rounded-full overflow-hidden -my-0.5">
                   <div
-                    className={`h-full transition-all duration-300 ${minSpendProgress >= 100 ? 'bg-emerald-400' : 'bg-amber-400'}`}
+                    className={`h-full transition-all duration-300 ${minSpendProgress >= 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                     style={{ width: `${Math.min(100, minSpendProgress)}%` }}
                   />
                 </div>
               )}
 
               {/* ROW 3: FOOTER (TICKET / DINE-IN • TOTAL PRICE TABULAR) */}
-              <div className="pt-1 border-t border-slate-800/60 flex items-center justify-between gap-2 min-w-0">
-                <span className="text-[10px] font-mono text-slate-400 truncate">
+              <div className="pt-1 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between gap-2 min-w-0">
+                <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 truncate">
                   {table.orderIds?.[0] || 'Dine-In'}
                 </span>
                 {table.totalBill > 0 ? (
@@ -332,7 +332,7 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
                     className="font-black shrink-0"
                   />
                 ) : (
-                  <span className="font-mono font-black text-xs text-emerald-400 shrink-0">
+                  <span className="font-mono font-black text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
                     {language === 'en' ? 'PAID' : 'LUNAS'}
                   </span>
                 )}
@@ -343,18 +343,18 @@ export const PosTableFloorPlanSection: React.FC<PosTableFloorPlanSectionProps> =
             <>
               <div className="flex items-center justify-between gap-1 min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  {isVip && <Crown className="w-4 h-4 text-amber-400/60 shrink-0" />}
-                  <span className="font-mono font-black text-sm sm:text-base text-white whitespace-nowrap">
+                  {isVip && <Crown className="w-4 h-4 text-amber-500 shrink-0" />}
+                  <span className="font-mono font-black text-sm sm:text-base text-slate-900 dark:text-white whitespace-nowrap">
                     {isVip ? table.name : displayTableName}
                   </span>
                 </div>
-                <span className="text-xs text-slate-400 font-mono font-medium">
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">
                   👥 {table.maxCapacity || table.pax || 4}
                 </span>
               </div>
 
               <div className="flex flex-col items-center justify-center py-1.5 text-center">
-                <span className="text-[11px] text-slate-400 font-mono group-hover:text-emerald-400 transition-colors">
+                <span className="text-[11px] text-slate-600 dark:text-slate-400 font-mono group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   + {language === 'en' ? 'Open Table' : 'Buka Meja'}
                 </span>
               </div>

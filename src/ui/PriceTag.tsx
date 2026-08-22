@@ -44,9 +44,9 @@ export const PriceTag: React.FC<PriceTagProps> = ({
 
   const variantClasses = {
     default: 'text-slate-900 dark:text-slate-100',
-    accent: 'text-amber-600 dark:text-amber-400',
-    emerald: 'text-emerald-600 dark:text-emerald-400',
-    muted: 'text-slate-500 dark:text-slate-400',
+    accent: 'text-amber-800 dark:text-amber-400',
+    emerald: 'text-emerald-700 dark:text-emerald-400',
+    muted: 'text-slate-600 dark:text-slate-400',
   }[variant]
 
   return (

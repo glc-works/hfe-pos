@@ -117,7 +117,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               <button
                 type="button"
                 onClick={onSwitchToCatalog}
-                className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
+                className="text-[11px] font-bold text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 bg-amber-100 dark:bg-amber-500/10 hover:bg-amber-200 dark:hover:bg-amber-500/20 border border-amber-300 dark:border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
                 title="Tambah Menu ke Keranjang"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -125,7 +125,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               </button>
             )}
             {selectedPOSTable && fulfillmentMode === 'dine_in' && (
-              <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-500/30">
+              <span className="text-xs font-mono font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-300 dark:border-amber-500/30">
                 {selectedPOSTable.name}
               </span>
             )}
@@ -221,7 +221,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         </div>
         <div className="flex justify-between text-base font-extrabold text-slate-900 dark:text-white border-t border-slate-200 dark:border-slate-800 pt-2">
           <span>{t.cart.totalBill}</span>
-          <span className="font-mono text-emerald-600 dark:text-emerald-400 whitespace-nowrap shrink-0">{formatPrice(grandTotal)}</span>
+          <span className="font-mono text-emerald-700 dark:text-emerald-400 whitespace-nowrap shrink-0">{formatPrice(grandTotal)}</span>
         </div>
 
         {/* METODE BAYAR (3 METODE UTAMA: CASH / QRIS / KARTU - STRICT SINGLE LINE) */}
@@ -326,7 +326,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                   key={preset.value}
                   type="button"
                   onClick={() => setPosCashGiven(preset.value.toString())}
-                  className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${cashGivenNum === preset.value ? 'bg-indigo-500 text-white border-indigo-400 font-extrabold shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                  className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${cashGivenNum === preset.value ? 'bg-indigo-600 text-white border-indigo-500 font-extrabold shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                 >
                   {preset.label}
                 </button>
@@ -416,8 +416,8 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
                 <span
                   className={`font-mono text-sm tabular-nums ${
                     cashGivenNum >= tenderGrandTotal && tenderGrandTotal > 0
-                      ? 'text-amber-600 dark:text-amber-400 font-black'
-                      : 'text-slate-400 dark:text-slate-500'
+                      ? 'text-amber-800 dark:text-amber-400 font-black'
+                      : 'text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {isForeignTender

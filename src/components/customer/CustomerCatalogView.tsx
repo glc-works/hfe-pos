@@ -174,7 +174,7 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
                 <h3 className="text-sm font-extrabold tracking-tight flex items-center gap-2" style={{ color: textColor }}>
                   <span className="text-base">{getCategoryIcon(category)}</span> {category}
                 </h3>
-                <span className="text-[11px] font-mono font-medium opacity-75" style={{ color: secondaryTextColor }}>
+                <span className="text-[11px] font-mono font-medium" style={{ color: isLight ? '#475569' : secondaryTextColor }}>
                   {items.length} menu
                 </span>
               </div>

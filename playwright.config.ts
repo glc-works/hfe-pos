@@ -19,15 +19,6 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'Mobile Chrome (iPhone Viewport)',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 390, height: 844 },
-        isMobile: true,
-        hasTouch: true,
-      },
-    },
-    {
       name: 'Desktop POS Chrome',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },

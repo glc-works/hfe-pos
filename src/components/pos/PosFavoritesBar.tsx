@@ -25,7 +25,7 @@ export const PosFavoritesBar: React.FC<PosFavoritesBarProps> = ({
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 sm:p-2.5 flex flex-col gap-1.5 shadow-xl transition-all">
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-1.5">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1 truncate">
+          <span className="text-xs font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1 truncate">
             <Sparkles className="w-3 h-3 fill-amber-500 dark:fill-amber-400 shrink-0" />
             <span className="truncate">{isMobile ? 'Favorites' : '⚡ Speed Keys'}</span>
           </span>
@@ -67,7 +67,7 @@ export const PosFavoritesBar: React.FC<PosFavoritesBarProps> = ({
                 <span className="text-sm sm:text-base mb-0.5 shrink-0">{item.image || '☕'}</span>
               )}
               <span className="text-[10px] font-bold text-slate-800 dark:text-slate-200 truncate w-full group-hover:text-slate-950 dark:group-hover:text-white leading-tight">{item.name}</span>
-              <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold leading-tight">{formatPrice(item.price)}</span>
+              <span className="text-[9px] font-mono text-emerald-700 dark:text-emerald-400 font-bold leading-tight">{formatPrice(item.price)}</span>
             </button>
           ))}
         </div>

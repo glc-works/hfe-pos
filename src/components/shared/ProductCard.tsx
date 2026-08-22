@@ -326,8 +326,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
           {product.description && (
             <p
-              className="text-[11px] line-clamp-2 mt-0.5 leading-relaxed opacity-80"
-              style={{ color: secondaryTextColor }}
+              className="text-[11px] line-clamp-2 mt-0.5 leading-relaxed text-slate-600 dark:text-slate-300"
+              style={{ color: isLight ? '#475569' : secondaryTextColor }}
             >
               {product.description}
             </p>
@@ -338,7 +338,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {priceVisibilityMode === 'show_prices' ? (
             <span
               className="text-sm font-extrabold font-mono tabular-nums whitespace-nowrap"
-              style={{ color: primaryAccentHex }}
+              style={{ color: isLight && (primaryAccentHex === '#d97706' || primaryAccentHex === '#f59e0b') ? '#b45309' : primaryAccentHex }}
             >
               Rp {product.price.toLocaleString('id-ID')}
             </span>
