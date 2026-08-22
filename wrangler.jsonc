@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hfe-pos-preview",
+  "compatibility_date": "2026-08-22",
+
+  // Assets-only Worker: no `main`, no server script. The app is a Vite SPA
+  // (`output` is plain static `dist/`), and this repo hosts the FRONTEND only —
+  // Hfe CORE and every backend service stay on AWS and are reached over REST.
+  // Serving static assets from Cloudflare does not move backend ownership.
+  //
+  // The same shape is already in production for `hfeit.com`
+  // (glc-works/hfeit-landingpage), which is why it is copied rather than
+  // invented.
+  "assets": {
+    "directory": "./dist",
+
+    // `single-page-application`, NOT `404-page` as the landing site uses. That
+    // site is multi-page and a real 404 is the correct answer there. This app
+    // routes on the client, so any path other than `/` must still return
+    // index.html — with `404-page`, every deep link and every reload away from
+    // the root would 404 while the app itself works perfectly in local dev.
+    "not_found_handling": "single-page-application"
+  }
+}

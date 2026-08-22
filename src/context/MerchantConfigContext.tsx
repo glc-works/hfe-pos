@@ -6,6 +6,7 @@ import { MARKETPLACE_THEMES } from '../data/marketplaceThemesData'
 import { DEFAULT_AVAILABLE_VOUCHERS } from '../data/mockVouchers'
 import { INITIAL_PARTNER_CONTACTS } from '../data/mockContacts'
 import { DEFAULT_STOREFRONT_CUSTOMIZATION } from '../data/defaultStorefrontCustomization'
+import { normalizeSurfaceHost } from '../utils/surfaceHost'
 
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
 export type ThemeModeType = 'light' | 'dark' | 'system'
@@ -248,9 +249,7 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       if (surfaceParam === 'gallery') return 'gallery'
       if (surfaceParam) return 'cafe'
 
-      let host = window.location.hostname.toLowerCase()
-      if (host.startsWith('dev-')) host = host.slice(4)
-      if (host.startsWith('dev.')) host = host.slice(4)
+      const host = normalizeSurfaceHost(window.location.hostname)
       if (host.startsWith('order.') || host.startsWith('qr.')) return 'customer'
       if (host.startsWith('card.') || host.startsWith('member.') || host.startsWith('pass.')) return 'customer-portal'
       if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'
