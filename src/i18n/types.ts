@@ -294,5 +294,29 @@ export interface TranslationDictionary {
     featuredMenuTitle: string
     viewAllCatalog: string
     hours: string
+    oneTruthTag: string
+    oneTruthTitle: string
+    oneTruthSubtitle: string
+    oneTruthStep1Title: string
+    oneTruthStep1Desc: string
+    oneTruthStep2Title: string
+    oneTruthStep2Desc: string
+    oneTruthStep3Title: string
+    oneTruthStep3Desc: string
+    oneTruthStep4Title: string
+    oneTruthStep4Desc: string
+    oneTruthStep5Title: string
+    oneTruthStep5Desc: string
+  }
+  hub: {
+    businessTruthTitle: string
+    businessTruthPostedBadge: string
+    businessTruthPendingBadge: string
+    businessTruthTxLabel: string
+    businessTruthGrossLabel: string
+    businessTruthTaxLabel: string
+    businessTruthProfitLabel: string
+    businessTruthLineage: string
+    businessTruthTagline: string
   }
 }

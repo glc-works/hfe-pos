@@ -51,7 +51,7 @@ function AppMain() {
     return 'barista-pos'
   })
   const [qrStepView, setQrStepView] = useState<'catalog' | 'checkout'>('catalog')
-  const [isCustomerSessionActive] = useState<boolean>(true)
+  const [isCustomerSessionActive, setIsCustomerSessionActive] = useState<boolean>(false)
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
   const [aiStylesheetInput, setAiStylesheetInput] = useState<string>('')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -59,6 +59,27 @@ function AppMain() {
   const showToast = (msg: string) => {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(null), 2500)
+  }
+
+  const resetCanonicalGuestSession = () => {
+    setIsCustomerSessionActive(false)
+    cart.setCart([])
+    cart.setLoginType('guest-name')
+    cart.setGuestName('Tamu')
+    cart.setCustomerPhone('')
+    cart.setLoyaltyPoints(0)
+    cart.setAppliedPromo(null)
+    setQrStepView('catalog')
+    showToast('🔄 Sesi Tamu Direset ke Awal (Guest-First)')
+  }
+
+  const handleJoinMembershipAtCheckout = (phone: string) => {
+    setIsCustomerSessionActive(true)
+    cart.setLoginType('phone')
+    cart.setCustomerPhone(phone)
+    cart.setGuestName('Member HP')
+    cart.setLoyaltyPoints(100)
+    showToast('🎉 Selamat Datang! Keanggotaan Aktif & Poin Tersimpan')
   }
 
   // State hooks
@@ -259,6 +280,7 @@ function AppMain() {
             handleUpdateQty={cart.handleUpdateQty} handleApplyPromo={cart.handleApplyPromo}
             handleSubmitOrder={() => cart.handleSubmitOrder(table.selectedTable, setQrStepView)}
             onSettleOpenTab={handleSettleOpenTab}
+            onJoinMembership={handleJoinMembershipAtCheckout}
             onSwitchToLandingPage={() => config.setActiveApp('landing')}
             onSwitchToPos={() => config.setActiveApp('cafe')}
           />

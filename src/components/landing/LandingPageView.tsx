@@ -11,6 +11,7 @@ import { EventTicketItem, PurchasedEventTicket } from '../../types/pos'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
 import { MerchantStorefrontCustomizerModal } from '../settings/MerchantStorefrontCustomizerModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
+import { OneTransactionOneTruthSection } from './OneTransactionOneTruthSection'
 
 interface LandingPageViewProps {
   hfeCompanyProfile: HfeCompanyProfile
@@ -404,6 +405,9 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           ))}
         </div>
       </section>
+
+      {/* ⚡ ONE TRANSACTION. ONE TRUTH. FLOW SECTION */}
+      <OneTransactionOneTruthSection />
 
       {/* FOOTER & ADDRESS */}
       <footer className="mt-auto border-t border-slate-800 bg-slate-950 px-4 sm:px-8 py-6 text-center text-xs text-slate-500 flex flex-col gap-2">

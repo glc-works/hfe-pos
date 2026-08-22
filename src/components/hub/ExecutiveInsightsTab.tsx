@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { Card, Button, Badge } from '../../ui'
 import { TrendingUp, DollarSign, PieChart, Clock, FileText, Printer, Sparkles, CheckCircle2 } from 'lucide-react'
+import { useTranslation } from '../../context/LanguageContext'
 
 export function ExecutiveInsightsTab() {
+  const { t, formatPrice } = useTranslation()
   const [selectedRange, setSelectedRange] = useState<'today' | 'this_week' | 'this_month'>('today')
   const [zReportGenerated, setZReportGenerated] = useState(false)
 
@@ -71,36 +73,36 @@ export function ExecutiveInsightsTab() {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-emerald-400" />
             <h4 className="text-xs sm:text-sm font-bold text-foreground">
-              ⚡ Realtime Business Truth: Dampak Transaksi Terakhir
+              {t.hub.businessTruthTitle}
             </h4>
           </div>
           <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-mono">
-            Posted to CORE ✓
+            {t.hub.businessTruthPostedBadge}
           </Badge>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
           <div className="p-2.5 rounded-xl bg-card border border-border">
-            <span className="text-[10px] text-muted-foreground block font-sans">Transaksi & Meja</span>
+            <span className="text-[10px] text-muted-foreground block font-sans">{t.hub.businessTruthTxLabel}</span>
             <span className="font-bold text-foreground">Meja OUT-04 • QR</span>
           </div>
           <div className="p-2.5 rounded-xl bg-card border border-border">
-            <span className="text-[10px] text-muted-foreground block font-sans">Omset / Nilai Order</span>
-            <span className="font-bold text-foreground tabular-nums">Rp 57.500</span>
+            <span className="text-[10px] text-muted-foreground block font-sans">{t.hub.businessTruthGrossLabel}</span>
+            <span className="font-bold text-foreground tabular-nums">{formatPrice(57500)}</span>
           </div>
           <div className="p-2.5 rounded-xl bg-card border border-border">
-            <span className="text-[10px] text-muted-foreground block font-sans">Pajak PB1 (10%)</span>
-            <span className="font-bold text-amber-400 tabular-nums">Rp 5.000</span>
+            <span className="text-[10px] text-muted-foreground block font-sans">{t.hub.businessTruthTaxLabel}</span>
+            <span className="font-bold text-amber-400 tabular-nums">{formatPrice(5000)}</span>
           </div>
           <div className="p-2.5 rounded-xl bg-card border border-border">
-            <span className="text-[10px] text-muted-foreground block font-sans">Laba Kotor Bersih</span>
-            <span className="font-bold text-emerald-400 tabular-nums">Rp 36.000 (72%)</span>
+            <span className="text-[10px] text-muted-foreground block font-sans">{t.hub.businessTruthProfitLabel}</span>
+            <span className="font-bold text-emerald-400 tabular-nums">{formatPrice(36000)} (72%)</span>
           </div>
         </div>
 
         <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
-          <span>Lineage: <code>QR Order ➔ Payment QRIS ➔ GL Posting (Hfe CORE)</code></span>
-          <span className="font-mono text-[10px] text-emerald-400 font-bold">1 Transaksi. 1 Kebenaran.</span>
+          <span>{t.hub.businessTruthLineage}</span>
+          <span className="font-mono text-[10px] text-emerald-400 font-bold">{t.hub.businessTruthTagline}</span>
         </div>
       </Card>
 

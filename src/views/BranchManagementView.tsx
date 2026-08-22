@@ -117,6 +117,46 @@ export const BranchManagementView: React.FC<BranchManagementViewProps> = ({
         </div>
       </div>
 
+      {/* ⚡ HQ Network Impact: Transaksi Terakhir dari Outlet (Issue #33 Part C) */}
+      <div className="bg-gradient-to-r from-emerald-50 via-white to-emerald-50 border border-emerald-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center space-x-2">
+            <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-sm">⚡</span>
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm">HQ Network Impact: Transaksi Terakhir Outlet</h3>
+              <p className="text-[11px] text-slate-500">Konsolidasi real-time pergerakan omzet dan laba kotor seluruh cabang</p>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
+            Governed Consensus Active ✓
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="bg-white p-3 rounded-xl border border-emerald-100">
+            <span className="text-[10px] text-slate-400 block">Outlet Penghasil:</span>
+            <strong className="text-slate-800 font-semibold">{activeBranch.name}</strong>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-emerald-100">
+            <span className="text-[10px] text-slate-400 block">Delta Omzet Jaringan:</span>
+            <strong className="text-emerald-600 font-mono font-bold">+Rp 57.500</strong>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-emerald-100">
+            <span className="text-[10px] text-slate-400 block">Delta Laba Kotor:</span>
+            <strong className="text-emerald-600 font-mono font-bold">+Rp 36.000 (72%)</strong>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-emerald-100">
+            <span className="text-[10px] text-slate-400 block">Status Batas Data:</span>
+            <span className="text-[10px] font-mono text-purple-700 font-semibold">Protected Boundary</span>
+          </div>
+        </div>
+
+        <div className="text-[10px] text-slate-500 pt-1 border-t border-emerald-100 flex items-center justify-between">
+          <span>Prinsip Tenancy: Hanya data agregat & ringkasan resmi yang dikonsolidasikan ke HQ.</span>
+          <span className="font-mono text-emerald-700 font-bold">1 Transaksi. 1 Kebenaran.</span>
+        </div>
+      </div>
+
       {/* Comparative Outlet Cards Grid */}
       <div>
         <h2 className="text-base font-bold text-slate-800 mb-4">Performa Sales Komparatif Per Cabang</h2>
