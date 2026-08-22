@@ -44,6 +44,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    include: ['src/tests/**/*.{test,spec}.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
