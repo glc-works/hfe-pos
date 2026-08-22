@@ -1,0 +1,43 @@
+---
+import ExpSuiteLayout from '../../layouts/ExpSuiteLayout.astro'
+import ExpHeroSection from '../../components/exp/ExpHeroSection.astro'
+import ExpPainPointsSection from '../../components/exp/ExpPainPointsSection.astro'
+import ExpProductSextetGrid from '../../components/exp/ExpProductSextetGrid.astro'
+import ExpOneTruthWorkflow from '../../components/exp/ExpOneTruthWorkflow.astro'
+import ExpIndustrySelector from '../../components/exp/ExpIndustrySelector.astro'
+import ExpLaunchpadCta from '../../components/exp/ExpLaunchpadCta.astro'
+import { resolveLanguage, getExpTranslations } from '../../i18n/langResolver'
+
+// Cloudflare Edge & URL Geo/Lang Resolution
+const cookieHeader = Astro.request.headers.get('cookie')
+const geoCountry = Astro.request.headers.get('cf-ipcountry')
+const acceptLanguage = Astro.request.headers.get('accept-language')
+const urlParam = Astro.url.searchParams.get('lang')
+
+const currentLang = resolveLanguage(cookieHeader, geoCountry, acceptLanguage, urlParam)
+const t = getExpTranslations(currentLang)
+---
+
+<ExpSuiteLayout
+  title={currentLang === 'id' ? 'EXP.Hfeit — Solusi Perdagangan & Pembukuan Terpadu' : 'EXP.Hfeit — The Unified Commerce & Experience Suite'}
+  description={t.hero.subtitle}
+  currentLang={currentLang}
+>
+  <!-- 1. Hero Section -->
+  <ExpHeroSection t={t.hero} />
+
+  <!-- 2. Pain Points & Real Solutions -->
+  <ExpPainPointsSection t={t.painPoints} />
+
+  <!-- 3. The 6-Product Suite Bento Grid -->
+  <ExpProductSextetGrid t={t.sextet} />
+
+  <!-- 4. Interactive Simulation: One Transaction. One Truth. -->
+  <ExpOneTruthWorkflow t={t.workflow} />
+
+  <!-- 5. Multi-Industry Adaptability -->
+  <ExpIndustrySelector t={t.industries} />
+
+  <!-- 6. High-Conversion Launchpad & Onboarding Gateway -->
+  <ExpLaunchpadCta t={t.cta} />
+</ExpSuiteLayout>

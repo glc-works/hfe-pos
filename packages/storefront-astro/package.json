@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "BOARD.Hfeit — Universal Decoupled High-Performance SEO Storefront via Astro 5.x",
+  "description": "BOARD.Hfeit & EXP.Hfeit — Universal Decoupled High-Performance SEO Storefront & Experience Suite via Astro 7.2",
   "scripts": {
     "dev": "astro dev --port 4321",
     "start": "astro dev",
@@ -12,9 +12,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/tailwind": "^5.1.5",
-    "astro": "^5.0.0",
+    "@astrojs/check": "latest",
+    "@astrojs/tailwind": "latest",
+    "astro": "^7.2.0",
     "clsx": "^2.1.1",
     "lucide-astro": "^0.475.0",
     "tailwind-merge": "^2.6.0",

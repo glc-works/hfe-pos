@@ -1,0 +1,171 @@
+---
+import type { ExpTranslations } from '../../i18n/translations'
+
+interface Props {
+  t: ExpTranslations['sextet']
+}
+
+const { t } = Astro.props
+---
+
+<section id="products-sextet" class="py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-white/5">
+  <!-- Section Header -->
+  <div class="text-center max-w-2xl mx-auto mb-16">
+    <span class="text-xs font-mono text-amber-400 uppercase tracking-wider mb-2 block">{t.sectionBadge}</span>
+    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">{t.sectionTitle}</h2>
+    <p class="text-sm sm:text-base text-slate-400">{t.sectionSubtitle}</p>
+  </div>
+
+  <!-- 6-Product 2026+ Bento Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- 1. ADMIN.Hfeit (Indigo) -->
+    <div class="p-6 rounded-3xl bg-slate-900/60 border border-indigo-500/30 hover:border-indigo-500/60 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group shadow-lg">
+      <div class="absolute -right-8 -top-8 w-28 h-28 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-2xl">🏢</span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-indigo-950/80 border border-indigo-500/30 text-indigo-300">
+            {t.admin.tagline}
+          </span>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-1">{t.admin.name}</h3>
+        <p class="text-xs font-mono text-indigo-400 mb-4">{t.admin.role}</p>
+        <ul class="space-y-2 mb-6">
+          {t.admin.features.map((feat) => (
+            <li class="text-xs sm:text-sm text-slate-300 flex items-center gap-2">
+              <span class="text-indigo-400">✓</span> {feat}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <a href="/admin" class="text-xs font-bold text-indigo-400 group-hover:text-indigo-300 flex items-center gap-1 mt-auto">
+        Pelajari ADMIN.Hfeit ➔
+      </a>
+    </div>
+
+    <!-- 2. POS.Hfeit (Amber) -->
+    <div class="p-6 rounded-3xl bg-slate-900/60 border border-amber-500/30 hover:border-amber-500/60 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group shadow-lg">
+      <div class="absolute -right-8 -top-8 w-28 h-28 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all"></div>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-2xl">📱</span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/30 text-amber-300">
+            {t.pos.tagline}
+          </span>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-1">{t.pos.name}</h3>
+        <p class="text-xs font-mono text-amber-400 mb-4">{t.pos.role}</p>
+        <ul class="space-y-2 mb-6">
+          {t.pos.features.map((feat) => (
+            <li class="text-xs sm:text-sm text-slate-300 flex items-center gap-2">
+              <span class="text-amber-400">✓</span> {feat}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <a href="/pos" class="text-xs font-bold text-amber-400 group-hover:text-amber-300 flex items-center gap-1 mt-auto">
+        Pelajari POS.Hfeit ➔
+      </a>
+    </div>
+
+    <!-- 3. BOOK.Hfeit (Emerald) -->
+    <div class="p-6 rounded-3xl bg-slate-900/60 border border-emerald-500/30 hover:border-emerald-500/60 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group shadow-lg">
+      <div class="absolute -right-8 -top-8 w-28 h-28 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-2xl">📊</span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-300">
+            {t.book.tagline}
+          </span>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-1">{t.book.name}</h3>
+        <p class="text-xs font-mono text-emerald-400 mb-4">{t.book.role}</p>
+        <ul class="space-y-2 mb-6">
+          {t.book.features.map((feat) => (
+            <li class="text-xs sm:text-sm text-slate-300 flex items-center gap-2">
+              <span class="text-emerald-400">✓</span> {feat}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <a href="/book" class="text-xs font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 mt-auto">
+        Pelajari BOOK.Hfeit ➔
+      </a>
+    </div>
+
+    <!-- 4. CARD.Hfeit (Purple) -->
+    <div class="p-6 rounded-3xl bg-slate-900/60 border border-purple-500/30 hover:border-purple-500/60 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group shadow-lg">
+      <div class="absolute -right-8 -top-8 w-28 h-28 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition-all"></div>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-2xl">💳</span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-purple-950/80 border border-purple-500/30 text-purple-300">
+            {t.card.tagline}
+          </span>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-1">{t.card.name}</h3>
+        <p class="text-xs font-mono text-purple-400 mb-4">{t.card.role}</p>
+        <ul class="space-y-2 mb-6">
+          {t.card.features.map((feat) => (
+            <li class="text-xs sm:text-sm text-slate-300 flex items-center gap-2">
+              <span class="text-purple-400">✓</span> {feat}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <a href="/card" class="text-xs font-bold text-purple-400 group-hover:text-purple-300 flex items-center gap-1 mt-auto">
+        Pelajari CARD.Hfeit ➔
+      </a>
+    </div>
+
+    <!-- 5. BOARD.Hfeit (Cyan) -->
+    <div class="p-6 rounded-3xl bg-slate-900/60 border border-cyan-500/30 hover:border-cyan-500/60 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group shadow-lg">
+      <div class="absolute -right-8 -top-8 w-28 h-28 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all"></div>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-2xl">🌐</span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300">
+            {t.board.tagline}
+          </span>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-1">{t.board.name}</h3>
+        <p class="text-xs font-mono text-cyan-400 mb-4">{t.board.role}</p>
+        <ul class="space-y-2 mb-6">
+          {t.board.features.map((feat) => (
+            <li class="text-xs sm:text-sm text-slate-300 flex items-center gap-2">
+              <span class="text-cyan-400">✓</span> {feat}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <a href="/board" class="text-xs font-bold text-cyan-400 group-hover:text-cyan-300 flex items-center gap-1 mt-auto">
+        Pelajari BOARD.Hfeit ➔
+      </a>
+    </div>
+
+    <!-- 6. ORDER.Hfeit (Rose) -->
+    <div class="p-6 rounded-3xl bg-slate-900/60 border border-rose-500/30 hover:border-rose-500/60 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group shadow-lg">
+      <div class="absolute -right-8 -top-8 w-28 h-28 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-all"></div>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-2xl">🛍️</span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-full bg-rose-950/80 border border-rose-500/30 text-rose-300">
+            {t.order.tagline}
+          </span>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-1">{t.order.name}</h3>
+        <p class="text-xs font-mono text-rose-400 mb-4">{t.order.role}</p>
+        <ul class="space-y-2 mb-6">
+          {t.order.features.map((feat) => (
+            <li class="text-xs sm:text-sm text-slate-300 flex items-center gap-2">
+              <span class="text-rose-400">✓</span> {feat}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <a href="/order" class="text-xs font-bold text-rose-400 group-hover:text-rose-300 flex items-center gap-1 mt-auto">
+        Pelajari ORDER.Hfeit ➔
+      </a>
+    </div>
+  </div>
+</section>

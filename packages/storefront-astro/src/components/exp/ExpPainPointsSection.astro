@@ -1,0 +1,73 @@
+---
+import type { ExpTranslations } from '../../i18n/translations'
+
+interface Props {
+  t: ExpTranslations['painPoints']
+}
+
+const { t } = Astro.props
+---
+
+<section class="py-16 px-4 sm:px-6 max-w-6xl mx-auto border-t border-white/5">
+  <!-- Section Header -->
+  <div class="text-center max-w-2xl mx-auto mb-12">
+    <span class="text-xs font-mono text-rose-400 uppercase tracking-wider mb-2 block">{t.sectionBadge}</span>
+    <h2 class="text-2xl sm:text-4xl font-bold text-white mb-4">{t.sectionTitle}</h2>
+    <p class="text-sm sm:text-base text-slate-400">{t.sectionSubtitle}</p>
+  </div>
+
+  <!-- 4 Pain Points Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- P1: Bookkeeping -->
+    <div class="p-6 rounded-2xl bg-slate-900/50 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 relative overflow-hidden group">
+      <div class="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-full w-fit mb-4">
+        Solusi: {t.p1.product}
+      </div>
+      <h3 class="text-lg font-bold text-white mb-2">{t.p1.title}</h3>
+      <p class="text-xs sm:text-sm text-slate-400 mb-4 line-through decoration-rose-500/60 decoration-2">{t.p1.desc}</p>
+      <div class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs sm:text-sm text-emerald-200 flex items-start gap-2.5">
+        <span class="text-base">✨</span>
+        <span>{t.p1.solvedBy}</span>
+      </div>
+    </div>
+
+    <!-- P2: POS Stability -->
+    <div class="p-6 rounded-2xl bg-slate-900/50 border border-amber-500/20 hover:border-amber-500/40 transition-all duration-300 relative overflow-hidden group">
+      <div class="text-xs font-mono text-amber-400 bg-amber-950/60 border border-amber-500/30 px-2.5 py-1 rounded-full w-fit mb-4">
+        Solusi: {t.p2.product}
+      </div>
+      <h3 class="text-lg font-bold text-white mb-2">{t.p2.title}</h3>
+      <p class="text-xs sm:text-sm text-slate-400 mb-4 line-through decoration-rose-500/60 decoration-2">{t.p2.desc}</p>
+      <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/20 text-xs sm:text-sm text-amber-200 flex items-start gap-2.5">
+        <span class="text-base">⚡</span>
+        <span>{t.p2.solvedBy}</span>
+      </div>
+    </div>
+
+    <!-- P3: 0% Delivery Fee -->
+    <div class="p-6 rounded-2xl bg-slate-900/50 border border-rose-500/20 hover:border-rose-500/40 transition-all duration-300 relative overflow-hidden group">
+      <div class="text-xs font-mono text-rose-400 bg-rose-950/60 border border-rose-500/30 px-2.5 py-1 rounded-full w-fit mb-4">
+        Solusi: {t.p3.product}
+      </div>
+      <h3 class="text-lg font-bold text-white mb-2">{t.p3.title}</h3>
+      <p class="text-xs sm:text-sm text-slate-400 mb-4 line-through decoration-rose-500/60 decoration-2">{t.p3.desc}</p>
+      <div class="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/20 text-xs sm:text-sm text-rose-200 flex items-start gap-2.5">
+        <span class="text-base">🛍️</span>
+        <span>{t.p3.solvedBy}</span>
+      </div>
+    </div>
+
+    <!-- P4: Multi Branch & RBAC -->
+    <div class="p-6 rounded-2xl bg-slate-900/50 border border-indigo-500/20 hover:border-indigo-500/40 transition-all duration-300 relative overflow-hidden group">
+      <div class="text-xs font-mono text-indigo-400 bg-indigo-950/60 border border-indigo-500/30 px-2.5 py-1 rounded-full w-fit mb-4">
+        Solusi: {t.p4.product}
+      </div>
+      <h3 class="text-lg font-bold text-white mb-2">{t.p4.title}</h3>
+      <p class="text-xs sm:text-sm text-slate-400 mb-4 line-through decoration-rose-500/60 decoration-2">{t.p4.desc}</p>
+      <div class="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs sm:text-sm text-indigo-200 flex items-start gap-2.5">
+        <span class="text-base">🏢</span>
+        <span>{t.p4.solvedBy}</span>
+      </div>
+    </div>
+  </div>
+</section>
