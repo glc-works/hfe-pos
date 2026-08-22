@@ -45,4 +45,24 @@ describe('PWA Web App Installation & Manifest Integrity', () => {
     expect(svgContent).toContain('<svg')
     expect(svgContent).toContain('viewBox="0 0 512 512"')
   })
+
+  it('should exempt board.hfeit.com and landing storefront from web app install popup', () => {
+    const isBoardLandingHost = (hostname: string, activeApp?: string) => {
+      return Boolean(
+        activeApp === 'landing' ||
+        hostname.toLowerCase().startsWith('board.') ||
+        hostname.toLowerCase() === 'board.hfeit.com' ||
+        hostname.toLowerCase() === 'hfeit.com'
+      )
+    }
+
+    expect(isBoardLandingHost('board.hfeit.com')).toBe(true)
+    expect(isBoardLandingHost('board.senopati.hfeit.com')).toBe(true)
+    expect(isBoardLandingHost('hfeit.com')).toBe(true)
+    expect(isBoardLandingHost('localhost', 'landing')).toBe(true)
+    expect(isBoardLandingHost('pos.hfeit.com', 'cafe')).toBe(false)
+    expect(isBoardLandingHost('qr.hfeit.com', 'customer')).toBe(false)
+    expect(isBoardLandingHost('card.hfeit.com', 'customer-portal')).toBe(false)
+  })
 })
+

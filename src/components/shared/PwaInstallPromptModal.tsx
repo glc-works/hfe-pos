@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Download, X, Share2, PlusSquare, Smartphone, Zap, WifiOff, Sparkles, Check } from 'lucide-react'
+import { useMerchantConfig } from '../../context/MerchantConfigContext'
 
 export interface PwaInstallPromptModalProps {
   isOpen?: boolean
@@ -12,6 +13,24 @@ export const PwaInstallPromptModal: React.FC<PwaInstallPromptModalProps> = ({
   onClose: externalOnClose,
   forceShow = false
 }) => {
+  let activeApp: string | undefined
+  try {
+    const config = useMerchantConfig()
+    activeApp = config?.activeApp
+  } catch {
+    // Standalone or storybook safe fallback
+  }
+
+  const isBoardLanding = Boolean(
+    activeApp === 'landing' ||
+    (typeof window !== 'undefined' && (
+      window.location.hostname.toLowerCase().startsWith('board.') ||
+      window.location.hostname.toLowerCase() === 'board.hfeit.com' ||
+      window.location.hostname.toLowerCase() === 'hfeit.com' ||
+      new URLSearchParams(window.location.search).get('app') === 'landing'
+    ))
+  )
+
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [isStandalone, setIsStandalone] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -19,6 +38,9 @@ export const PwaInstallPromptModal: React.FC<PwaInstallPromptModalProps> = ({
   const [isInstalledSuccess, setIsInstalledSuccess] = useState(false)
 
   useEffect(() => {
+    // On board.hfeit.com / landing, do not listen or trigger auto-install prompts
+    if (isBoardLanding && !forceShow) return
+
     // Check if already in standalone mode
     const standaloneMode =
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -76,6 +98,9 @@ export const PwaInstallPromptModal: React.FC<PwaInstallPromptModalProps> = ({
       setDeferredPrompt(null)
     }
   }
+
+  // If running on board.hfeit.com or landing view, never show PWA install prompt
+  if (isBoardLanding && !forceShow) return null
 
   // If already running inside installed standalone PWA, do not show
   if (isStandalone && !forceShow) return null
