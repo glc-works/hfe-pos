@@ -3,6 +3,22 @@
   "name": "hfe-pos-preview",
   "compatibility_date": "2026-08-22",
 
+  // Custom domain lives HERE, not in a dashboard click. `wrangler deploy`
+  // creates the DNS record and issues the certificate itself, so the hostname
+  // this Worker answers on is reviewable in a diff and reproducible from a
+  // clean checkout — which is what an evidence-bound promotion needs.
+  //
+  // Do NOT hand-create a proxied A record for these names. That is what the
+  // other .com surfaces have, and it is why they return 525: Cloudflare is
+  // pointed at an origin that completes no TLS handshake.
+  //
+  // Promotion to production is one more entry here (`pos.hfeit.com`), after the
+  // minimum acceptance gate passes. Preview keeps serving throughout, so a
+  // withdrawal is removing one line rather than an outage.
+  "routes": [
+    { "pattern": "prv-pos.hfeit.com", "custom_domain": true }
+  ],
+
   // Assets-only Worker: no `main`, no server script. The app is a Vite SPA
   // (`output` is plain static `dist/`), and this repo hosts the FRONTEND only —
   // Hfe CORE and every backend service stay on AWS and are reached over REST.
