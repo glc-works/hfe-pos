@@ -267,11 +267,18 @@ describe('Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)', () =>
     })
 
     it('should enforce DEV check on isMockModeForced (Issue #39)', () => {
-      expect(typeof isMockModeForced).toBe('function')
-      // In non-dev environment, isMockModeForced must strictly evaluate to false
-      const isDev = import.meta.env.DEV
-      if (!isDev) {
+      // Production lockout: with DEV stubbed false, explicit mock-forcing via
+      // browser globals and localStorage MUST be ignored (returns false).
+      vi.stubEnv('DEV', false)
+      vi.stubGlobal('window', { __HFE_FORCE_MOCK__: true })
+      vi.stubGlobal('localStorage', {
+        getItem: (key: string) => (key === 'hfe_force_mock_adapter' ? 'true' : null),
+      })
+      try {
         expect(isMockModeForced()).toBe(false)
+      } finally {
+        vi.unstubAllEnvs()
+        vi.unstubAllGlobals()
       }
     })
   })
