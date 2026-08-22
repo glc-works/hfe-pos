@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # 1. NPM Dependencies (POS Frontend)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "21:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+    ignore:
+      # Prevent automated breaking major upgrades without human review
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # Ignore local SDK package
+      - dependency-name: "@hfe/sdk"
+
+  # 2. GitHub Actions Workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
