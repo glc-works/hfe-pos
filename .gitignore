@@ -37,4 +37,6 @@ playwright-report/
 blob-report/
 coverage/
 .nyc_output/
+.astro/
+packages/storefront-astro/.astro/
 
