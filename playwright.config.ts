@@ -10,10 +10,12 @@ export default defineConfig({
   retries: 0,
   workers: 1,
   reporter: [['html', { open: 'never' }], ['list']],
+  preserveOutput: 'always',
+  outputDir: 'test-results',
   use: {
     baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    trace: 'retain-on-failure',
+    screenshot: 'on',
   },
   projects: [
     {
