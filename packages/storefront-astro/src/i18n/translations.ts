@@ -1,5 +1,13 @@
 export type SupportedLanguage = 'id' | 'en'
 
+export interface ProductFeatureInfo {
+  name: string
+  tagline: string
+  role: string
+  features: string[]
+  badgeColor: string
+}
+
 export interface ExpTranslations {
   nav: {
     products: string
@@ -30,16 +38,15 @@ export interface ExpTranslations {
     p3: { title: string; desc: string; solvedBy: string; product: string }
     p4: { title: string; desc: string; solvedBy: string; product: string }
   }
-  sextet: {
+  quintet: {
     sectionBadge: string
     sectionTitle: string
     sectionSubtitle: string
-    admin: { name: string; tagline: string; role: string; features: string[] }
-    pos: { name: string; tagline: string; role: string; features: string[] }
-    book: { name: string; tagline: string; role: string; features: string[] }
-    card: { name: string; tagline: string; role: string; features: string[] }
-    board: { name: string; tagline: string; role: string; features: string[] }
-    order: { name: string; tagline: string; role: string; features: string[] }
+    pos: ProductFeatureInfo
+    book: ProductFeatureInfo
+    order: ProductFeatureInfo
+    board: ProductFeatureInfo
+    card: ProductFeatureInfo
   }
   workflow: {
     sectionBadge: string
@@ -67,19 +74,19 @@ export interface ExpTranslations {
 export const TRANSLATIONS: Record<SupportedLanguage, ExpTranslations> = {
   id: {
     nav: {
-      products: '6 Produk',
+      products: '5 Produk Inti',
       solutions: 'Solusi Bisnis',
       workflow: 'Alur Kebenaran',
       pricing: 'Paket Usaha',
       login: 'Masuk Kasir',
-      startTrial: 'Daftar Gratis ➔'
+      startTrial: 'Daftar Toko Gratis ➔'
     },
     hero: {
-      badge: '⚡ THE UNIFIED COMMERCE & EXPERIENCE SUITE 2026+',
+      badge: '⚡ CLOUDFLARE EDGE SPEED • 100% OFFLINE RESILIENT',
       titlePart1: 'Satu Sistem Cerdas untuk',
       titleHighlight: 'Semua Urusan Bisnis',
       titlePart2: 'Anda.',
-      subtitle: 'Jalankan kasir cepat, terima pesanan QR meja, bangun loyalitas member, dan dapatkan pembukuan otomatis. Semua berjalan sendiri tanpa bikin pusing.',
+      subtitle: 'Jalankan kasir kilat <16ms, terima pesanan QR meja, bangun loyalitas member, dan pembukuan otomatis. Rapi, elegan, dan tanpa selisih kas.',
       ctaPrimary: '🚀 Daftarkan Usaha Anda Gratis ➔',
       ctaSecondary: '📱 Coba Demo Kasir Langsung',
       subBadge1: '✓ Tanpa Biaya Tersembunyi',
@@ -111,61 +118,60 @@ export const TRANSLATIONS: Record<SupportedLanguage, ExpTranslations> = {
       p4: {
         title: 'Pusing Memantau Banyak Cabang & Staf',
         desc: 'Susah memantau operasional, omzet, dan kejujuran staf saat pemilik sedang tidak ada di toko?',
-        solvedBy: 'Cek omzet seluruh cabang secara real-time, atur hak akses PIN staf (RBAC) dari HP Anda.',
-        product: 'ADMIN.Hfeit'
+        solvedBy: 'Ganti role langsung di POS dengan PIN Manajer/Owner. Pantau omzet multi-cabang real-time dari HP Anda.',
+        product: 'POS.Hfeit (RBAC)'
       }
     },
-    sextet: {
-      sectionBadge: '6 PILAR PENGALAMAN BISNIS',
+    quintet: {
+      sectionBadge: '5 PRODUK INTI PENGUSAHA',
       sectionTitle: 'Satu Rangkaian Lengkap untuk Menjalankan Usaha',
-      sectionSubtitle: 'Enam produk terintegrasi sempurna yang dirancang untuk pemilik, staf, dan pelanggan Anda.',
-      admin: {
-        name: 'ADMIN.Hfeit',
-        tagline: 'Manage the Business',
-        role: 'Pusat Manajemen Merchant',
-        features: ['Multi-Cabang & Hierarki Outlet', 'Izin Staf & PIN Kasir (RBAC)', 'Kontrol Langganan & Aktivasi Produk']
-      },
+      sectionSubtitle: 'Lima produk terintegrasi sempurna yang dirancang untuk pemilik, staf kasir, dan pelanggan Anda.',
       pos: {
         name: 'POS.Hfeit',
         tagline: 'Run the Business',
-        role: 'Terminal Kasir & Dapur Kilat',
-        features: ['Respon Cepat <16ms', 'KDS Dapur Multi-Stasiun & Peta Meja', 'Tahan Offline (IndexedDB Resilience)']
+        role: 'Terminal Kasir, Dapur & Manajemen Outlet',
+        features: ['Respon Cepat <16ms & Cetak Struk Offline', 'KDS Dapur Multi-Stasiun & Peta Meja', 'Izin Staf & PIN Role Manajer / Owner (RBAC)'],
+        badgeColor: 'amber'
       },
       book: {
         name: 'BOOK.Hfeit',
         tagline: 'Control the Books',
-        role: 'Pembukuan & Buku Besar Otomatis',
-        features: ['Jurnal Double-Entry Real-Time', 'Kalkulasi Pajak PB1 10% Otomatis', 'Laporan Laba Rugi & Rekonsiliasi Kas']
-      },
-      card: {
-        name: 'CARD.Hfeit',
-        tagline: 'Be Known',
-        role: 'Paspor Relasi & Member Digital',
-        features: ['Apple Wallet Style Loyalty Stamp Card', 'Dompet E-Tiket Workshop & Event', 'Satu Identitas Pelanggan di Semua Outlet']
-      },
-      board: {
-        name: 'BOARD.Hfeit',
-        tagline: 'Be Found',
-        role: 'Etalase Publik & Menu SEO',
-        features: ['Cloudflare Edge TTFB <20ms', 'Schema.org JSON-LD Terindeks Google', 'Sistem Reservasi Meja & Jam Operasional']
+        role: 'Buku Besar & Pembukuan Double-Entry Otomatis',
+        features: ['Jurnal Akuntansi Real-Time Tanpa Input Ulang', 'Kalkulasi Pajak PB1 10% & Rekonsiliasi Kas', 'Laporan Laba Rugi & Neraca Keuangan Instan'],
+        badgeColor: 'emerald'
       },
       order: {
         name: 'ORDER.Hfeit',
         tagline: 'Do Business',
-        role: 'Pemesanan Mandiri 3-Jalur',
-        features: ['Dine-In QR Meja, Takeaway & Delivery', 'Settlement QRIS Dinamis Instan', 'Cart Handoff <16ms ke Kasir']
+        role: 'Pemesanan Mandiri Pelanggan 3-Jalur',
+        features: ['Dine-In QR Meja, Bungkus & Pesan Antar', 'Settlement QRIS Dinamis Instan', 'Cart Handoff <16ms ke Terminal Kasir'],
+        badgeColor: 'rose'
+      },
+      board: {
+        name: 'BOARD.Hfeit',
+        tagline: 'Be Found',
+        role: 'Etalase Publik & Website Menu SEO',
+        features: ['Cloudflare Edge TTFB <15ms Super Kilat', 'Schema.org JSON-LD Terindeks Resmi di Google', 'Form Reservasi Meja & Jam Operasional Toko'],
+        badgeColor: 'cyan'
+      },
+      card: {
+        name: 'CARD.Hfeit',
+        tagline: 'Be Known',
+        role: 'Paspor Relasi & Dompet Member Digital',
+        features: ['Apple Wallet Style Loyalty Stamp Card', 'Dompet E-Tiket Gate-In Workshop & Komunitas', 'Satu Nomor Member di Seluruh Jaringan Outlet'],
+        badgeColor: 'purple'
       }
     },
     workflow: {
-      sectionBadge: 'SIMULASI ALUR KEBENARAN',
+      sectionBadge: 'SIMULASI SATU KEBENARAN DATA',
       sectionTitle: 'Satu Transaksi. Satu Kebenaran Data.',
-      sectionSubtitle: 'Lihat bagaimana 1 pesanan pelanggan menggerakkan seluruh 6 produk secara bersamaan tanpa input ganda.',
+      sectionSubtitle: 'Lihat bagaimana 1 pesanan pelanggan menggerakkan seluruh sistem secara bersamaan tanpa input ganda.',
       steps: [
-        { step: '01', title: 'Pelanggan Pesan di Meja', desc: 'Scan QR di meja OUT-04 via ORDER.Hfeit', targetProduct: 'ORDER.Hfeit', color: 'text-rose-400' },
-        { step: '02', title: 'Dapur & Kasir Berbunyi', desc: 'KDS Dapur menerima tiket & kasir POS terupdate', targetProduct: 'POS.Hfeit', color: 'text-amber-400' },
-        { step: '03', title: 'Pelanggan Dapat Poin', desc: 'Stamp loyalitas otomatis masuk ke dompet CARD.Hfeit', targetProduct: 'CARD.Hfeit', color: 'text-purple-400' },
-        { step: '04', title: 'Jurnal Akuntansi Terbit', desc: 'Debit Kas 1101 / Kredit Pendapatan 4101 di BOOK.Hfeit', targetProduct: 'BOOK.Hfeit', color: 'text-emerald-400' },
-        { step: '05', title: 'HQ Memantau Omzet', desc: 'Dasbor ADMIN.Hfeit mencatat kenaikan omzet jaringan', targetProduct: 'ADMIN.Hfeit', color: 'text-indigo-400' }
+        { step: '01', title: 'Pelanggan Pesan Mandiri', desc: 'Scan QR di meja OUT-04 via ORDER.Hfeit', targetProduct: 'ORDER.Hfeit', color: 'text-rose-600' },
+        { step: '02', title: 'Dapur & Kasir Berbunyi', desc: 'KDS Dapur terima tiket & kasir POS terupdate kilat', targetProduct: 'POS.Hfeit', color: 'text-amber-600' },
+        { step: '03', title: 'Pelanggan Terima Stamp', desc: 'Stamp loyalitas otomatis masuk ke dompet CARD.Hfeit', targetProduct: 'CARD.Hfeit', color: 'text-purple-600' },
+        { step: '04', title: 'Jurnal Akuntansi Terbit', desc: 'Debit Kas 1101 / Kredit Penjualan 4101 di BOOK.Hfeit', targetProduct: 'BOOK.Hfeit', color: 'text-emerald-600' },
+        { step: '05', title: 'Pemilik Pantau Omzet', desc: 'Dasbor Owner POS mencatat kenaikan omzet toko real-time', targetProduct: 'POS.Hfeit', color: 'text-indigo-600' }
       ]
     },
     industries: {
@@ -186,19 +192,19 @@ export const TRANSLATIONS: Record<SupportedLanguage, ExpTranslations> = {
   },
   en: {
     nav: {
-      products: '6 Products',
+      products: '5 Core Products',
       solutions: 'Solutions',
       workflow: 'Truth Flow',
       pricing: 'Pricing',
       login: 'Cashier Login',
-      startTrial: 'Free Trial ➔'
+      startTrial: 'Start Free Trial ➔'
     },
     hero: {
-      badge: '⚡ THE UNIFIED COMMERCE & EXPERIENCE SUITE 2026+',
+      badge: '⚡ CLOUDFLARE EDGE SPEED • 100% OFFLINE RESILIENT',
       titlePart1: 'One Intelligent System for',
       titleHighlight: 'Your Entire Business',
       titlePart2: 'Operations.',
-      subtitle: 'Run high-speed POS, accept QR table orders, build customer loyalty passes, and get automated double-entry accounting without friction.',
+      subtitle: 'Run sub-16ms POS registers, accept QR table orders, build customer loyalty passes, and get automated double-entry accounting without friction.',
       ctaPrimary: '🚀 Start Free Merchant Trial ➔',
       ctaSecondary: '📱 Launch Live Cashier Demo',
       subBadge1: '✓ Zero Hidden Fees',
@@ -230,61 +236,60 @@ export const TRANSLATIONS: Record<SupportedLanguage, ExpTranslations> = {
       p4: {
         title: 'Struggling to Monitor Multiple Outlets & Staff',
         desc: 'Difficult to track store operations, sales velocity, and cashier integrity when away from the shop?',
-        solvedBy: 'Monitor live network revenue and configure staff RBAC PIN permissions directly from your smartphone anywhere.',
-        product: 'ADMIN.Hfeit'
+        solvedBy: 'Switch roles instantly inside POS via Manager/Owner PIN. Monitor live revenue and staff RBAC anywhere.',
+        product: 'POS.Hfeit (RBAC)'
       }
     },
-    sextet: {
-      sectionBadge: '6 EXPERIENCE PILLARS',
+    quintet: {
+      sectionBadge: '5 MERCHANT CORE PILLARS',
       sectionTitle: 'The Complete Suite to Run Your Enterprise',
-      sectionSubtitle: 'Six seamlessly integrated products engineered for business owners, operators, and customers.',
-      admin: {
-        name: 'ADMIN.Hfeit',
-        tagline: 'Manage the Business',
-        role: 'Merchant Governance Hub',
-        features: ['Multi-Branch & Outlet Hierarchy', 'Staff RBAC & Cashier Security PINs', 'Subscription & Product Entitlements']
-      },
+      sectionSubtitle: 'Five seamlessly integrated products engineered for business owners, cashier staff, and customers.',
       pos: {
         name: 'POS.Hfeit',
         tagline: 'Run the Business',
-        role: 'High-Speed Cashier & Kitchen Workstation',
-        features: ['Sub-16ms Touch Latency', 'Multi-Station Kitchen KDS & Floor Maps', 'Offline-First IndexedDB Resilience']
+        role: 'High-Speed Cashier, Kitchen & Outlet Management',
+        features: ['Sub-16ms Touch Latency & Offline Receipt Printing', 'Multi-Station Kitchen KDS & Floor Maps', 'Staff RBAC & Manager / Owner PIN Switching'],
+        badgeColor: 'amber'
       },
       book: {
         name: 'BOOK.Hfeit',
         tagline: 'Control the Books',
-        role: 'Automated General Ledger Accounting',
-        features: ['Real-Time Double-Entry Journaling', 'Automated PB1 10% Tax Calculation', 'Instant P&L & Cash Reconciliation']
+        role: 'Automated Double-Entry General Ledger',
+        features: ['Real-Time Double-Entry Journaling Without Re-entry', 'Automated PB1 10% Tax & Cash Drawer Reconciliation', 'Instant P&L Reports & Balance Sheet Accounting'],
+        badgeColor: 'emerald'
+      },
+      order: {
+        name: 'ORDER.Hfeit',
+        tagline: 'Do Business',
+        role: '3-Way Self-Service Customer Ordering',
+        features: ['Dine-In Table QR, Takeaway & Parcel Delivery', 'Instant Dynamic QRIS Payment Settlement', 'Sub-16ms Cart Handoff to Cashier Register'],
+        badgeColor: 'rose'
+      },
+      board: {
+        name: 'BOARD.Hfeit',
+        tagline: 'Be Found',
+        role: 'Public Web Storefront & SEO Menu Catalog',
+        features: ['Cloudflare Edge TTFB <15ms Blazing Speed', 'Schema.org JSON-LD Google Indexed Rich Snippets', 'Table Reservation Engine & Operating Hours'],
+        badgeColor: 'cyan'
       },
       card: {
         name: 'CARD.Hfeit',
         tagline: 'Be Known',
         role: 'Digital Passport & Loyalty Passbook',
-        features: ['Apple Wallet Style Loyalty Stamp Card', 'Event & Workshop E-Ticket Wallet', 'Unified Customer Identity Across Outlets']
-      },
-      board: {
-        name: 'BOARD.Hfeit',
-        tagline: 'Be Found',
-        role: 'Public Storefront & SEO Catalog',
-        features: ['Cloudflare Edge TTFB <20ms', 'Schema.org JSON-LD Google Indexed', 'Table Reservation & Operating Hours']
-      },
-      order: {
-        name: 'ORDER.Hfeit',
-        tagline: 'Do Business',
-        role: '3-Way Self-Service Ordering',
-        features: ['Dine-In Table QR, Takeaway & Delivery', 'Instant Dynamic QRIS Settlement', 'Sub-16ms Cart Handoff to Cashier']
+        features: ['Apple Wallet Style Loyalty Stamp Card', 'Event & Community Workshop E-Ticket Wallet', 'Unified Customer Identity Across Outlet Network'],
+        badgeColor: 'purple'
       }
     },
     workflow: {
-      sectionBadge: 'TRUTH FLOW SIMULATION',
+      sectionBadge: 'ONE BUSINESS TRUTH SIMULATION',
       sectionTitle: 'One Transaction. One Business Truth.',
-      sectionSubtitle: 'Observe how 1 customer order instantly activates all 6 products in real-time with zero manual duplication.',
+      sectionSubtitle: 'Observe how 1 customer order instantly activates the entire ecosystem in real-time with zero manual duplication.',
       steps: [
-        { step: '01', title: 'Customer Orders at Table', desc: 'Scans QR at Table OUT-04 via ORDER.Hfeit', targetProduct: 'ORDER.Hfeit', color: 'text-rose-400' },
-        { step: '02', title: 'Kitchen & Cashier Alerted', desc: 'Kitchen KDS receives ticket & POS cart updates', targetProduct: 'POS.Hfeit', color: 'text-amber-400' },
-        { step: '03', title: 'Customer Earns Stamps', desc: 'Loyalty stamps credit automatically in CARD.Hfeit', targetProduct: 'CARD.Hfeit', color: 'text-purple-400' },
-        { step: '04', title: 'Ledger Journal Posted', desc: 'Debit Cash 1101 / Credit Revenue 4101 in BOOK.Hfeit', targetProduct: 'BOOK.Hfeit', color: 'text-emerald-400' },
-        { step: '05', title: 'HQ Observes Live Sales', desc: 'ADMIN.Hfeit dashboard reflects instant branch revenue delta', targetProduct: 'ADMIN.Hfeit', color: 'text-indigo-400' }
+        { step: '01', title: 'Customer Orders at Table', desc: 'Scans QR at Table OUT-04 via ORDER.Hfeit', targetProduct: 'ORDER.Hfeit', color: 'text-rose-600' },
+        { step: '02', title: 'Kitchen & Cashier Alerted', desc: 'Kitchen KDS receives ticket & POS cart updates', targetProduct: 'POS.Hfeit', color: 'text-amber-600' },
+        { step: '03', title: 'Customer Earns Stamps', desc: 'Loyalty stamps credit automatically in CARD.Hfeit', targetProduct: 'CARD.Hfeit', color: 'text-purple-600' },
+        { step: '04', title: 'Ledger Journal Posted', desc: 'Debit Cash 1101 / Credit Revenue 4101 in BOOK.Hfeit', targetProduct: 'BOOK.Hfeit', color: 'text-emerald-600' },
+        { step: '05', title: 'Owner Monitors Revenue', desc: 'Owner POS dashboard reflects instant branch revenue delta', targetProduct: 'POS.Hfeit', color: 'text-indigo-600' }
       ]
     },
     industries: {

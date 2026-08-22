@@ -6,14 +6,14 @@ interface Props {
 const { currentLang = 'id' } = Astro.props
 ---
 
-<div class="inline-flex items-center p-0.5 rounded-full bg-slate-900/80 border border-white/10 text-xs font-mono backdrop-blur-md">
+<div class="inline-flex items-center p-0.5 rounded-full bg-white/90 border border-slate-200/90 text-xs font-mono backdrop-blur-md shadow-xs">
   <a
     href="/exp"
     id="lang-btn-id"
     class={`px-2.5 py-1 rounded-full transition-all duration-200 ${
       currentLang === 'id'
-        ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
-        : 'text-slate-400 hover:text-white'
+        ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
     }`}
     title="Bahasa Indonesia"
   >
@@ -24,8 +24,8 @@ const { currentLang = 'id' } = Astro.props
     id="lang-btn-en"
     class={`px-2.5 py-1 rounded-full transition-all duration-200 ${
       currentLang === 'en'
-        ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
-        : 'text-slate-400 hover:text-white'
+        ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
     }`}
     title="English"
   >
