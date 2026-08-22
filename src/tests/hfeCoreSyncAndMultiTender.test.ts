@@ -54,15 +54,49 @@ describe('Hfe Core SSOT Synchronization & Universal Multi-Tender Settlement', ()
         notes: 'Room charge split with VIP loyalty credit',
       }
 
+      const mockResponse = {
+        settlement_id: 'SETTLE-12345',
+        document_reference_id: 'DOC-INV-2026-0817-01',
+        total_obligation_minor: 35000000,
+        total_tendered_minor: 35000000,
+        total_discrepancy_minor: 0,
+        status: 'settled',
+        settled_at: new Date().toISOString(),
+        journal_posting_id: 'POST-67890',
+      }
+
+      const originalFetch = global.fetch
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      })
+
       const response = await settleUniversalMultiTender(request)
       expect(response.document_reference_id).toBe('DOC-INV-2026-0817-01')
       expect(response.total_obligation_minor).toBe(35000000)
       expect(response.total_tendered_minor).toBe(35000000)
       expect(response.total_discrepancy_minor).toBe(0)
       expect(response.status).toBe('settled')
-      expect(response.settlement_id).toBeDefined()
-      expect(response.journal_posting_id).toBeDefined()
+      expect(response.settlement_id).toBe('SETTLE-12345')
+      expect(response.journal_posting_id).toBe('POST-67890')
       expect(response.settled_at).toBeDefined()
+
+      global.fetch = originalFetch
+    })
+
+    it('FAIL-CLOSED: throws error when Core endpoint is unavailable (zero fake success)', async () => {
+      const request: UniversalMultiTenderRequest = {
+        document_reference_id: 'DOC-INV-2026-0817-02',
+        total_obligation_minor: 10000,
+        tenders: [{ tender_type: 'cash', amount_minor: 10000 }],
+      }
+
+      const originalFetch = global.fetch
+      global.fetch = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'))
+
+      await expect(settleUniversalMultiTender(request)).rejects.toThrow('Gagal memposting settlement multi-tender ke Hfe Core')
+
+      global.fetch = originalFetch
     })
   })
 

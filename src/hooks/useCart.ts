@@ -11,36 +11,19 @@ export function useCart(options: UseCartOptions) {
   const { productCatalog, hfeCompanyProfile, onOrderSubmitted } = options
 
   // Login / Referral / Loyalty State
-  const [loginType, setLoginType] = useState<'phone' | 'guest-name'>('phone')
-  const [customerPhone, setCustomerPhone] = useState<string>('081298765432')
-  const [guestName, setGuestName] = useState<string>('Aldi')
-  const [customerAvatar, setCustomerAvatar] = useState<string>('☕')
+  const [loginType, setLoginType] = useState<'phone' | 'guest-name'>('guest-name')
+  const [customerPhone, setCustomerPhone] = useState<string>('')
+  const [guestName, setGuestName] = useState<string>('Tamu')
+  const [customerAvatar, setCustomerAvatar] = useState<string>('👤')
   const [referralInput, setReferralInput] = useState<string>('')
   const [referralClaimed, setReferralClaimed] = useState<boolean>(false)
   const [promoCodeInput, setPromoCodeInput] = useState<string>('')
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null)
-  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(450)
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0)
   const [redeemedVoucher, setRedeemedVoucher] = useState<boolean>(false)
 
   // Cart & Policy State
-  const [cart, setCart] = useState<CartItem[]>([
-    {
-      ...productCatalog[0],
-      quantity: 2,
-      seatNumber: 'Seat 1',
-      seatCustomerContact: { name: 'Aldi', phone: '081298765432', savedPreferences: 'Oat Milk 50% Sugar' },
-      allergenNotes: 'Alergi Lactose (Ganti Oatside)',
-      temperature: 'Iced',
-      sugarLevel: '50%',
-      milkOption: 'Oat Milk (+Rp 5.000)'
-    },
-    {
-      ...productCatalog[4],
-      quantity: 1,
-      seatNumber: 'Seat 2',
-      seatCustomerContact: { name: 'Siti Rahma', phone: '081599887766', savedPreferences: 'No Sugar' }
-    }
-  ])
+  const [cart, setCart] = useState<CartItem[]>([])
   const [paymentPolicy, setPaymentPolicy] = useState<PaymentPolicy>('pay-first')
 
   // Modifier Modal State
@@ -227,7 +210,7 @@ export function useCart(options: UseCartOptions) {
       onOrderSubmitted?.(newOrder)
       setCart([])
       setQrStepView('catalog')
-      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur! Terkoneksi dengan Hfe Ledger (${hfeCompanyProfile.ptLegalName}).`)
+      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur (${hfeCompanyProfile.ptLegalName}).`)
     }
   }
 
@@ -252,7 +235,7 @@ export function useCart(options: UseCartOptions) {
     setCart([])
     setQrStepView('catalog')
     setLoyaltyPoints(prev => prev + Math.floor(grandTotalBill / 10000))
-    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur & Terposting ke Hfe Engine (${hfeCompanyProfile.ptLegalName}).`)
+    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur (${hfeCompanyProfile.ptLegalName}).`)
   }
 
   const clearCart = () => setCart([])

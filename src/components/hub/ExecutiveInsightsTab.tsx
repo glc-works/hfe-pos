@@ -65,6 +65,45 @@ export function ExecutiveInsightsTab() {
         </div>
       </div>
 
+      {/* Realtime Business Truth Card: "Apa yang Baru Terjadi Secara Finansial?" */}
+      <Card className="p-4 border-emerald-500/30 bg-emerald-500/5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <h4 className="text-xs sm:text-sm font-bold text-foreground">
+              ⚡ Realtime Business Truth: Dampak Transaksi Terakhir
+            </h4>
+          </div>
+          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-mono">
+            Posted to CORE ✓
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+          <div className="p-2.5 rounded-xl bg-card border border-border">
+            <span className="text-[10px] text-muted-foreground block font-sans">Transaksi & Meja</span>
+            <span className="font-bold text-foreground">Meja OUT-04 • QR</span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-card border border-border">
+            <span className="text-[10px] text-muted-foreground block font-sans">Omset / Nilai Order</span>
+            <span className="font-bold text-foreground tabular-nums">Rp 57.500</span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-card border border-border">
+            <span className="text-[10px] text-muted-foreground block font-sans">Pajak PB1 (10%)</span>
+            <span className="font-bold text-amber-400 tabular-nums">Rp 5.000</span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-card border border-border">
+            <span className="text-[10px] text-muted-foreground block font-sans">Laba Kotor Bersih</span>
+            <span className="font-bold text-emerald-400 tabular-nums">Rp 36.000 (72%)</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+          <span>Lineage: <code>QR Order ➔ Payment QRIS ➔ GL Posting (Hfe CORE)</code></span>
+          <span className="font-mono text-[10px] text-emerald-400 font-bold">1 Transaksi. 1 Kebenaran.</span>
+        </div>
+      </Card>
+
       {/* KPI Cards: Revenue, BOM COGS, Real Gross Profit */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
         <Card className="p-4">

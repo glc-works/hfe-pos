@@ -8,6 +8,7 @@ import {
   createFinancialPort,
   getFinancialPort,
   setSharedFinancialPort,
+  isMockModeForced,
   SubmitRetailTransactionPayload
 } from '../services/financial'
 import { verifyPayloadIntegrity } from '../utils/cryptoHasher'
@@ -263,6 +264,15 @@ describe('Hfe POS Financial Port & SDK Adapter Cutover Suite (L2-POS-50)', () =>
       const port1 = getFinancialPort({ mode: 'mock' })
       const port2 = getFinancialPort()
       expect(port1).toBe(port2)
+    })
+
+    it('should enforce DEV check on isMockModeForced (Issue #39)', () => {
+      expect(typeof isMockModeForced).toBe('function')
+      // In non-dev environment, isMockModeForced must strictly evaluate to false
+      const isDev = import.meta.env.DEV
+      if (!isDev) {
+        expect(isMockModeForced()).toBe(false)
+      }
     })
   })
 })

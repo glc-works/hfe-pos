@@ -18,6 +18,10 @@ export interface FinancialPortFactoryOptions extends HfeSdkAdapterOptions {
 let sharedFinancialPortInstance: HfePosFinancialPort | null = null
 
 export function isMockModeForced(): boolean {
+  // In production builds, forcing mock mode via browser globals or localStorage is strictly forbidden
+  if (!import.meta.env.DEV) {
+    return false
+  }
   if (typeof window !== 'undefined') {
     if ((window as any).__HFE_FORCE_MOCK__ === true) return true
     try {

@@ -247,17 +247,9 @@ export async function settleUniversalMultiTender(
     })
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
-  } catch {
-    return {
-      settlement_id: `SETTLE-${generateUUIDv4().slice(0, 8)}`,
-      document_reference_id: payload.document_reference_id,
-      total_obligation_minor: payload.total_obligation_minor,
-      total_tendered_minor: totalTendered,
-      total_discrepancy_minor: totalDiscrepancy,
-      status: 'settled',
-      settled_at: new Date().toISOString(),
-      journal_posting_id: `POST-${generateUUIDv4().slice(0, 8)}`,
-    }
+  } catch (err) {
+    // Fail-Closed: Do not fabricate a successful posting or fake journal_posting_id
+    throw new Error(`Gagal memposting settlement multi-tender ke Hfe Core: ${(err as Error).message}`)
   }
 }
 
