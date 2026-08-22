@@ -13,6 +13,8 @@ import { PriceTag } from '../../ui/PriceTag'
 import { Button } from '../../ui/Button'
 import { ValueLedMembershipBanner } from './ValueLedMembershipBanner'
 import { WifiAccessCelebrationBanner } from './WifiAccessCelebrationBanner'
+import { PostVisitFeedbackSection } from './PostVisitFeedbackSection'
+
 
 export interface CustomerCheckoutViewProps {
   selectedTable: string
@@ -130,6 +132,17 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
         isLight={isLight}
         textColor={textColor}
       />
+
+      {/* ⭐ POST-VISIT MERCHANT & PRODUCT FEEDBACK (P1-7 & P1-8) */}
+      {hasPaidOrder && (
+        <PostVisitFeedbackSection
+          activeTheme={activeTheme}
+          tableNumber={selectedTable}
+          guestName={scannedSeat}
+          isMember={isCustomerSessionActive}
+        />
+      )}
+
 
       {/* Dedicated Checkout Container */}
       <div 

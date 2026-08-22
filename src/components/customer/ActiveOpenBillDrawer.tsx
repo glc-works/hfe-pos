@@ -6,6 +6,8 @@ import {
 import { OrderTicket, TableStatus, HfeCompanyProfile } from '../../types/pos'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useNotification } from '../../context/NotificationContext'
+import { PostVisitFeedbackSection } from './PostVisitFeedbackSection'
+
 
 export interface ActiveOpenBillDrawerProps {
   isOpen: boolean
@@ -295,6 +297,13 @@ export const ActiveOpenBillDrawer: React.FC<ActiveOpenBillDrawerProps> = ({
             </span>
           </div>
         </div>
+
+        {/* POST-VISIT MERCHANT FEEDBACK & SERVICE RECOVERY (P1-7 & P1-8) */}
+        <PostVisitFeedbackSection
+          activeTheme={customerTheme}
+          tableNumber={selectedTable}
+          guestName={scannedSeat}
+        />
 
         {/* ACTION BUTTONS */}
         <div className="flex flex-col gap-2 pt-1">

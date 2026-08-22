@@ -319,4 +319,36 @@ export interface TranslationDictionary {
     businessTruthLineage: string
     businessTruthTagline: string
   }
+  feedback: {
+    howWasYourVisitTitle: string
+    howWasYourVisitSubtitle: string
+    ratingPrompt: string
+    rateExcellent: string
+    rateGood: string
+    rateAverage: string
+    ratePoor: string
+    rateTerrible: string
+    positiveKeepPointsTitle: string
+    positiveKeepPointsDesc: string
+    savePointsCta: string
+    negativeRecoveryTitle: string
+    negativeRecoveryDesc: string
+    tagSlowOrder: string
+    tagFoodQuality: string
+    tagWrongOrder: string
+    tagStaffService: string
+    tagOther: string
+    submitServiceAlert: string
+    alertSentSuccess: string
+    helpUsGrowCta: string
+    helpUsGrowTitle: string
+    helpUsGrowSubtitle: string
+    productLovedIt: string
+    productCouldBeBetter: string
+    productSomethingWrong: string
+    feedbackOptionalPlaceholder: string
+    sendProductFeedback: string
+    thankYouFeedback: string
+  }
 }
+
