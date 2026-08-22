@@ -10,6 +10,14 @@ import StickyActionDock from '../../components/navigation/StickyActionDock.astro
 import JsonLdRestaurant from '../../components/seo/JsonLdRestaurant.astro';
 import { resolveStorefrontData } from '../../lib/merchantDataResolver';
 
+export async function getStaticPaths() {
+  return [
+    { params: { merchant: 'senopati-kopitiam' } },
+    { params: { merchant: 'kedai-kopi-kawan' } },
+    { params: { merchant: 'demo-resto' } }
+  ];
+}
+
 const { merchant } = Astro.params;
 const merchantSlug = merchant || 'senopati-kopitiam';
 

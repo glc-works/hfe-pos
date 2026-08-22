@@ -5,6 +5,13 @@ import StickyActionDock from '../../../components/navigation/StickyActionDock.as
 import { resolveStorefrontData } from '../../../lib/merchantDataResolver';
 import { buildOrderHandoffUrl } from '../../../lib/channelGovernance';
 
+export async function getStaticPaths() {
+  return [
+    { params: { merchant: 'senopati-kopitiam', event: 'evt-001' } },
+    { params: { merchant: 'senopati-kopitiam', event: 'evt-002' } }
+  ];
+}
+
 const { merchant, event } = Astro.params;
 const merchantSlug = merchant || 'senopati-kopitiam';
 const eventId = (event || 'evt-001').toUpperCase();

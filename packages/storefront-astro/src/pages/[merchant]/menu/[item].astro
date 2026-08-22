@@ -6,6 +6,16 @@ import StickyActionDock from '../../../components/navigation/StickyActionDock.as
 import { resolveStorefrontData } from '../../../lib/merchantDataResolver';
 import { buildOrderHandoffUrl } from '../../../lib/channelGovernance';
 
+export async function getStaticPaths() {
+  return [
+    { params: { merchant: 'senopati-kopitiam', item: 'mn-001' } },
+    { params: { merchant: 'senopati-kopitiam', item: 'mn-002' } },
+    { params: { merchant: 'senopati-kopitiam', item: 'mn-003' } },
+    { params: { merchant: 'senopati-kopitiam', item: 'mn-004' } },
+    { params: { merchant: 'senopati-kopitiam', item: 'mn-005' } }
+  ];
+}
+
 const { merchant, item } = Astro.params;
 const merchantSlug = merchant || 'senopati-kopitiam';
 const itemId = (item || 'mn-001').toUpperCase();
