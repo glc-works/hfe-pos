@@ -30,3 +30,11 @@ __pycache__/
 # Build Caches
 *.tsbuildinfo
 .tsbuildinfo
+
+# Test Outputs & Reports (Anti-Pileup)
+test-results/
+playwright-report/
+blob-report/
+coverage/
+.nyc_output/
+
