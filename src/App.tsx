@@ -33,6 +33,7 @@ import { HfeitCorporateView } from './views/HfeitCorporateView'
 import { MerchantHomeHubView } from './views/MerchantHomeHubView'
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
+import { normalizeSurfaceHost } from './utils/surfaceHost'
 
 function AppMain() {
   const config = useMerchantConfig()
@@ -40,9 +41,7 @@ function AppMain() {
     if (typeof window !== 'undefined') {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
       if (surfaceParam) return surfaceParam
-      let host = window.location.hostname.toLowerCase()
-      if (host.startsWith('dev-')) host = host.slice(4)
-      if (host.startsWith('dev.')) host = host.slice(4)
+      const host = normalizeSurfaceHost(window.location.hostname)
       if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'
       if (host.startsWith('admin.') || host.startsWith('hub.')) return 'admin-hub'
       if (host.startsWith('book.') || host.startsWith('ledger.')) return 'hfe-company-book'
