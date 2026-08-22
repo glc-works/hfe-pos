@@ -8,7 +8,7 @@ const { currentLang = 'id' } = Astro.props
 
 <div class="inline-flex items-center p-0.5 rounded-full bg-slate-900/80 border border-white/10 text-xs font-mono backdrop-blur-md">
   <a
-    href="?lang=id"
+    href="/exp"
     id="lang-btn-id"
     class={`px-2.5 py-1 rounded-full transition-all duration-200 ${
       currentLang === 'id'
@@ -20,7 +20,7 @@ const { currentLang = 'id' } = Astro.props
     🇮🇩 ID
   </a>
   <a
-    href="?lang=en"
+    href="/exp/en"
     id="lang-btn-en"
     class={`px-2.5 py-1 rounded-full transition-all duration-200 ${
       currentLang === 'en'
