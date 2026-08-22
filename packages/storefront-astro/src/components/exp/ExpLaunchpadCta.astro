@@ -1,22 +1,25 @@
 ---
-import type { ExpTranslations } from '../../i18n/translations'
-
 interface Props {
-  t: ExpTranslations['cta']
+  t: {
+    title: string
+    subtitle: string
+    buttonText: string
+    guarantee: string
+  }
 }
 
 const { t } = Astro.props
 ---
 
-<section class="py-20 px-4 sm:px-6 max-w-5xl mx-auto border-t border-white/5 text-center">
-  <div class="p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-amber-500/30 relative overflow-hidden shadow-2xl">
-    <!-- Ambient Radial Glow -->
-    <div class="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-rose-500/10 to-indigo-500/10 blur-2xl pointer-events-none -z-10"></div>
+<section class="py-24 px-4 sm:px-6 max-w-5xl mx-auto border-t border-slate-200 text-center">
+  <div class="p-8 sm:p-14 rounded-3xl bg-white border border-amber-300 relative overflow-hidden shadow-xl">
+    <!-- Amber Warmth Ambient Glow -->
+    <div class="absolute inset-0 bg-gradient-to-tr from-amber-400/15 via-orange-400/10 to-rose-400/10 blur-2xl pointer-events-none -z-10"></div>
 
-    <h2 class="text-2xl sm:text-4xl font-extrabold text-white mb-4 leading-tight">
+    <h2 class="text-3xl sm:text-5xl font-extrabold text-slate-950 mb-4 leading-tight">
       {t.title}
     </h2>
-    <p class="text-sm sm:text-base text-slate-300 max-w-xl mx-auto mb-8 leading-relaxed">
+    <p class="text-base sm:text-lg text-slate-600 max-w-xl mx-auto mb-10 leading-relaxed font-normal">
       {t.subtitle}
     </p>
 
@@ -24,13 +27,13 @@ const { t } = Astro.props
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
       <a
         href="/onboarding"
-        class="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-extrabold text-base shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
+        class="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-base shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
       >
-        {t.buttonText}
+        <span>{t.buttonText}</span>
       </a>
     </div>
 
-    <p class="text-xs font-mono text-slate-400">
+    <p class="text-xs font-mono font-medium text-slate-500">
       {t.guarantee}
     </p>
   </div>

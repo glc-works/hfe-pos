@@ -1,53 +1,155 @@
 ---
-import type { ExpTranslations } from '../../i18n/translations'
-
 interface Props {
-  t: ExpTranslations['hero']
+  t: {
+    badge: string
+    titlePart1: string
+    titleHighlight: string
+    titlePart2: string
+    subtitle: string
+    ctaPrimary: string
+    ctaSecondary: string
+    subBadge1: string
+    subBadge2: string
+    subBadge3: string
+  }
 }
 
 const { t } = Astro.props
 ---
 
-<section class="relative pt-12 pb-20 px-4 sm:px-6 max-w-6xl mx-auto text-center overflow-hidden">
-  <!-- Radial Ambient Mesh Glow -->
-  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-amber-500/15 via-indigo-500/15 to-emerald-500/15 blur-3xl pointer-events-none rounded-full -z-10"></div>
+<section class="relative pt-20 pb-24 px-4 sm:px-6 max-w-7xl mx-auto text-center">
+  <!-- Cloudflare Radial Warmth Aura -->
+  <div class="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-tr from-amber-400/20 via-orange-400/15 to-rose-400/10 blur-3xl pointer-events-none -z-10"></div>
 
-  <!-- Eyebrow Badge -->
-  <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/30 text-amber-300 text-xs font-mono tracking-wide mb-6 shadow-sm">
-    <span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-    {t.badge}
+  <!-- 1. Top Glowing Speed Pill -->
+  <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-amber-300 shadow-xs mb-8 text-xs font-mono font-bold text-amber-800 animate-fade-in">
+    <span class="flex h-2 w-2 relative">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+    </span>
+    <span>{t.badge}</span>
   </div>
 
-  <!-- Main Headline -->
-  <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 leading-[1.15]">
-    {t.titlePart1} <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400">{t.titleHighlight}</span> {t.titlePart2}
+  <!-- 2. Architectural Main Title -->
+  <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-950 tracking-tight leading-[1.1] max-w-5xl mx-auto mb-6">
+    {t.titlePart1}{' '}
+    <span class="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
+      {t.titleHighlight}
+    </span>{' '}
+    {t.titlePart2}
   </h1>
 
-  <!-- Subtitle -->
-  <p class="text-base sm:text-lg text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+  <!-- 3. Subtitle Description -->
+  <p class="text-base sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
     {t.subtitle}
   </p>
 
-  <!-- CTA Buttons -->
-  <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+  <!-- 4. High-Conversion Dual CTAs -->
+  <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
     <a
       href="/onboarding"
-      class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-bold text-base shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
+      class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-base shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
     >
-      {t.ctaPrimary}
+      <span>{t.ctaPrimary}</span>
     </a>
     <a
-      href="#demo-section"
-      class="w-full sm:w-auto px-6 py-4 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-white font-medium text-base active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
+      href="http://localhost:3001/"
+      class="w-full sm:w-auto px-8 py-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-base border border-slate-300 shadow-xs active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
     >
-      {t.ctaSecondary}
+      <span>{t.ctaSecondary}</span>
     </a>
   </div>
 
-  <!-- Guarantee Pills -->
-  <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-slate-400 font-mono">
-    <span class="flex items-center gap-1.5 text-emerald-400/90">{t.subBadge1}</span>
-    <span class="flex items-center gap-1.5 text-emerald-400/90">{t.subBadge2}</span>
-    <span class="flex items-center gap-1.5 text-emerald-400/90">{t.subBadge3}</span>
+  <!-- 5. Value Proposition Badges -->
+  <div class="flex flex-wrap items-center justify-center gap-6 text-xs font-mono font-medium text-slate-600 mb-16">
+    <span class="flex items-center gap-1.5">
+      <span class="text-emerald-600 font-bold">✓</span> {t.subBadge1}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="text-emerald-600 font-bold">✓</span> {t.subBadge2}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="text-emerald-600 font-bold">✓</span> {t.subBadge3}
+    </span>
+  </div>
+
+  <!-- 6. Floating Live POS Application Shell (Cloudflare / Stripe Light Frame) -->
+  <div class="relative max-w-5xl mx-auto rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-2xl overflow-hidden">
+    <!-- Window Header -->
+    <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 px-2 text-xs font-mono">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-rose-400 inline-block"></span>
+        <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+        <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
+        <span class="ml-2 font-bold text-slate-700">POS.Hfeit Workstation v2.6 • Mode Kasir Siap</span>
+      </div>
+      <div class="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Jurnal GL Terhubung ⚡ &lt;16ms</span>
+      </div>
+    </div>
+
+    <!-- Live POS Interface Simulation -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 text-left">
+      <!-- Left: Catalog Speed Grid (8 cols) -->
+      <div class="md:col-span-8 bg-slate-50 rounded-xl p-3 border border-slate-200/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs">☕ Kopi Signature</span>
+            <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium text-xs">🥐 Pastry</span>
+            <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium text-xs">🍵 Non-Coffee</span>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500 font-bold">Meja OUT-04</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div class="p-2.5 rounded-lg bg-white border border-slate-200 shadow-xs hover:border-amber-400 transition-all cursor-pointer">
+            <span class="text-[10px] font-mono text-slate-400">MN-001</span>
+            <h4 class="text-xs font-bold text-slate-900 line-clamp-1">Espresso Aren Latte</h4>
+            <div class="text-xs font-extrabold text-amber-700 font-mono mt-1">Rp 28.000</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-white border border-slate-200 shadow-xs hover:border-amber-400 transition-all cursor-pointer">
+            <span class="text-[10px] font-mono text-slate-400">MN-002</span>
+            <h4 class="text-xs font-bold text-slate-900 line-clamp-1">Japanese Iced Drip</h4>
+            <div class="text-xs font-extrabold text-amber-700 font-mono mt-1">Rp 32.000</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-white border border-slate-200 shadow-xs hover:border-amber-400 transition-all cursor-pointer">
+            <span class="text-[10px] font-mono text-slate-400">MN-003</span>
+            <h4 class="text-xs font-bold text-slate-900 line-clamp-1">Uji Matcha Latte</h4>
+            <div class="text-xs font-extrabold text-amber-700 font-mono mt-1">Rp 35.000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Active Cart & Ledger Receipt (4 cols) -->
+      <div class="md:col-span-4 bg-white rounded-xl p-3 border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs font-mono">
+            <span class="font-bold text-slate-700">Keranjang Kasir</span>
+            <span class="text-emerald-700 font-bold">2 Item</span>
+          </div>
+          <div class="py-2 space-y-1.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-800 font-medium">1x Espresso Aren</span>
+              <span class="font-mono text-slate-900 font-bold">Rp 28.000</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-800 font-medium">1x Croissant Butter</span>
+              <span class="font-mono text-slate-900 font-bold">Rp 22.000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between text-xs font-mono mb-2">
+            <span class="text-slate-500">Total Tagihan</span>
+            <span class="text-sm font-extrabold text-slate-950">Rp 50.000</span>
+          </div>
+          <button class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-xs transition-all flex items-center justify-center gap-1">
+            <span>⚡ Bayar QRIS Instan</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

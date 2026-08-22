@@ -123,9 +123,9 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
     try {
       const stored = localStorage.getItem('hfe_theme_mode') as ThemeModeType
       if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
-      return 'dark'
+      return 'light'
     } catch {
-      return 'dark'
+      return 'light'
     }
   })
 

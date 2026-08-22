@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { resolveLanguage, getExpTranslations } from '../../packages/storefront-astro/src/i18n/langResolver'
 import { TRANSLATIONS } from '../../packages/storefront-astro/src/i18n/translations'
 
-describe('L2-POS-88: Flagship EXP.Hfeit Suite & Astro 7.2 Landing Tests', () => {
+describe('L2-POS-88: Flagship EXP.Hfeit Cloudflare Light & 5-Product Quintet Tests', () => {
   it('resolves language with proper hierarchy: URL param > Cookie > Geo-IP > Accept-Language', () => {
     // 1. URL param wins
     expect(resolveLanguage('hfe_lang=id', 'ID', 'id-ID', 'en')).toBe('en')
@@ -25,7 +25,7 @@ describe('L2-POS-88: Flagship EXP.Hfeit Suite & Astro 7.2 Landing Tests', () => 
     expect(resolveLanguage(null, null, null, null)).toBe('id')
   })
 
-  it('guarantees complete translation dictionary parity across ID and EN', () => {
+  it('guarantees complete translation dictionary parity across ID and EN for 5 Merchant Products', () => {
     const id = TRANSLATIONS.id
     const en = TRANSLATIONS.en
 
@@ -35,25 +35,23 @@ describe('L2-POS-88: Flagship EXP.Hfeit Suite & Astro 7.2 Landing Tests', () => 
     expect(id.hero.ctaPrimary).toContain('Daftarkan Usaha')
     expect(en.hero.ctaPrimary).toContain('Start Free Merchant')
 
-    // 6 Sextet Products
-    expect(id.sextet.admin.name).toBe('ADMIN.Hfeit')
-    expect(en.sextet.admin.name).toBe('ADMIN.Hfeit')
-    expect(id.sextet.pos.name).toBe('POS.Hfeit')
-    expect(en.sextet.pos.name).toBe('POS.Hfeit')
-    expect(id.sextet.book.name).toBe('BOOK.Hfeit')
-    expect(en.sextet.book.name).toBe('BOOK.Hfeit')
-    expect(id.sextet.card.name).toBe('CARD.Hfeit')
-    expect(en.sextet.card.name).toBe('CARD.Hfeit')
-    expect(id.sextet.board.name).toBe('BOARD.Hfeit')
-    expect(en.sextet.board.name).toBe('BOARD.Hfeit')
-    expect(id.sextet.order.name).toBe('ORDER.Hfeit')
-    expect(en.sextet.order.name).toBe('ORDER.Hfeit')
+    // 5 Quintet Products (No SaaS Operator noise)
+    expect(id.quintet.pos.name).toBe('POS.Hfeit')
+    expect(en.quintet.pos.name).toBe('POS.Hfeit')
+    expect(id.quintet.book.name).toBe('BOOK.Hfeit')
+    expect(en.quintet.book.name).toBe('BOOK.Hfeit')
+    expect(id.quintet.order.name).toBe('ORDER.Hfeit')
+    expect(en.quintet.order.name).toBe('ORDER.Hfeit')
+    expect(id.quintet.board.name).toBe('BOARD.Hfeit')
+    expect(en.quintet.board.name).toBe('BOARD.Hfeit')
+    expect(id.quintet.card.name).toBe('CARD.Hfeit')
+    expect(en.quintet.card.name).toBe('CARD.Hfeit')
 
     // 4 Pain Points Solved
     expect(id.painPoints.p1.product).toBe('BOOK.Hfeit')
     expect(id.painPoints.p2.product).toBe('POS.Hfeit')
     expect(id.painPoints.p3.product).toBe('ORDER & BOARD')
-    expect(id.painPoints.p4.product).toBe('ADMIN.Hfeit')
+    expect(id.painPoints.p4.product).toBe('POS.Hfeit (RBAC)')
 
     // 5-Step Workflow Simulation
     expect(id.workflow.steps.length).toBe(5)
