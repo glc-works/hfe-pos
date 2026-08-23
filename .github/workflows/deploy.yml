@@ -1,9 +1,19 @@
-name: Deploy POS Suite to Cloudflare Pages
+name: POS Suite Deployment Pipeline
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Pilih Target Deployment'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
 
 jobs:
   test-and-lint:
@@ -25,9 +35,10 @@ jobs:
       - name: Run CI Gate (Vitest & Modularity)
         run: npm test
 
-  deploy-landing:
-    name: Deploy pos-landing (Astro 7.2)
+  deploy-preview:
+    name: Deploy to PREVIEW (prv-pos.hfeit.com & prv-pos.hfeit.app)
     needs: test-and-lint
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.target_env == 'preview')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -44,19 +55,37 @@ jobs:
           npm ci
           npm ci --prefix packages/storefront-astro
 
-      - name: Build Astro Landing
+      - name: Build Astro Landing (Preview)
+        env:
+          ASTRO_SITE: 'https://prv-pos.hfeit.com'
+          PUBLIC_APP_URL: 'https://prv-pos.hfeit.app'
+          PUBLIC_IS_PREVIEW: 'true'
         run: npm run build --prefix packages/storefront-astro
 
-      - name: Deploy to Cloudflare Pages
+      - name: Build React POS App (Preview - Connected to Hfe Core Preview)
+        env:
+          VITE_HFE_CORE_URL: 'https://prv-core.hfeit.com'
+          VITE_IS_PREVIEW: 'true'
+        run: npm run build
+
+      - name: Deploy Landing to Cloudflare Pages (pos-landing)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=main
 
-  deploy-app:
-    name: Deploy pos-app (React Vite SPA)
+      - name: Deploy App to Cloudflare Pages (pos-app)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=pos-app --branch=main
+
+  deploy-production:
+    name: 🚀 Manual Promotion to PRODUCTION (pos.hfeit.com & pos.hfeit.app)
     needs: test-and-lint
+    if: github.event_name == 'workflow_dispatch' && inputs.target_env == 'production'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -68,15 +97,34 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Root Dependencies
-        run: npm ci
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm ci --prefix packages/storefront-astro
 
-      - name: Build React SPA
+      - name: Build Astro Landing (Production)
+        env:
+          ASTRO_SITE: 'https://pos.hfeit.com'
+          PUBLIC_APP_URL: 'https://pos.hfeit.app'
+          PUBLIC_IS_PREVIEW: 'false'
+        run: npm run build --prefix packages/storefront-astro
+
+      - name: Build React POS App (Production - Connected to Hfe Core Prod)
+        env:
+          VITE_HFE_CORE_URL: 'https://core.hfeit.com'
+          VITE_IS_PREVIEW: 'false'
         run: npm run build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy Landing to Cloudflare Pages (pos-landing)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=pos-app --branch=main
+          command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=production
+
+      - name: Deploy App to Cloudflare Pages (pos-app)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=pos-app --branch=production
