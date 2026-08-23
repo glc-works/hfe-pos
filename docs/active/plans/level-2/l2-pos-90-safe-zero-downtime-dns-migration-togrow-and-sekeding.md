@@ -20,43 +20,45 @@ Consolidate ecosystem domain management by safely delegating nameservers for `to
 
 ### 2.1 Expert-Reviewed Technical Invariants
 1. **Zero Email Interruption (Grey Cloud Invariant)**:
-   - All Mail Exchange (MX) and DKIM (`hostingermail-a/b/c._domainkey`) records MUST declare `proxied: false` (DNS-only) to strictly comply with RFC 5321 and RFC 6376.
-2. **Backend Node Direct Routing**:
-   - Subdomains pointing to raw IP nodes (`47.131.239.95` for `api-hcb`, `ping`, `leap-hcb`, `hcb`) MUST declare `proxied: false` during initial phase to preserve low-level non-HTTP/gRPC connectivity.
-3. **Web Acceleration & Edge Protection (Orange Cloud)**:
-   - Root `@` and `www` records for public storefronts declare `proxied: true` to enable Cloudflare L3/L4 DDoS mitigation, Web Application Firewall, and HTTP/3 QUIC acceleration.
-4. **Pre-population Gate**:
-   - Zero nameserver updates occur at Hostinger until all 25 DNS records across both domains are verified active in Cloudflare DNS tables.
+   - All Mail Exchange (MX) and DKIM (`hostingermail-a/b/c._domainkey`), SPF, DMARC, autoconfig, and autodiscover records MUST declare `proxied: false` (DNS-only) to comply with RFC 5321 and RFC 6376. Stale provider records (e.g. SES) must be audited before cutover.
+2. **Granular Protocol & Listener Classification**:
+   - Classification is determined strictly per hostname + protocol/port listener (`WEB_HTTP_PROXY` vs `DNS_ONLY_NON_HTTP` vs `MAIL` vs `VERIFICATION`), never crude per-IP sweeping.
+3. **Pre-Cutover Origin TLS Probe (Anti-526 Gate)**:
+   - Mode SSL *Full (Strict)* requires pre-verifying origin certificate validity and SAN match on port 443 before enabling Cloudflare proxying (`Orange Cloud`).
+4. **DNSSEC Staged Lifecycle**:
+   - Check and disable legacy registrar DS records before changing nameservers; activate Cloudflare DNSSEC only during post-propagation stabilization.
+5. **Twin-Zone Parity & Realistic Rollback**:
+   - Maintain identical authoritative zone records in Hostinger and Cloudflare during transition. Never promise instant NS rollback due to TLD caching; use Cloudflare proxy toggle as first-line break-glass.
 
 ---
 
-## 3. Step-by-Step Execution Plan
+## 3. The 6-Phase Execution Protocol
 
-### Step 1: Pre-populate DNS Records in Cloudflare API
-- Create Zone `sekeding.com` and `togrow.id` in Cloudflare Account `4ed931bcc90e5fa93e153c6b73165d26`.
-- Populate `sekeding.com`:
-  - `A @ -> 16.78.241.22` (proxied: true)
-  - `CNAME www -> sekeding.com` (proxied: true)
-  - `MX @ -> mx1.hostinger.com (priority: 5)`, `mx2.hostinger.com (priority: 10)` (proxied: false)
-  - `TXT @ -> "v=spf1 include:_spf.mail.hostinger.com ~all"` (proxied: false)
-  - `TXT _dmarc -> "v=DMARC1; p=none"` (proxied: false)
-  - `CNAME hostingermail-a/b/c._domainkey -> *.dkim.mail.hostinger.com.` (proxied: false)
-  - `CNAME autoconfig/autodiscover -> *.mail.hostinger.com.` (proxied: false)
-- Populate `togrow.id`:
-  - `A @ -> 16.78.241.22` (proxied: true)
-  - `CNAME www -> togrow.id` (proxied: true)
-  - `TXT @ -> "google-site-verification=DEINM21FHQTCosq1DxceX7PXM2yg11aS69qcyECtR4c"`
-  - `A subdomains (account, vault, cool, companybook, book, storybook-ui, ui) -> 16.78.241.22`
-  - `A backend nodes (ping, leap-hcb, api-hcb, hcb) -> 47.131.239.95` (proxied: false)
-
-### Step 2: Edge Security Hardening
-- Enforce SSL/TLS: Full (Strict).
-- Enable Always Use HTTPS & Minimum TLS 1.2.
-
-### Step 3: Hostinger Nameserver Delegation Cutover
-- Execute `domains_updateDomainNameserversV1` on Hostinger API:
-  - `sekeding.com` -> `['kanye.ns.cloudflare.com', 'raina.ns.cloudflare.com']`
-  - `togrow.id` -> `['kanye.ns.cloudflare.com', 'raina.ns.cloudflare.com']`
+- **Phase 0 — Preflight**:
+  1. Export authoritative DNS from Hostinger.
+  2. Check status of DNSSEC/DS at registrar.
+  3. Inventory each hostname by service + protocol + port listener.
+  4. Probe TLS origin certificate port 443 for each target web origin.
+  5. Audit mail flow requirements and SES custom MAIL FROM relevance.
+- **Phase 1 — Cloudflare Staging**:
+  1. Create zone in Cloudflare.
+  2. Reproduce all required DNS records with explicit classification (`WEB_HTTP_PROXY` | `DNS_ONLY_NON_HTTP` | `MAIL` | `VERIFICATION`).
+  3. Keep Hostinger authoritative DNS unchanged.
+- **Phase 2 — Pre-cutover Validation**:
+  1. Compare Cloudflare staged answers against Hostinger authoritative zone byte-for-byte.
+  2. Test proxied origin TLS for Full Strict eligibility.
+- **Phase 3 — Delegation Cutover**:
+  1. Disable old DNSSEC first if currently active at registrar.
+  2. Change nameservers to `kanye.ns.cloudflare.com` & `raina.ns.cloudflare.com`.
+  3. Observe propagation from multiple public resolvers (`1.1.1.1`, `8.8.8.8`, `9.9.9.9`).
+- **Phase 4 — Service Validation**:
+  1. Validate Web HTTP/HTTPS & API response.
+  2. Test Inbound & Outbound email + DKIM/SPF/DMARC alignment.
+  3. Test mail client autoconfig/autodiscover.
+  4. Validate Google site verification TXT record.
+- **Phase 5 — Stabilization & Hardening**:
+  1. After full propagation stability ($24-48\text{h}$), enable Cloudflare DNSSEC and publish DS at registrar.
+  2. Enforce Authenticated Origin Pulls (AOP) if applicable.
 
 ---
 
