@@ -1,5 +1,5 @@
 ---
-import { POS_EARLY_ACCESS_URL, POS_DEMO_URL } from '../../lib/appUrls'
+import { POS_DEMO_URL } from '../../lib/appUrls'
 ---
 
 <div class="relative px-3 pt-3">
@@ -26,10 +26,10 @@ import { POS_EARLY_ACCESS_URL, POS_DEMO_URL } from '../../lib/appUrls'
       </p>
       <div class="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
         <a 
-          href={POS_EARLY_ACCESS_URL} 
+          href="#early-access" 
           class="w-full sm:w-auto rounded-full bg-zinc-950 px-8 py-3.5 text-base font-bold text-white shadow-xl hover:bg-zinc-800 transition"
         >
-          Ajukan Akses Awal (Invite-Only) &rsaquo;
+          Minta Akses Awal &rsaquo;
         </a>
         <a 
           href={POS_DEMO_URL} 
@@ -38,9 +38,6 @@ import { POS_EARLY_ACCESS_URL, POS_DEMO_URL } from '../../lib/appUrls'
           Coba Demo Interaktif
         </a>
       </div>
-      <p class="mt-4 text-xs font-mono text-zinc-500">
-        *Akses awal dibuka secara bertahap via email untuk memastikan stabilitas tiap outlet pilot.
-      </p>
     </div>
   </div>
 </div>
