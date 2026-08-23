@@ -33,20 +33,17 @@ import { HfeitCorporateView } from './views/HfeitCorporateView'
 import { MerchantHomeHubView } from './views/MerchantHomeHubView'
 import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
+import { usePosAuth } from './hooks/usePosAuth'
+import { PosAuthLoginView } from './views/PosAuthLoginView'
 
 function AppMain() {
   const config = useMerchantConfig()
+  const auth = usePosAuth()
   const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>(() => {
     if (typeof window !== 'undefined') {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
       if (surfaceParam) return surfaceParam
-      let host = window.location.hostname.toLowerCase()
-      if (host.startsWith('dev-')) host = host.slice(4)
-      if (host.startsWith('dev.')) host = host.slice(4)
-      if (host.startsWith('prv-')) host = host.slice(4)
-      if (host.startsWith('prv.')) host = host.slice(4)
-      if (host.startsWith('preview-')) host = host.slice(8)
-      if (host.startsWith('stg-')) host = host.slice(4)
+      const host = window.location.hostname.toLowerCase().replace(/^(dev[-.]|prv[-.]|preview-|stg-)/, '')
       if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'
       if (host.startsWith('admin.') || host.startsWith('hub.')) return 'admin-hub'
       if (host.startsWith('book.') || host.startsWith('ledger.')) return 'hfe-company-book'
@@ -301,7 +298,11 @@ function AppMain() {
           />
         )}
 
-        {config.activeApp === 'cafe' && (
+        {config.activeApp === 'cafe' && !auth.currentStaffUser && (
+          <PosAuthLoginView onSuccess={() => showToast('🔓 Kasir Berhasil Masuk Shift')} />
+        )}
+
+        {config.activeApp === 'cafe' && !!auth.currentStaffUser && (
           <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden">
             {activeStaffSurface !== 'barista-pos' && activeStaffSurface !== 'retail-pos' && (
               <StaffSubNavigator

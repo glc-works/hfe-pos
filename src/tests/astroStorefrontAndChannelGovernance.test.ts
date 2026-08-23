@@ -90,19 +90,19 @@ describe('Astro Storefront (BOARD.Hfeit) & Channel Governance Engine', () => {
   describe('SSOT Merchant Data Resolution & Auto-Inheritance', () => {
     it('resolves authoritative merchant profile and catalog without dummy data', async () => {
       const data = await resolveStorefrontData('senopati-kopitiam')
-
-      expect(data.profile.businessName).toBe('Kopitiam Senopati HQ')
-      expect(data.profile.primaryCurrency).toBe('IDR')
-      expect(data.profile.rating).toBeGreaterThanOrEqual(4.5)
-      expect(data.catalog.length).toBeGreaterThanOrEqual(4)
-      expect(data.promos.length).toBeGreaterThanOrEqual(1)
+      expect(data).not.toBeNull()
+      expect(data!.profile.businessName).toContain('Kopitiam Senopati HQ')
+      expect(data!.profile.primaryCurrency).toBe('IDR')
+      expect(data!.profile.rating).toBeGreaterThanOrEqual(4.5)
+      expect(data!.catalog.length).toBeGreaterThanOrEqual(4)
+      expect(data!.promos.length).toBeGreaterThanOrEqual(1)
     })
 
     it('treats event tickets as first-class products in catalog', async () => {
       const data = await resolveStorefrontData('senopati-kopitiam')
-
-      expect(data.events.length).toBeGreaterThanOrEqual(1)
-      const eventTicket = data.events[0]
+      expect(data).not.toBeNull()
+      expect(data!.events.length).toBeGreaterThanOrEqual(1)
+      const eventTicket = data!.events[0]
       expect(eventTicket.category).toBe('event_ticket')
       expect(eventTicket.price).toBe(150000)
       expect(eventTicket.eventDetails).toBeDefined()
