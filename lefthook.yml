@@ -1,6 +1,8 @@
 pre-commit:
   parallel: true
   commands:
+    hygiene:
+      run: python3 scripts/check-repo-hygiene.py
     modularity:
       run: python3 scripts/check-modularity.py
     connector:
@@ -8,4 +10,4 @@ pre-commit:
     biome-lint:
       run: npx biome lint src
     secretlint:
-      run: npx secretlint "src/**"
+      run: npx secretlint "**/*"
