@@ -172,6 +172,14 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
 35. **The Pre-Production Operational Staging Purity Invariant (Anti-Toy/Demo Bypass Rule).**
     - *Authentic Security Enforcement*: Preview environments (`prv-`) act as real end-to-end staging testbeds, never toy demos.
     - *Strict Cashier PIN Gate*: Cashier workstation terminals MUST enforce the authentic 6-digit PIN authentication gate and shift session opening by default. Bypassing login or faking cashier credentials in preview builds is strictly prohibited.
+36. **The Self-Contained Monorepo Package & Clean-Clone Invariant (Anti-Ghost-Dist Rule).**
+    - *Lifecycle Build Enforcement*: Local packages (`file:packages/*`) MUST NOT assume pre-existing uncommitted `dist/` directories. Root `package.json` MUST bind compilation hooks (`"build:sdk"`, `"prepare": "npm run build:sdk && lefthook install"`) ensuring fresh checkouts compile entrypoints from `src/` automatically during `npm ci`.
+    - *Clean-Clone Verification Gate*: New packages and packaging refactors MUST be verified against a clean working tree clone before asserting CI readiness.
+37. **The Engine & Tooling Alignment Standard (Node Runtime & Lockfile Invariant).**
+    - *Synchronized Runtime Matrix*: Node.js version in GitHub Actions workflows (`setup-node`), root `package.json` (`engines.node`), and `.nvmrc` MUST strictly satisfy all toolchain requirements (Node >=22.18.0) with zero `EBADENGINE` warnings.
+    - *Lockfile Security Scanning*: `package-lock.json` MUST remain scanned by Secretlint to catch registry credential leaks; blanket ignore on lockfiles is prohibited.
+38. **Machine-Readable Vendored Package Provenance Standard.**
+    - *Mandatory Provenance Receipt*: Every package vendored or snapshotted from upstream repositories MUST include `packages/<pkg>/provenance.json` declaring `source_repo`, `source_commit`, `contract_version`, `synced_at`, and `digest_sha256` to prevent silent contract drift.
 
 ## Slot Reservation Rules
 

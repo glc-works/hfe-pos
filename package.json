@@ -3,9 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build:sdk": "tsc --project packages/hfe-sdk/tsconfig.json",
+    "build": "npm run build:sdk && vite build",
     "build:pos-landing": "npm run build --prefix packages/storefront-astro",
     "build:all": "npm run build && npm run build:pos-landing",
     "lint": "biome lint src",
@@ -30,7 +35,7 @@
     "rotate:test": "python3 scripts/rotate-test-results.py",
     "clean:test": "rm -rf test-results playwright-report blob-report coverage",
     "typecheck": "tsc --noEmit",
-    "prepare": "lefthook install",
+    "prepare": "npm run build:sdk && lefthook install",
     "ci": "./scripts/ci-local.sh"
   },
   "dependencies": {
