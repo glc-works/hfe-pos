@@ -1,0 +1,132 @@
+---
+// POS.Hfeit Hero Section with Radiant Canvas & Floating Master Terminal
+---
+
+<div class="relative px-3 pt-3">
+  <!-- Radiant Silver-Graphite Organic Background -->
+  <div class="bg-gradient-to-br from-white via-zinc-100 to-zinc-200 absolute inset-x-3 top-3 bottom-0 rounded-4xl ring-1 ring-black/5 ring-inset shadow-xs"></div>
+  
+  <div class="relative mx-auto max-w-7xl px-6 lg:px-8">
+    <slot name="navbar" />
+
+    <!-- Hero Content -->
+    <div class="pt-20 pb-28 text-center sm:pt-28 sm:pb-36">
+      <h1 class="font-display text-5xl font-black tracking-tight text-balance text-zinc-950 sm:text-7xl lg:text-8xl">
+        Antrean panjang.<br>
+        <span class="bg-gradient-to-r from-zinc-950 via-indigo-900 to-indigo-600 bg-clip-text text-transparent">
+          Selesai tanpa kasir panik.
+        </span>
+      </h1>
+      <p class="mx-auto mt-8 max-w-2xl text-lg font-medium text-zinc-600 sm:text-2xl leading-relaxed">
+        Didesain khusus untuk jam paling padat. Kasir merespons instan di bawah 16 milidetik, tiket pesanan terpecah otomatis ke dapur, dan transaksi tetap lancar meski internet mati total.
+      </p>
+      <div class="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
+        <a 
+          href="https://pos.hfeit.app/signup" 
+          class="w-full sm:w-auto rounded-full bg-zinc-950 px-8 py-3.5 text-base font-bold text-white shadow-xl hover:bg-zinc-800 transition"
+        >
+          Coba Gratis 14 Hari &rsaquo;
+        </a>
+        <a 
+          href="https://pos.hfeit.app/demo" 
+          class="w-full sm:w-auto rounded-full bg-white px-8 py-3.5 text-base font-bold text-zinc-950 ring-1 ring-zinc-200 hover:bg-zinc-50 transition shadow-sm"
+        >
+          Lihat Simulasi Kasir
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Master Hardware POS Register Mockup -->
+<div id="kecepatan" class="relative -mt-16 sm:-mt-24 mx-auto max-w-6xl px-6 lg:px-8 z-20">
+  <div class="rounded-2xl bg-zinc-950 p-4 ring-1 ring-white/10 shadow-2xl">
+    <!-- Terminal Header -->
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4 font-mono text-xs text-zinc-400">
+      <div class="flex items-center gap-2">
+        <span class="size-2.5 rounded-full bg-zinc-700 inline-block"></span>
+        <span class="size-2.5 rounded-full bg-zinc-700 inline-block"></span>
+        <span class="size-2.5 rounded-full bg-zinc-700 inline-block"></span>
+        <span class="ml-2 font-bold text-zinc-100">TERMINAL SENOPATI #01 &bull; MEJA OUT-04 [AKTIF]</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-zinc-300 font-bold hidden sm:inline">RESPON SENTUH &lt;16MS</span>
+        <span class="text-emerald-400 font-bold">● 100% OFFLINE READY</span>
+      </div>
+    </div>
+
+    <!-- Terminal Register Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Left 8 Cols: Speed Keys & Catalog -->
+      <div class="lg:col-span-8 bg-zinc-900/90 rounded-xl p-5 border border-zinc-800 flex flex-col justify-between">
+        <div>
+          <div class="flex gap-2 mb-4 text-xs font-semibold overflow-x-auto pb-1">
+            <span class="bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg shadow-xs shrink-0">Signature Coffee</span>
+            <span class="bg-zinc-800 text-zinc-400 px-3.5 py-1.5 rounded-lg shrink-0">Pastry &amp; Bakery</span>
+            <span class="bg-zinc-800 text-zinc-400 px-3.5 py-1.5 rounded-lg shrink-0">Non-Coffee</span>
+            <span class="bg-zinc-800 text-zinc-400 px-3.5 py-1.5 rounded-lg shrink-0">All-Day Brunch</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div class="bg-zinc-950 border border-zinc-800 p-3.5 rounded-lg">
+              <div class="text-xs font-bold text-zinc-100">Espresso Aren Latte</div>
+              <div class="text-[10px] text-zinc-400 mt-0.5">Double shot, organic aren</div>
+              <div class="text-xs font-mono font-bold text-zinc-100 mt-3">Rp 28.000</div>
+            </div>
+            <div class="bg-zinc-950 border border-zinc-800 p-3.5 rounded-lg">
+              <div class="text-xs font-bold text-zinc-100">Japanese Iced Drip</div>
+              <div class="text-[10px] text-zinc-400 mt-0.5">Single origin Ethiopia</div>
+              <div class="text-xs font-mono font-bold text-zinc-100 mt-3">Rp 32.000</div>
+            </div>
+            <div class="bg-zinc-950 border border-zinc-800 p-3.5 rounded-lg">
+              <div class="text-xs font-bold text-zinc-100">Butter Croissant</div>
+              <div class="text-[10px] text-zinc-400 mt-0.5">Freshly baked daily</div>
+              <div class="text-xs font-mono font-bold text-zinc-100 mt-3">Rp 22.000</div>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-between items-center text-xs text-zinc-400 font-mono pt-3 border-t border-zinc-800">
+          <span class="text-zinc-300 font-medium">KDS Barista: 2 Tiket Mengantre</span>
+          <span class="text-emerald-400 font-bold">Printer Thermal: Siap Cetak</span>
+        </div>
+      </div>
+
+      <!-- Right 4 Cols: Order Details & Payment -->
+      <div class="lg:col-span-4 bg-zinc-900/90 rounded-xl p-5 border border-zinc-800 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center text-xs font-bold text-zinc-100 border-b border-zinc-800 pb-3 mb-3">
+            <span>TAGIHAN MEJA OUT-04</span>
+            <span class="text-zinc-400 font-mono text-[11px] bg-zinc-800 px-2 py-0.5 rounded">2 ITEM</span>
+          </div>
+          <div class="space-y-2 text-xs font-mono">
+            <div class="flex justify-between text-zinc-300">
+              <span>1x Espresso Aren</span>
+              <span>Rp 28.000</span>
+            </div>
+            <div class="flex justify-between text-zinc-300">
+              <span>1x Japanese Drip</span>
+              <span>Rp 32.000</span>
+            </div>
+            <div class="flex justify-between text-zinc-400 pt-2 border-t border-zinc-800 text-[11px]">
+              <span>PB1 Restoran (10%)</span>
+              <span>Rp 6.000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-3 border-t border-zinc-800">
+          <div class="flex justify-between items-center mb-3 font-mono">
+            <span class="text-xs text-zinc-400">Total Pembayaran</span>
+            <span class="text-base font-bold text-zinc-100">Rp 66.000</span>
+          </div>
+          <a 
+            href="https://pos.hfeit.app/demo"
+            class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-xs font-bold text-white transition flex justify-between px-4 font-mono shadow-md"
+          >
+            <span>BAYAR SEKARANG</span>
+            <span>QRIS / KAS &rsaquo;</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
