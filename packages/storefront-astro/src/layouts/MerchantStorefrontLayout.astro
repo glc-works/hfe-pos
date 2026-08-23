@@ -32,6 +32,13 @@ const {
     <slot name="head" />
   </head>
   <body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950 pb-28">
+    <!-- Preview Sandbox Watermark Banner (Option A) -->
+    <div class="sticky top-0 z-50 bg-amber-500/10 border-b border-amber-500/30 backdrop-blur-md px-4 py-1.5 text-center text-xs font-mono text-amber-300 flex items-center justify-center gap-2">
+      <span class="size-2 rounded-full bg-amber-400 animate-pulse"></span>
+      <span class="font-bold">🟡 PREVIEW SANDBOX &bull; DATA SIMULASI BENCHMARK</span>
+      <span class="hidden sm:inline text-[10px] text-amber-400/70 border-l border-amber-500/30 pl-2">Hfe Core Pilot Environment</span>
+    </div>
+
     <div class="max-w-4xl mx-auto px-3 sm:px-6 pt-3 sm:pt-6 space-y-6">
       <slot />
     </div>

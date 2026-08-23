@@ -17,8 +17,16 @@ const merchantSlug = merchant || 'senopati-kopitiam';
 const eventId = (event || 'evt-001').toUpperCase();
 
 const data = await resolveStorefrontData(merchantSlug);
+
+if (!data) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Merchant Not Found'
+  });
+}
+
 const { profile, events, channels } = data;
-const eventItem = events.find((e) => e.id.toUpperCase() === eventId) || events[0];
+const eventItem = events.find((e: any) => e.id.toUpperCase() === eventId) || events[0];
 
 const buyTicketUrl = buildOrderHandoffUrl({
   merchantSlug,

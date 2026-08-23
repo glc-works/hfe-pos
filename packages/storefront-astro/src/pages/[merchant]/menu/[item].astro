@@ -21,8 +21,16 @@ const merchantSlug = merchant || 'senopati-kopitiam';
 const itemId = (item || 'mn-001').toUpperCase();
 
 const data = await resolveStorefrontData(merchantSlug);
+
+if (!data) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Merchant Not Found'
+  });
+}
+
 const { profile, catalog, channels } = data;
-const menuItem = catalog.find((i) => i.id.toUpperCase() === itemId) || catalog[0];
+const menuItem = catalog.find((i: any) => i.id.toUpperCase() === itemId) || catalog[0];
 
 const directOrderUrl = buildOrderHandoffUrl({
   merchantSlug,
@@ -68,7 +76,7 @@ const directOrderUrl = buildOrderHandoffUrl({
         <div class="space-y-1">
           <span class="text-xs text-slate-400 font-mono">⚠️ Informasi Alergen:</span>
           <div class="flex flex-wrap gap-1.5">
-            {menuItem.allergens.map((allergen) => (
+            {menuItem.allergens.map((allergen: string) => (
               <span class="px-2 py-0.5 rounded-md bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[11px] font-mono">
                 {allergen}
               </span>
