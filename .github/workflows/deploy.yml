@@ -15,25 +15,30 @@ on:
           - preview
           - production
 
+permissions:
+  contents: read
+
 jobs:
   test-and-lint:
-    name: Run Verification & Tests
+    name: Run Canonical CI Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install Root Dependencies
         run: npm ci
 
-      - name: Run CI Gate (Vitest & Modularity)
-        run: npm test
+      - name: Run Canonical CI Gate (Hygiene, Modularity, Manifest, Typecheck, Lint, Secretlint, Tests, Build, Size)
+        run: npm run ci
 
   deploy-preview:
     name: Deploy to PREVIEW (prv-pos.hfeit.com & prv-pos.hfeit.app)
@@ -42,12 +47,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install Dependencies
@@ -69,14 +76,14 @@ jobs:
         run: npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=main
 
       - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -85,16 +92,19 @@ jobs:
   deploy-production:
     name: 🚀 Manual Promotion to PRODUCTION (pos.hfeit.com & pos.hfeit.app)
     needs: test-and-lint
-    if: github.event_name == 'workflow_dispatch' && inputs.target_env == 'production'
+    if: github.event_name == 'workflow_dispatch' && inputs.target_env == 'production' && github.ref == 'refs/heads/main'
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install Dependencies
@@ -116,15 +126,16 @@ jobs:
         run: npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=production
 
       - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=pos-app --branch=production
+

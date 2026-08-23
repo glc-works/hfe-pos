@@ -1,0 +1,19 @@
+{
+  "name": "@hfe/sdk",
+  "version": "2.0.0",
+  "description": "Official TypeScript SDK for Headless Financial Engine (Hfe Core)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

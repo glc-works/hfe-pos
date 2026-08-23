@@ -35,6 +35,7 @@ import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFI
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 import { usePosAuth } from './hooks/usePosAuth'
 import { PosAuthLoginView } from './views/PosAuthLoginView'
+import { normalizeSurfaceHost } from './utils/surfaceHost'
 
 function AppMain() {
   const config = useMerchantConfig()
@@ -43,7 +44,7 @@ function AppMain() {
     if (typeof window !== 'undefined') {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
       if (surfaceParam) return surfaceParam
-      const host = window.location.hostname.toLowerCase().replace(/^(dev[-.]|prv[-.]|preview-|stg-)/, '')
+      const host = normalizeSurfaceHost(window.location.hostname)
       if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'
       if (host.startsWith('admin.') || host.startsWith('hub.')) return 'admin-hub'
       if (host.startsWith('book.') || host.startsWith('ledger.')) return 'hfe-company-book'
@@ -479,8 +480,7 @@ function AppMain() {
 }
 
 function ViewportConsumerWrapper({ children }: { children: React.ReactNode }) {
-  const config = useMerchantConfig()
-  return <ViewportProvider viewportMode={config.viewportMode}>{children}</ViewportProvider>
+  return <ViewportProvider viewportMode={useMerchantConfig().viewportMode}>{children}</ViewportProvider>
 }
 
 export default function App() {
@@ -489,9 +489,7 @@ export default function App() {
       <LanguageProvider>
         <MerchantConfigProvider>
           <NotificationProvider>
-            <ViewportConsumerWrapper>
-              <AppMain />
-            </ViewportConsumerWrapper>
+            <ViewportConsumerWrapper><AppMain /></ViewportConsumerWrapper>
           </NotificationProvider>
         </MerchantConfigProvider>
       </LanguageProvider>
