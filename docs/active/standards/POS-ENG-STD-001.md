@@ -143,10 +143,11 @@ It binds all contributors, automated coding agents, and subagents operating on `
 
 ### Rule 20: The 4 Core Experience Pillars & Contextual Spotlight Governance
 - **The 4 Official Experience Pillars**:
-  - **`POS` (Cashier & Barista Workstation)**: iPad / Tablet Landscape (1024px+) & Desktop PC. Full Spotlight (`⌘K`) + Workstation Shortcuts (`F1-F12`, `Esc`, `Enter`, Numpad).
-  - **`CARD` (Customer Member Passbook)**: Smartphones & Tablets. Apple Wallet pass, stamps, event tickets wallet, past e-receipts. Member ID lookup at POS. Shortcuts disabled on mobile pass.
-  - **`BOARD` (Public Storefront & Landing Page)**: Desktop Browsers & Smartphones. Hero brand story, announcement bar, event ticket showcase, and Public Spotlight Search (`⌘K` / `/`).
-  - **`ORDER` (Dine-in Customer QR Space)**: Customer Mobile Smartphone (360px – 430px). In-page touch filter bar, WiFi unlock banner. Shortcuts 100% disabled for single-thumb touch ergonomics.
+  - **`POS` (Merchant / Staff Operations)**: Cashier, barista, service and operational workstation experience. POS owns staff-facing operational interaction, while authoritative business and financial truth remains governed by Hfe CORE.
+  - **`CARD` (Life & Work Pass Experience)**: Personal Life and Work identity/pass layer. Life includes merchant memberships, loyalty, personal digital identity, receipts, tickets and entitlements. Work includes employee ID pass, attendance identity, approval identity and workplace entitlements. CARD presents governed identity/pass/entitlement state; it is not the authority that creates financial or operational truth.
+  - **`BOARD` (Merchant Website / Public Presence)**: Merchant-controlled website, landing pages, discovery, content and presentation experience, with Astro as the canonical web delivery direction. BOARD may present products, services, availability, events and calls to action, but when a customer creates a commercial commitment it hands the intent to ORDER instead of owning the transaction lifecycle.
+  - **`ORDER` (Universal Transactional Interaction / Orchestration)**: Customer-facing commerce interaction for dine-in, takeaway, delivery, reservation, booking, ticket purchase, service order and future transaction modes. ORDER owns the interaction/orchestration experience and delegates authoritative transaction, entitlement and financial truth to governed Hfe CORE contracts.
+- **Cross-Experience Handoff Invariant**: `BOARD → ORDER` for commercial commitment; successful governed outcomes may surface as passes/entitlements in `CARD`; staff may operate the same underlying business state through `POS`. None of the four Experience Applications may become a parallel authority to Hfe CORE.
 
 ### Rule 21: State Management Separation & Universal Component Reuse Protocol
 - **Client/UI State vs Server State Separation**:
@@ -182,8 +183,3 @@ It binds all contributors, automated coding agents, and subagents operating on `
 | Data Handling & Conflict Resolution | IndexedDB disk queue & GL Variance | `src/services/financial/OfflineIntentQueue.ts` |
 | 4 Experience Pillars & Headless RAC | POS, CARD, BOARD, ORDER & React Aria Components | `scripts/audit-hfe-ui-standards.py` |
 | Local CI | `0` exit code (7/7 steps) | `./scripts/ci-local.sh` |
-
-
-
-
-
