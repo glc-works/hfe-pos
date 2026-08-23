@@ -1,5 +1,5 @@
 ---
-import { POS_DEMO_URL } from '../../lib/appUrls'
+// POS.Hfeit Hero Section with Early Access Focus
 ---
 
 <div class="relative px-3 pt-3">
@@ -24,18 +24,12 @@ import { POS_DEMO_URL } from '../../lib/appUrls'
       <p class="mx-auto mt-8 max-w-2xl text-lg font-medium text-zinc-600 sm:text-2xl leading-relaxed">
         Didesain khusus untuk jam paling padat. Kasir merespons instan di bawah 16 milidetik, tiket pesanan terpecah otomatis ke dapur, dan transaksi tetap lancar meski internet mati total.
       </p>
-      <div class="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
+      <div class="mt-12 flex justify-center items-center">
         <a 
           href="#early-access" 
-          class="w-full sm:w-auto rounded-full bg-zinc-950 px-8 py-3.5 text-base font-bold text-white shadow-xl hover:bg-zinc-800 transition"
+          class="rounded-full bg-zinc-950 px-9 py-4 text-base font-bold text-white shadow-xl hover:bg-zinc-800 transition inline-block"
         >
           Minta Akses Awal &rsaquo;
-        </a>
-        <a 
-          href={POS_DEMO_URL} 
-          class="w-full sm:w-auto rounded-full bg-white px-8 py-3.5 text-base font-bold text-zinc-950 ring-1 ring-zinc-200 hover:bg-zinc-50 transition shadow-sm"
-        >
-          Coba Demo Interaktif
         </a>
       </div>
     </div>
@@ -122,13 +116,10 @@ import { POS_DEMO_URL } from '../../lib/appUrls'
             <span class="text-xs text-zinc-400">Total Pembayaran</span>
             <span class="text-base font-bold text-zinc-100">Rp 66.000</span>
           </div>
-          <a 
-            href={POS_DEMO_URL}
-            class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-xs font-bold text-white transition flex justify-between px-4 font-mono shadow-md"
-          >
-            <span>UJI COBA DEMO</span>
-            <span>QRIS / KAS &rsaquo;</span>
-          </a>
+          <div class="w-full rounded-lg bg-indigo-600 py-3 text-xs font-bold text-white flex justify-between px-4 font-mono shadow-md select-none">
+            <span>STATUS TAGIHAN</span>
+            <span>SIAP BAYAR &rsaquo;</span>
+          </div>
         </div>
       </div>
     </div>
