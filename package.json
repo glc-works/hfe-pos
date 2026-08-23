@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:pos-landing": "npm run build --prefix packages/storefront-astro",
+    "build:all": "npm run build && npm run build:pos-landing",
     "lint": "biome lint src",
     "lint:secrets": "secretlint \"src/**\"",
     "lint:spelling": "cspell \"src/**/*.{ts,tsx}\"",
