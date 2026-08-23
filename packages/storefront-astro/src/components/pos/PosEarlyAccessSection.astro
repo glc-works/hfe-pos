@@ -109,6 +109,11 @@
         </div>
       </form>
 
+      <!-- Error State Banner (Hidden by default) -->
+      <div id="error-state" class="hidden mt-6 rounded-2xl bg-rose-950/40 border border-rose-500/50 p-4 text-center">
+        <p id="error-message" class="text-xs text-rose-300 font-medium leading-relaxed"></p>
+      </div>
+
       <!-- Success State Banner (Hidden by default) -->
       <div id="success-state" class="hidden mt-8 rounded-2xl bg-zinc-900 border border-emerald-500/50 p-6 text-center">
         <div class="size-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-xl mb-3">
@@ -126,37 +131,49 @@
 <script>
   const form = document.getElementById('early-access-form') as HTMLFormElement | null
   const successState = document.getElementById('success-state')
-  const submitBtn = document.getElementById('submit-btn')
+  const errorState = document.getElementById('error-state')
+  const errorMessage = document.getElementById('error-message')
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null
 
   if (form && successState && submitBtn) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
+      if (errorState) errorState.classList.add('hidden')
       submitBtn.textContent = 'Memproses...'
       submitBtn.setAttribute('disabled', 'true')
       
       const formData = new FormData(form)
       const data = Object.fromEntries(formData.entries())
-      
-      // Save locally
-      try {
-        const saved = JSON.parse(localStorage.getItem('hfe_early_access_requests') || '[]')
-        saved.push({ ...data, submittedAt: new Date().toISOString() })
-        localStorage.setItem('hfe_early_access_requests', JSON.stringify(saved))
-      } catch (_) {}
 
-      // Submit to Cloudflare Pages API
       try {
-        await fetch('/api/early-access', {
+        const res = await fetch('/api/early-access', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         })
-      } catch (err) {
-        console.warn('Fallback: Edge API offline or static fallback active', err)
-      }
 
-      form.classList.add('hidden')
-      successState.classList.remove('hidden')
+        const resData = await res.json().catch(() => ({ success: false, error: 'Respon server tidak valid.' }))
+
+        if (res.ok && resData.success) {
+          form.classList.add('hidden')
+          if (errorState) errorState.classList.add('hidden')
+          successState.classList.remove('hidden')
+        } else {
+          submitBtn.textContent = 'Kirim Permohonan Akses Awal ›'
+          submitBtn.removeAttribute('disabled')
+          if (errorState && errorMessage) {
+            errorMessage.textContent = resData.error || 'Gagal mengirim permohonan. Silakan periksa kembali data Anda.'
+            errorState.classList.remove('hidden')
+          }
+        }
+      } catch (err: any) {
+        submitBtn.textContent = 'Kirim Permohonan Akses Awal ›'
+        submitBtn.removeAttribute('disabled')
+        if (errorState && errorMessage) {
+          errorMessage.textContent = 'Koneksi terputus. Pastikan perangkat Anda terhubung ke internet.'
+          errorState.classList.remove('hidden')
+        }
+      }
     })
   }
 </script>

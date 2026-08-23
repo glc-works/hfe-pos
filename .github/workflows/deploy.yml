@@ -92,7 +92,8 @@ jobs:
   deploy-production:
     name: 🚀 Manual Promotion to PRODUCTION (pos.hfeit.com & pos.hfeit.app)
     needs: test-and-lint
-    if: github.event_name == 'workflow_dispatch' && inputs.target_env == 'production'
+    if: github.event_name == 'workflow_dispatch' && inputs.target_env == 'production' && github.ref == 'refs/heads/main'
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
