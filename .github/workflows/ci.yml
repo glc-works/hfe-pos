@@ -32,3 +32,9 @@ jobs:
 
       - name: Run Canonical CI Gate (Hygiene, Modularity, Manifest, Typecheck, Lint, Secretlint, Tests, Build, Size)
         run: npm run ci
+
+      - name: Install Playwright Chromium Browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Run POS Suite Playwright Smoke Gate (Issue #55)
+        run: npm run test:smoke
