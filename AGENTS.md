@@ -162,6 +162,16 @@ As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or c
     - *Absolute Cloud Tool Blacklist on Exploratory Turns:* On any turn asking for advice, comparison, review, or strategy (*"coba cek"*, *"opsi 1 atau 2"*, *"bagaimana strateginya"*), calling ANY external cloud, hosting, or deployment MCP tool (`hostinger-mcp-server`, AWS APIs, DNS mutation, remote provisioning) is STRICTLY PROHIBITED. The agent MUST output only visible text analysis.
     - *Decoupled Confirmation Token:* Approval for local repository code changes (e.g., `"gas"`, `"terapkan"`) NEVER confers authorization to modify external infrastructure or trigger deployments. External infrastructure mutations require a dedicated, explicit directive (e.g., `"deploy sekarang ke [target]"`).
     - *Mandatory Pre-Action Infrastructure Blueprint:* Before touching any external server or DNS record, the agent must clearly detail the exact target, ports, and actions, and await explicit sign-off.
+34. **The 6-Phase Zero-Downtime DNS & Edge Migration Standard (DNSSEC, RFC Mail & Realistic Rollback Invariant).**
+    - *Granular Protocol Classification*: All DNS records MUST be classified per hostname + protocol/port listener (`WEB_HTTP_PROXY` vs `DNS_ONLY_NON_HTTP` vs `MAIL` vs `VERIFICATION`). Sweeping entire IP blocks as non-proxied is prohibited.
+    - *Strict RFC Mail Protection*: All MX, DKIM (`_domainkey`), SPF, DMARC, autoconfig, and autodiscover records MUST declare `proxied: false` (Grey Cloud) to maintain cryptographic DKIM validation. Stale provider records MUST be audited before staging.
+    - *Pre-Cutover Origin TLS Probe*: Enabling SSL Full (Strict) requires pre-verifying origin certificate validity and SAN match on port 443 to prevent `Error 526`.
+    - *DNSSEC Delegation Sequence*: Check and disable legacy registrar DS records before changing nameservers; activate Cloudflare DNSSEC only during post-propagation stabilization.
+    - *Twin-Zone Parity & Realistic Rollback*: Maintain identical authoritative zone records during transition. Never promise instant NS rollback due to TLD caching; use Cloudflare proxy toggle as first-line break-glass.
+    - *Operational Identifier Sanitization*: Omit Cloudflare Account IDs and Registrar Domain IDs from public review documents.
+35. **The Pre-Production Operational Staging Purity Invariant (Anti-Toy/Demo Bypass Rule).**
+    - *Authentic Security Enforcement*: Preview environments (`prv-`) act as real end-to-end staging testbeds, never toy demos.
+    - *Strict Cashier PIN Gate*: Cashier workstation terminals MUST enforce the authentic 6-digit PIN authentication gate and shift session opening by default. Bypassing login or faking cashier credentials in preview builds is strictly prohibited.
 
 ## Slot Reservation Rules
 
