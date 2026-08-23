@@ -1,5 +1,5 @@
 // --- MERCHANT DATA RESOLVER (SSOT RESOLUTION ENGINE) ---
-// Resolves authoritative company book, catalog, and active promos for BOARD.Hfeit
+// Resolves authoritative company book, catalog, and active promos from Hfe Core
 
 export interface ResolvedMerchantProfile {
   bookId: string
@@ -83,14 +83,42 @@ export function formatCurrencyIDR(amount: number): string {
   }).format(amount)
 }
 
-export async function resolveStorefrontData(slug: string): Promise<ResolvedStorefrontData> {
-  const normalizedSlug = slug ? slug.toLowerCase().trim() : 'senopati-kopitiam'
+export async function resolveStorefrontData(slug: string): Promise<ResolvedStorefrontData | null> {
+  const normalizedSlug = slug ? slug.toLowerCase().trim() : ''
+  const isPreview = process.env.PUBLIC_IS_PREVIEW === 'true' || process.env.NODE_ENV !== 'production'
+  const coreApiUrl = process.env.HFE_CORE_API_URL || (isPreview ? 'https://prv-core.hfeit.com' : 'https://core.hfeit.com')
 
-  // Standard Authoritative Merchant Blueprint (Auto-Inherited from Core Company Profile)
+  // 1. Try to fetch authoritative live data from Hfe Core
+  try {
+    const res = await fetch(`${coreApiUrl}/v1/storefronts/${normalizedSlug}`, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(3000)
+    })
+    if (res.ok) {
+      const liveData = await res.json() as ResolvedStorefrontData
+      return liveData
+    }
+  } catch (coreErr) {
+    // If on production, fail-closed: do not serve fake data
+    if (!isPreview) {
+      console.warn(`[BOARD PROD] Merchant '${normalizedSlug}' not found in Hfe Core Production.`)
+      return null
+    }
+  }
+
+  // 2. If on PREVIEW mode, allow simulated benchmark data
+  if (isPreview) {
+    return getPreviewBenchmarkData(normalizedSlug)
+  }
+
+  return null
+}
+
+function getPreviewBenchmarkData(normalizedSlug: string): ResolvedStorefrontData {
   const profile: ResolvedMerchantProfile = {
     bookId: 'cbook-senopati-001',
-    slug: normalizedSlug,
-    businessName: 'Kopitiam Senopati HQ',
+    slug: normalizedSlug || 'senopati-kopitiam',
+    businessName: 'Kopitiam Senopati HQ (Preview)',
     legalName: 'PT Kopitiam Senopati Nusantara',
     tagline: 'Artisan Coffee Roasters & Fresh Pastry Bar',
     storyDescription:
@@ -163,7 +191,6 @@ export async function resolveStorefrontData(slug: string): Promise<ResolvedStore
     },
   ]
 
-  // First-Class Event Tickets as Product Primitive (category === 'event_ticket')
   const events: StorefrontMenuItem[] = [
     {
       id: 'EVT-001',

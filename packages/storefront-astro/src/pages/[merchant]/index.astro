@@ -23,6 +23,14 @@ const merchantSlug = merchant || 'senopati-kopitiam';
 
 // Resolve SSOT Merchant Data from Hfe Core
 const data = await resolveStorefrontData(merchantSlug);
+
+if (!data) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Merchant Not Found'
+  });
+}
+
 const { profile, catalog, events, promos, channels } = data;
 ---
 
