@@ -129,24 +129,34 @@
   const submitBtn = document.getElementById('submit-btn')
 
   if (form && successState && submitBtn) {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault()
       submitBtn.textContent = 'Memproses...'
+      submitBtn.setAttribute('disabled', 'true')
       
       const formData = new FormData(form)
       const data = Object.fromEntries(formData.entries())
       
-      // Save intent locally and trigger mailto fallback if needed
+      // Save locally
       try {
         const saved = JSON.parse(localStorage.getItem('hfe_early_access_requests') || '[]')
         saved.push({ ...data, submittedAt: new Date().toISOString() })
         localStorage.setItem('hfe_early_access_requests', JSON.stringify(saved))
       } catch (_) {}
 
-      setTimeout(() => {
-        form.classList.add('hidden')
-        successState.classList.remove('hidden')
-      }, 500)
+      // Submit to Cloudflare Pages API
+      try {
+        await fetch('/api/early-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        })
+      } catch (err) {
+        console.warn('Fallback: Edge API offline or static fallback active', err)
+      }
+
+      form.classList.add('hidden')
+      successState.classList.remove('hidden')
     })
   }
 </script>
