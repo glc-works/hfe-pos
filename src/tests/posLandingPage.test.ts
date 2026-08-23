@@ -2,9 +2,8 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 
-describe('L2-POS-89: POS.Hfeit Dedicated Marketing Landing Page', () => {
+describe('L2-POS-89: POS.Hfeit Dedicated Marketing Landing Page (Early Access / Invite-Only)', () => {
   const astroPagesDir = path.resolve(__dirname, '../../packages/storefront-astro/src')
-  const distDir = path.resolve(__dirname, '../../packages/storefront-astro/dist')
 
   it('should have index.astro and pos/index.astro files configured for POS.Hfeit', () => {
     const indexContent = fs.readFileSync(path.join(astroPagesDir, 'pages/index.astro'), 'utf-8')
@@ -18,7 +17,7 @@ describe('L2-POS-89: POS.Hfeit Dedicated Marketing Landing Page', () => {
     expect(posIndexContent).toContain('PosLayout')
   })
 
-  it('should verify high-impact merchant copywriting in PosHeroSection.astro', () => {
+  it('should verify high-impact merchant copywriting and early access gating in PosHeroSection.astro', () => {
     const heroContent = fs.readFileSync(path.join(astroPagesDir, 'components/pos/PosHeroSection.astro'), 'utf-8')
 
     // Headline assertions
@@ -27,15 +26,18 @@ describe('L2-POS-89: POS.Hfeit Dedicated Marketing Landing Page', () => {
     expect(heroContent).toContain('16 milidetik')
     expect(heroContent).toContain('internet mati total')
 
-    // Uses centralized app URLs
-    expect(heroContent).toContain('POS_SIGNUP_URL')
+    // Early access CTAs
+    expect(heroContent).toContain('Ajukan Akses Awal (Invite-Only)')
+    expect(heroContent).toContain('Coba Demo Interaktif')
+    expect(heroContent).toContain('POS_EARLY_ACCESS_URL')
     expect(heroContent).toContain('POS_DEMO_URL')
   })
 
-  it('should verify preview and production app url helper in appUrls.ts', () => {
+  it('should verify early access email configuration in appUrls.ts', () => {
     const appUrlsContent = fs.readFileSync(path.join(astroPagesDir, 'lib/appUrls.ts'), 'utf-8')
-    expect(appUrlsContent).toContain('pos.hfeit.app')
-    expect(appUrlsContent).toContain('prv-pos.hfeit.app')
+    expect(appUrlsContent).toContain('exp@hfeit.com')
+    expect(appUrlsContent).toContain('mailto:')
+    expect(appUrlsContent).toContain('prv-pos.hfeit.app/demo')
   })
 
   it('should verify the 5 core POS bento capabilities in PosBentoGrid.astro', () => {
@@ -62,11 +64,11 @@ describe('L2-POS-89: POS.Hfeit Dedicated Marketing Landing Page', () => {
     expect(bentoContent).toContain('RBAC: OTORISASI SUPERVISOR')
   })
 
-  it('should verify navigation and bottom CTA point to POS App URLs', () => {
+  it('should verify navigation and bottom CTA point to Early Access email flow', () => {
     const navContent = fs.readFileSync(path.join(astroPagesDir, 'components/pos/PosNavbar.astro'), 'utf-8')
     const ctaContent = fs.readFileSync(path.join(astroPagesDir, 'components/pos/PosBottomCta.astro'), 'utf-8')
 
-    expect(navContent).toContain('POS_APP_URL')
-    expect(ctaContent).toContain('POS_SIGNUP_URL')
+    expect(navContent).toContain('Minta Akses Awal')
+    expect(ctaContent).toContain('Ajukan Akses Awal via Email')
   })
 })
