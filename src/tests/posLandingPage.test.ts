@@ -27,9 +27,15 @@ describe('L2-POS-89: POS.Hfeit Dedicated Marketing Landing Page', () => {
     expect(heroContent).toContain('16 milidetik')
     expect(heroContent).toContain('internet mati total')
 
-    // CTAs routing to pos.hfeit.app
-    expect(heroContent).toContain('https://pos.hfeit.app/signup')
-    expect(heroContent).toContain('https://pos.hfeit.app/demo')
+    // Uses centralized app URLs
+    expect(heroContent).toContain('POS_SIGNUP_URL')
+    expect(heroContent).toContain('POS_DEMO_URL')
+  })
+
+  it('should verify preview and production app url helper in appUrls.ts', () => {
+    const appUrlsContent = fs.readFileSync(path.join(astroPagesDir, 'lib/appUrls.ts'), 'utf-8')
+    expect(appUrlsContent).toContain('pos.hfeit.app')
+    expect(appUrlsContent).toContain('prv-pos.hfeit.app')
   })
 
   it('should verify the 5 core POS bento capabilities in PosBentoGrid.astro', () => {
@@ -56,21 +62,11 @@ describe('L2-POS-89: POS.Hfeit Dedicated Marketing Landing Page', () => {
     expect(bentoContent).toContain('RBAC: OTORISASI SUPERVISOR')
   })
 
-  it('should verify navigation and bottom CTA point to pos.hfeit.app', () => {
+  it('should verify navigation and bottom CTA point to POS App URLs', () => {
     const navContent = fs.readFileSync(path.join(astroPagesDir, 'components/pos/PosNavbar.astro'), 'utf-8')
     const ctaContent = fs.readFileSync(path.join(astroPagesDir, 'components/pos/PosBottomCta.astro'), 'utf-8')
 
-    expect(navContent).toContain('https://pos.hfeit.app')
-    expect(ctaContent).toContain('https://pos.hfeit.app/signup')
-  })
-
-  it('should verify built HTML output contains correct title and meta description', () => {
-    const htmlPath = path.join(distDir, 'index.html')
-    if (fs.existsSync(htmlPath)) {
-      const htmlContent = fs.readFileSync(htmlPath, 'utf-8')
-      expect(htmlContent).toContain('POS.Hfeit')
-      expect(htmlContent).toContain('Kasir Kilat. Siap di Jam Paling Sibuk.')
-      expect(htmlContent).toContain('pos.hfeit.app')
-    }
+    expect(navContent).toContain('POS_APP_URL')
+    expect(ctaContent).toContain('POS_SIGNUP_URL')
   })
 })

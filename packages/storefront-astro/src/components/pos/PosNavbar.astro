@@ -1,5 +1,5 @@
 ---
-// POS.Hfeit Minimalist Modern Header (Radiant Pattern)
+import { POS_APP_URL } from '../../lib/appUrls'
 ---
 
 <header class="pt-6 relative z-30">
@@ -18,7 +18,7 @@
       <a href="#kds" class="hidden md:inline text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition">Alur Dapur</a>
       <a href="#meja" class="hidden lg:inline text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition">Denah Meja</a>
       <a href="#offline" class="hidden lg:inline text-sm font-semibold text-zinc-600 hover:text-zinc-950 transition">Anti Internet Mati</a>
-      <a href="https://pos.hfeit.app" class="rounded-full bg-zinc-950 px-5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-zinc-800 transition">Masuk ke Kasir &rsaquo;</a>
+      <a href={POS_APP_URL} class="rounded-full bg-zinc-950 px-5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-zinc-800 transition">Masuk ke Kasir &rsaquo;</a>
     </div>
   </nav>
 </header>

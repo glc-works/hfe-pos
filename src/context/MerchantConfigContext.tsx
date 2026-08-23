@@ -251,6 +251,10 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       let host = window.location.hostname.toLowerCase()
       if (host.startsWith('dev-')) host = host.slice(4)
       if (host.startsWith('dev.')) host = host.slice(4)
+      if (host.startsWith('prv-')) host = host.slice(4)
+      if (host.startsWith('prv.')) host = host.slice(4)
+      if (host.startsWith('preview-')) host = host.slice(8)
+      if (host.startsWith('stg-')) host = host.slice(4)
       if (host.startsWith('order.') || host.startsWith('qr.')) return 'customer'
       if (host.startsWith('card.') || host.startsWith('member.') || host.startsWith('pass.')) return 'customer-portal'
       if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'

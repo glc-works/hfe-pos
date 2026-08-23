@@ -1,5 +1,5 @@
 ---
-// POS.Hfeit Hero Section with Radiant Canvas & Floating Master Terminal
+import { POS_SIGNUP_URL, POS_DEMO_URL } from '../../lib/appUrls'
 ---
 
 <div class="relative px-3 pt-3">
@@ -22,13 +22,13 @@
       </p>
       <div class="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
         <a 
-          href="https://pos.hfeit.app/signup" 
+          href={POS_SIGNUP_URL} 
           class="w-full sm:w-auto rounded-full bg-zinc-950 px-8 py-3.5 text-base font-bold text-white shadow-xl hover:bg-zinc-800 transition"
         >
           Coba Gratis 14 Hari &rsaquo;
         </a>
         <a 
-          href="https://pos.hfeit.app/demo" 
+          href={POS_DEMO_URL} 
           class="w-full sm:w-auto rounded-full bg-white px-8 py-3.5 text-base font-bold text-zinc-950 ring-1 ring-zinc-200 hover:bg-zinc-50 transition shadow-sm"
         >
           Lihat Simulasi Kasir
@@ -119,7 +119,7 @@
             <span class="text-base font-bold text-zinc-100">Rp 66.000</span>
           </div>
           <a 
-            href="https://pos.hfeit.app/demo"
+            href={POS_DEMO_URL}
             class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-xs font-bold text-white transition flex justify-between px-4 font-mono shadow-md"
           >
             <span>BAYAR SEKARANG</span>
