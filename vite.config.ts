@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@hfe/sdk': path.resolve(__dirname, '../headless-company-books/packages/hfe-sdk/src/index.ts'),
+      '@hfe/sdk': path.resolve(__dirname, './packages/hfe-sdk/src/index.ts'),
     },
   },
   server: {
