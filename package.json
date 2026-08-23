@@ -29,6 +29,7 @@
     "test:e2e": "playwright test && npm run rotate:test",
     "test:e2e:ui": "playwright test --ui",
     "test:flagship": "playwright test e2e/flagship-one-transaction-one-truth.spec.ts && npm run rotate:test",
+    "test:smoke": "playwright test e2e/smoke-ci.spec.ts",
     "test:visual": "playwright test e2e/visual-regression.spec.ts && npm run rotate:test",
     "test:contrast": "playwright test e2e/theme-contrast-audit.spec.ts && npm run rotate:test",
     "test:all": "./scripts/ci-local.sh && npm run test:e2e",

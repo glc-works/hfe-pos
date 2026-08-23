@@ -13,7 +13,7 @@ export default defineConfig({
   preserveOutput: 'always',
   outputDir: 'test-results',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:4173',
     trace: 'retain-on-failure',
     screenshot: 'on',
   },
@@ -24,9 +24,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
+    command: 'npm run preview -- --port 4173',
+    url: 'http://localhost:4173',
+    reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
 })
