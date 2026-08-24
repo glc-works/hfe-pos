@@ -2,14 +2,20 @@
 okf_version: "0.2"
 type: Development Plan Level 2
 title: "Safe Zero-Downtime DNS Migration (togrow.id & sekeding.com to Cloudflare)"
-description: "Migrate DNS management and edge security for togrow.id and sekeding.com from Hostinger to Cloudflare with pre-population, RFC-compliant mail routing, and rollback safety."
+description: "Historical implementation plan for the reported togrow.id and sekeding.com DNS migration; current deployment truth is owned by deployment governance."
 tags: [development-plan, level-2, dns-migration, cloudflare, hostinger, devops]
 parent_level_1: l1-pos-platform-infrastructure
 github_issue: 49
-status: Proposed
+status: Superseded
 ---
 
 # Level 2 Implementation Plan: Safe Zero-Downtime DNS Migration (`togrow.id` & `sekeding.com` to Cloudflare)
+
+> **Superseded / historical implementation provenance.**
+>
+> This plan must not be used as current DNS/deployment authority or as an executable cutover instruction. Execution evidence was recorded in `glc-works/hfe-pos#49`, which was closed completed after reporting phases 0–4. Current observed domain/DNS/deployment state belongs in `glc-works/hfe-deployment-governance`; fresh reconciliation is tracked by `glc-works/hfe-deployment-governance#22`.
+>
+> Future DNS/provider changes require fresh provider/DNS evidence and the owning deployment-governance review. Product/domain meaning remains governed by `glc-works/hfeit-product` where applicable. The material below is retained only to preserve implementation provenance and the historical safety reasoning used during the migration.
 
 ## 1. Outcome
 Consolidate ecosystem domain management by safely delegating nameservers for `togrow.id` (Hostinger Domain ID `33119828`) and `sekeding.com` (Hostinger Domain ID `32933460`) to Cloudflare (`kanye.ns.cloudflare.com`, `raina.ns.cloudflare.com`), preserving 100% of existing Hostinger Mail (MX, SPF, DKIM, DMARC), Google Search Console verifications, and backend routing without a single second of service downtime.
