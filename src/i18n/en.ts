@@ -314,14 +314,49 @@ export const enTranslations: TranslationDictionary = {
   },
   hub: {
     businessTruthTitle: '⚡ Realtime Business Truth: Last Transaction Impact',
-    businessTruthPostedBadge: 'Posted to CORE ✓',
+    businessTruthPostedBadge: 'Posted to General Ledger ✓',
     businessTruthPendingBadge: 'Pending Sync',
+    businessTruthDemoBadge: 'Proving Ground Demo',
+    businessTruthFailedBadge: 'Posting Failed',
     businessTruthTxLabel: 'Transaction & Table',
     businessTruthGrossLabel: 'Gross Order Value',
     businessTruthTaxLabel: 'PB1 Tax (10%)',
     businessTruthProfitLabel: 'Net Gross Profit',
-    businessTruthLineage: 'Lineage: QR Order ➔ Payment QRIS ➔ GL Posting (Hfe CORE)',
+    businessTruthLineage: 'Lineage: QR Order ➔ Payment ➔ General Journal Entry',
     businessTruthTagline: '1 Transaction. 1 Truth.',
+
+    // Executive Summary & Range
+    executiveSummaryTitle: 'Executive Performance Summary',
+    executiveSummarySub: 'Real gross profit calculation based on recipe bill of materials (BOM)',
+    rangeToday: 'Today',
+    rangeThisWeek: 'This Week',
+    rangeThisMonth: 'This Month',
+
+    // KPI Cards
+    grossSalesLabel: 'Gross Sales',
+    grossSalesComparison: '+14.2% vs yesterday',
+    cogsBomLabel: 'Cost of Goods Sold (BOM)',
+    cogsBomSub: '28.0% of net sales (Ideal <32%)',
+    grossProfitLabel: 'Real Gross Profit',
+    marginLabel: 'Margin:',
+    totalTransactionsLabel: 'Total Transactions & Bills',
+    receiptsUnit: 'bills',
+    avgTicketSub: 'Average: {amount} / table',
+
+    // Rush Hour Heatmap
+    rushHourHeatmapTitle: 'Rush Hour Heatmap (Cashier & Kitchen Peak Hours)',
+    rushHourHeatmapSub: 'Order frequency distribution across operational hours',
+    rushHourPeaksDetected: '🔥 2 Peak Hours Detected (12:00 & 19:00)',
+    peakLabel: 'PEAK',
+    busyLabel: 'BUSY',
+    moderateLabel: 'BUSY',
+    quietLabel: 'NORMAL',
+
+    // Z-Report Closeout
+    zReportTitle: 'Daily Cashier Closeout Report (Z-Report)',
+    zReportSub: 'Reconciliation of cash receipts, QRIS, debit/credit cards, discounts, and physical cash variance.',
+    printingZReport: 'Printing to Cashier Printer...',
+    printZReportCta: 'Print Thermal Z-Report (80mm)',
   },
   feedback: {
     howWasYourVisitTitle: 'How Was Your Visit Today?',
