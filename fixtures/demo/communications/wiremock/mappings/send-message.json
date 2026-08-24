@@ -1,0 +1,39 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/v[0-9.]+/000000000099/messages",
+    "headers": {
+      "Authorization": {
+        "equalTo": "Bearer synthetic-local-token"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.messaging_product == 'whatsapp')]"
+      },
+      {
+        "matchesJsonPath": "$[?(@.to == '000000000001')]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "messaging_product": "whatsapp",
+      "contacts": [
+        {
+          "input": "000000000001",
+          "wa_id": "000000000001"
+        }
+      ],
+      "messages": [
+        {
+          "id": "wamid.synthetic-demo-message-001"
+        }
+      ]
+    }
+  }
+}

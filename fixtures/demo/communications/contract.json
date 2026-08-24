@@ -1,0 +1,26 @@
+{
+  "contract_id": "hfe.demo-ecosystem",
+  "contract_version": "1.0.0",
+  "fixture_schema_version": 1,
+  "classification": "synthetic_test_only",
+  "public_delivery_allowed": false,
+  "canonical_ids": [
+    "endpoint.nusantara.group-owner.email",
+    "endpoint.nusantara.outlet-manager.whatsapp",
+    "scenario.nusantara.receipt-email",
+    "scenario.nusantara.whatsapp-roundtrip"
+  ],
+  "endpoints": {
+    "email": {
+      "id": "endpoint.nusantara.group-owner.email",
+      "address": "owner@nusantara.demo.invalid",
+      "transport": "mailpit_local_only"
+    },
+    "whatsapp": {
+      "id": "endpoint.nusantara.outlet-manager.whatsapp",
+      "address_fixture_ref": "whatsapp.nusantara.outlet-manager",
+      "recipient": "000000000001",
+      "transport": "wiremock_local_only"
+    }
+  }
+}

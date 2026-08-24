@@ -1,0 +1,30 @@
+name: hfe-pos-demo-communications
+
+services:
+  mailpit:
+    image: axllent/mailpit:v1.31.0
+    restart: "no"
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: "500"
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    volumes:
+      - demo-mailpit-data:/data
+
+  whatsapp-mock:
+    image: wiremock/wiremock:3.13.2
+    restart: "no"
+    command:
+      - --global-response-templating
+      - --disable-gzip
+      - --port
+      - "8080"
+    ports:
+      - "127.0.0.1:8089:8080"
+    volumes:
+      - ./fixtures/demo/communications/wiremock:/home/wiremock:ro
+
+volumes:
+  demo-mailpit-data:
