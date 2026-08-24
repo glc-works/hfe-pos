@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import { generatePayloadChecksum, verifyPayloadIntegrity } from '../utils/cryptoHasher'
 import { FlushManager } from '../services/flushManager'
 import { employeeLogin } from '../services/hfeApi'
+import demoAccess from '../../fixtures/demo/access.json'
 
 describe('SHA-256 Web Crypto Payload Integrity Hasher', () => {
   it('generates deterministic 64-character hex checksums for identical payloads', async () => {
@@ -61,6 +62,12 @@ describe('Exponential Backoff Delay Calculations', () => {
 })
 
 describe('Security & Rate-Limiting Guard Logic', () => {
+  beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('local demo has no Hfe Core'))
+  })
+
+  afterEach(() => vi.restoreAllMocks())
+
   class RateLimiter {
     public failedAttempts = 0
     public cooldownSeconds = 0
@@ -100,15 +107,15 @@ describe('Security & Rate-Limiting Guard Logic', () => {
     expect(limiter.cooldownSeconds).toBe(60)
 
     // Attempting during cooldown blocks immediately
-    await expect(limiter.attemptLogin('882194')).rejects.toThrow(
+    await expect(limiter.attemptLogin('999998')).rejects.toThrow(
       /Terlalu banyak percobaan gagal/
     )
   })
 
   it('authenticates valid employee PIN successfully', async () => {
-    const auth = await employeeLogin('BRANCH-HQ-01', '882194')
+    const auth = await employeeLogin(demoAccess.branchId, demoAccess.staff.pin, demoAccess.bookId)
     expect(auth.token).toBeDefined()
-    expect(auth.user.name).toBe('Budi Cashier')
-    expect(auth.user.role).toBe('cashier')
+    expect(auth.user.name).toBe(demoAccess.staff.name)
+    expect(auth.user.role).toBe(demoAccess.staff.role)
   })
 })

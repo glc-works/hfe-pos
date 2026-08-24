@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "environment": "local-demo",
+  "classification": "SYNTHETIC TEST DATA ONLY — NEVER PRODUCTION",
+  "bookId": "BOOK-CAFE-HQ-88",
+  "branchId": "BRANCH-HQ-01",
+  "staff": {
+    "id": "USR-DEMO-BARISTA-01",
+    "name": "Siti Barista",
+    "role": "barista",
+    "pin": "123456"
+  },
+  "prohibitions": [
+    "Never place real ToGrow passwords, tokens, PINs, or customer credentials in this fixture.",
+    "Never use this identity outside the local synthetic demo."
+  ]
+}

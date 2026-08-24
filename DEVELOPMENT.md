@@ -15,3 +15,15 @@ This document defines the delivery process, GitHub Delivery Project mapping, pla
 3. Use branch naming: `codex/<tier>-<issue>-<slug>`.
 4. Verify every feature with unit/integration tests and visual evidence before merging.
 5. Autonomous merges to `main` require green checks and explicit authority.
+
+## Local synthetic demo access
+
+The canonical test-only identity and manual instructions live in
+`fixtures/demo/`. Use `npm run test:demo` to prove the documented account can
+enter and reset a clean browser session. The Playwright helper at
+`e2e/helpers/demoSession.ts` is the reusable automation boundary; direct auth
+storage injection is not an accepted login path.
+
+Failure to discover or complete this documented local flow is a repository
+reliability defect. It is not evidence of a ToGrow or Hfe Core access blocker.
+Never commit credentials for either external system.

@@ -300,7 +300,7 @@ function AppMain() {
         )}
 
         {config.activeApp === 'cafe' && !auth.currentStaffUser && (
-          <PosAuthLoginView onSuccess={() => showToast('🔓 Kasir Berhasil Masuk Shift')} />
+          <PosAuthLoginView onSuccess={() => window.location.reload()} />
         )}
 
         {config.activeApp === 'cafe' && !!auth.currentStaffUser && (

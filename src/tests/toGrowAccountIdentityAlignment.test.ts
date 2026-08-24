@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { afterEach, describe, it, expect, beforeEach, vi } from 'vitest'
 import { exchangeToGrowSession, employeeLogin } from '../services/hfeAuthApi'
+import demoAccess from '../../fixtures/demo/access.json'
 
 describe('ToGrow Account Identity Alignment Suite (L2-POS-86 / Issue #38)', () => {
   beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('local demo has no Hfe Core'))
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.clear()
     }
@@ -10,6 +12,8 @@ describe('ToGrow Account Identity Alignment Suite (L2-POS-86 / Issue #38)', () =
       localStorage.clear()
     }
   })
+
+  afterEach(() => vi.restoreAllMocks())
 
   it('delegates person identity authentication to ToGrow Account (Tier 1)', async () => {
     const sessionToken = 'valid_togrow_oauth_token_88'
@@ -25,12 +29,16 @@ describe('ToGrow Account Identity Alignment Suite (L2-POS-86 / Issue #38)', () =
   })
 
   it('preserves cashier PIN quick-switch as terminal shift attestation (Tier 4)', async () => {
-    const cashierSession = await employeeLogin('BRANCH-HQ-01', '882194')
+    const cashierSession = await employeeLogin(
+      demoAccess.branchId,
+      demoAccess.staff.pin,
+      demoAccess.bookId
+    )
 
-    expect(cashierSession.user.name).toBe('Budi Cashier')
-    expect(cashierSession.user.role).toBe('cashier')
-    expect(cashierSession.user.branch_id).toBe('BRANCH-HQ-01')
-    expect(cashierSession.token).toContain('JWT-STAFF-PIN-882194-')
+    expect(cashierSession.user.name).toBe(demoAccess.staff.name)
+    expect(cashierSession.user.role).toBe(demoAccess.staff.role)
+    expect(cashierSession.user.branch_id).toBe(demoAccess.branchId)
+    expect(cashierSession.token).toContain('JWT-LOCAL-DEMO-')
   })
 
   it('rejects invalid PIN and fails closed', async () => {

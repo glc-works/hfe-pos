@@ -4,6 +4,16 @@
 
 Read `ARCHITECTURE.md` first as the highest technical contract, `docs/active/standards/HFE-OMBOK-STD-001.md` for Operations Management & Agent Rigor, then `DEVELOPMENT.md` for delivery process authority. `CLAUDE.md` and this file are contributor entry points only.
 
+## Canonical local demo entry
+
+`fixtures/demo/access.json` is the single source of truth for the committed
+synthetic demo identity. Manual flows and Playwright automation must consume
+that contract through `e2e/helpers/demoSession.ts`; do not invent alternate
+PINs, inject ad-hoc sessions, or commit real ToGrow credentials. If an agent
+cannot discover or use the documented local demo entry, treat it as a
+repository reliability defect to diagnose and fix, not as an upstream access
+blocker. Run `npm run test:demo` for the browser proof.
+
 ## Current product lifecycle state
 
 As of 2026-08-15, `hfe-pos` is **pre-production** and contains no real-user or customer data.
