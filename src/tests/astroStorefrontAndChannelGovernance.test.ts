@@ -109,6 +109,28 @@ describe('Astro Storefront (BOARD.Hfeit) & Channel Governance Engine', () => {
       expect(eventTicket.eventDetails?.remainingSeats).toBeGreaterThan(0)
     })
 
+    it('fails closed in production mode when no explicit backend endpoint is configured (Issue #60)', async () => {
+      const prevEnv = process.env.NODE_ENV
+      const prevPreview = process.env.PUBLIC_IS_PREVIEW
+      const prevApiUrl = process.env.HFE_STOREFRONT_API_URL
+
+      try {
+        process.env.NODE_ENV = 'production'
+        process.env.PUBLIC_IS_PREVIEW = 'false'
+        delete process.env.HFE_STOREFRONT_API_URL
+
+        const data = await resolveStorefrontData('unregistered-merchant-slug')
+        // Invariant: Fail closed, return null, zero fake live data in production
+        expect(data).toBeNull()
+      } finally {
+        process.env.NODE_ENV = prevEnv
+        process.env.PUBLIC_IS_PREVIEW = prevPreview
+        if (prevApiUrl) {
+          process.env.HFE_STOREFRONT_API_URL = prevApiUrl
+        }
+      }
+    })
+
     it('formats monetary figures using exact IDR currency standards', () => {
       expect(formatCurrencyIDR(28000)).toMatch(/28\.000/)
       expect(formatCurrencyIDR(150000)).toMatch(/150\.000/)
