@@ -86,12 +86,40 @@ describe('Settings 4-Zone Architecture & Simplification (POS-ENG-STD-001)', () =
     })
   })
 
-  describe('Zone 4: Integrasi Hfe Core Single Source of Truth', () => {
+  describe('Zone 4: Koneksi Akuntansi & Pembukuan Bisnis (Issue #67)', () => {
     it('supports multi-branch accounting modes: dimensional, multi_book, sub_account', () => {
       const branchModes = ['dimensional', 'multi_book', 'sub_account']
       expect(branchModes).toContain('dimensional')
       expect(branchModes).toContain('multi_book')
       expect(branchModes).toContain('sub_account')
+    })
+
+    it('ensures default merchant settings strings are free of internal HFE architecture jargon (SSOT, UUID, GL, REST API, branch_id)', () => {
+      const id = idTranslations.settings
+      const en = enTranslations.settings
+
+      // Navigation & Headings must be plain business language
+      expect(id.zone4NavTitle).not.toContain('SSOT')
+      expect(en.zone4NavTitle).not.toContain('SSOT')
+      expect(id.zone4NavSubtitle).not.toContain('GL')
+      expect(en.zone4NavSubtitle).not.toContain('GL')
+
+      // Main headings & descriptions must be plain business language
+      expect(id.zone4Heading).not.toContain('Single Source of Truth')
+      expect(en.zone4Heading).not.toContain('Single Source of Truth')
+
+      // Multi-branch options must use business terms (Unified Single Book, Separate Books, Dedicated Branch Accounts)
+      expect(id.dimensionalTaggingDesc).not.toContain('branch_id')
+      expect(en.dimensionalTaggingDesc).not.toContain('branch_id')
+      expect(id.dimensionalTaggingDesc).not.toContain('CompanyBook')
+      expect(en.dimensionalTaggingDesc).not.toContain('CompanyBook')
+
+      expect(id.multiBookHierarchyDesc).not.toContain('HFE Consolidation Engine')
+      expect(en.multiBookHierarchyDesc).not.toContain('HFE Consolidation Engine')
+
+      // Badges must be understandable business labels
+      expect(id.liveSyncedBadge).toBe('TERHUBUNG KE PEMBUKUAN')
+      expect(en.liveSyncedBadge).toBe('CONNECTED TO BOOKS')
     })
   })
 
@@ -131,6 +159,10 @@ describe('Settings 4-Zone Architecture & Simplification (POS-ENG-STD-001)', () =
       expect(enSettings.zone4Heading).toBeDefined()
       expect(idSettings.liveSyncedBadge).toBeDefined()
       expect(enSettings.liveSyncedBadge).toBeDefined()
+      expect(idSettings.accountingSystemStatus).toBeDefined()
+      expect(enSettings.accountingSystemStatus).toBeDefined()
+      expect(idSettings.advancedSystemDetails).toBeDefined()
+      expect(enSettings.advancedSystemDetails).toBeDefined()
       expect(idSettings.companyBookId).toBeDefined()
       expect(enSettings.companyBookId).toBeDefined()
       expect(idSettings.dimensionalTagging).toBeDefined()
