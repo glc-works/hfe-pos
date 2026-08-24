@@ -3,6 +3,7 @@
 
 import { SubmitRetailTransactionPayload } from './HfePosFinancialPort'
 import { generatePayloadChecksum } from '../../utils/cryptoHasher'
+import type { CheckoutAttemptRecord, CheckoutAttemptStore } from './CafeCheckoutAttemptCoordinator'
 
 export interface QueuedFinancialIntent {
   idempotencyKey: string
@@ -16,8 +17,9 @@ export interface QueuedFinancialIntent {
 }
 
 const DB_NAME = 'hfe_pos_financial_intents_db'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_NAME = 'financial_intents'
+const CHECKOUT_ATTEMPTS_STORE = 'checkout_attempts'
 
 function generateUUIDv4(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -30,8 +32,9 @@ function generateUUIDv4(): string {
   })
 }
 
-export class OfflineIntentQueue {
+export class OfflineIntentQueue implements CheckoutAttemptStore {
   private inMemoryQueue: Map<string, QueuedFinancialIntent> = new Map()
+  private inMemoryCheckoutAttempts: Map<string, CheckoutAttemptRecord> = new Map()
 
   private openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
@@ -44,10 +47,65 @@ export class OfflineIntentQueue {
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: 'idempotencyKey' })
         }
+        if (!db.objectStoreNames.contains(CHECKOUT_ATTEMPTS_STORE)) {
+          db.createObjectStore(CHECKOUT_ATTEMPTS_STORE, { keyPath: 'checkoutKey' })
+        }
       }
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(request.error)
     })
+  }
+
+  async get(checkoutKey: string): Promise<CheckoutAttemptRecord | null> {
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readonly')
+      const request = tx.objectStore(CHECKOUT_ATTEMPTS_STORE).get(checkoutKey)
+      return await new Promise<CheckoutAttemptRecord | null>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || null)
+        request.onerror = () => reject(request.error)
+      })
+    } catch {
+      return this.inMemoryCheckoutAttempts.get(checkoutKey) || null
+    }
+  }
+
+  async put(record: CheckoutAttemptRecord): Promise<void> {
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')
+      tx.objectStore(CHECKOUT_ATTEMPTS_STORE).put(record)
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve()
+        tx.onerror = () => reject(tx.error)
+      })
+      this.inMemoryCheckoutAttempts.set(record.checkoutKey, record)
+    } catch (error) {
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed to persist checkout identity to physical storage: ${message}`)
+      }
+      this.inMemoryCheckoutAttempts.set(record.checkoutKey, record)
+    }
+  }
+
+  async remove(checkoutKey: string): Promise<void> {
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')
+      tx.objectStore(CHECKOUT_ATTEMPTS_STORE).delete(checkoutKey)
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve()
+        tx.onerror = () => reject(tx.error)
+      })
+      this.inMemoryCheckoutAttempts.delete(checkoutKey)
+    } catch (error) {
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed to remove completed checkout identity: ${message}`)
+      }
+      this.inMemoryCheckoutAttempts.delete(checkoutKey)
+    }
   }
 
   async enqueueIntent(

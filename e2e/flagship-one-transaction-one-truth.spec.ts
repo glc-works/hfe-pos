@@ -61,14 +61,14 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
         status: mode === 'pending' ? 202 : 200,
         json: mode === 'pending'
           ? { order_id: orderId, status: 'Pending' }
-          : { order_id: orderId, posting_id: postingId, finality: 'Applied' },
+          : { order_id: orderId, posting_id: postingId, finality: 'applied' },
       })
     } else if (url.endsWith(`/postings/${postingId}`)) {
       await route.fulfill({ status: 200, json: {
         id: mode === 'mismatch' ? 'POSTING-DIFFERENT' : postingId,
         book_id: demoAccess.bookId,
-        finality: 'Applied',
-        source_capability: 'pos.order',
+        finality: 'applied',
+        source_capability: 'pos_order',
         source_object_id: mode === 'mismatch' ? 'ORDER-DIFFERENT' : orderId,
         stable_effect_key: observed[0].headers['idempotency-key'],
       } })
@@ -95,7 +95,7 @@ const cashScenario = {
 } as const
 
 test.describe('Flagship café: one transaction, one durable CORE truth', () => {
-  test('posts through generated SDK operations and accepts only exact Applied read-back', async ({ page }) => {
+  test('posts through generated SDK operations and accepts only exact applied read-back', async ({ page }) => {
     const { driver, observed } = await openCanonicalCashier(page, 'applied')
 
     await driver.selectOccupiedTable(cashScenario.tableNumber)
@@ -129,6 +129,15 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
     await expect.poll(() => observed.length).toBe(3)
     await expect(page.locator('[data-financial-status="pending"]')).toBeVisible()
     await expect(page.getByText('(Lunas)')).toHaveCount(0)
+
+    await page.reload()
+    const reloadedDriver = new PosCashierDriver(page)
+    await reloadedDriver.navigateToCashierPos()
+    await reloadedDriver.selectOccupiedTable(cashScenario.tableNumber)
+    await reloadedDriver.processSettlement(cashScenario)
+
+    await expect(page.getByText(/Jangan bayar ulang|Do not repay/)).toBeVisible()
+    expect(observed).toHaveLength(3)
   })
 
   test('keeps settlement failed when durable posting lineage mismatches', async ({ page }) => {

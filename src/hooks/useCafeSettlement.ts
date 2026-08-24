@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
 import type { CartItem, OrderFulfillmentMode, OrderTicket, PosPayMethod, TableStatus } from '../types/pos'
 import type { HfePosFinancialPort, SubmitRetailTransactionPayload } from '../services/financial'
-import { settleCafeOrder } from '../services/financial'
+import { CafeCheckoutAttemptCoordinator } from '../services/financial/CafeCheckoutAttemptCoordinator'
+import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
+export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
 
 interface UseCafeSettlementOptions {
   financialPort: HfePosFinancialPort
@@ -25,7 +27,8 @@ interface UseCafeSettlementOptions {
 
 export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const [financialStatus, setFinancialStatus] = useState<CafeFinancialStatus>('idle')
-  const idempotencyKeys = useRef(new Map<string, string>())
+  const [financialNotice, setFinancialNotice] = useState<CafeFinancialNotice>(null)
+  const coordinator = useRef(new CafeCheckoutAttemptCoordinator(new OfflineIntentQueue()))
 
   const handleCheckout = async () => {
     const {
@@ -42,11 +45,6 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       order.table === selectedTable.name || order.table === selectedTable.id
     ))
     const sourceId = sourceOrder?.id || selectedTable?.id || `walk-in-${fulfillmentMode}`
-    let idempotencyKey = idempotencyKeys.current.get(sourceId)
-    if (!idempotencyKey) {
-      idempotencyKey = crypto.randomUUID()
-      idempotencyKeys.current.set(sourceId, idempotencyKey)
-    }
     const corePaymentMethod = paymentMethod === 'cash' || paymentMethod === 'qris' ? paymentMethod : 'card'
     const payload: SubmitRetailTransactionPayload = {
       table_id: selectedTable?.id,
@@ -65,37 +63,62 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       discount_amount: 0,
       grand_total: grandTotal,
       cashier_id: cashierId,
-      idempotency_key: idempotencyKey,
     }
 
     setFinancialStatus('pending')
+    setFinancialNotice('submitting')
     try {
       const now = new Date()
-      const result = await settleCafeOrder({
-        port: financialPort,
+      const checkoutKey = `${companyBookId}:${sourceId}`
+      const result = await coordinator.current.execute({
+        checkoutKey,
+        bookId: companyBookId,
         payload,
-        context: {
-          companyBookId,
-          authorityContext,
-          sessionId: sourceId,
-          financialDate: now.toISOString().slice(0, 10),
-          handover: {
-            actorPrincipalId: cashierId,
-            evidenceReference: `pos-order:${sourceId}`,
-            occurredAt: now.toISOString(),
+        post: (identifiedPayload) => financialPort.postRetailOrder(
+          identifiedPayload,
+          {
+            companyBookId,
+            authorityContext,
+            sessionId: sourceId,
+            financialDate: now.toISOString().slice(0, 10),
+            handover: {
+              actorPrincipalId: cashierId,
+              evidenceReference: `pos-order:${sourceId}`,
+              occurredAt: now.toISOString(),
+            },
           },
-        },
-        commitPaidState,
+        ),
       })
-      if (result.status !== 'posted') return
+      if (result.kind === 'already_in_progress') {
+        setFinancialNotice('in_progress')
+        return
+      }
+      if (result.kind === 'pending') {
+        setFinancialNotice('pending_core')
+        return
+      }
+      if (result.kind === 'operator_action_required') {
+        setFinancialStatus(result.attempt.status === 'posted' ? 'error' : 'pending')
+        setFinancialNotice(result.attempt.status === 'posted' ? 'posted_unacknowledged' : 'outcome_unknown')
+        return
+      }
+      if (result.kind === 'outcome_unknown') {
+        setFinancialStatus('error')
+        setFinancialNotice('outcome_unknown')
+        return
+      }
+
       setFinancialStatus('posted')
-      idempotencyKeys.current.delete(sourceId)
+      setFinancialNotice('posted')
+      commitPaidState()
       clearCart()
+      await coordinator.current.acknowledgePosted(checkoutKey)
       alert(`🎉 Pembayaran ${selectedTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedTable?.totalBill || 0))} LUNAS via ${paymentMethod.toUpperCase()}!`)
     } catch {
       setFinancialStatus('error')
+      setFinancialNotice('failed')
     }
   }
 
-  return { financialStatus, handleCheckout }
+  return { financialStatus, financialNotice, handleCheckout }
 }

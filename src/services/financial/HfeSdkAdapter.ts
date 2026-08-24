@@ -282,16 +282,16 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     })
     const posting = durable.body
     const exactMatch =
-      posted.body.finality === 'Applied' &&
-      posting.finality === 'Applied' &&
+      posted.body.finality === 'applied' &&
+      posting.finality === 'applied' &&
       posting.id === posted.body.posting_id &&
       posting.book_id === targetBook &&
-      posting.source_capability === 'pos.order' &&
+      posting.source_capability === 'pos_order' &&
       posting.source_object_id === processed.body.id &&
       posting.stable_effect_key === payload.idempotency_key
 
     if (!exactMatch) {
-      throw new Error('Durable posting read-back mismatch: exact posting ID, POS source lineage, and Applied finality are required.')
+      throw new Error('Durable posting read-back mismatch: exact posting ID, POS source lineage, and applied finality are required.')
     }
 
     return {
