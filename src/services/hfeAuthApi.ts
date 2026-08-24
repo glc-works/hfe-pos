@@ -1,5 +1,23 @@
+import demoAccess from '../../fixtures/demo/access.json'
+
 // --- AUTHENTICATION & IDENTITY API ENDPOINTS ---
 const DEFAULT_BASE_URL = 'http://localhost:8080'
+
+function localDemoFallbackEnabled(baseUrl: string): boolean {
+  if (import.meta.env.MODE !== 'test' && import.meta.env.VITE_ENABLE_LOCAL_DEMO !== 'true') {
+    return false
+  }
+
+  try {
+    const apiHost = new URL(baseUrl).hostname
+    if (!['localhost', '127.0.0.1', '::1'].includes(apiHost)) return false
+
+    if (typeof window === 'undefined') return true
+    return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+  } catch {
+    return false
+  }
+}
 
 export interface StaffUserSession {
   user_id: string
@@ -34,6 +52,20 @@ export interface AuthResponse {
   user: StaffUserSession
 }
 
+function createLocalDemoAuthResponse(branchId: string): AuthResponse {
+  const token = `JWT-LOCAL-DEMO-${Date.now()}`
+  return {
+    token,
+    user: {
+      user_id: demoAccess.staff.id,
+      name: demoAccess.staff.name,
+      role: demoAccess.staff.role as StaffUserSession['role'],
+      branch_id: branchId,
+      token,
+    },
+  }
+}
+
 /**
  * Staff PIN Login: POST /v1/company-books/{book}/auth/employee-login
  */
@@ -43,29 +75,38 @@ export async function employeeLogin(
   bookId: string = 'BOOK-CAFE-HQ-88',
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<AuthResponse> {
+  const matchesCanonicalDemo =
+    bookId === demoAccess.bookId &&
+    branchId === demoAccess.branchId &&
+    pinCode === demoAccess.staff.pin
+
+  if (
+    import.meta.env.VITE_ENABLE_LOCAL_DEMO === 'true' &&
+    localDemoFallbackEnabled(baseUrl) &&
+    matchesCanonicalDemo
+  ) {
+    return createLocalDemoAuthResponse(branchId)
+  }
+
+  let res: Response
   try {
-    const res = await fetch(`${baseUrl}/v1/company-books/${bookId}/auth/employee-login`, {
+    res = await fetch(`${baseUrl}/v1/company-books/${bookId}/auth/employee-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ branch_id: branchId, pin_code: pinCode }),
     })
-    if (!res.ok) throw new Error(`Auth failed with status ${res.status}`)
-    return await res.json()
-  } catch (err) {
-    if (pinCode === '882194' || pinCode === '123456' || pinCode === '000000') {
-      return {
-        token: `JWT-STAFF-PIN-${pinCode}-${Date.now()}`,
-        user: {
-          user_id: `USR-STAFF-${pinCode}`,
-          name: pinCode === '882194' ? 'Budi Cashier' : 'Siti Barista',
-          role: pinCode === '882194' ? 'cashier' : 'barista',
-          branch_id: branchId,
-          token: `JWT-STAFF-PIN-${pinCode}-${Date.now()}`,
-        },
-      }
+  } catch {
+    if (
+      localDemoFallbackEnabled(baseUrl) &&
+      matchesCanonicalDemo
+    ) {
+      return createLocalDemoAuthResponse(branchId)
     }
     throw new Error('PIN Staff tidak valid atau tidak terdaftar')
   }
+
+  if (!res.ok) throw new Error(`Auth failed with status ${res.status}`)
+  return await res.json()
 }
 
 /**
@@ -238,4 +279,3 @@ export async function exchangeToGrowSession(
     }
   }
 }
-

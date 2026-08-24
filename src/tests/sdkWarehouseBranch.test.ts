@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { afterEach, describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   fetchWarehouses,
   receiveGoods,
@@ -10,6 +10,7 @@ import {
   fetchMultiBranchSales,
 } from '../services/hfeApi'
 import { employeeLogin, ownerLogin } from '../services/hfeAuthApi'
+import demoAccess from '../../fixtures/demo/access.json'
 
 const mockStorage: Record<string, string> = {}
 const localStorageMock = {
@@ -31,14 +32,17 @@ if (typeof globalThis.localStorage === 'undefined') {
 describe('@hfe/pos-auth-starterkit SDK & Authentication Engine', () => {
   beforeEach(() => {
     localStorage.clear()
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('local demo has no Hfe Core'))
   })
 
+  afterEach(() => vi.restoreAllMocks())
+
   it('authenticates valid employee PIN successfully', async () => {
-    const res = await employeeLogin('BRANCH-SENOPATI', '882194')
-    expect(res.token).toContain('JWT-STAFF-PIN-882194')
-    expect(res.user.name).toBe('Budi Cashier')
-    expect(res.user.role).toBe('cashier')
-    expect(res.user.branch_id).toBe('BRANCH-SENOPATI')
+    const res = await employeeLogin(demoAccess.branchId, demoAccess.staff.pin, demoAccess.bookId)
+    expect(res.token).toContain('JWT-LOCAL-DEMO-')
+    expect(res.user.name).toBe(demoAccess.staff.name)
+    expect(res.user.role).toBe(demoAccess.staff.role)
+    expect(res.user.branch_id).toBe(demoAccess.branchId)
   })
 
   it('authenticates valid store owner credentials successfully', async () => {
@@ -147,13 +151,13 @@ describe('Multi-Branch Outlet Suite & Active Workspace Switcher', () => {
   it('updates branch storefront config (WiFi & operating hours)', async () => {
     const updatePayload = {
       wifiSsid: 'Kopitiam_Kemang_Free',
-      wifiPassword: 'kemangkopi2026',
+      wifiPassword: 'not-a-secret-demo-value',
       operatingHours: '07:00 - 23:00 WIB',
     }
     const res = await updateBranch('BOOK-CAFE-HQ-88', 'BRANCH-KEMANG', updatePayload)
     expect(res.id).toBe('BRANCH-KEMANG')
     expect(res.wifiSsid).toBe('Kopitiam_Kemang_Free')
-    expect(res.wifiPassword).toBe('kemangkopi2026')
+    expect(res.wifiPassword).toBe('not-a-secret-demo-value')
   })
 
   it('persists active branch workstation switcher state in localStorage', () => {
