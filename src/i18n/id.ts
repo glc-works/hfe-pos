@@ -314,14 +314,49 @@ export const idTranslations: TranslationDictionary = {
   },
   hub: {
     businessTruthTitle: '⚡ Realtime Business Truth: Dampak Transaksi Terakhir',
-    businessTruthPostedBadge: 'Posted to CORE ✓',
-    businessTruthPendingBadge: 'Pending Sync',
+    businessTruthPostedBadge: 'Terposting ke Buku Besar ✓',
+    businessTruthPendingBadge: 'Sinkronisasi Tertunda',
+    businessTruthDemoBadge: 'Simulasi Proving Ground',
+    businessTruthFailedBadge: 'Gagal Posting',
     businessTruthTxLabel: 'Transaksi & Meja',
     businessTruthGrossLabel: 'Omset / Nilai Order',
     businessTruthTaxLabel: 'Pajak PB1 (10%)',
     businessTruthProfitLabel: 'Laba Kotor Bersih',
-    businessTruthLineage: 'Lineage: QR Order ➔ Payment QRIS ➔ GL Posting (Hfe CORE)',
+    businessTruthLineage: 'Lineage: QR Order ➔ Pembayaran ➔ Jurnal Akuntansi',
     businessTruthTagline: '1 Transaksi. 1 Kebenaran.',
+
+    // Executive Summary & Range
+    executiveSummaryTitle: 'Ringkasan Kinerja Eksekutif',
+    executiveSummarySub: 'Kalkulasi laba kotor riil berbasis resep bahan baku (BOM)',
+    rangeToday: 'Hari Ini',
+    rangeThisWeek: 'Minggu Ini',
+    rangeThisMonth: 'Bulan Ini',
+
+    // KPI Cards
+    grossSalesLabel: 'Omset Kotor (Gross)',
+    grossSalesComparison: '+14.2% vs kemarin',
+    cogsBomLabel: 'Beban Bahan Baku (HPP/BOM)',
+    cogsBomSub: '28.0% dari omset bersih (Ideal <32%)',
+    grossProfitLabel: 'Laba Kotor Riil (Gross Profit)',
+    marginLabel: 'Margin:',
+    totalTransactionsLabel: 'Total Transaksi & Struk',
+    receiptsUnit: 'struk',
+    avgTicketSub: 'Rata-rata: {amount} / meja',
+
+    // Rush Hour Heatmap
+    rushHourHeatmapTitle: 'Rush Hour Heatmap (Puncak Jam Ramai Kasir & Dapur)',
+    rushHourHeatmapSub: 'Distribusi frekuensi pesanan per jam operasional',
+    rushHourPeaksDetected: '🔥 2 Jam Puncak Terdeteksi (12:00 & 19:00)',
+    peakLabel: 'PEAK',
+    busyLabel: 'SIBUK',
+    moderateLabel: 'RAMAI',
+    quietLabel: 'NORMAL',
+
+    // Z-Report Closeout
+    zReportTitle: 'Laporan Tutup Kasir Harian (Z-Report)',
+    zReportSub: 'Rekapitulasi total penerimaan tunai, QRIS, kartu debit/kredit, potongan diskon, dan selisih kas fisik.',
+    printingZReport: 'Mencetak ke Printer Kasir...',
+    printZReportCta: 'Cetak Z-Report Thermal (80mm)',
   },
   feedback: {
     howWasYourVisitTitle: 'Bagaimana Pengalaman Anda Hari Ini?',

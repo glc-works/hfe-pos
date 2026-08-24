@@ -316,12 +316,47 @@ export interface TranslationDictionary {
     businessTruthTitle: string
     businessTruthPostedBadge: string
     businessTruthPendingBadge: string
+    businessTruthDemoBadge: string
+    businessTruthFailedBadge: string
     businessTruthTxLabel: string
     businessTruthGrossLabel: string
     businessTruthTaxLabel: string
     businessTruthProfitLabel: string
     businessTruthLineage: string
     businessTruthTagline: string
+
+    // Executive Summary & Range
+    executiveSummaryTitle: string
+    executiveSummarySub: string
+    rangeToday: string
+    rangeThisWeek: string
+    rangeThisMonth: string
+
+    // KPI Cards
+    grossSalesLabel: string
+    grossSalesComparison: string
+    cogsBomLabel: string
+    cogsBomSub: string
+    grossProfitLabel: string
+    marginLabel: string
+    totalTransactionsLabel: string
+    receiptsUnit: string
+    avgTicketSub: string
+
+    // Rush Hour Heatmap
+    rushHourHeatmapTitle: string
+    rushHourHeatmapSub: string
+    rushHourPeaksDetected: string
+    peakLabel: string
+    busyLabel: string
+    moderateLabel: string
+    quietLabel: string
+
+    // Z-Report Closeout
+    zReportTitle: string
+    zReportSub: string
+    printingZReport: string
+    printZReportCta: string
   }
   feedback: {
     howWasYourVisitTitle: string
