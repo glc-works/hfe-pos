@@ -15,6 +15,8 @@ import { useTranslation } from '../context/LanguageContext'
 import { useViewport } from '../context/ViewportContext'
 import { useMerchantConfig } from '../context/MerchantConfigContext'
 import { smartSearchFilter } from '../utils/searchThesaurus'
+import type { HfePosFinancialPort } from '../services/financial'
+import { useCafeSettlement } from '../hooks/useCafeSettlement'
 
 export interface UnifiedPosViewProps {
   activeStaffSurface: StaffSurfaceMode
@@ -35,6 +37,10 @@ export interface UnifiedPosViewProps {
   setPosCashGiven: (val: string) => void
   handlePOSCheckoutTable: () => void
   handleMoveStatus: (orderId: string, targetStatus: OrderTicket['status']) => void
+  financialPort: HfePosFinancialPort
+  companyBookId: string
+  authorityContext: string
+  cashierId: string
 }
 
 export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
@@ -52,7 +58,11 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   setTablesGrid,
   setPosPayMethod,
   setPosCashGiven,
-  handlePOSCheckoutTable
+  handlePOSCheckoutTable,
+  financialPort,
+  companyBookId,
+  authorityContext,
+  cashierId,
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
@@ -151,17 +161,18 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
   const availableCount = useMemo(() => tablesGrid.filter((t) => t.status === 'free').length, [tablesGrid])
 
-  const handleCheckoutAction = () => {
-    if (activeTableCartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)) {
-      alert('Keranjang masih kosong! Silakan pilih menu atau meja terlebih dahulu.')
-      return
-    }
-    if (selectedPOSTable) handlePOSCheckoutTable()
-    setCartItems([])
-    setPosCashGiven('')
-    setShowMobileCartDrawer(false)
-    alert(`🎉 Pembayaran ${selectedPOSTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))} LUNAS via ${posPayMethod.toUpperCase()}!`)
-  }
+  const { financialStatus, handleCheckout: handleCheckoutAction } = useCafeSettlement({
+    financialPort, companyBookId, authorityContext, cashierId,
+    selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
+    fulfillmentMode, paymentMethod: posPayMethod, subtotal, taxAmount: pb1Tax, grandTotal,
+    formatPrice,
+    commitPaidState: () => { if (selectedPOSTable) handlePOSCheckoutTable() },
+    clearCart: () => {
+      setCartItems([])
+      setPosCashGiven('')
+      setShowMobileCartDrawer(false)
+    },
+  })
 
   const handleCloseAllModals = () => {
     setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false)
@@ -207,7 +218,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const isImageUrl = (url?: string) => Boolean(url && (url.startsWith('http') || url.startsWith('/') || url.includes('unsplash.com')))
 
   return (
-    <div className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950">
+    <div data-financial-status={financialStatus} className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950">
       <main className={`flex-1 min-h-0 w-full h-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-2 sm:gap-4 ${
         isMobile
           ? 'flex flex-col overflow-hidden'

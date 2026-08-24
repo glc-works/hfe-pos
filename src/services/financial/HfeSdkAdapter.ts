@@ -1,13 +1,14 @@
 // --- HFE SDK PRODUCTION ADAPTER (POS-ENG-STD-001) ---
 // Official REST API Transport Layer powered by @hfe/sdk (Strict Fail-Closed)
 
-import { HfeClient, HfeApiError as SdkApiError } from '@hfe/sdk'
+import { HfeClient, HfeApiError as SdkApiError, type Int64String } from '@hfe/sdk'
 import {
   HfePosFinancialPort,
   CompanyBookSettingsResponse,
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
+  RetailPostingContext,
   UniversalMultiTenderRequest,
   UniversalMultiTenderResponse,
   GenerateQrisPayload,
@@ -190,6 +191,96 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
         idempotencyKey,
       }
     )
+  }
+
+  async postRetailOrder(
+    payload: SubmitRetailTransactionPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    const targetBook = this.resolveTargetBook(context.companyBookId)
+    if (!context.authorityContext.trim()) {
+      throw new Error('authorityContext is required for POS posting. Fail-closed: zero fallback allowed.')
+    }
+    if (!payload.idempotency_key) {
+      throw new Error('idempotency_key is required for canonical POS posting and retry stability.')
+    }
+
+    const headers = {
+      'X-CBook-Authority-Context': context.authorityContext,
+      'Idempotency-Key': payload.idempotency_key,
+    }
+    const processed = await this.client.operations.processPosRetailOrder({
+      path: { book: targetBook },
+      headers,
+      body: {
+        customer_contact_id: payload.contact_id || null,
+        items: payload.items.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.qty,
+          unit_price_minor: String(item.price) as Int64String,
+        })),
+        payment_method: payload.payment_method,
+        session_id: context.sessionId,
+      },
+    })
+    const sourceToken = processed.body.content_sha256
+    if (!sourceToken) {
+      throw new Error('CORE POS order omitted its stable source token; posting stopped fail-closed.')
+    }
+
+    await this.client.operations.submitPosOrder({
+      path: { book: targetBook, order: processed.body.id },
+      headers,
+      body: {
+        financial_date: context.financialDate,
+        handover: {
+          control_transferred: true,
+          evidence_reference: context.handover.evidenceReference,
+          occurred_at: context.handover.occurredAt,
+        },
+      },
+    })
+    const posted = await this.client.operations.postPosOrder({
+      path: { book: targetBook, order: processed.body.id },
+      headers,
+      body: { expected_source_token: sourceToken },
+    })
+
+    if (posted.status === 202 || !('posting_id' in posted.body)) {
+      return {
+        tx_id: processed.body.id,
+        status: 'pending',
+        created_at: processed.body.created_at,
+        grand_total: payload.grand_total,
+        idempotency_key: payload.idempotency_key,
+      }
+    }
+
+    const durable = await this.client.operations.getPosting({
+      path: { book: targetBook, posting: posted.body.posting_id },
+    })
+    const posting = durable.body
+    const exactMatch =
+      posted.body.finality === 'Applied' &&
+      posting.finality === 'Applied' &&
+      posting.id === posted.body.posting_id &&
+      posting.book_id === targetBook &&
+      posting.source_capability === 'pos.order' &&
+      posting.source_object_id === processed.body.id &&
+      posting.stable_effect_key === payload.idempotency_key
+
+    if (!exactMatch) {
+      throw new Error('Durable posting read-back mismatch: exact posting ID, POS source lineage, and Applied finality are required.')
+    }
+
+    return {
+      tx_id: processed.body.id,
+      status: 'posted',
+      created_at: processed.body.created_at,
+      grand_total: payload.grand_total,
+      idempotency_key: payload.idempotency_key,
+      ledger_journal_id: posting.id,
+    }
   }
 
   async settleUniversalMultiTender(

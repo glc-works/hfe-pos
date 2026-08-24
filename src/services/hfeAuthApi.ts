@@ -25,6 +25,7 @@ export interface StaffUserSession {
   role: 'cashier' | 'barista' | 'store_manager' | 'owner'
   branch_id: string
   token: string
+  authority_context_id?: string
 }
 
 export interface ToGrowAccountProfile {
@@ -62,6 +63,7 @@ function createLocalDemoAuthResponse(branchId: string): AuthResponse {
       role: demoAccess.staff.role as StaffUserSession['role'],
       branch_id: branchId,
       token,
+      authority_context_id: demoAccess.authorityContextId,
     },
   }
 }

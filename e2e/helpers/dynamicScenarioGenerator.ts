@@ -40,9 +40,9 @@ const AVAILABLE_TABLES = [
 
 const SAMPLE_MENU_POOL = [
   { id: 'MN-001', name: 'Espresso Aren Latte', basePrice: 28000, isBeverage: true },
-  { id: 'MN-002', name: 'Japanese Iced Drip', basePrice: 32000, isBeverage: true },
-  { id: 'MN-003', name: 'Kyoto Matcha Latte', basePrice: 30000, isBeverage: true },
-  { id: 'MN-004', name: 'Croissant Mentega Prancis', basePrice: 22000, isBeverage: false },
+  { id: 'MN-002', name: 'Japanese Cold Brew V60', basePrice: 35000, isBeverage: true },
+  { id: 'MN-003', name: 'Uji Matcha Oat Latte', basePrice: 34000, isBeverage: true },
+  { id: 'MN-004', name: 'Croissant Butter Paris', basePrice: 25000, isBeverage: false },
 ]
 
 export function generateDynamicFlagshipScenario(customSeed?: number): DynamicScenarioOptions {

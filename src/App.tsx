@@ -36,10 +36,11 @@ import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './type
 import { usePosAuth } from './hooks/usePosAuth'
 import { PosAuthLoginView } from './views/PosAuthLoginView'
 import { normalizeSurfaceHost } from './utils/surfaceHost'
-
+import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
 function AppMain() {
   const config = useMerchantConfig()
   const auth = usePosAuth()
+  const financialPort = useHfeFinancialPort(auth.authToken)
   const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>(() => {
     if (typeof window !== 'undefined') {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
@@ -84,7 +85,6 @@ function AppMain() {
     showToast('🎉 Selamat Datang! Keanggotaan Aktif & Poin Tersimpan')
   }
 
-  // State hooks
   const sync = useHfeSync()
   const [orders, setOrders] = useState<OrderTicket[]>(INITIAL_ORDERS)
   const table = useTableState({ orders, setOrders, hfeCompanyProfile: sync.hfeCompanyProfile })
@@ -128,7 +128,6 @@ function AppMain() {
     }
   })
 
-  // App-level state
   const [kdsFilterStation, setKdsFilterStation] = useState<string>('all')
   const [kdsViewMode, setKdsViewMode] = useState<KdsViewModeType>('kanban')
   const [cashDrawerFloat] = useState<number>(500000)
@@ -151,7 +150,6 @@ function AppMain() {
     })
   }, [])
 
-  // Synchronize cart paymentPolicy with single door
   useEffect(() => {
     if (cart.paymentPolicy !== config.paymentPolicy) {
       cart.setPaymentPolicy(config.paymentPolicy)
@@ -331,6 +329,10 @@ function AppMain() {
                 setPosPayMethod={table.setPosPayMethod}
                 setPosCashGiven={table.setPosCashGiven}
                 handlePOSCheckoutTable={table.handlePOSCheckoutTable}
+                financialPort={financialPort}
+                companyBookId={sync.hfeCompanyProfile.companyBookId}
+                authorityContext={auth.currentStaffUser.authority_context_id || ''}
+                cashierId={auth.currentStaffUser.user_id}
                 handleMoveStatus={handleMoveStatus}
               />
             )}

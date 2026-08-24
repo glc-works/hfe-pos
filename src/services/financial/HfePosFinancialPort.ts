@@ -89,6 +89,18 @@ export interface SubmitRetailTransactionResponse {
   isSimulated?: boolean
 }
 
+export interface RetailPostingContext {
+  companyBookId: string
+  authorityContext: string
+  sessionId: string
+  financialDate: string
+  handover: {
+    actorPrincipalId: string
+    evidenceReference: string
+    occurredAt: string
+  }
+}
+
 export interface GenerateQrisPayload {
   transaction_id: string
   amount_idr: number
@@ -197,6 +209,14 @@ export interface HfePosFinancialPort {
   submitRetailTransaction(
     payload: SubmitRetailTransactionPayload,
     bookId?: string
+  ): Promise<SubmitRetailTransactionResponse>
+
+  /**
+   * Execute the canonical CORE POS order lifecycle and verify its durable posting.
+   */
+  postRetailOrder(
+    payload: SubmitRetailTransactionPayload,
+    context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse>
 
   /**
