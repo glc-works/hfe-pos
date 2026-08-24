@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/__demo/events/inbound-reply"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "event_id": "event.synthetic.inbound-reply.001",
+      "tenant_id": "tenant.nusantara",
+      "status": "inbound_reply",
+      "message_id": "wamid.synthetic-inbound-message-001",
+      "text": "Terima kasih"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/__demo/events/delivered"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "event_id": "event.synthetic.delivered.001",
+      "tenant_id": "tenant.nusantara",
+      "status": "delivered",
+      "message_id": "wamid.synthetic-demo-message-001"
+    }
+  }
+}
