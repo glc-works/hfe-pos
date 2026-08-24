@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
 import { PosCashierDriver } from './drivers/PosCashierDriver'
-import { generateDynamicFlagshipScenario } from './helpers/dynamicScenarioGenerator'
 import { demoAccess, loginAsCanonicalDemoStaff, resetCanonicalDemoSession } from './helpers/demoSession'
 
 type PostingFixtureMode = 'applied' | 'pending' | 'mismatch'
@@ -42,6 +41,11 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
         company_book_id: demoAccess.bookId,
         content_sha256: sourceToken,
         status: 'Draft',
+        subtotal_minor: '86000',
+        tax_amount_minor: '0',
+        discount_amount_minor: '0',
+        final_total_minor: '86000',
+        functional_currency: 'IDR',
         items: [],
       } })
     } else if (url.endsWith(`/pos/orders/${orderId}/submit`)) {
@@ -86,14 +90,15 @@ async function openCanonicalCashier(page: Page, mode: PostingFixtureMode) {
 }
 
 const cashScenario = {
-  ...generateDynamicFlagshipScenario(20260824),
+  tableNumber: 'OUT-04',
   paymentChannel: 'cash_exact' as const,
-}
+} as const
 
 test.describe('Flagship café: one transaction, one durable CORE truth', () => {
   test('posts through generated SDK operations and accepts only exact Applied read-back', async ({ page }) => {
     const { driver, observed } = await openCanonicalCashier(page, 'applied')
 
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
     await driver.processSettlement(cashScenario)
     await driver.verifySettlementSuccess(cashScenario.tableNumber)
 
@@ -118,16 +123,18 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
   test('keeps settlement pending when CORE accepts posting asynchronously', async ({ page }) => {
     const { driver, observed } = await openCanonicalCashier(page, 'pending')
 
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
     await driver.processSettlement(cashScenario)
 
+    await expect.poll(() => observed.length).toBe(3)
     await expect(page.locator('[data-financial-status="pending"]')).toBeVisible()
-    expect(observed).toHaveLength(3)
     await expect(page.getByText('(Lunas)')).toHaveCount(0)
   })
 
   test('keeps settlement failed when durable posting lineage mismatches', async ({ page }) => {
     const { driver, observed } = await openCanonicalCashier(page, 'mismatch')
 
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
     await driver.processSettlement(cashScenario)
 
     await expect(page.locator('[data-financial-status="error"]')).toBeVisible()

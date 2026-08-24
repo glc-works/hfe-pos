@@ -20,6 +20,7 @@ export async function resetCanonicalDemoSession(page: Page): Promise<void> {
   await page.goto('/?app=cafe')
   await page.evaluate(() => {
     window.localStorage.clear()
+    window.localStorage.setItem('hfe_pb1_tax_mode', '0')
     window.sessionStorage.clear()
   })
   await page.context().clearCookies()

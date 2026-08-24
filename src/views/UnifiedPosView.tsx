@@ -67,7 +67,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
   const { t, formatPrice } = useTranslation()
-  const { workflowToggles } = useMerchantConfig()
+  const { workflowToggles, pb1TaxMode, takeawaySurcharge } = useMerchantConfig()
   const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
   const [fulfillmentMode, setFulfillmentMode] = useState<OrderFulfillmentMode>('dine_in')
@@ -138,23 +138,22 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const activeTableCartItems = useMemo<CartItem[]>(() => {
     if (cartItems.length > 0) return cartItems
     if (selectedPOSTable && (selectedPOSTable.status === 'occupied' || selectedPOSTable.status === 'open-tab')) {
-      const tableOrders = orders.filter((o) => o.table === selectedPOSTable.name || o.table === selectedPOSTable.id || o.table?.includes(selectedPOSTable.name))
+      const tableOrders = orders.filter((o) =>
+        selectedPOSTable.orderIds?.includes(o.id) ||
+        o.table === selectedPOSTable.name ||
+        o.table === selectedPOSTable.id ||
+        o.table?.includes(selectedPOSTable.name)
+      )
       const extracted: CartItem[] = []
       tableOrders.forEach((ord) => { if (ord.items) extracted.push(...ord.items) })
       if (extracted.length > 0) return extracted
-      if (selectedPOSTable.totalBill > 0) {
-        return [
-          { ...productCatalog[0], name: productCatalog[0].name, price: 28000, quantity: 1 },
-          { ...productCatalog[1], name: productCatalog[1].name, price: 32000, quantity: 1 }
-        ]
-      }
     }
     return []
   }, [cartItems, selectedPOSTable, orders, productCatalog])
 
-  const packagingFee = fulfillmentMode === 'takeaway' ? 2000 : 0
+  const packagingFee = fulfillmentMode === 'takeaway' ? takeawaySurcharge : 0
   const subtotal = useMemo(() => activeTableCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0), [activeTableCartItems])
-  const pb1Tax = useMemo(() => Math.round(subtotal * 0.1), [subtotal])
+  const pb1Tax = useMemo(() => pb1TaxMode === 0 ? 0 : Math.round(subtotal * 0.1), [pb1TaxMode, subtotal])
   const grandTotal = useMemo(() => (cartItems.length > 0 || !selectedPOSTable ? subtotal + pb1Tax + packagingFee : selectedPOSTable.totalBill || (subtotal + pb1Tax + packagingFee)), [cartItems, selectedPOSTable, subtotal, pb1Tax, packagingFee])
   const totalCartItemsCount = useMemo(() => activeTableCartItems.reduce((acc, item) => acc + item.quantity, 0), [activeTableCartItems])
   const unpaidCount = useMemo(() => tablesGrid.filter((t) => (t.status === 'open-tab' || t.status === 'occupied') && t.totalBill > 0).length, [tablesGrid])

@@ -204,6 +204,19 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     if (!payload.idempotency_key) {
       throw new Error('idempotency_key is required for canonical POS posting and retry stability.')
     }
+    if (payload.payment_method !== 'cash') {
+      throw new Error('Canonical CORE POS posting is cash-only until governed tender semantics are available.')
+    }
+    if (payload.tax_pb1_amount !== 0 || payload.service_fee_amount !== 0 || payload.discount_amount !== 0) {
+      throw new Error('Canonical CORE POS posting does not yet support tax, fee, or discount amounts.')
+    }
+    if (payload.items.length === 0) {
+      throw new Error('Canonical CORE POS posting requires at least one real order item.')
+    }
+    const itemSubtotal = payload.items.reduce((total, item) => total + (item.price * item.qty), 0)
+    if (itemSubtotal !== payload.subtotal || itemSubtotal !== payload.grand_total) {
+      throw new Error('POS amount mismatch: item subtotal, subtotal, and grand total must be identical for the cash-only slice.')
+    }
 
     const headers = {
       'X-CBook-Authority-Context': context.authorityContext,
@@ -226,6 +239,14 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     const sourceToken = processed.body.content_sha256
     if (!sourceToken) {
       throw new Error('CORE POS order omitted its stable source token; posting stopped fail-closed.')
+    }
+    if (
+      processed.body.subtotal_minor !== String(payload.subtotal) ||
+      processed.body.tax_amount_minor !== '0' ||
+      processed.body.discount_amount_minor !== '0' ||
+      processed.body.final_total_minor !== String(payload.grand_total)
+    ) {
+      throw new Error('CORE amount mismatch: computed POS order totals do not match the cashier amount.')
     }
 
     await this.client.operations.submitPosOrder({
