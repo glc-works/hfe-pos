@@ -261,10 +261,14 @@ export interface TranslationDictionary {
     testDrawerSuccess: string
     testBeeperSuccess: string
 
-    // Zone 4: Integrasi Hfe Core SSOT
+    // Zone 4: Integrasi Akuntansi & Pembukuan
     zone4Heading: string
     zone4Desc: string
     liveSyncedBadge: string
+    accountingSystemStatus: string
+    accountingSystemStatusSub: string
+    advancedSystemDetails: string
+    advancedSystemDetailsSub: string
     companyBookId: string
     ledgerApiEndpoint: string
     resyncFromApi: string

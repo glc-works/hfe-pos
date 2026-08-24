@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Database,
-  Radio,
   RefreshCw,
   Check,
   Building2,
   Store,
   CheckCircle2,
-  Network
+  Network,
+  ChevronDown,
+  ChevronRight,
+  ShieldCheck,
+  Server
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { HfeCompanyProfile } from '../../types/pos'
@@ -37,6 +40,7 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
   handlePushHfeCompanyProfile
 }) => {
   const { t } = useTranslation()
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false)
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col gap-5 shadow-xl animate-fadeIn">
@@ -61,32 +65,20 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
         </Badge>
       </div>
 
-      {/* 1. BOOK ID & REST API ENDPOINT */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <TextInput
-          label={t.settings.companyBookId}
-          leadingIcon={<Database className="w-4 h-4 text-indigo-400" />}
-          value={hfeCompanyProfile.companyBookId}
-          onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, companyBookId: e.target.value }))}
-          className="font-mono font-bold text-indigo-300"
-          placeholder="UUID Book ID"
-        />
-
-        <TextInput
-          label={t.settings.ledgerApiEndpoint}
-          leadingIcon={<Network className="w-4 h-4 text-emerald-400" />}
-          value={hfeCompanyProfile.hfeLedgerApiEndpoint}
-          onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, hfeLedgerApiEndpoint: e.target.value }))}
-          className="font-mono text-emerald-400"
-          placeholder="http://localhost:8080/v1"
-        />
-      </div>
-
-      {/* SYNC ACTIONS STRIP */}
-      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-inner">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-          <span className="truncate">TigerBeetle + PostgreSQL Financial Journal Core</span>
+      {/* 1. STATUS & SYNC ACTIONS STRIP (BUSINESS FACING) */}
+      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shadow-inner">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-slate-200">
+              {t.settings.accountingSystemStatus}
+            </h4>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {t.settings.accountingSystemStatusSub}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -111,7 +103,7 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
         </div>
       </div>
 
-      {/* 2. MULTI-BRANCH ENGINE ARCHITECTURE */}
+      {/* 2. MULTI-BRANCH OUTLET CONFIGURATION (BUSINESS FACING) */}
       <div className="flex flex-col gap-3 pt-2 border-t border-slate-800/80">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
@@ -138,7 +130,7 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* OPTION 1: DIMENSIONAL TAGGING */}
+          {/* OPTION 1: UNIFIED SINGLE BOOK */}
           <div
             onClick={() => setHfeBranchMode('dimensional')}
             className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 cursor-pointer transition-all ${
@@ -190,7 +182,7 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
             </span>
           </div>
 
-          {/* OPTION 3: SUB-ACCOUNT SEGMENTATION */}
+          {/* OPTION 3: DEDICATED BRANCH ACCOUNTS */}
           <div
             onClick={() => setHfeBranchMode('sub_account')}
             className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 cursor-pointer transition-all ${
@@ -216,6 +208,54 @@ export const HfeCoreIntegrationZone: React.FC<HfeCoreIntegrationZoneProps> = ({
             </span>
           </div>
         </div>
+      </div>
+
+      {/* 3. ADVANCED / TECHNICAL DISCLOSURE (COLLAPSED BY DEFAULT) */}
+      <div className="pt-2 border-t border-slate-800/80">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(prev => !prev)}
+          className="flex items-center justify-between w-full p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-950 border border-slate-800/80 text-left transition-all"
+        >
+          <div className="flex items-center gap-2.5">
+            <Server className="w-4 h-4 text-slate-400" />
+            <div>
+              <span className="text-xs font-bold text-slate-300">
+                {t.settings.advancedSystemDetails}
+              </span>
+              <p className="text-[10px] text-slate-500">
+                {t.settings.advancedSystemDetailsSub}
+              </p>
+            </div>
+          </div>
+          {showAdvanced ? (
+            <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+          )}
+        </button>
+
+        {showAdvanced && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3 p-4 rounded-2xl bg-slate-950 border border-slate-800/80 animate-fadeIn">
+            <TextInput
+              label={t.settings.companyBookId}
+              leadingIcon={<Database className="w-4 h-4 text-indigo-400" />}
+              value={hfeCompanyProfile.companyBookId}
+              onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, companyBookId: e.target.value }))}
+              className="font-mono font-bold text-indigo-300 text-xs"
+              placeholder="Book ID"
+            />
+
+            <TextInput
+              label={t.settings.ledgerApiEndpoint}
+              leadingIcon={<Network className="w-4 h-4 text-emerald-400" />}
+              value={hfeCompanyProfile.hfeLedgerApiEndpoint}
+              onChange={(e) => setHfeCompanyProfile(prev => ({ ...prev, hfeLedgerApiEndpoint: e.target.value }))}
+              className="font-mono text-emerald-400 text-xs"
+              placeholder="http://localhost:8080/v1"
+            />
+          </div>
+        )}
       </div>
     </div>
   )

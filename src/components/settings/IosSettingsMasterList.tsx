@@ -102,7 +102,7 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
           iconBg: 'bg-emerald-500/20 border-emerald-500/40',
           title: t.settings.zone4NavTitle,
           subtitle: t.settings.zone4NavSubtitle,
-          value: 'GL Synced'
+          value: t.settings.liveSyncedBadge
         }
       ]
     },
@@ -197,8 +197,8 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
           id: 'checklist',
           icon: <CheckCircle2 className="w-4 h-4 text-emerald-300" />,
           iconBg: 'bg-emerald-500/20 border-emerald-500/40',
-          title: 'Getting Started Checklist (HCB)',
-          subtitle: 'Verifikasi kesiapan pembukuan akuntansi core',
+          title: 'Panduan Awal Kasir & Toko',
+          subtitle: 'Verifikasi kesiapan operasional gerai dan kasir',
           value: '3/3 Selesai'
         }
       ]
@@ -241,7 +241,7 @@ export const IosSettingsMasterList: React.FC<IosSettingsMasterListProps> = ({
             </p>
             <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 font-bold mt-1">
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              <span>Synced with HCB Core Engine</span>
+              <span>{t.settings.liveSyncedBadge}</span>
             </div>
           </div>
         </div>
