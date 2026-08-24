@@ -86,32 +86,49 @@ export function formatCurrencyIDR(amount: number): string {
 export async function resolveStorefrontData(slug: string): Promise<ResolvedStorefrontData | null> {
   const normalizedSlug = slug ? slug.toLowerCase().trim() : ''
   const isPreview = process.env.PUBLIC_IS_PREVIEW === 'true' || process.env.NODE_ENV !== 'production'
-  const coreApiUrl = process.env.HFE_CORE_API_URL || (isPreview ? 'https://prv-core.hfeit.com' : 'https://core.hfeit.com')
+  const explicitStorefrontApiUrl = process.env.HFE_STOREFRONT_API_URL
 
-  // 1. Try to fetch authoritative live data from Hfe Core
-  try {
-    const res = await fetch(`${coreApiUrl}/v1/storefronts/${normalizedSlug}`, {
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(3000)
-    })
-    if (res.ok) {
-      const liveData = await res.json() as ResolvedStorefrontData
-      return liveData
+  // 1. In production, if an explicit authoritative storefront API endpoint is provided, attempt read-back
+  if (!isPreview) {
+    if (!explicitStorefrontApiUrl) {
+      // Contract boundary: No canonical storefront projection route is assumed without explicit config
+      // Fail closed immediately in production (zero fake live data).
+      return null
     }
-  } catch (coreErr) {
-    // If on production, fail-closed: do not serve fake data
-    if (!isPreview) {
-      console.warn(`[BOARD PROD] Merchant '${normalizedSlug}' not found in Hfe Core Production.`)
+
+    try {
+      const res = await fetch(`${explicitStorefrontApiUrl}/v1/storefronts/${normalizedSlug}`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(3000),
+      })
+      if (res.ok) {
+        const liveData = (await res.json()) as ResolvedStorefrontData
+        return liveData
+      }
+      return null
+    } catch {
+      // Network failure / unreachable: fail closed in production
       return null
     }
   }
 
-  // 2. If on PREVIEW mode, allow simulated benchmark data
-  if (isPreview) {
-    return getPreviewBenchmarkData(normalizedSlug)
+  // 2. In PREVIEW / DEV mode, if explicit API endpoint is configured, try it first
+  if (explicitStorefrontApiUrl) {
+    try {
+      const res = await fetch(`${explicitStorefrontApiUrl}/v1/storefronts/${normalizedSlug}`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(2000),
+      })
+      if (res.ok) {
+        return (await res.json()) as ResolvedStorefrontData
+      }
+    } catch {
+      // Fallback to preview benchmark fixtures below
+    }
   }
 
-  return null
+  // 3. Otherwise return standard preview benchmark data for proving-ground development
+  return getPreviewBenchmarkData(normalizedSlug)
 }
 
 function getPreviewBenchmarkData(normalizedSlug: string): ResolvedStorefrontData {
