@@ -220,6 +220,14 @@ export interface HfePosFinancialPort {
   ): Promise<SubmitRetailTransactionResponse>
 
   /**
+   * Reconcile an unresolved canonical POS attempt without submitting or posting it again.
+   */
+  reconcileRetailOrder(
+    payload: SubmitRetailTransactionPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse>
+
+  /**
    * Settle complex transactions with multiple tenders and adjustments
    */
   settleUniversalMultiTender(

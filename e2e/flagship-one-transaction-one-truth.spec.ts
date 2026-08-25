@@ -2,14 +2,17 @@ import { expect, test, type Page } from '@playwright/test'
 import { PosCashierDriver } from './drivers/PosCashierDriver'
 import { demoAccess, loginAsCanonicalDemoStaff, resetCanonicalDemoSession } from './helpers/demoSession'
 
-type PostingFixtureMode = 'applied' | 'pending' | 'mismatch'
+type PostingFixtureMode = 'applied' | 'pending' | 'mismatch' | 'recover'
 type ObservedRequest = { url: string; headers: Record<string, string>; body?: Record<string, unknown> }
+const flagshipOrderId = 'ORDER-FLAGSHIP-001'
+const flagshipPostingId = 'POSTING-FLAGSHIP-001'
 
 async function installPostingFixture(page: Page, mode: PostingFixtureMode): Promise<ObservedRequest[]> {
   const observed: ObservedRequest[] = []
-  const orderId = 'ORDER-FLAGSHIP-001'
-  const postingId = 'POSTING-FLAGSHIP-001'
+  const orderId = flagshipOrderId
+  const postingId = flagshipPostingId
   const sourceToken = 'SOURCE-TOKEN-FLAGSHIP-001'
+  let postingReads = 0
 
   await page.route('http://localhost:8080/v1/company-books/**', async (route) => {
     const request = route.request()
@@ -63,14 +66,28 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
           ? { order_id: orderId, status: 'Pending' }
           : { order_id: orderId, posting_id: postingId, finality: 'applied' },
       })
+    } else if (url.endsWith(`/pos/orders/${orderId}`)) {
+      await route.fulfill({ status: 200, json: {
+        id: orderId,
+        company_book_id: demoAccess.bookId,
+        created_at: '2026-08-25T00:00:00.000Z',
+        status: 'posted',
+        posting_id: postingId,
+      } })
     } else if (url.endsWith(`/postings/${postingId}`)) {
+      postingReads += 1
+      if (mode === 'recover' && postingReads === 1) {
+        await route.abort('connectionreset')
+        return
+      }
+      const postRequest = observed.find(({ url: observedUrl }) => observedUrl.endsWith(`/pos/orders/${orderId}/post`))
       await route.fulfill({ status: 200, json: {
         id: mode === 'mismatch' ? 'POSTING-DIFFERENT' : postingId,
         book_id: demoAccess.bookId,
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: mode === 'mismatch' ? 'ORDER-DIFFERENT' : orderId,
-        stable_effect_key: observed[2].headers['idempotency-key'],
+        stable_effect_key: postRequest?.headers['idempotency-key'],
       } })
     } else {
       await route.abort('failed')
@@ -154,5 +171,30 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
     await expect(page.locator('[data-financial-status="error"]')).toBeVisible()
     expect(observed).toHaveLength(4)
     await expect(page.getByText('(Lunas)')).toHaveCount(0)
+  })
+
+  test('reconciles an unknown outcome without submitting or posting a second time', async ({ page }) => {
+    const { driver, observed } = await openCanonicalCashier(page, 'recover')
+
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
+    await driver.processSettlement(cashScenario)
+
+    await expect(page.locator('[data-financial-status="error"]')).toBeVisible()
+    await expect(page.getByText('(Lunas)')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Periksa hasil yang sama di CORE' }).click()
+    await driver.verifySettlementSuccess(cashScenario.tableNumber)
+
+    const urls = observed.map(({ url }) => url)
+    expect(urls.filter((url) => url.endsWith('/submit'))).toHaveLength(1)
+    expect(urls.filter((url) => url.endsWith('/post'))).toHaveLength(1)
+    expect(urls).toEqual([
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders/${flagshipOrderId}/submit`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders/${flagshipOrderId}/post`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/postings/${flagshipPostingId}`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders/${flagshipOrderId}`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/postings/${flagshipPostingId}`,
+    ])
   })
 })
