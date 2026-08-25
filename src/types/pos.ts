@@ -482,3 +482,4 @@ export interface ParkedOperationTab {
 
 // --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---
 export * from './identity'
+export * from './reconciliation'
