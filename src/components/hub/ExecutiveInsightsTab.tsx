@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Card, Button, Badge } from '../../ui'
 import { TrendingUp, DollarSign, PieChart, Clock, FileText, Printer, Sparkles, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
+import { UniversalFinancialHealthGauge } from './UniversalFinancialHealthGauge'
 
 export type FinancialTruthPostingStatus = 'posted' | 'pending' | 'failed' | 'demo'
 
@@ -123,6 +124,9 @@ export function ExecutiveInsightsTab({
           ))}
         </div>
       </div>
+
+      {/* Universal Executive Financial Health & Capital Velocity Gauge */}
+      <UniversalFinancialHealthGauge />
 
       {/* Realtime Business Truth Card: "Apa yang Baru Terjadi Secara Finansial?" */}
       <Card className="p-4 border-emerald-500/30 bg-emerald-500/5 space-y-3">
