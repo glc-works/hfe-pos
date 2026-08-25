@@ -11,7 +11,7 @@ import {
 } from '../services/toGrowSocialSignIn'
 
 export interface PosAuthLoginViewProps {
-  onSuccess?: () => void
+  auth: ReturnType<typeof usePosAuth>
 }
 
 type AuthTab = 'pin' | 'owner-login' | 'owner-register' | 'forgot-password'
@@ -22,11 +22,11 @@ const BRANCHES = [
   { id: 'BRANCH-BANDUNG-03', name: 'Artisan Cafe (Bandung Dago)' },
 ]
 
-export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess }) => {
+export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
   const {
     activeBranchId, setActiveBranchId, cooldownSeconds, isCooldownActive,
     loginWithPin, loginWithOwner, registerOwner, requestPasswordReset, confirmPasswordReset
-  } = usePosAuth()
+  } = auth
 
   const authPolicy = firstPartyAuthEntryPolicy()
   const socialProviders = configuredSocialProviders()
@@ -67,7 +67,6 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
     try {
       const user = await loginWithPin(activeBranchId, pin)
       setSuccessMessage(`Selamat datang, ${user.name || 'Kasir'}!`)
-      setTimeout(() => onSuccess?.(), 1000)
     } catch (err: any) {
       setErrorMessage(err.message || 'PIN tidak valid.')
       setPin('')
@@ -83,7 +82,6 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
     try {
       await loginWithOwner(ownerEmail, ownerPassword)
       setSuccessMessage('Login Pemilik Berhasil!')
-      setTimeout(() => onSuccess?.(), 1000)
     } catch (err: any) {
       setErrorMessage(err.message || 'Email atau password salah.')
     } finally {

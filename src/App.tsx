@@ -297,7 +297,7 @@ function AppMain() {
         )}
 
         {config.activeApp === 'cafe' && !auth.currentStaffUser && (
-          <PosAuthLoginView onSuccess={() => window.location.reload()} />
+          <PosAuthLoginView auth={auth} />
         )}
 
         {config.activeApp === 'cafe' && !!auth.currentStaffUser && (

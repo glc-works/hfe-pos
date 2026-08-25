@@ -101,10 +101,11 @@ export const PosOwnerAuthForms: React.FC<PosOwnerAuthFormsProps> = ({
             onSelect={onSocialSignIn}
           />
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-300 font-medium">Email Pemilik Usaha:</label>
+            <label htmlFor="owner-email" className="text-[11px] text-slate-300 font-medium">Email Pemilik Usaha:</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
               <input
+                id="owner-email"
                 type="email"
                 required
                 value={ownerEmail}
@@ -116,10 +117,11 @@ export const PosOwnerAuthForms: React.FC<PosOwnerAuthFormsProps> = ({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-slate-300 font-medium">Kata Sandi Akun:</label>
+            <label htmlFor="owner-password" className="text-[11px] text-slate-300 font-medium">Kata Sandi Akun:</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
               <input
+                id="owner-password"
                 type={showOwnerPassword ? 'text' : 'password'}
                 required
                 value={ownerPassword}

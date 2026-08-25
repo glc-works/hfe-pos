@@ -13,7 +13,18 @@ export async function loginAsCanonicalDemoStaff(page: Page): Promise<void> {
   }
 
   await page.getByRole('button', { name: 'Masuk ke Kasir POS ➔' }).click()
-  await expect(page.getByText(`Selamat datang, ${demoAccess.staff.name}!`)).toBeVisible()
+  await expect(page.getByText('Kasir POS', { exact: true })).toBeVisible()
+  const storedUser = await page.evaluate(() => {
+    const raw = window.sessionStorage.getItem('hfe_pos_auth_user')
+    return raw ? JSON.parse(raw) : null
+  })
+  expect(storedUser).toMatchObject({
+    user_id: demoAccess.staff.id,
+    name: demoAccess.staff.name,
+    role: demoAccess.staff.role,
+    branch_id: demoAccess.branchId,
+    authority_context_id: demoAccess.authorityContextId,
+  })
 }
 
 export async function resetCanonicalDemoSession(page: Page): Promise<void> {
