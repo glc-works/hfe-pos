@@ -44,3 +44,4 @@ storybook-static/
 *.zip
 *.tar.gz
 *.tgz
+.worktrees/

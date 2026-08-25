@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { ShoppingBag, ArrowRight } from 'lucide-react'
-import { TableStatus, MenuItem, OrderTicket, StaffSurfaceMode, CartItem, PosPayMethod, ViewportModeType, PropertyZoneId, OrderFulfillmentMode } from '../types/pos'
+import { TableStatus, MenuItem, OrderTicket, StaffSurfaceMode, CartItem, PosPayMethod, ViewportModeType, PropertyZoneId, OrderFulfillmentMode, ParkedOperationTab } from '../types/pos'
 import { PROPERTY_ZONES } from '../data/mockData'
 import { PosFavoritesBar } from '../components/pos/PosFavoritesBar'
 import { PosCatalogGrid } from '../components/pos/PosCatalogGrid'
@@ -11,7 +11,9 @@ import { PosCommandHeader } from '../components/pos/PosCommandHeader'
 import { PosBookingReservationsSection } from '../components/pos/PosBookingReservationsSection'
 import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsCluster'
 import { FinancialStatusBanner } from '../components/pos/FinancialStatusBanner'
+import { ActiveOperationsTrayDock } from '../components/pos/ActiveOperationsTrayDock'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
+import { useOperationsTray } from '../hooks/useOperationsTray'
 import { useTranslation } from '../context/LanguageContext'
 import { useViewport } from '../context/ViewportContext'
 import { useMerchantConfig } from '../context/MerchantConfigContext'
@@ -20,50 +22,21 @@ import type { HfePosFinancialPort } from '../services/financial'
 import { useCafeSettlement } from '../hooks/useCafeSettlement'
 
 export interface UnifiedPosViewProps {
-  activeStaffSurface: StaffSurfaceMode
-  tablesGrid: TableStatus[]
-  selectedPOSTable: TableStatus | null
-  productCatalog: MenuItem[]
-  posPayMethod: PosPayMethod
-  posCashGiven: string
-  cashDrawerFloat: number
-  orders: OrderTicket[]
-  enableTableFloorPlan?: boolean
-  viewportMode?: ViewportModeType
-  setActiveStaffSurface?: (surface: StaffSurfaceMode) => void
-  setShowTableReassignModal: (show: boolean) => void
-  setSelectedPOSTable: (table: TableStatus | null) => void
-  setTablesGrid: React.Dispatch<React.SetStateAction<TableStatus[]>>
-  setPosPayMethod: (method: PosPayMethod) => void
-  setPosCashGiven: (val: string) => void
-  handlePOSCheckoutTable: () => void
-  handleMoveStatus: (orderId: string, targetStatus: OrderTicket['status']) => void
-  financialPort: HfePosFinancialPort
-  companyBookId: string
-  authorityContext: string
-  cashierId: string
+  activeStaffSurface: StaffSurfaceMode; tablesGrid: TableStatus[]; selectedPOSTable: TableStatus | null
+  productCatalog: MenuItem[]; posPayMethod: PosPayMethod; posCashGiven: string; cashDrawerFloat: number
+  orders: OrderTicket[]; enableTableFloorPlan?: boolean; viewportMode?: ViewportModeType
+  setActiveStaffSurface?: (surface: StaffSurfaceMode) => void; setShowTableReassignModal: (show: boolean) => void
+  setSelectedPOSTable: (table: TableStatus | null) => void; setTablesGrid: React.Dispatch<React.SetStateAction<TableStatus[]>>
+  setPosPayMethod: (method: PosPayMethod) => void; setPosCashGiven: (val: string) => void
+  handlePOSCheckoutTable: () => void; handleMoveStatus: (orderId: string, targetStatus: OrderTicket['status']) => void
+  financialPort: HfePosFinancialPort; companyBookId: string; authorityContext: string; cashierId: string
 }
 
 export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
-  activeStaffSurface = 'barista-pos',
-  setActiveStaffSurface,
-  tablesGrid,
-  selectedPOSTable,
-  productCatalog,
-  posPayMethod,
-  posCashGiven,
-  orders,
-  enableTableFloorPlan = true,
-  viewportMode = 'responsive',
-  setSelectedPOSTable,
-  setTablesGrid,
-  setPosPayMethod,
-  setPosCashGiven,
-  handlePOSCheckoutTable,
-  financialPort,
-  companyBookId,
-  authorityContext,
-  cashierId,
+  activeStaffSurface = 'barista-pos', setActiveStaffSurface, tablesGrid, selectedPOSTable, productCatalog,
+  posPayMethod, posCashGiven, orders, enableTableFloorPlan = true, viewportMode = 'responsive',
+  setSelectedPOSTable, setTablesGrid, setPosPayMethod, setPosCashGiven, handlePOSCheckoutTable,
+  financialPort, companyBookId, authorityContext, cashierId,
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
@@ -167,18 +140,13 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     fulfillmentMode, paymentMethod: posPayMethod, subtotal, taxAmount: pb1Tax, grandTotal,
     formatPrice,
     commitPaidState: () => { if (selectedPOSTable) handlePOSCheckoutTable() },
-    clearCart: () => {
-      setCartItems([])
-      setPosCashGiven('')
-      setShowMobileCartDrawer(false)
-    },
+    clearCart: () => { setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false) },
   })
 
   const handleCloseAllModals = () => {
-    setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false)
-    setShowRoomChargeModal(false); setShowTableDetailDrawer(false); setShowTableGuestBindingDrawer(false)
-    setShowEditPinnedModal(false); setShowMobileCartDrawer(false); setIsAppDrawerOpen(false)
-    setShowNotificationCenter(false); setShowServiceTickets(false); setShowEventTicketCheckIn(false); setDirectQtyItem(null)
+    setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false); setShowRoomChargeModal(false)
+    setShowTableDetailDrawer(false); setShowTableGuestBindingDrawer(false); setShowEditPinnedModal(false); setShowMobileCartDrawer(false)
+    setIsAppDrawerOpen(false); setShowNotificationCenter(false); setShowServiceTickets(false); setShowEventTicketCheckIn(false); setDirectQtyItem(null)
   }
 
   useSpotlightShortcuts({
@@ -208,11 +176,35 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   }
 
   const handleConfirmRoomCharge = (payload: { roomNumber: string; guestName: string; totalCharged: number }) => {
-    setShowRoomChargeModal(false)
+    setShowRoomChargeModal(false); setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false)
+    alert(`🏨 Room Folio Charge Berhasil!\nKamar: ${payload.roomNumber} (${payload.guestName})\nTotal: ${formatPrice(payload.totalCharged)}\nTerposting ke GL 1104 Piutang Tamu Hotel.`)
+  }
+
+  const operationsTray = useOperationsTray()
+
+  const handleParkCurrentCart = () => {
+    if (activeTableCartItems.length === 0) return
+    operationsTray.parkCurrentCart({
+      items: activeTableCartItems,
+      fulfillmentMode,
+      tableName: selectedPOSTable?.name,
+      rawSubtotal: subtotal,
+      packagingFee
+    })
     setCartItems([])
     setPosCashGiven('')
     setShowMobileCartDrawer(false)
-    alert(`🏨 Room Folio Charge Berhasil!\nKamar: ${payload.roomNumber} (${payload.guestName})\nTotal: ${formatPrice(payload.totalCharged)}\nTerposting ke GL 1104 Piutang Tamu Hotel.`)
+  }
+
+  const handleRestoreParkedTab = (tab: ParkedOperationTab) => {
+    setCartItems(tab.items)
+    setFulfillmentMode(tab.fulfillmentMode)
+    if (tab.tableName) {
+      const matched = tablesGrid.find((t) => t.name === tab.tableName)
+      if (matched) setSelectedPOSTable(matched)
+    }
+    operationsTray.discardParkedTab(tab.id)
+    setPosModeTab('catalog')
   }
 
   const isImageUrl = (url?: string) => Boolean(url && (url.startsWith('http') || url.startsWith('/') || url.includes('unsplash.com')))
@@ -224,7 +216,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950"
     >
       <FinancialStatusBanner status={financialStatus} notice={financialNotice} failureCode={financialFailureCode} onResume={resumeCheckout} />
-      <main className={`flex-1 min-h-0 w-full h-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-2 sm:gap-4 ${
+      <main className={`flex-1 min-h-0 w-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-2 sm:gap-4 ${
         isMobile
           ? 'flex flex-col overflow-hidden'
           : 'grid grid-cols-12 overflow-hidden'
@@ -431,25 +423,24 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         </div>
       )}
 
+      {/* 3. ACTIVE OPERATIONS TRAY (CLICKUP TASK TRAY PATTERN) */}
+      <ActiveOperationsTrayDock
+        parkedTabs={operationsTray.parkedTabs}
+        onRestoreTab={handleRestoreParkedTab}
+        onDiscardTab={operationsTray.discardParkedTab}
+        onClearAllTabs={operationsTray.clearAllParkedTabs}
+        onParkCurrentCart={handleParkCurrentCart}
+        hasActiveCartItems={activeTableCartItems.length > 0}
+      />
+
+
       <PosMobileCartDrawer
-        show={showMobileCartDrawer}
-        cartItems={activeTableCartItems}
-        selectedPOSTable={selectedPOSTable}
-        posPayMethod={posPayMethod}
-        posCashGiven={posCashGiven}
-        subtotal={subtotal}
-        pb1Tax={pb1Tax}
-        grandTotal={grandTotal}
-        packagingFee={packagingFee}
-        fulfillmentMode={fulfillmentMode}
-        onClose={() => setShowMobileCartDrawer(false)}
-        setPosPayMethod={setPosPayMethod}
-        setPosCashGiven={setPosCashGiven}
-        setFulfillmentMode={setFulfillmentMode}
-        onUpdateQty={handleUpdateQty}
-        onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
-        onCheckout={handleCheckoutAction}
-        onOpenSplitPayment={() => setShowTableOpsModal(true)}
+        show={showMobileCartDrawer} cartItems={activeTableCartItems} selectedPOSTable={selectedPOSTable}
+        posPayMethod={posPayMethod} posCashGiven={posCashGiven} subtotal={subtotal} pb1Tax={pb1Tax} grandTotal={grandTotal}
+        packagingFee={packagingFee} fulfillmentMode={fulfillmentMode} onClose={() => setShowMobileCartDrawer(false)}
+        setPosPayMethod={setPosPayMethod} setPosCashGiven={setPosCashGiven} setFulfillmentMode={setFulfillmentMode}
+        onUpdateQty={handleUpdateQty} onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
+        onCheckout={handleCheckoutAction} onOpenSplitPayment={() => setShowTableOpsModal(true)}
         onToggleOrderMode={() => {
           if (selectedPOSTable) setSelectedPOSTable(null)
           else { setShowMobileCartDrawer(false); setPosModeTab('tables') }
