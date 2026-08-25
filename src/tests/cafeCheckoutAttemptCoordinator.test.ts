@@ -122,7 +122,7 @@ describe('cafe checkout attempt coordination', () => {
     expect(retryPost).not.toHaveBeenCalled()
   })
 
-  it('resumes an unknown outcome only after explicit operator action and reuses the same identity', async () => {
+  it('reconciles an unknown outcome without invoking the posting mutation again', async () => {
     const store = new MemoryAttemptStore()
     const firstCoordinator = new CafeCheckoutAttemptCoordinator(store, () => '66666666-6666-4666-8666-666666666666')
     await firstCoordinator.execute({
@@ -133,7 +133,8 @@ describe('cafe checkout attempt coordination', () => {
     })
 
     const observedAttemptTimes: string[] = []
-    const retryPost = vi.fn(async (request: SubmitRetailTransactionPayload, attempt: CheckoutAttemptRecord) => {
+    const retryPost = vi.fn()
+    const reconcile = vi.fn(async (request: SubmitRetailTransactionPayload, attempt: CheckoutAttemptRecord) => {
       observedAttemptTimes.push(attempt.createdAt)
       return posted(request.idempotency_key!)
     })
@@ -142,13 +143,41 @@ describe('cafe checkout attempt coordination', () => {
       bookId: 'BOOK-1',
       payload,
       post: retryPost,
+      reconcile,
       resumeExisting: true,
     })
 
     expect(resumed.kind).toBe('posted')
-    expect(retryPost).toHaveBeenCalledOnce()
-    expect(retryPost.mock.calls[0][0].idempotency_key).toBe('66666666-6666-4666-8666-666666666666')
+    expect(retryPost).not.toHaveBeenCalled()
+    expect(reconcile).toHaveBeenCalledOnce()
+    expect(reconcile.mock.calls[0][0].idempotency_key).toBe('66666666-6666-4666-8666-666666666666')
     expect(observedAttemptTimes).toEqual([(await store.get('BOOK-1:ORDER-1'))?.createdAt])
+  })
+
+  it('recovers a locally posted attempt after a crash without any CORE call', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '77777777-7777-4777-8777-777777777777')
+    await coordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-1',
+      bookId: 'BOOK-1',
+      payload,
+      post: async (request) => posted(request.idempotency_key!),
+    })
+    const post = vi.fn()
+    const reconcile = vi.fn()
+
+    const recovered = await coordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-1',
+      bookId: 'BOOK-1',
+      payload,
+      post,
+      reconcile,
+      resumeExisting: true,
+    })
+
+    expect(recovered).toMatchObject({ kind: 'posted', response: { ledger_journal_id: 'POSTING-1' } })
+    expect(post).not.toHaveBeenCalled()
+    expect(reconcile).not.toHaveBeenCalled()
   })
 
   it('keeps an asynchronous CORE result pending and never fabricates Posted', async () => {

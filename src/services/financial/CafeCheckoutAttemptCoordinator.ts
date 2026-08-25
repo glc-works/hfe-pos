@@ -40,6 +40,10 @@ interface ExecuteCheckoutAttempt {
     payload: SubmitRetailTransactionPayload,
     attempt: CheckoutAttemptRecord,
   ) => Promise<SubmitRetailTransactionResponse>
+  reconcile?: (
+    payload: SubmitRetailTransactionPayload,
+    attempt: CheckoutAttemptRecord,
+  ) => Promise<SubmitRetailTransactionResponse>
   resumeExisting?: boolean
 }
 
@@ -59,7 +63,7 @@ export class CafeCheckoutAttemptCoordinator {
     await this.store.remove(checkoutKey)
   }
 
-  async execute({ checkoutKey, bookId, payload, post, resumeExisting = false }: ExecuteCheckoutAttempt): Promise<CheckoutAttemptResult> {
+  async execute({ checkoutKey, bookId, payload, post, reconcile, resumeExisting = false }: ExecuteCheckoutAttempt): Promise<CheckoutAttemptResult> {
     if (this.inFlight.has(checkoutKey)) return { kind: 'already_in_progress' }
     this.inFlight.add(checkoutKey)
 
@@ -71,7 +75,10 @@ export class CafeCheckoutAttemptCoordinator {
         if (existing.payloadFingerprint !== payloadFingerprint) {
           throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
         }
-        if (!resumeExisting || existing.status === 'posted') {
+        if (existing.status === 'posted' && existing.response) {
+          return { kind: 'posted', response: existing.response }
+        }
+        if (!resumeExisting || !reconcile) {
           return { kind: 'operator_action_required', attempt: existing }
         }
       }
@@ -98,7 +105,9 @@ export class CafeCheckoutAttemptCoordinator {
       await this.store.put(attempt)
 
       try {
-        const response = await post(attempt.payload, attempt)
+        const response = existing
+          ? await reconcile!(attempt.payload, attempt)
+          : await post(attempt.payload, attempt)
         if (response.status !== 'posted') {
           attempt.status = 'pending'
           attempt.updatedAt = new Date().toISOString()

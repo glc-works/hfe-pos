@@ -306,6 +306,103 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     }
   }
 
+  async reconcileRetailOrder(
+    payload: SubmitRetailTransactionPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    const targetBook = this.resolveTargetBook(context.companyBookId)
+    if (!context.authorityContext.trim()) {
+      throw new Error('authorityContext is required for POS reconciliation. Fail-closed: zero fallback allowed.')
+    }
+    if (!payload.idempotency_key) {
+      throw new Error('idempotency_key is required for canonical POS reconciliation.')
+    }
+    if (payload.payment_method !== 'cash') {
+      throw new Error('Canonical CORE POS reconciliation is cash-only until governed tender semantics are available.')
+    }
+    if (payload.tax_pb1_amount !== 0 || payload.service_fee_amount !== 0 || payload.discount_amount !== 0) {
+      throw new Error('Canonical CORE POS reconciliation does not yet support tax, fee, or discount amounts.')
+    }
+    if (payload.items.length === 0) {
+      throw new Error('Canonical CORE POS reconciliation requires at least one real order item.')
+    }
+    const itemSubtotal = payload.items.reduce((total, item) => total + (item.price * item.qty), 0)
+    if (itemSubtotal !== payload.subtotal || itemSubtotal !== payload.grand_total) {
+      throw new Error('POS amount mismatch: item subtotal, subtotal, and grand total must be identical for reconciliation.')
+    }
+
+    const processKey = `${payload.idempotency_key}:process`
+    const postKey = `${payload.idempotency_key}:post`
+    const discovered = await this.client.operations.processPosRetailOrder({
+      path: { book: targetBook },
+      headers: {
+        'X-CBook-Authority-Context': context.authorityContext,
+        'Idempotency-Key': processKey,
+      },
+      body: {
+        customer_contact_id: payload.contact_id || null,
+        items: payload.items.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.qty,
+          unit_price_minor: String(item.price) as Int64String,
+        })),
+        payment_method: payload.payment_method,
+        session_id: context.sessionId,
+      },
+    })
+    if (
+      discovered.body.subtotal_minor !== String(payload.subtotal) ||
+      discovered.body.tax_amount_minor !== '0' ||
+      discovered.body.discount_amount_minor !== '0' ||
+      discovered.body.final_total_minor !== String(payload.grand_total)
+    ) {
+      throw new Error('CORE amount mismatch: discovered POS order totals do not match the unresolved cashier attempt.')
+    }
+
+    const current = await this.client.operations.getPosOrder({
+      path: { book: targetBook, order: discovered.body.id },
+    })
+    if (
+      current.body.id !== discovered.body.id ||
+      current.body.company_book_id !== targetBook
+    ) {
+      throw new Error('CORE order reconciliation mismatch: exact order and Company Book are required.')
+    }
+    if (current.body.status !== 'posted' || !current.body.posting_id) {
+      return {
+        tx_id: current.body.id,
+        status: 'pending',
+        created_at: current.body.created_at,
+        grand_total: payload.grand_total,
+        idempotency_key: payload.idempotency_key,
+      }
+    }
+
+    const durable = await this.client.operations.getPosting({
+      path: { book: targetBook, posting: current.body.posting_id },
+    })
+    const posting = durable.body
+    if (
+      posting.finality !== 'applied' ||
+      posting.id !== current.body.posting_id ||
+      posting.book_id !== targetBook ||
+      posting.source_capability !== 'pos_order' ||
+      posting.source_object_id !== current.body.id ||
+      posting.stable_effect_key !== postKey
+    ) {
+      throw new Error('Durable posting reconciliation mismatch: exact posting ID, POS source lineage, and applied finality are required.')
+    }
+
+    return {
+      tx_id: current.body.id,
+      status: 'posted',
+      created_at: current.body.created_at,
+      grand_total: payload.grand_total,
+      idempotency_key: payload.idempotency_key,
+      ledger_journal_id: posting.id,
+    }
+  }
+
   async settleUniversalMultiTender(
     payload: UniversalMultiTenderRequest,
     bookId?: string

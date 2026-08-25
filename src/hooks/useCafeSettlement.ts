@@ -106,6 +106,20 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
             },
           },
         ),
+        reconcile: (identifiedPayload, attempt) => financialPort.reconcileRetailOrder(
+          identifiedPayload,
+          {
+            companyBookId,
+            authorityContext,
+            sessionId: resolveConfiguredCashierSessionId(sourceId),
+            financialDate: attempt.createdAt.slice(0, 10),
+            handover: {
+              actorPrincipalId: cashierId,
+              evidenceReference: `pos-order:${sourceId}`,
+              occurredAt: attempt.createdAt,
+            },
+          },
+        ),
         resumeExisting,
       })
       if (result.kind === 'already_in_progress') {

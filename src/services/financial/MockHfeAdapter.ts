@@ -170,6 +170,20 @@ export class MockHfeAdapter implements HfePosFinancialPort {
     return this.submitRetailTransaction(payload)
   }
 
+  async reconcileRetailOrder(
+    payload: SubmitRetailTransactionPayload,
+    _context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    return Promise.resolve({
+      tx_id: payload.table_id || 'SIMULATED-UNRESOLVED',
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      grand_total: payload.grand_total,
+      idempotency_key: payload.idempotency_key || 'SIMULATED-UNRESOLVED',
+      isSimulated: true,
+    })
+  }
+
   async settleUniversalMultiTender(
     payload: UniversalMultiTenderRequest,
     _bookId?: string

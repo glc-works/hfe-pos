@@ -165,6 +165,92 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
     expect(calls[2].body).toEqual({ expected_source_token: 'SOURCE-TOKEN-001' })
   })
 
+  it('reconciles an unknown outcome through idempotent discovery and read-only truth checks', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(201, {
+        id: 'ORDER-RECOVERED',
+        company_book_id: context.companyBookId,
+        subtotal_minor: '56000',
+        tax_amount_minor: '0',
+        discount_amount_minor: '0',
+        final_total_minor: '56000',
+        items: [],
+      }))
+      .mockResolvedValueOnce(response(200, {
+        id: 'ORDER-RECOVERED',
+        company_book_id: context.companyBookId,
+        status: 'posted',
+        posting_id: 'POSTING-RECOVERED',
+      }))
+      .mockResolvedValueOnce(response(200, {
+        id: 'POSTING-RECOVERED',
+        book_id: context.companyBookId,
+        finality: 'applied',
+        source_capability: 'pos_order',
+        source_object_id: 'ORDER-RECOVERED',
+        stable_effect_key: `${payload.idempotency_key}:post`,
+      }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    const result = await adapter.reconcileRetailOrder(payload, context)
+
+    expect(result).toMatchObject({
+      status: 'posted',
+      tx_id: 'ORDER-RECOVERED',
+      ledger_journal_id: 'POSTING-RECOVERED',
+      idempotency_key: payload.idempotency_key,
+    })
+    const calls = fetchMock.mock.calls.map(([url, init]) => ({
+      url: String(url),
+      method: init?.method,
+      headers: init?.headers as Record<string, string>,
+    }))
+    expect(calls).toEqual([
+      {
+        url: 'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/pos/orders',
+        method: 'POST',
+        headers: expect.objectContaining({ 'Idempotency-Key': `${payload.idempotency_key}:process` }),
+      },
+      {
+        url: 'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/pos/orders/ORDER-RECOVERED',
+        method: 'GET',
+        headers: expect.any(Object),
+      },
+      {
+        url: 'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/postings/POSTING-RECOVERED',
+        method: 'GET',
+        headers: expect.any(Object),
+      },
+    ])
+    expect(calls.some((call) => call.url.endsWith('/submit') || call.url.endsWith('/post'))).toBe(false)
+  })
+
+  it('keeps reconciliation unresolved when the discovered order has no applied posting', async () => {
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(response(201, {
+        id: 'ORDER-NOT-POSTED',
+        company_book_id: context.companyBookId,
+        subtotal_minor: '56000',
+        tax_amount_minor: '0',
+        discount_amount_minor: '0',
+        final_total_minor: '56000',
+        items: [],
+      }))
+      .mockResolvedValueOnce(response(200, {
+        id: 'ORDER-NOT-POSTED',
+        company_book_id: context.companyBookId,
+        status: 'submitted',
+        posting_id: null,
+      })))
+
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    const result = await adapter.reconcileRetailOrder(payload, context)
+
+    expect(result.status).toBe('pending')
+    expect(result.ledger_journal_id).toBeUndefined()
+  })
+
   it('returns pending and does not fabricate durable truth when CORE accepts posting asynchronously', async () => {
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce(response(201, { id: 'ORDER-002', content_sha256: null, subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))

@@ -120,7 +120,7 @@ export const idTranslations: TranslationDictionary = {
       posted: 'Posting CORE terverifikasi.',
       failed: 'Checkout gagal. Minta manajer memeriksa CORE.'
     },
-    resumeFinancialAttempt: 'Lanjutkan pemeriksaan dengan transaksi yang sama'
+    resumeFinancialAttempt: 'Periksa hasil yang sama di CORE'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',
