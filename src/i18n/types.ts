@@ -121,6 +121,7 @@ export interface TranslationDictionary {
       failed: string
     }
     resumeFinancialAttempt: string
+    openCompanyBookPosting: string
   }
   hostStand: {
     title: string

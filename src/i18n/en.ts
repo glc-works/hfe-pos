@@ -120,7 +120,8 @@ export const enTranslations: TranslationDictionary = {
       posted: 'CORE posting verified.',
       failed: 'Checkout failed. Ask a manager to check CORE.'
     },
-    resumeFinancialAttempt: 'Check the same result in CORE'
+    resumeFinancialAttempt: 'Check the same result in CORE',
+    openCompanyBookPosting: 'Open Books'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',

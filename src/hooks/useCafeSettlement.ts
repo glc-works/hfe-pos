@@ -4,6 +4,7 @@ import type { HfePosFinancialPort, SubmitRetailTransactionPayload } from '../ser
 import { CafeCheckoutAttemptCoordinator } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
+import { companyBookPostingHref } from '../config/companyBookPostingLink'
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
 export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
@@ -22,6 +23,7 @@ export function classifyCheckoutFailure(message?: string): CheckoutFailureCode {
 interface UseCafeSettlementOptions {
   financialPort: HfePosFinancialPort
   companyBookId: string
+  organizationId: string
   authorityContext: string
   cashierId: string
   selectedTable: TableStatus | null
@@ -47,12 +49,13 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const [financialStatus, setFinancialStatus] = useState<CafeFinancialStatus>('idle')
   const [financialNotice, setFinancialNotice] = useState<CafeFinancialNotice>(null)
   const [financialFailureCode, setFinancialFailureCode] = useState<CheckoutFailureCode | null>(null)
+  const [postingTruthHref, setPostingTruthHref] = useState<string | null>(null)
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator(new OfflineIntentQueue()))
 
   const executeCheckout = async (resumeExisting: boolean) => {
     const {
       selectedTable, items, orders, fulfillmentMode, paymentMethod, cashierId,
-      financialPort, companyBookId, authorityContext, subtotal, taxAmount,
+      financialPort, companyBookId, organizationId, authorityContext, subtotal, taxAmount,
       grandTotal, commitPaidState, clearCart, formatPrice,
     } = options
     if (items.length === 0 && (!selectedTable || selectedTable.totalBill === 0)) {
@@ -85,6 +88,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     }
 
     setFinancialStatus('pending')
+    setPostingTruthHref(null)
     setFinancialNotice('submitting')
     try {
       const checkoutKey = `${companyBookId}:${sourceId}`
@@ -146,6 +150,9 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       setFinancialStatus('posted')
       setFinancialNotice('posted')
       setFinancialFailureCode(null)
+      setPostingTruthHref(result.response.posting_id
+        ? companyBookPostingHref(organizationId, companyBookId, result.response.posting_id, result.response.tx_id)
+        : null)
       commitPaidState()
       clearCart()
       await coordinator.current.acknowledgePosted(checkoutKey)
@@ -161,6 +168,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     financialStatus,
     financialNotice,
     financialFailureCode,
+    postingTruthHref,
     handleCheckout: () => executeCheckout(false),
     resumeCheckout: () => executeCheckout(true),
   }

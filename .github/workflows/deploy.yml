@@ -51,6 +51,7 @@ jobs:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
           VITE_HFE_CORE_URL: /core
+          VITE_HFE_COMPANY_BOOK_URL: http://localhost:8081
           VITE_TOGROW_ORGANIZATION_ID: 00000000-0000-4000-8000-000000000001
           VITE_TOGROW_CLIENT_ID: flagship-pos-ci
           VITE_TOGROW_SOCIAL_PROVIDERS: google,apple
@@ -96,6 +97,7 @@ jobs:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
           VITE_HFE_CORE_URL: /core
+          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL }}
           VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID }}
           VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID }}
           VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS }}
@@ -161,6 +163,7 @@ jobs:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
           VITE_HFE_CORE_URL: /core
+          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL }}
           VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID }}
           VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID }}
           VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS }}

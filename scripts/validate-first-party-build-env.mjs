@@ -3,6 +3,7 @@ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}
 const requiredValues = [
   'VITE_TOGROW_URL',
   'VITE_HFE_CORE_URL',
+  'VITE_HFE_COMPANY_BOOK_URL',
   'VITE_TOGROW_CLIENT_ID',
   'VITE_HFE_BRANCH_ID',
 ]

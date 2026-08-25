@@ -57,3 +57,20 @@ npm run build
 # Preview build lokal
 npm run preview
 ```
+
+## 5. Company Book handoff configuration
+
+After CORE independently confirms an applied POS posting, the cashier status bar can open the
+same posting in `cb-client`. Local synthetic development defaults to `http://localhost:8081`.
+Connected preview or production builds have no fallback and require this non-secret variable:
+
+```text
+VITE_HFE_COMPANY_BOOK_URL=https://<environment-specific-cb-client-host>
+```
+
+Provision `HFE_COMPANY_BOOK_URL` as a GitHub Environment variable for each deployment environment;
+the deploy workflow maps it to the Vite variable. Use HTTPS outside localhost, omit credentials,
+and bind it to the cb-client environment that shares the same Hfeit IAM organization and Hfe CORE
+Company Book. The handoff carries `organizationId`, `companyBookId`, `postingId`, and POS `orderId`;
+cb-client must reject the read unless its active IAM session and observed HCB resource token match
+that originating organization.
