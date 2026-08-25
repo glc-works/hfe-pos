@@ -6,6 +6,7 @@ import {
   CheckCircle2, Bell, Sparkles, ExternalLink, Loader2
 } from 'lucide-react'
 import { useMerchantConfig } from '../context/MerchantConfigContext'
+import { CafeGoLiveReadinessModal } from '../components/hub/CafeGoLiveReadinessModal'
 
 const PayoutsSettlementTab = lazy(() => import('../components/hub/PayoutsSettlementTab').then(m => ({ default: m.PayoutsSettlementTab })))
 const ExecutiveInsightsTab = lazy(() => import('../components/hub/ExecutiveInsightsTab').then(m => ({ default: m.ExecutiveInsightsTab })))
@@ -31,6 +32,7 @@ export function MerchantHomeHubView({
   const config = useMerchantConfig()
   const [activeTab, setActiveTab] = useState<HubTabKey>(initialTab)
   const [isPinAuthenticated, setIsPinAuthenticated] = useState<boolean>(bypassPinForTesting)
+  const [showGoLiveModal, setShowGoLiveModal] = useState<boolean>(false)
   const [pinInput, setPinInput] = useState<string>('')
   const [pinError, setPinError] = useState<string | null>(null)
 
@@ -161,6 +163,15 @@ export function MerchantHomeHubView({
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => setShowGoLiveModal(true)}
+            className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950/40"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Kesiapan Buka Toko</span>
+          </Button>
+
           <Button 
             size="sm" 
             variant="outline" 
@@ -231,6 +242,12 @@ export function MerchantHomeHubView({
           </Suspense>
         </div>
       </main>
+
+      {/* Cafe Go-Live Readiness Modal */}
+      <CafeGoLiveReadinessModal
+        isOpen={showGoLiveModal}
+        onClose={() => setShowGoLiveModal(false)}
+      />
     </div>
   )
 }
