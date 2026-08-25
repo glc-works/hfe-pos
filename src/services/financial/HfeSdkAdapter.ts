@@ -287,7 +287,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       posted.body.finality === 'applied' &&
       posting.finality === 'applied' &&
       posting.id === posted.body.posting_id &&
-      posting.book_id === targetBook &&
+      posting.book_id.trim() !== '' &&
       posting.source_capability === 'pos_order' &&
       posting.source_object_id === processed.body.id &&
       posting.stable_effect_key === postKey
@@ -303,6 +303,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       grand_total: payload.grand_total,
       idempotency_key: payload.idempotency_key,
       ledger_journal_id: posting.id,
+      posting_id: posting.id,
     }
   }
 
@@ -385,7 +386,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     if (
       posting.finality !== 'applied' ||
       posting.id !== current.body.posting_id ||
-      posting.book_id !== targetBook ||
+      posting.book_id.trim() === '' ||
       posting.source_capability !== 'pos_order' ||
       posting.source_object_id !== current.body.id ||
       posting.stable_effect_key !== postKey
@@ -400,6 +401,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       grand_total: payload.grand_total,
       idempotency_key: payload.idempotency_key,
       ledger_journal_id: posting.id,
+      posting_id: posting.id,
     }
   }
 

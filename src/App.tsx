@@ -36,6 +36,7 @@ import { normalizeSurfaceHost } from './utils/surfaceHost'
 import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
 import { AppProviders } from './components/app/AppProviders'
 import { ToGrowSocialCallbackView } from './components/auth/ToGrowSocialCallbackView'
+import { resolveHfeitOrganizationId } from './config/firstPartyRuntime'
 function AppMain() {
   const config = useMerchantConfig()
   const auth = usePosAuth()
@@ -331,6 +332,7 @@ function AppMain() {
                 setPosCashGiven={table.setPosCashGiven}
                 handlePOSCheckoutTable={table.handlePOSCheckoutTable}
                 financialPort={financialPort}
+                organizationId={resolveHfeitOrganizationId()}
                 companyBookId={sync.hfeCompanyProfile.companyBookId}
                 authorityContext={auth.currentStaffUser.authority_context_id || ''}
                 cashierId={auth.currentStaffUser.user_id}

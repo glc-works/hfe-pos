@@ -2,6 +2,7 @@
   "version": 1,
   "environment": "local-demo",
   "classification": "SYNTHETIC TEST DATA ONLY — NEVER PRODUCTION",
+  "organizationId": "01a035df-b618-7612-aef2-6e332bfcdec5",
   "bookId": "BOOK-CAFE-HQ-88",
   "authorityContextId": "AUTHCTX-DEMO-BARISTA-01",
   "branchId": "BRANCH-HQ-01",

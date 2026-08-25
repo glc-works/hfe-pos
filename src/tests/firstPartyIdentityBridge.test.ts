@@ -34,6 +34,7 @@ const SESSION_RESPONSE = {
 function configureFlagshipRuntime() {
   vi.stubEnv('VITE_TOGROW_URL', 'https://identity.example.test')
   vi.stubEnv('VITE_HFE_RUNTIME_MODE', 'connected')
+  vi.stubEnv('VITE_HFE_COMPANY_BOOK_URL', 'https://prv-books.hfeit.com')
   vi.stubEnv('VITE_TOGROW_ORGANIZATION_ID', '01a035df-b618-7612-aef2-6e332bfcdec5')
   vi.stubEnv('VITE_TOGROW_CLIENT_ID', 'client-demo-1')
   vi.stubEnv('VITE_HFE_BOOK_ID', '7ea35a48-4012-556d-bd71-3203795b40dc')

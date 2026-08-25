@@ -1,4 +1,5 @@
 import type { PB1TaxMode } from '../types/pos'
+import demoAccess from '../../fixtures/demo/access.json'
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -33,6 +34,13 @@ export function requiredRuntimeUuid(name: keyof ImportMetaEnv): string {
   return value
 }
 
+/** Exact Hfeit IAM organization for the connected runtime or canonical synthetic local demo. */
+export function resolveHfeitOrganizationId(): string {
+  return isConnectedFirstPartyRuntime()
+    ? requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID')
+    : demoAccess.organizationId
+}
+
 export function resolveInitialPb1TaxMode(stored: string | null): PB1TaxMode {
   if (isConnectedFirstPartyRuntime()) return 0
   const parsed = stored === null ? 1 : Number(stored)
@@ -42,6 +50,7 @@ export function resolveInitialPb1TaxMode(stored: string | null): PB1TaxMode {
 export function connectedRuntimeConfigurationError(): string | null {
   const connectedSignals = [
     import.meta.env.VITE_HFE_CORE_URL,
+    import.meta.env.VITE_HFE_COMPANY_BOOK_URL,
     import.meta.env.VITE_TOGROW_URL,
     import.meta.env.VITE_HFE_BOOK_ID,
     import.meta.env.VITE_HFE_AUTHORITY_CONTEXT_ID,
@@ -57,6 +66,7 @@ export function connectedRuntimeConfigurationError(): string | null {
   try {
     requiredRuntimeValue('VITE_TOGROW_URL')
     requiredRuntimeValue('VITE_HFE_CORE_URL')
+    requiredRuntimeValue('VITE_HFE_COMPANY_BOOK_URL')
     requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID')
     requiredRuntimeValue('VITE_TOGROW_CLIENT_ID')
     requiredRuntimeUuid('VITE_HFE_BOOK_ID')

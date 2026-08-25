@@ -110,7 +110,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       }))
       .mockResolvedValueOnce(response(200, {
         id: 'POSTING-001',
-        book_id: context.companyBookId,
+        book_id: 'ACCOUNTING-BOOK-001',
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: 'ORDER-001',
@@ -125,6 +125,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       status: 'posted',
       tx_id: 'ORDER-001',
       ledger_journal_id: 'POSTING-001',
+      posting_id: 'POSTING-001',
       idempotency_key: payload.idempotency_key,
     })
     expect(fetchMock).toHaveBeenCalledTimes(4)
@@ -184,7 +185,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       }))
       .mockResolvedValueOnce(response(200, {
         id: 'POSTING-RECOVERED',
-        book_id: context.companyBookId,
+        book_id: 'ACCOUNTING-BOOK-001',
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: 'ORDER-RECOVERED',
@@ -199,6 +200,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       status: 'posted',
       tx_id: 'ORDER-RECOVERED',
       ledger_journal_id: 'POSTING-RECOVERED',
+      posting_id: 'POSTING-RECOVERED',
       idempotency_key: payload.idempotency_key,
     })
     const calls = fetchMock.mock.calls.map(([url, init]) => ({

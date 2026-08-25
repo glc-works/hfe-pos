@@ -83,7 +83,8 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
       const postRequest = observed.find(({ url: observedUrl }) => observedUrl.endsWith(`/pos/orders/${orderId}/post`))
       await route.fulfill({ status: 200, json: {
         id: mode === 'mismatch' ? 'POSTING-DIFFERENT' : postingId,
-        book_id: demoAccess.bookId,
+        book_id: 'ACCOUNTING-BOOK-FLAGSHIP-001',
+        posting_time: '2026-08-25T00:00:01.000Z',
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: mode === 'mismatch' ? 'ORDER-DIFFERENT' : orderId,
@@ -118,6 +119,10 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
     await driver.selectOccupiedTable(cashScenario.tableNumber)
     await driver.processSettlement(cashScenario)
     await driver.verifySettlementSuccess(cashScenario.tableNumber)
+    await expect(page.getByRole('link', { name: 'Buka Buku' })).toHaveAttribute(
+      'href',
+      `http://localhost:8081/app/accounting/company-books/${demoAccess.bookId}/postings/${flagshipPostingId}?orderId=${flagshipOrderId}&organizationId=${demoAccess.organizationId}`,
+    )
 
     expect(observed.map(({ url }) => url)).toEqual([
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders`,
@@ -150,6 +155,7 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
 
     await expect.poll(() => observed.length).toBe(3)
     await expect(page.locator('[data-financial-status="pending"]')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Buka Buku' })).toHaveCount(0)
     await expect(page.getByText('(Lunas)')).toHaveCount(0)
 
     await page.reload()
@@ -169,6 +175,7 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
     await driver.processSettlement(cashScenario)
 
     await expect(page.locator('[data-financial-status="error"]')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Buka Buku' })).toHaveCount(0)
     expect(observed).toHaveLength(4)
     await expect(page.getByText('(Lunas)')).toHaveCount(0)
   })
@@ -180,6 +187,7 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
     await driver.processSettlement(cashScenario)
 
     await expect(page.locator('[data-financial-status="error"]')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Buka Buku' })).toHaveCount(0)
     await expect(page.getByText('(Lunas)')).toHaveCount(0)
     await page.getByRole('button', { name: 'Periksa hasil yang sama di CORE' }).click()
     await driver.verifySettlementSuccess(cashScenario.tableNumber)

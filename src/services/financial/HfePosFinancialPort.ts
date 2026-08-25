@@ -85,6 +85,8 @@ export interface SubmitRetailTransactionResponse {
   grand_total: number
   idempotency_key: string
   ledger_journal_id?: string
+  /** Canonical Posting identity proven by independent CORE read-back. */
+  posting_id?: string
   gl_entries_posted?: GlPostingEntry[]
   isSimulated?: boolean
 }
