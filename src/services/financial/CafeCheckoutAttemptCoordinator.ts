@@ -1,0 +1,116 @@
+import type {
+  SubmitRetailTransactionPayload,
+  SubmitRetailTransactionResponse,
+} from './HfePosFinancialPort'
+import { generatePayloadChecksum } from '../../utils/cryptoHasher'
+
+export type CheckoutAttemptStatus = 'prepared' | 'outcome_unknown' | 'pending' | 'posted'
+
+export interface CheckoutAttemptRecord {
+  checkoutKey: string
+  bookId: string
+  idempotencyKey: string
+  payloadFingerprint: string
+  payload: SubmitRetailTransactionPayload
+  status: CheckoutAttemptStatus
+  createdAt: string
+  updatedAt: string
+  lastError?: string
+  response?: SubmitRetailTransactionResponse
+}
+
+export interface CheckoutAttemptStore {
+  get(checkoutKey: string): Promise<CheckoutAttemptRecord | null>
+  put(record: CheckoutAttemptRecord): Promise<void>
+  remove(checkoutKey: string): Promise<void>
+}
+
+export type CheckoutAttemptResult =
+  | { kind: 'posted'; response: SubmitRetailTransactionResponse }
+  | { kind: 'pending'; response: SubmitRetailTransactionResponse }
+  | { kind: 'outcome_unknown'; message: string }
+  | { kind: 'operator_action_required'; attempt: CheckoutAttemptRecord }
+  | { kind: 'already_in_progress' }
+
+interface ExecuteCheckoutAttempt {
+  checkoutKey: string
+  bookId: string
+  payload: SubmitRetailTransactionPayload
+  post: (payload: SubmitRetailTransactionPayload) => Promise<SubmitRetailTransactionResponse>
+}
+
+export class CafeCheckoutAttemptCoordinator {
+  private readonly inFlight = new Set<string>()
+
+  constructor(
+    private readonly store: CheckoutAttemptStore,
+    private readonly createIdempotencyKey: () => string = () => crypto.randomUUID(),
+  ) {}
+
+  async acknowledgePosted(checkoutKey: string): Promise<void> {
+    const attempt = await this.store.get(checkoutKey)
+    if (!attempt || attempt.status !== 'posted') {
+      throw new Error('Only a durably posted checkout attempt can be acknowledged.')
+    }
+    await this.store.remove(checkoutKey)
+  }
+
+  async execute({ checkoutKey, bookId, payload, post }: ExecuteCheckoutAttempt): Promise<CheckoutAttemptResult> {
+    if (this.inFlight.has(checkoutKey)) return { kind: 'already_in_progress' }
+    this.inFlight.add(checkoutKey)
+
+    try {
+      const payloadWithoutIdentity = { ...payload, idempotency_key: undefined }
+      const payloadFingerprint = await generatePayloadChecksum(payloadWithoutIdentity)
+      const existing = await this.store.get(checkoutKey)
+      if (existing) {
+        if (existing.payloadFingerprint !== payloadFingerprint) {
+          throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
+        }
+        return { kind: 'operator_action_required', attempt: existing }
+      }
+
+      const idempotencyKey = this.createIdempotencyKey()
+      const identifiedPayload = { ...payload, idempotency_key: idempotencyKey }
+      const now = new Date().toISOString()
+      const attempt: CheckoutAttemptRecord = {
+        checkoutKey,
+        bookId,
+        idempotencyKey,
+        payloadFingerprint,
+        payload: identifiedPayload,
+        status: 'prepared',
+        createdAt: now,
+        updatedAt: now,
+      }
+      await this.store.put(attempt)
+
+      attempt.status = 'outcome_unknown'
+      attempt.updatedAt = new Date().toISOString()
+      await this.store.put(attempt)
+
+      try {
+        const response = await post(identifiedPayload)
+        if (response.status !== 'posted') {
+          attempt.status = 'pending'
+          attempt.updatedAt = new Date().toISOString()
+          await this.store.put(attempt)
+          return { kind: 'pending', response }
+        }
+
+        attempt.status = 'posted'
+        attempt.response = response
+        attempt.updatedAt = new Date().toISOString()
+        await this.store.put(attempt)
+        return { kind: 'posted', response }
+      } catch (error) {
+        attempt.lastError = error instanceof Error ? error.message : String(error)
+        attempt.updatedAt = new Date().toISOString()
+        await this.store.put(attempt)
+        return { kind: 'outcome_unknown', message: attempt.lastError }
+      }
+    } finally {
+      this.inFlight.delete(checkoutKey)
+    }
+  }
+}

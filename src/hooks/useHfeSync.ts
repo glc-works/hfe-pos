@@ -1,27 +1,23 @@
 import { useState } from 'react'
 import { HfeCompanyProfile } from '../types/pos'
+import { DEFAULT_COMPANY_PROFILE } from '../data/mockData'
+import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
 
-export function useHfeSync() {
-  const [hfeCompanyProfile, setHfeCompanyProfile] = useState<HfeCompanyProfile>({
-    companyBookId: 'BOOK-SENOPATI-01',
-    ptLegalName: 'PT Kopi Karya Nusantara',
-    brandName: 'Kopitiam Senopati & Roastery',
-    logoUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=100&q=80',
-    taxIdNpwp: '01.234.567.8-012.000',
-    nibPermit: 'NIB-8120009912001',
-    address: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
-    hfeLedgerApiEndpoint: 'https://api.company-books.hfe.internal/v1',
+export function createInitialHfeCompanyProfile(): HfeCompanyProfile {
+  return {
+    ...DEFAULT_COMPANY_PROFILE,
+    companyBookId: isConnectedFirstPartyRuntime()
+      ? requiredRuntimeUuid('VITE_HFE_BOOK_ID')
+      : DEFAULT_COMPANY_PROFILE.companyBookId,
     isLiveHfeSynced: true,
     lastSyncedAt: '19:30',
-    storefrontInfo: {
-      tagline: 'Artisan Specialty Coffee & Fresh Pastry',
-      storyDescription: 'Pelopor kopi artisan dengan biji nusantara pilihan sejak 2020.',
-      operatingHours: 'Senin - Minggu: 07:00 - 22:00 WIB',
-      wifiSsid: 'Kopitiam_Senopati_Guest',
-      wifiPassword: 'kopiuenak2026',
-      wifiAccessPolicy: 'after_payment'
-    }
-  })
+  }
+}
+
+export function useHfeSync() {
+  const [hfeCompanyProfile, setHfeCompanyProfile] = useState<HfeCompanyProfile>(
+    createInitialHfeCompanyProfile
+  )
 
   const [hfeBranchMode, setHfeBranchMode] = useState<'dimensional' | 'multi_book' | 'sub_account'>('dimensional')
   const [activeBranchId, setActiveBranchId] = useState<string>('OUTLET-SENOPATI-01')

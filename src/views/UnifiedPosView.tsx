@@ -15,6 +15,8 @@ import { useTranslation } from '../context/LanguageContext'
 import { useViewport } from '../context/ViewportContext'
 import { useMerchantConfig } from '../context/MerchantConfigContext'
 import { smartSearchFilter } from '../utils/searchThesaurus'
+import type { HfePosFinancialPort } from '../services/financial'
+import { useCafeSettlement } from '../hooks/useCafeSettlement'
 
 export interface UnifiedPosViewProps {
   activeStaffSurface: StaffSurfaceMode
@@ -35,6 +37,10 @@ export interface UnifiedPosViewProps {
   setPosCashGiven: (val: string) => void
   handlePOSCheckoutTable: () => void
   handleMoveStatus: (orderId: string, targetStatus: OrderTicket['status']) => void
+  financialPort: HfePosFinancialPort
+  companyBookId: string
+  authorityContext: string
+  cashierId: string
 }
 
 export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
@@ -52,12 +58,16 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   setTablesGrid,
   setPosPayMethod,
   setPosCashGiven,
-  handlePOSCheckoutTable
+  handlePOSCheckoutTable,
+  financialPort,
+  companyBookId,
+  authorityContext,
+  cashierId,
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
   const { t, formatPrice } = useTranslation()
-  const { workflowToggles } = useMerchantConfig()
+  const { workflowToggles, pb1TaxMode, takeawaySurcharge } = useMerchantConfig()
   const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
   const [fulfillmentMode, setFulfillmentMode] = useState<OrderFulfillmentMode>('dine_in')
@@ -128,40 +138,40 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const activeTableCartItems = useMemo<CartItem[]>(() => {
     if (cartItems.length > 0) return cartItems
     if (selectedPOSTable && (selectedPOSTable.status === 'occupied' || selectedPOSTable.status === 'open-tab')) {
-      const tableOrders = orders.filter((o) => o.table === selectedPOSTable.name || o.table === selectedPOSTable.id || o.table?.includes(selectedPOSTable.name))
+      const tableOrders = orders.filter((o) =>
+        selectedPOSTable.orderIds?.includes(o.id) ||
+        o.table === selectedPOSTable.name ||
+        o.table === selectedPOSTable.id ||
+        o.table?.includes(selectedPOSTable.name)
+      )
       const extracted: CartItem[] = []
       tableOrders.forEach((ord) => { if (ord.items) extracted.push(...ord.items) })
       if (extracted.length > 0) return extracted
-      if (selectedPOSTable.totalBill > 0) {
-        return [
-          { ...productCatalog[0], name: productCatalog[0].name, price: 28000, quantity: 1 },
-          { ...productCatalog[1], name: productCatalog[1].name, price: 32000, quantity: 1 }
-        ]
-      }
     }
     return []
   }, [cartItems, selectedPOSTable, orders, productCatalog])
 
-  const packagingFee = fulfillmentMode === 'takeaway' ? 2000 : 0
+  const packagingFee = fulfillmentMode === 'takeaway' ? takeawaySurcharge : 0
   const subtotal = useMemo(() => activeTableCartItems.reduce((acc, item) => acc + item.price * item.quantity, 0), [activeTableCartItems])
-  const pb1Tax = useMemo(() => Math.round(subtotal * 0.1), [subtotal])
+  const pb1Tax = useMemo(() => pb1TaxMode === 0 ? 0 : Math.round(subtotal * 0.1), [pb1TaxMode, subtotal])
   const grandTotal = useMemo(() => (cartItems.length > 0 || !selectedPOSTable ? subtotal + pb1Tax + packagingFee : selectedPOSTable.totalBill || (subtotal + pb1Tax + packagingFee)), [cartItems, selectedPOSTable, subtotal, pb1Tax, packagingFee])
   const totalCartItemsCount = useMemo(() => activeTableCartItems.reduce((acc, item) => acc + item.quantity, 0), [activeTableCartItems])
   const unpaidCount = useMemo(() => tablesGrid.filter((t) => (t.status === 'open-tab' || t.status === 'occupied') && t.totalBill > 0).length, [tablesGrid])
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
   const availableCount = useMemo(() => tablesGrid.filter((t) => t.status === 'free').length, [tablesGrid])
 
-  const handleCheckoutAction = () => {
-    if (activeTableCartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)) {
-      alert('Keranjang masih kosong! Silakan pilih menu atau meja terlebih dahulu.')
-      return
-    }
-    if (selectedPOSTable) handlePOSCheckoutTable()
-    setCartItems([])
-    setPosCashGiven('')
-    setShowMobileCartDrawer(false)
-    alert(`🎉 Pembayaran ${selectedPOSTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))} LUNAS via ${posPayMethod.toUpperCase()}!`)
-  }
+  const { financialStatus, financialNotice, handleCheckout: handleCheckoutAction } = useCafeSettlement({
+    financialPort, companyBookId, authorityContext, cashierId,
+    selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
+    fulfillmentMode, paymentMethod: posPayMethod, subtotal, taxAmount: pb1Tax, grandTotal,
+    formatPrice,
+    commitPaidState: () => { if (selectedPOSTable) handlePOSCheckoutTable() },
+    clearCart: () => {
+      setCartItems([])
+      setPosCashGiven('')
+      setShowMobileCartDrawer(false)
+    },
+  })
 
   const handleCloseAllModals = () => {
     setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false)
@@ -207,7 +217,21 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const isImageUrl = (url?: string) => Boolean(url && (url.startsWith('http') || url.startsWith('/') || url.includes('unsplash.com')))
 
   return (
-    <div className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950">
+    <div data-financial-status={financialStatus} className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950">
+      {financialNotice && financialStatus !== 'idle' && (
+        <div
+          role="status"
+          className={`shrink-0 px-3 py-2 text-center text-xs font-bold ${
+            financialStatus === 'error'
+              ? 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200'
+              : financialStatus === 'posted'
+                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200'
+                : 'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-200'
+          }`}
+        >
+          {t.cart.financialNotices[financialNotice]}
+        </div>
+      )}
       <main className={`flex-1 min-h-0 w-full h-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-2 sm:gap-4 ${
         isMobile
           ? 'flex flex-col overflow-hidden'

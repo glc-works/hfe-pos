@@ -7,6 +7,7 @@ import {
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
+  RetailPostingContext,
   UniversalMultiTenderRequest,
   UniversalMultiTenderResponse,
   GenerateQrisPayload,
@@ -160,6 +161,13 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       gl_entries_posted: glEntries,
       isSimulated: true,
     })
+  }
+
+  async postRetailOrder(
+    payload: SubmitRetailTransactionPayload,
+    _context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    return this.submitRetailTransaction(payload)
   }
 
   async settleUniversalMultiTender(

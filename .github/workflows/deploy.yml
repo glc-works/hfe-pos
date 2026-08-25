@@ -40,11 +40,33 @@ jobs:
       - name: Run Canonical CI Gate (Hygiene, Modularity, Manifest, Typecheck, Lint, Secretlint, Tests, Build, Size)
         run: npm run ci
 
+      - name: Install Chromium for bounded pre-deploy browser gates
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify flagship durable CORE contract fixture
+        run: npm run test:flagship
+
+      - name: Verify connected owner and social callback entry
+        env:
+          VITE_HFE_RUNTIME_MODE: connected
+          VITE_TOGROW_URL: /id
+          VITE_HFE_CORE_URL: /core
+          VITE_TOGROW_ORGANIZATION_ID: 00000000-0000-4000-8000-000000000001
+          VITE_TOGROW_CLIENT_ID: flagship-pos-ci
+          VITE_TOGROW_SOCIAL_PROVIDERS: google,apple
+          VITE_HFE_BOOK_ID: 00000000-0000-4000-8000-000000000002
+          VITE_HFE_AUTHORITY_CONTEXT_ID: 00000000-0000-4000-8000-000000000003
+          VITE_HFE_BRANCH_ID: 00000000-0000-4000-8000-000000000004
+          VITE_HFE_CASHIER_SESSION_ID: 00000000-0000-4000-8000-000000000005
+          VITE_HFE_FLAGSHIP_PRODUCT_ID: 00000000-0000-4000-8000-000000000006
+        run: npm run test:connected-auth
+
   deploy-preview:
     name: Deploy to PREVIEW (prv-pos.hfeit.com & prv-pos.hfeit.app)
     needs: test-and-lint
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.target_env == 'preview')
     runs-on: ubuntu-latest
+    environment: preview
     steps:
       - name: Checkout Code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -71,9 +93,19 @@ jobs:
 
       - name: Build React POS App (Preview - Connected to Hfe Core Preview)
         env:
-          VITE_HFE_CORE_URL: 'https://prv-core.hfeit.com'
+          VITE_HFE_RUNTIME_MODE: connected
+          VITE_TOGROW_URL: /id
+          VITE_HFE_CORE_URL: /core
+          VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID }}
+          VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID }}
+          VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS }}
+          VITE_HFE_BOOK_ID: ${{ vars.HFE_BOOK_ID }}
+          VITE_HFE_AUTHORITY_CONTEXT_ID: ${{ vars.HFE_AUTHORITY_CONTEXT_ID }}
+          VITE_HFE_BRANCH_ID: ${{ vars.HFE_BRANCH_ID }}
+          VITE_HFE_CASHIER_SESSION_ID: ${{ vars.HFE_CASHIER_SESSION_ID }}
+          VITE_HFE_FLAGSHIP_PRODUCT_ID: ${{ vars.HFE_FLAGSHIP_PRODUCT_ID }}
           VITE_IS_PREVIEW: 'true'
-        run: npm run build
+        run: npm run guard:first-party-build && npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
         uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
@@ -88,6 +120,11 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=pos-app --branch=main
+
+      - name: Verify deployed first-party proxy bindings
+        run: |
+          curl --fail --silent --show-error https://prv-pos.hfeit.app/id/health >/dev/null
+          curl --fail --silent --show-error https://prv-pos.hfeit.app/core/health >/dev/null
 
   deploy-production:
     name: 🚀 Manual Promotion to PRODUCTION (pos.hfeit.com & pos.hfeit.app)
@@ -121,9 +158,19 @@ jobs:
 
       - name: Build React POS App (Production - Connected to Hfe Core Prod)
         env:
-          VITE_HFE_CORE_URL: 'https://core.hfeit.com'
+          VITE_HFE_RUNTIME_MODE: connected
+          VITE_TOGROW_URL: /id
+          VITE_HFE_CORE_URL: /core
+          VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID }}
+          VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID }}
+          VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS }}
+          VITE_HFE_BOOK_ID: ${{ vars.HFE_BOOK_ID }}
+          VITE_HFE_AUTHORITY_CONTEXT_ID: ${{ vars.HFE_AUTHORITY_CONTEXT_ID }}
+          VITE_HFE_BRANCH_ID: ${{ vars.HFE_BRANCH_ID }}
+          VITE_HFE_CASHIER_SESSION_ID: ${{ vars.HFE_CASHIER_SESSION_ID }}
+          VITE_HFE_FLAGSHIP_PRODUCT_ID: ${{ vars.HFE_FLAGSHIP_PRODUCT_ID }}
           VITE_IS_PREVIEW: 'false'
-        run: npm run build
+        run: npm run guard:first-party-build && npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
         uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
@@ -139,3 +186,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=pos-app --branch=production
 
+      - name: Verify deployed first-party proxy bindings
+        run: |
+          curl --fail --silent --show-error https://pos.hfeit.app/id/health >/dev/null
+          curl --fail --silent --show-error https://pos.hfeit.app/core/health >/dev/null

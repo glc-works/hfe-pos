@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { ThemeProvider } from './context/ThemeContext'
-import { LanguageProvider } from './context/LanguageContext'
-import { MerchantConfigProvider, useMerchantConfig } from './context/MerchantConfigContext'
-import { NotificationProvider } from './context/NotificationContext'
-import { ViewportProvider } from './context/ViewportContext'
+import { useState, useEffect, useMemo } from 'react'
+import { useMerchantConfig } from './context/MerchantConfigContext'
 import { StaffSubNavigator } from './components/common/StaffSubNavigator'
 import { GlobalModals } from './components/modals/GlobalModals'
 import { useHfeSync } from './hooks/useHfeSync'
@@ -31,15 +27,19 @@ import { CompanyBookView } from './views/CompanyBookView'
 import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
 import { HfeitCorporateView } from './views/HfeitCorporateView'
 import { MerchantHomeHubView } from './views/MerchantHomeHubView'
-import { BUILTIN_THEMES, PRODUCT_CATALOG, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
+import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 import { usePosAuth } from './hooks/usePosAuth'
 import { PosAuthLoginView } from './views/PosAuthLoginView'
 import { normalizeSurfaceHost } from './utils/surfaceHost'
-
+import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
+import { AppProviders } from './components/app/AppProviders'
+import { ToGrowSocialCallbackView } from './components/auth/ToGrowSocialCallbackView'
 function AppMain() {
   const config = useMerchantConfig()
   const auth = usePosAuth()
+  const financialPort = useHfeFinancialPort(auth.authToken)
+  const productCatalog = useMemo(createRuntimeProductCatalog, [])
   const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>(() => {
     if (typeof window !== 'undefined') {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
@@ -84,7 +84,6 @@ function AppMain() {
     showToast('🎉 Selamat Datang! Keanggotaan Aktif & Poin Tersimpan')
   }
 
-  // State hooks
   const sync = useHfeSync()
   const [orders, setOrders] = useState<OrderTicket[]>(INITIAL_ORDERS)
   const table = useTableState({ orders, setOrders, hfeCompanyProfile: sync.hfeCompanyProfile })
@@ -108,7 +107,7 @@ function AppMain() {
   }
 
   const cart = useCart({
-    productCatalog: PRODUCT_CATALOG,
+    productCatalog,
     hfeCompanyProfile: sync.hfeCompanyProfile,
     onOrderSubmitted: (newOrder) => {
       setOrders((prev) => [newOrder, ...prev])
@@ -128,7 +127,6 @@ function AppMain() {
     }
   })
 
-  // App-level state
   const [kdsFilterStation, setKdsFilterStation] = useState<string>('all')
   const [kdsViewMode, setKdsViewMode] = useState<KdsViewModeType>('kanban')
   const [cashDrawerFloat] = useState<number>(500000)
@@ -151,7 +149,6 @@ function AppMain() {
     })
   }, [])
 
-  // Synchronize cart paymentPolicy with single door
   useEffect(() => {
     if (cart.paymentPolicy !== config.paymentPolicy) {
       cart.setPaymentPolicy(config.paymentPolicy)
@@ -249,7 +246,7 @@ function AppMain() {
         {config.activeApp === 'landing' && (
           <LandingView
             hfeCompanyProfile={sync.hfeCompanyProfile}
-            productCatalog={PRODUCT_CATALOG}
+            productCatalog={productCatalog}
             viewportMode={config.viewportMode}
             onOpenReservationModal={() => table.setShowReservationModal(true)}
             onSwitchToCustomerApp={() => config.setActiveApp('customer')}
@@ -265,7 +262,7 @@ function AppMain() {
             isCustomerSessionActive={isCustomerSessionActive}
             loginType={cart.loginType} customerPhone={cart.customerPhone} guestName={cart.guestName}
             customerAvatar={cart.customerAvatar} setCustomerAvatar={cart.setCustomerAvatar}
-            loyaltyPoints={cart.loyaltyPoints} productCatalog={PRODUCT_CATALOG}
+            loyaltyPoints={cart.loyaltyPoints} productCatalog={productCatalog}
             reservationPolicyMode={table.reservationPolicyMode} priceVisibilityMode={table.priceVisibilityMode}
             customerAppDisplayMode={table.customerAppDisplayMode} cart={cart.cart}
             totalCartCount={cart.totalCartCount} grandTotalBill={cart.grandTotalBill}
@@ -300,7 +297,7 @@ function AppMain() {
         )}
 
         {config.activeApp === 'cafe' && !auth.currentStaffUser && (
-          <PosAuthLoginView onSuccess={() => window.location.reload()} />
+          <PosAuthLoginView auth={auth} />
         )}
 
         {config.activeApp === 'cafe' && !!auth.currentStaffUser && (
@@ -319,7 +316,7 @@ function AppMain() {
                 setActiveStaffSurface={setActiveStaffSurface}
                 tablesGrid={table.tablesGrid}
                 selectedPOSTable={table.selectedPOSTable}
-                productCatalog={PRODUCT_CATALOG}
+                productCatalog={productCatalog}
                 posPayMethod={table.posPayMethod}
                 posCashGiven={table.posCashGiven}
                 cashDrawerFloat={cashDrawerFloat}
@@ -331,6 +328,10 @@ function AppMain() {
                 setPosPayMethod={table.setPosPayMethod}
                 setPosCashGiven={table.setPosCashGiven}
                 handlePOSCheckoutTable={table.handlePOSCheckoutTable}
+                financialPort={financialPort}
+                companyBookId={sync.hfeCompanyProfile.companyBookId}
+                authorityContext={auth.currentStaffUser.authority_context_id || ''}
+                cashierId={auth.currentStaffUser.user_id}
                 handleMoveStatus={handleMoveStatus}
               />
             )}
@@ -365,7 +366,7 @@ function AppMain() {
 
             {activeStaffSurface === 'hfe-insights' && (
               <HfeInsightsView
-                productCatalog={PRODUCT_CATALOG}
+                productCatalog={productCatalog}
                 orders={orders}
                 tablesGrid={table.tablesGrid}
                 cashDrawerFloat={cashDrawerFloat}
@@ -415,7 +416,7 @@ function AppMain() {
                 handleImportThemeFile={handleImportThemeFile}
                 handleApplyAIThemeString={handleApplyAIThemeString}
                 customerProfiles={customerProfiles}
-                productCatalog={PRODUCT_CATALOG}
+                productCatalog={productCatalog}
                 viewportMode={config.viewportMode}
               />
             )}
@@ -479,20 +480,14 @@ function AppMain() {
   )
 }
 
-function ViewportConsumerWrapper({ children }: { children: React.ReactNode }) {
-  return <ViewportProvider viewportMode={useMerchantConfig().viewportMode}>{children}</ViewportProvider>
+function SocialCallbackApp() {
+  const auth = usePosAuth()
+  return <ToGrowSocialCallbackView complete={auth.completeSocialLogin} />
 }
 
 export default function App() {
-  return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <MerchantConfigProvider>
-          <NotificationProvider>
-            <ViewportConsumerWrapper><AppMain /></ViewportConsumerWrapper>
-          </NotificationProvider>
-        </MerchantConfigProvider>
-      </LanguageProvider>
-    </ThemeProvider>
-  )
+  if (typeof window !== 'undefined' && window.location.pathname === '/auth/callback') {
+    return <AppProviders><SocialCallbackApp /></AppProviders>
+  }
+  return <AppProviders><AppMain /></AppProviders>
 }

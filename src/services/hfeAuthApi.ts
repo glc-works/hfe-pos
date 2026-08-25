@@ -1,7 +1,9 @@
 import demoAccess from '../../fixtures/demo/access.json'
+import { requiredRuntimeUuid, requiredRuntimeValue } from '../config/firstPartyRuntime'
 
 // --- AUTHENTICATION & IDENTITY API ENDPOINTS ---
 const DEFAULT_BASE_URL = 'http://localhost:8080'
+const DEFAULT_IDENTITY_BASE_URL = '/id'
 
 function localDemoFallbackEnabled(baseUrl: string): boolean {
   if (import.meta.env.MODE !== 'test' && import.meta.env.VITE_ENABLE_LOCAL_DEMO !== 'true') {
@@ -25,6 +27,7 @@ export interface StaffUserSession {
   role: 'cashier' | 'barista' | 'store_manager' | 'owner'
   branch_id: string
   token: string
+  authority_context_id?: string
 }
 
 export interface ToGrowAccountProfile {
@@ -50,6 +53,84 @@ export interface ToGrowSessionResponse {
 export interface AuthResponse {
   token: string
   user: StaffUserSession
+  firstPartySession?: FirstPartyIdentitySession
+}
+
+export interface ToGrowLoginSession {
+  access_token: string
+  refresh_token: string
+  expires_at: string
+  refresh_expires_at: string
+  user: {
+    id: string
+    email: string
+    display_name: string | null
+  }
+}
+
+export interface FirstPartyIdentitySession {
+  accessToken: string
+  refreshToken: string
+  accessExpiresAt: string
+  refreshExpiresAt: string
+  hcbExpiresAt: number
+}
+
+interface HcbTokenResponse {
+  access_token: string
+  expires_in: number
+}
+
+function resolveFirstPartyContext(): { authorityContextId: string; branchId: string } {
+  requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID')
+  requiredRuntimeUuid('VITE_HFE_BOOK_ID')
+  return {
+    authorityContextId: requiredRuntimeUuid('VITE_HFE_AUTHORITY_CONTEXT_ID'),
+    branchId: requiredRuntimeValue('VITE_HFE_BRANCH_ID'),
+  }
+}
+
+async function mintHcbToken(accessToken: string, baseUrl: string): Promise<HcbTokenResponse> {
+  const response = await fetch(`${baseUrl}/v1/auth/hcb-token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      organization_id: requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID'),
+      client_id: requiredRuntimeValue('VITE_TOGROW_CLIENT_ID'),
+    }),
+  })
+  if (!response.ok) throw new Error(`HCB token exchange failed with status ${response.status}`)
+  return await response.json() as HcbTokenResponse
+}
+
+export async function establishFirstPartyAuth(
+  session: ToGrowLoginSession,
+  baseUrl: string = import.meta.env.VITE_TOGROW_URL || DEFAULT_IDENTITY_BASE_URL,
+): Promise<AuthResponse> {
+  const { authorityContextId, branchId } = resolveFirstPartyContext()
+  const hcbToken = await mintHcbToken(session.access_token, baseUrl)
+
+  return {
+    token: hcbToken.access_token,
+    user: {
+      user_id: session.user.id,
+      name: session.user.display_name || session.user.email,
+      role: 'owner',
+      branch_id: branchId,
+      token: hcbToken.access_token,
+      authority_context_id: authorityContextId,
+    },
+    firstPartySession: {
+      accessToken: session.access_token,
+      refreshToken: session.refresh_token,
+      accessExpiresAt: session.expires_at,
+      refreshExpiresAt: session.refresh_expires_at,
+      hcbExpiresAt: Date.now() + hcbToken.expires_in * 1000,
+    },
+  }
 }
 
 function createLocalDemoAuthResponse(branchId: string): AuthResponse {
@@ -62,6 +143,7 @@ function createLocalDemoAuthResponse(branchId: string): AuthResponse {
       role: demoAccess.staff.role as StaffUserSession['role'],
       branch_id: branchId,
       token,
+      authority_context_id: demoAccess.authorityContextId,
     },
   }
 }
@@ -115,30 +197,48 @@ export async function employeeLogin(
 export async function ownerLogin(
   email: string,
   password: string,
-  baseUrl: string = DEFAULT_BASE_URL
+  baseUrl: string = import.meta.env.VITE_TOGROW_URL || DEFAULT_IDENTITY_BASE_URL
 ): Promise<AuthResponse> {
-  try {
-    const res = await fetch(`${baseUrl}/v1/auth/login`, {
+  resolveFirstPartyContext()
+  const sessionResponse = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!sessionResponse.ok) throw new Error(`Login failed with status ${sessionResponse.status}`)
+  const session = await sessionResponse.json() as ToGrowLoginSession
+  return establishFirstPartyAuth(session, baseUrl)
+}
+
+export async function renewFirstPartyAuth(
+  current: FirstPartyIdentitySession,
+  baseUrl: string = import.meta.env.VITE_TOGROW_URL || DEFAULT_IDENTITY_BASE_URL,
+): Promise<Pick<AuthResponse, 'token' | 'firstPartySession'>> {
+  let identity = current
+  if (Date.parse(current.accessExpiresAt) <= Date.now() + 30_000) {
+    const response = await fetch(`${baseUrl}/v1/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ refresh_token: current.refreshToken }),
     })
-    if (!res.ok) throw new Error(`Login failed with status ${res.status}`)
-    return await res.json()
-  } catch (err) {
-    if (email && password.length >= 6) {
-      return {
-        token: `JWT-OWNER-${Date.now()}`,
-        user: {
-          user_id: `USR-OWNER-01`,
-          name: email.split('@')[0] || 'Store Owner',
-          role: 'owner',
-          branch_id: 'BRANCH-HQ-01',
-          token: `JWT-OWNER-${Date.now()}`,
-        },
-      }
+    if (!response.ok) throw new Error(`ToGrow session refresh failed with status ${response.status}`)
+    const rotated = await response.json() as ToGrowLoginSession
+    identity = {
+      accessToken: rotated.access_token,
+      refreshToken: rotated.refresh_token,
+      accessExpiresAt: rotated.expires_at,
+      refreshExpiresAt: rotated.refresh_expires_at,
+      hcbExpiresAt: current.hcbExpiresAt,
     }
-    throw new Error('Email atau password owner tidak valid')
+  }
+
+  const hcbToken = await mintHcbToken(identity.accessToken, baseUrl)
+  return {
+    token: hcbToken.access_token,
+    firstPartySession: {
+      ...identity,
+      hcbExpiresAt: Date.now() + hcbToken.expires_in * 1000,
+    },
   }
 }
 
@@ -160,16 +260,8 @@ export async function ownerRegister(
     if (!res.ok) throw new Error(`Registration failed with status ${res.status}`)
     return await res.json()
   } catch (err) {
-    return {
-      token: `JWT-NEW-OWNER-${Date.now()}`,
-      user: {
-        user_id: `USR-OWNER-NEW`,
-        name: brandName,
-        role: 'owner',
-        branch_id: 'BRANCH-HQ-01',
-        token: `JWT-NEW-OWNER-${Date.now()}`,
-      },
-    }
+    if (localDemoFallbackEnabled(baseUrl)) return createLocalDemoAuthResponse(demoAccess.branchId)
+    throw err
   }
 }
 
@@ -257,8 +349,7 @@ export async function exchangeToGrowSession(
     if (!res.ok) throw new Error(`ToGrow exchange failed with status ${res.status}`)
     return await res.json()
   } catch (err) {
-    // Canonical simulation fallback for testing
-    return {
+    if (localDemoFallbackEnabled(baseUrl)) return {
       accessToken: `JWT-TOGROW-AUTH-${Date.now()}`,
       person: {
         sub: 'usr_togrow_canonical_owner_88',
@@ -277,5 +368,6 @@ export async function exchangeToGrowSession(
       },
       expiresAt: Date.now() + 86400 * 1000,
     }
+    throw err
   }
 }

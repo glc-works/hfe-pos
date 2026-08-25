@@ -3,9 +3,15 @@ import { usePosAuth } from '../hooks/usePosAuth'
 import { Keyboard, UserCheck, UserPlus, HelpCircle, Store } from 'lucide-react'
 import { PosPinKeypadSection } from '../components/auth/PosPinKeypadSection'
 import { PosOwnerAuthForms } from '../components/auth/PosOwnerAuthForms'
+import { firstPartyAuthEntryPolicy } from '../config/firstPartyRuntime'
+import {
+  configuredSocialProviders,
+  startSocialSignIn,
+  type ToGrowSocialProvider,
+} from '../services/toGrowSocialSignIn'
 
 export interface PosAuthLoginViewProps {
-  onSuccess?: () => void
+  auth: ReturnType<typeof usePosAuth>
 }
 
 type AuthTab = 'pin' | 'owner-login' | 'owner-register' | 'forgot-password'
@@ -16,13 +22,15 @@ const BRANCHES = [
   { id: 'BRANCH-BANDUNG-03', name: 'Artisan Cafe (Bandung Dago)' },
 ]
 
-export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess }) => {
+export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
   const {
     activeBranchId, setActiveBranchId, cooldownSeconds, isCooldownActive,
     loginWithPin, loginWithOwner, registerOwner, requestPasswordReset, confirmPasswordReset
-  } = usePosAuth()
+  } = auth
 
-  const [activeTab, setActiveTab] = useState<AuthTab>('pin')
+  const authPolicy = firstPartyAuthEntryPolicy()
+  const socialProviders = configuredSocialProviders()
+  const [activeTab, setActiveTab] = useState<AuthTab>(authPolicy.initialTab)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -59,7 +67,6 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
     try {
       const user = await loginWithPin(activeBranchId, pin)
       setSuccessMessage(`Selamat datang, ${user.name || 'Kasir'}!`)
-      setTimeout(() => onSuccess?.(), 1000)
     } catch (err: any) {
       setErrorMessage(err.message || 'PIN tidak valid.')
       setPin('')
@@ -75,12 +82,20 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
     try {
       await loginWithOwner(ownerEmail, ownerPassword)
       setSuccessMessage('Login Pemilik Berhasil!')
-      setTimeout(() => onSuccess?.(), 1000)
     } catch (err: any) {
       setErrorMessage(err.message || 'Email atau password salah.')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSocialSignIn = (provider: ToGrowSocialProvider) => {
+    setLoading(true)
+    setErrorMessage(null)
+    void startSocialSignIn(provider).catch((error) => {
+      setLoading(false)
+      setErrorMessage(error instanceof Error ? error.message : 'Login sosial tidak tersedia.')
+    })
   }
 
   const handleOwnerRegister = async (e: React.FormEvent) => {
@@ -148,7 +163,10 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
             { id: 'owner-login', label: 'Owner', icon: UserCheck },
             { id: 'owner-register', label: 'Daftar', icon: UserPlus },
             { id: 'forgot-password', label: 'Bantuan', icon: HelpCircle }
-          ].map(t => {
+          ].filter(t => (
+            (t.id !== 'pin' || authPolicy.allowSyntheticStaffPin)
+            && (t.id !== 'owner-register' || authPolicy.allowLocalRegistration)
+          )).map(t => {
             const Icon = t.icon
             return (
               <button
@@ -217,6 +235,8 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
             onRequestResetSubmit={handleRequestReset}
             onConfirmResetSubmit={handleConfirmReset}
             getPasswordStrength={getPasswordStrength}
+            socialProviders={socialProviders}
+            onSocialSignIn={handleSocialSignIn}
           />
         )}
       </div>

@@ -110,7 +110,16 @@ export const idTranslations: TranslationDictionary = {
     takeawayModeLabel: 'Bungkus',
     deliveryModeLabel: 'Pesan Antar',
     packagingFeeLabel: 'Biaya Kemasan (Takeaway)',
-    queueNumberLabel: 'No. Antrean'
+    queueNumberLabel: 'No. Antrean',
+    financialNotices: {
+      submitting: 'Mengirim ke CORE. Jangan ulangi pembayaran.',
+      in_progress: 'Pembayaran sedang diproses. Jangan klik lagi.',
+      pending_core: 'CORE masih memproses. Jangan bayar ulang; minta manajer memeriksa posting.',
+      posted_unacknowledged: 'CORE sudah mencatat posting. Minta manajer merekonsiliasi checkout ini.',
+      outcome_unknown: 'Hasil pembayaran belum pasti. Jangan bayar ulang; minta manajer memeriksa CORE.',
+      posted: 'Posting CORE terverifikasi.',
+      failed: 'Checkout gagal. Minta manajer memeriksa CORE.'
+    }
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',
@@ -390,4 +399,3 @@ export const idTranslations: TranslationDictionary = {
     thankYouFeedback: 'Terima kasih banyak atas masukan Anda!',
   }
 }
-

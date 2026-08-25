@@ -1,13 +1,14 @@
 // --- HFE SDK PRODUCTION ADAPTER (POS-ENG-STD-001) ---
 // Official REST API Transport Layer powered by @hfe/sdk (Strict Fail-Closed)
 
-import { HfeClient, HfeApiError as SdkApiError } from '@hfe/sdk'
+import { HfeClient, HfeApiError as SdkApiError, type Int64String } from '@hfe/sdk'
 import {
   HfePosFinancialPort,
   CompanyBookSettingsResponse,
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
+  RetailPostingContext,
   UniversalMultiTenderRequest,
   UniversalMultiTenderResponse,
   GenerateQrisPayload,
@@ -190,6 +191,119 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
         idempotencyKey,
       }
     )
+  }
+
+  async postRetailOrder(
+    payload: SubmitRetailTransactionPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    const targetBook = this.resolveTargetBook(context.companyBookId)
+    if (!context.authorityContext.trim()) {
+      throw new Error('authorityContext is required for POS posting. Fail-closed: zero fallback allowed.')
+    }
+    if (!payload.idempotency_key) {
+      throw new Error('idempotency_key is required for canonical POS posting and retry stability.')
+    }
+    if (payload.payment_method !== 'cash') {
+      throw new Error('Canonical CORE POS posting is cash-only until governed tender semantics are available.')
+    }
+    if (payload.tax_pb1_amount !== 0 || payload.service_fee_amount !== 0 || payload.discount_amount !== 0) {
+      throw new Error('Canonical CORE POS posting does not yet support tax, fee, or discount amounts.')
+    }
+    if (payload.items.length === 0) {
+      throw new Error('Canonical CORE POS posting requires at least one real order item.')
+    }
+    const itemSubtotal = payload.items.reduce((total, item) => total + (item.price * item.qty), 0)
+    if (itemSubtotal !== payload.subtotal || itemSubtotal !== payload.grand_total) {
+      throw new Error('POS amount mismatch: item subtotal, subtotal, and grand total must be identical for the cash-only slice.')
+    }
+
+    const authorityHeaders = {
+      'X-CBook-Authority-Context': context.authorityContext,
+    }
+    const processKey = `${payload.idempotency_key}:process`
+    const submitKey = `${payload.idempotency_key}:submit`
+    const postKey = `${payload.idempotency_key}:post`
+    const processed = await this.client.operations.processPosRetailOrder({
+      path: { book: targetBook },
+      headers: { ...authorityHeaders, 'Idempotency-Key': processKey },
+      body: {
+        customer_contact_id: payload.contact_id || null,
+        items: payload.items.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.qty,
+          unit_price_minor: String(item.price) as Int64String,
+        })),
+        payment_method: payload.payment_method,
+        session_id: context.sessionId,
+      },
+    })
+    const sourceToken = processed.body.content_sha256
+    if (!sourceToken) {
+      throw new Error('CORE POS order omitted its stable source token; posting stopped fail-closed.')
+    }
+    if (
+      processed.body.subtotal_minor !== String(payload.subtotal) ||
+      processed.body.tax_amount_minor !== '0' ||
+      processed.body.discount_amount_minor !== '0' ||
+      processed.body.final_total_minor !== String(payload.grand_total)
+    ) {
+      throw new Error('CORE amount mismatch: computed POS order totals do not match the cashier amount.')
+    }
+
+    await this.client.operations.submitPosOrder({
+      path: { book: targetBook, order: processed.body.id },
+      headers: { ...authorityHeaders, 'Idempotency-Key': submitKey },
+      body: {
+        financial_date: context.financialDate,
+        handover: {
+          control_transferred: true,
+          evidence_reference: context.handover.evidenceReference,
+          occurred_at: context.handover.occurredAt,
+        },
+      },
+    })
+    const posted = await this.client.operations.postPosOrder({
+      path: { book: targetBook, order: processed.body.id },
+      headers: { ...authorityHeaders, 'Idempotency-Key': postKey },
+      body: { expected_source_token: sourceToken },
+    })
+
+    if (posted.status === 202 || !('posting_id' in posted.body)) {
+      return {
+        tx_id: processed.body.id,
+        status: 'pending',
+        created_at: processed.body.created_at,
+        grand_total: payload.grand_total,
+        idempotency_key: payload.idempotency_key,
+      }
+    }
+
+    const durable = await this.client.operations.getPosting({
+      path: { book: targetBook, posting: posted.body.posting_id },
+    })
+    const posting = durable.body
+    const exactMatch =
+      posted.body.finality === 'applied' &&
+      posting.finality === 'applied' &&
+      posting.id === posted.body.posting_id &&
+      posting.book_id === targetBook &&
+      posting.source_capability === 'pos_order' &&
+      posting.source_object_id === processed.body.id &&
+      posting.stable_effect_key === postKey
+
+    if (!exactMatch) {
+      throw new Error('Durable posting read-back mismatch: exact posting ID, POS source lineage, and applied finality are required.')
+    }
+
+    return {
+      tx_id: processed.body.id,
+      status: 'posted',
+      created_at: processed.body.created_at,
+      grand_total: payload.grand_total,
+      idempotency_key: payload.idempotency_key,
+      ledger_journal_id: posting.id,
+    }
   }
 
   async settleUniversalMultiTender(

@@ -1,9 +1,24 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type ProxyOptions } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
+function localServiceProxy(target: string): ProxyOptions {
+  return {
+    target,
+    changeOrigin: true,
+    rewrite: (requestPath) => requestPath.replace(/^\/(?:id|core)/, ''),
+  }
+}
+
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  const proxy = {
+    ...(env.VITE_TOGROW_ORIGIN ? { '/id': localServiceProxy(env.VITE_TOGROW_ORIGIN) } : {}),
+    ...(env.VITE_HFE_CORE_ORIGIN ? { '/core': localServiceProxy(env.VITE_HFE_CORE_ORIGIN) } : {}),
+  }
+
+  return {
   plugins: [react()],
   resolve: {
     alias: {
@@ -15,11 +30,13 @@ export default defineConfig({
     port: 3000,
     host: true,
     allowedHosts: true,
+    proxy,
   },
   preview: {
     port: 3000,
     host: true,
     allowedHosts: true,
+    proxy,
   },
   build: {
     chunkSizeWarningLimit: 600,
@@ -57,4 +74,5 @@ export default defineConfig({
       ],
     },
   },
+  }
 })

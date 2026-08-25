@@ -110,7 +110,16 @@ export const enTranslations: TranslationDictionary = {
     takeawayModeLabel: 'Takeaway',
     deliveryModeLabel: 'Delivery',
     packagingFeeLabel: 'Packaging Fee (Takeaway)',
-    queueNumberLabel: 'Queue #'
+    queueNumberLabel: 'Queue #',
+    financialNotices: {
+      submitting: 'Sending to CORE. Do not repeat payment.',
+      in_progress: 'Payment is processing. Do not click again.',
+      pending_core: 'CORE is still processing. Do not repay; ask a manager to check the posting.',
+      posted_unacknowledged: 'CORE recorded the posting. Ask a manager to reconcile this checkout.',
+      outcome_unknown: 'Payment outcome is unknown. Do not repay; ask a manager to check CORE.',
+      posted: 'CORE posting verified.',
+      failed: 'Checkout failed. Ask a manager to check CORE.'
+    }
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',
@@ -390,4 +399,3 @@ export const enTranslations: TranslationDictionary = {
     thankYouFeedback: 'Thank you very much for your valuable feedback!',
   }
 }
-

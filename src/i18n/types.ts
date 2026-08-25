@@ -111,6 +111,15 @@ export interface TranslationDictionary {
     deliveryModeLabel: string
     packagingFeeLabel: string
     queueNumberLabel: string
+    financialNotices: {
+      submitting: string
+      in_progress: string
+      pending_core: string
+      posted_unacknowledged: string
+      outcome_unknown: string
+      posted: string
+      failed: string
+    }
   }
   hostStand: {
     title: string
@@ -390,4 +399,3 @@ export interface TranslationDictionary {
     thankYouFeedback: string
   }
 }
-

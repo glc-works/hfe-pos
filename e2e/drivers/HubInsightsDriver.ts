@@ -10,21 +10,10 @@ export class HubInsightsDriver {
     await this.page.goto('/?app=cafe&surface=merchant-hub')
     await expect(this.page.locator('body')).toBeVisible()
 
-    // If PIN prompt is displayed, enter PIN 8888
-    const pinInput = this.page.locator('input[type="password"]').first()
-    if (await pinInput.isVisible()) {
-      await pinInput.fill('8888')
-      const submitPinBtn = this.page.locator('button:has-text("Buka Akses Hub"), button:has-text("Masuk")').first()
-      if (await submitPinBtn.isVisible()) {
-        await submitPinBtn.click()
-      }
-    }
-
     // Switch to Executive Insights Tab
     const insightsTabBtn = this.page.locator('button:has-text("Executive Insights"), button:has-text("Kinerja & Laba")').first()
-    if (await insightsTabBtn.isVisible()) {
-      await insightsTabBtn.click()
-    }
+    await expect(insightsTabBtn).toBeVisible()
+    await insightsTabBtn.click()
   }
 
   async verifyRealtimeBusinessTruthCard(scenario: DynamicScenarioOptions) {

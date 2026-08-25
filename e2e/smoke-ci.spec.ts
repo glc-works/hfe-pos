@@ -13,7 +13,7 @@ test.describe('POS Suite Canonical Smoke Gate (Issue #55)', () => {
     await page.goto('/')
     await switchPillar(page, 'customer')
     await expect(page.locator('#root')).toBeAttached()
-    const customerHeader = page.locator('text=Daftar Menu').or(page.locator('text=Kopitiam')).or(page.locator('button:has-text("Keranjang")')).first()
+    const customerHeader = page.getByRole('textbox', { name: /Cari kopi, pastry/i })
     await expect(customerHeader).toBeVisible({ timeout: 10000 })
   })
 

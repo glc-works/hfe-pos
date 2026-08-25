@@ -1,4 +1,5 @@
 import { CafeThemeConfig, MenuItem, TableInfo, Order, CustomerProfile, StationConfig, HfeCompanyProfile, PropertyZoneConfig, HotelGuestFolio, TableReservation } from '../types/pos'
+import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
 
 export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
   companyBookId: 'BOOK-CAFE-HQ-88',
@@ -21,7 +22,7 @@ export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
     storyDescription: 'Pelopor kopi artisan dengan biji nusantara pilihan sejak 2020.',
     operatingHours: 'Senin - Minggu: 07:00 - 22:00 WIB',
     wifiSsid: 'Kopitiam_Senopati_Guest',
-    wifiPassword: 'kopiuenak2026',
+    wifiPassword: 'SYNTHETIC-DEMO-WIFI',
     wifiAccessPolicy: 'after_payment'
   }
 }
@@ -275,6 +276,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     preparationSteps: ['1. Slice fresh and serve chilled.']
   }
 ]
+
+export function createRuntimeProductCatalog(): MenuItem[] {
+  if (!isConnectedFirstPartyRuntime()) return PRODUCT_CATALOG
+  return [{ ...PRODUCT_CATALOG[0], id: requiredRuntimeUuid('VITE_HFE_FLAGSHIP_PRODUCT_ID') }]
+}
 
 export const PROPERTY_ZONES: PropertyZoneConfig[] = [
   { id: 'all', name: 'Semua Area', icon: '🏢', tablePrefix: 'ALL', totalTables: 22, hasDedicatedServiceStaff: false },

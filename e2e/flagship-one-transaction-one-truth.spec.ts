@@ -1,196 +1,158 @@
-import { test, expect } from '@playwright/test'
-import { generateDynamicFlagshipScenario } from './helpers/dynamicScenarioGenerator'
-import { assertFinancialInvariants } from './helpers/mathAssertions'
-import { CustomerOrderDriver } from './drivers/CustomerOrderDriver'
-import { KdsStationDriver } from './drivers/KdsStationDriver'
+import { expect, test, type Page } from '@playwright/test'
 import { PosCashierDriver } from './drivers/PosCashierDriver'
-import { HubInsightsDriver } from './drivers/HubInsightsDriver'
+import { demoAccess, loginAsCanonicalDemoStaff, resetCanonicalDemoSession } from './helpers/demoSession'
 
-test.describe('Flagship Café Journey: "One Transaction, One Truth" (5-Act E2E Suite)', () => {
-  test('executes randomized guest-to-ledger journey proving real-time accounting truth', async ({ page }) => {
-    // 🎲 Initialize Dynamic Scenario with Seed
-    const scenario = generateDynamicFlagshipScenario()
-    console.log(`[E2E Flagship] Running with SEED=${scenario.seed} on Table=${scenario.tableNumber}`)
-    console.log(`[E2E Flagship] Items:`, scenario.items.map((i) => `${i.quantity}x ${i.name}`))
-    console.log(`[E2E Flagship] Subtotal=Rp ${scenario.subtotal.toLocaleString('id-ID')}, GrandTotal=Rp ${scenario.grandTotal.toLocaleString('id-ID')}`)
+type PostingFixtureMode = 'applied' | 'pending' | 'mismatch'
+type ObservedRequest = { url: string; headers: Record<string, string>; body?: Record<string, unknown> }
 
-    // Assert strict accounting mathematical invariants prior to execution
-    assertFinancialInvariants(scenario)
+async function installPostingFixture(page: Page, mode: PostingFixtureMode): Promise<ObservedRequest[]> {
+  const observed: ObservedRequest[] = []
+  const orderId = 'ORDER-FLAGSHIP-001'
+  const postingId = 'POSTING-FLAGSHIP-001'
+  const sourceToken = 'SOURCE-TOKEN-FLAGSHIP-001'
 
-    // Instantiate Action Drivers
-    const customerDriver = new CustomerOrderDriver(page)
-    const kdsDriver = new KdsStationDriver(page)
-    const cashierDriver = new PosCashierDriver(page)
-    const hubDriver = new HubInsightsDriver(page)
+  await page.route('http://localhost:8080/v1/company-books/**', async (route) => {
+    const request = route.request()
+    const url = request.url()
+    if (url.endsWith('/auth/employee-login')) {
+      await route.fulfill({ status: 200, json: {
+        token: 'local-controlled-e2e-token',
+        user: {
+          user_id: demoAccess.staff.id,
+          name: demoAccess.staff.name,
+          role: demoAccess.staff.role,
+          branch_id: demoAccess.branchId,
+          authority_context_id: demoAccess.authorityContextId,
+          token: 'local-controlled-e2e-token',
+        },
+      } })
+      return
+    }
 
-    // ==========================================
-    // 🎬 ACT 1: Guest Touchpoint (Mobile ORDER)
-    // ==========================================
-    await test.step('Act 1: Anonymous Guest QR Order at Table with Value-Led Membership', async () => {
-      await customerDriver.navigateToCustomerOrder(scenario.tableNumber)
-      await customerDriver.selectItemsAndModifiers(scenario)
-      await customerDriver.proceedToCheckout(scenario)
+    observed.push({
+      url,
+      headers: request.headers(),
+      body: request.postData() ? request.postDataJSON() : undefined,
     })
 
-    // ==========================================
-    // 🍳 ACT 2: Operations & KDS Station Routing
-    // ==========================================
-    await test.step('Act 2: KDS Order Ticket Routing & Preparation', async () => {
-      await kdsDriver.navigateToKds()
-      await kdsDriver.verifyTableOrderTicket(scenario.tableNumber)
-      await kdsDriver.markOrderReady(scenario.tableNumber)
-    })
-
-    // ==========================================
-    // 💻 ACT 3: Cashier Floor Plan, Settlement & WiFi Unlock
-    // ==========================================
-    await test.step('Act 3: POS Cashier Multi-Tender Settlement & WiFi Unlock', async () => {
-      await cashierDriver.navigateToCashierPos()
-      await cashierDriver.selectOccupiedTable(scenario.tableNumber)
-      await cashierDriver.processSettlement(scenario)
-      await cashierDriver.verifySettlementSuccess(scenario.tableNumber)
-
-      // Verify guest screen unlocks WiFi
-      await customerDriver.navigateToCustomerOrder(scenario.tableNumber)
-      await customerDriver.verifyWifiUnlocked('Kopitiam_Senopati_Guest', 'kopiuenak2026')
-    })
-
-    // ==========================================
-    // 📊 ACT 4: Realtime Business Truth & Ledger Lineage
-    // ==========================================
-    await test.step('Act 4: Realtime Business Truth Card in Merchant Hub', async () => {
-      await hubDriver.navigateToMerchantHub()
-      await hubDriver.verifyRealtimeBusinessTruthCard(scenario)
-    })
-
-    // ==========================================
-    // 🏢 ACT 5: Franchise / HQ Network Impact Movement
-    // ==========================================
-    await test.step('Act 5: HQ Multi-Outlet Network Sales Impact', async () => {
-      await hubDriver.navigateToBranchManagement()
-      await hubDriver.verifyHqNetworkImpactModule(scenario)
-    })
+    if (url.endsWith('/pos/orders')) {
+      await route.fulfill({ status: 201, json: {
+        id: orderId,
+        company_book_id: demoAccess.bookId,
+        content_sha256: sourceToken,
+        status: 'Draft',
+        subtotal_minor: '86000',
+        tax_amount_minor: '0',
+        discount_amount_minor: '0',
+        final_total_minor: '86000',
+        functional_currency: 'IDR',
+        items: [],
+      } })
+    } else if (url.endsWith(`/pos/orders/${orderId}/submit`)) {
+      await route.fulfill({ status: 200, json: {
+        id: orderId,
+        company_book_id: demoAccess.bookId,
+        content_sha256: sourceToken,
+        status: 'Submitted',
+        items: [],
+      } })
+    } else if (url.endsWith(`/pos/orders/${orderId}/post`)) {
+      await route.fulfill({
+        status: mode === 'pending' ? 202 : 200,
+        json: mode === 'pending'
+          ? { order_id: orderId, status: 'Pending' }
+          : { order_id: orderId, posting_id: postingId, finality: 'applied' },
+      })
+    } else if (url.endsWith(`/postings/${postingId}`)) {
+      await route.fulfill({ status: 200, json: {
+        id: mode === 'mismatch' ? 'POSTING-DIFFERENT' : postingId,
+        book_id: demoAccess.bookId,
+        finality: 'applied',
+        source_capability: 'pos_order',
+        source_object_id: mode === 'mismatch' ? 'ORDER-DIFFERENT' : orderId,
+        stable_effect_key: observed[2].headers['idempotency-key'],
+      } })
+    } else {
+      await route.abort('failed')
+    }
   })
 
-  test('executes deep in-flight visual regression across all 5 acts (Deterministic Seed)', async ({ page }) => {
-    // Deterministic scenario for pixel-by-pixel visual regression
-    const deterministicScenario = generateDynamicFlagshipScenario(20260822)
-    const customerDriver = new CustomerOrderDriver(page)
-    const kdsDriver = new KdsStationDriver(page)
-    const cashierDriver = new PosCashierDriver(page)
-    const hubDriver = new HubInsightsDriver(page)
+  return observed
+}
 
-    // ACT 1: Customer Mobile View
-    await page.setViewportSize({ width: 390, height: 844 })
-    await customerDriver.navigateToCustomerOrder(deterministicScenario.tableNumber)
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(300)
+async function openCanonicalCashier(page: Page, mode: PostingFixtureMode) {
+  const observed = await installPostingFixture(page, mode)
+  await resetCanonicalDemoSession(page)
+  await loginAsCanonicalDemoStaff(page)
+  const driver = new PosCashierDriver(page)
+  await driver.navigateToCashierPos()
+  return { driver, observed }
+}
 
-    // 📸 Snapshot 1: Customer Initial Catalog
-    await expect(page).toHaveScreenshot('in-flight-act1-customer-catalog.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
+const cashScenario = {
+  tableNumber: 'OUT-04',
+  paymentChannel: 'cash_exact' as const,
+} as const
 
-    // Add item to cart
-    await customerDriver.selectItemsAndModifiers(deterministicScenario)
-    await page.waitForTimeout(300)
+test.describe('Flagship café: one transaction, one durable CORE truth', () => {
+  test('posts through generated SDK operations and accepts only exact applied read-back', async ({ page }) => {
+    const { driver, observed } = await openCanonicalCashier(page, 'applied')
 
-    // 📸 Snapshot 2: Active Floating Cart Dock
-    await expect(page).toHaveScreenshot('in-flight-act1-floating-cart.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
+    await driver.processSettlement(cashScenario)
+    await driver.verifySettlementSuccess(cashScenario.tableNumber)
 
-    // Open Checkout
-    const floatingCartPill = page.locator('button:has-text("Keranjang"), button:has-text("Lihat Pesanan")').first()
-    if (await floatingCartPill.isVisible()) {
-      await floatingCartPill.click()
-      await page.waitForTimeout(300)
+    expect(observed.map(({ url }) => url)).toEqual([
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders/ORDER-FLAGSHIP-001/submit`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/orders/ORDER-FLAGSHIP-001/post`,
+      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/postings/POSTING-FLAGSHIP-001`,
+    ])
+    const mutationCalls = observed.slice(0, 3)
+    const rootKey = mutationCalls[0].headers['idempotency-key'].replace(/:process$/, '')
+    expect(mutationCalls.map(({ headers }) => headers['idempotency-key'])).toEqual([
+      `${rootKey}:process`,
+      `${rootKey}:submit`,
+      `${rootKey}:post`,
+    ])
+    for (const { headers } of mutationCalls) {
+      expect(headers['x-cbook-authority-context']).toBe(demoAccess.authorityContextId)
     }
-
-    // 📸 Snapshot 3: Checkout Summary View
-    await expect(page).toHaveScreenshot('in-flight-act1-checkout-summary.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
+    expect(observed[0].body).toMatchObject({ payment_method: 'cash' })
+    expect(observed[1].body).toMatchObject({
+      handover: { control_transferred: true },
     })
+    expect(observed[2].body).toEqual({ expected_source_token: 'SOURCE-TOKEN-FLAGSHIP-001' })
+  })
 
-    // Submit Order to Kitchen
-    const submitBtn = page.locator('button:has-text("Kirim Pesanan ke Dapur"), button:has-text("Pesan Sekarang")').first()
-    if (await submitBtn.isVisible()) {
-      await submitBtn.click()
-      await page.waitForTimeout(400)
-    }
+  test('keeps settlement pending when CORE accepts posting asynchronously', async ({ page }) => {
+    const { driver, observed } = await openCanonicalCashier(page, 'pending')
 
-    // ACT 2: KDS Kitchen Display
-    await page.setViewportSize({ width: 1280, height: 800 })
-    await kdsDriver.navigateToKds()
-    await page.waitForTimeout(400)
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
+    await driver.processSettlement(cashScenario)
 
-    // 📸 Snapshot 4: KDS Incoming Kitchen Ticket
-    await expect(page).toHaveScreenshot('in-flight-act2-kds-incoming-ticket.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
+    await expect.poll(() => observed.length).toBe(3)
+    await expect(page.locator('[data-financial-status="pending"]')).toBeVisible()
+    await expect(page.getByText('(Lunas)')).toHaveCount(0)
 
-    // Mark ready
-    await kdsDriver.markOrderReady(deterministicScenario.tableNumber)
-    await page.waitForTimeout(300)
+    await page.reload()
+    const reloadedDriver = new PosCashierDriver(page)
+    await reloadedDriver.navigateToCashierPos()
+    await reloadedDriver.selectOccupiedTable(cashScenario.tableNumber)
+    await reloadedDriver.processSettlement(cashScenario)
 
-    // ACT 3: POS Cashier Workstation
-    await cashierDriver.navigateToCashierPos()
-    await page.waitForTimeout(400)
+    await expect(page.getByText(/Jangan bayar ulang|Do not repay/)).toBeVisible()
+    expect(observed).toHaveLength(3)
+  })
 
-    // 📸 Snapshot 5: POS Floor Plan with Occupied Table
-    await expect(page).toHaveScreenshot('in-flight-act3-pos-floor-plan.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
+  test('keeps settlement failed when durable posting lineage mismatches', async ({ page }) => {
+    const { driver, observed } = await openCanonicalCashier(page, 'mismatch')
 
-    // Select table to open Cart & Calculation
-    await cashierDriver.selectOccupiedTable(deterministicScenario.tableNumber)
-    await page.waitForTimeout(300)
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
+    await driver.processSettlement(cashScenario)
 
-    // 📸 Snapshot 6: POS Cart & Cash Calculation
-    await expect(page).toHaveScreenshot('in-flight-act3-pos-cart-calculation.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
-
-    // Settle bill
-    await cashierDriver.processSettlement(deterministicScenario)
-    await page.waitForTimeout(400)
-
-    // ACT 4: Customer Touchpoint WiFi Unlock
-    await page.setViewportSize({ width: 390, height: 844 })
-    await customerDriver.navigateToCustomerOrder(deterministicScenario.tableNumber)
-    await page.waitForTimeout(400)
-
-    // 📸 Snapshot 7: Customer WiFi Unlocked Banner
-    await expect(page).toHaveScreenshot('in-flight-act4-customer-wifi-unlocked.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
-
-    // ACT 5: Merchant Hub & HQ Insights
-    await page.setViewportSize({ width: 1280, height: 800 })
-    await hubDriver.navigateToMerchantHub()
-    await page.waitForTimeout(400)
-
-    // 📸 Snapshot 8: Hub Realtime Business Truth Card
-    await expect(page).toHaveScreenshot('in-flight-act5-hub-business-truth.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
-
-    // HQ Network Impact
-    await hubDriver.navigateToBranchManagement()
-    await page.waitForTimeout(400)
-
-    // 📸 Snapshot 9: HQ Multi-Outlet Network Impact
-    await expect(page).toHaveScreenshot('in-flight-act5-hq-network-impact.png', {
-      maxDiffPixelRatio: 0.05,
-      animations: 'disabled',
-    })
+    await expect(page.locator('[data-financial-status="error"]')).toBeVisible()
+    expect(observed).toHaveLength(4)
+    await expect(page.getByText('(Lunas)')).toHaveCount(0)
   })
 })
