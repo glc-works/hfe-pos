@@ -1,19 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState, Suspense, lazy } from 'react'
 import { Card, Button, Badge, TextInput } from '../ui'
 import { 
   Building2, Landmark, TrendingUp, QrCode, Globe, Users, 
   Calendar, ShieldAlert, KeyRound, AlertTriangle, ArrowLeft,
-  CheckCircle2, Bell, Sparkles, ExternalLink
+  CheckCircle2, Bell, Sparkles, ExternalLink, Loader2
 } from 'lucide-react'
-import { PayoutsSettlementTab } from '../components/hub/PayoutsSettlementTab'
-import { ExecutiveInsightsTab } from '../components/hub/ExecutiveInsightsTab'
-import { PrintQrStudioTab } from '../components/hub/PrintQrStudioTab'
-import { DomainManagerTab } from '../components/hub/DomainManagerTab'
-import { TeamPinAccessTab } from '../components/hub/TeamPinAccessTab'
-import { TaxComplianceTab } from '../components/hub/TaxComplianceTab'
 import { useMerchantConfig } from '../context/MerchantConfigContext'
 
-export type HubTabKey = 'payouts' | 'insights' | 'print_qr' | 'domains' | 'team_pin' | 'tax_pb1'
+const PayoutsSettlementTab = lazy(() => import('../components/hub/PayoutsSettlementTab').then(m => ({ default: m.PayoutsSettlementTab })))
+const ExecutiveInsightsTab = lazy(() => import('../components/hub/ExecutiveInsightsTab').then(m => ({ default: m.ExecutiveInsightsTab })))
+const MultiEntityHoldingTab = lazy(() => import('../components/hub/MultiEntityHoldingTab').then(m => ({ default: m.MultiEntityHoldingTab })))
+const PrintQrStudioTab = lazy(() => import('../components/hub/PrintQrStudioTab').then(m => ({ default: m.PrintQrStudioTab })))
+const DomainManagerTab = lazy(() => import('../components/hub/DomainManagerTab').then(m => ({ default: m.DomainManagerTab })))
+const TeamPinAccessTab = lazy(() => import('../components/hub/TeamPinAccessTab').then(m => ({ default: m.TeamPinAccessTab })))
+const TaxComplianceTab = lazy(() => import('../components/hub/TaxComplianceTab').then(m => ({ default: m.TaxComplianceTab })))
+
+export type HubTabKey = 'payouts' | 'insights' | 'holding_entities' | 'print_qr' | 'domains' | 'team_pin' | 'tax_pb1'
 
 interface MerchantHomeHubViewProps {
   onBackToPos?: () => void
@@ -121,6 +123,7 @@ export function MerchantHomeHubView({
   const tabs: { key: HubTabKey; label: string; icon: React.ReactNode; glyph: string }[] = [
     { key: 'payouts', label: 'Payouts & Kas', icon: <Landmark className="w-4 h-4" />, glyph: '💰' },
     { key: 'insights', label: 'Executive Insights', icon: <TrendingUp className="w-4 h-4" />, glyph: '📊' },
+    { key: 'holding_entities', label: 'Holding & Multi-Entitas', icon: <Building2 className="w-4 h-4" />, glyph: '🏢' },
     { key: 'print_qr', label: 'Print & QR Studio', icon: <QrCode className="w-4 h-4" />, glyph: '🖨️' },
     { key: 'domains', label: 'Storefront & Domain', icon: <Globe className="w-4 h-4" />, glyph: '🌐' },
     { key: 'team_pin', label: 'Tim & PIN Akses', icon: <Users className="w-4 h-4" />, glyph: '👥' },
@@ -212,12 +215,20 @@ export function MerchantHomeHubView({
       {/* Active Content Canvas (Single Scroll Owner) */}
       <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y p-4 sm:p-6 pb-24">
         <div className="max-w-6xl mx-auto">
-          {activeTab === 'payouts' && <PayoutsSettlementTab />}
-          {activeTab === 'insights' && <ExecutiveInsightsTab />}
-          {activeTab === 'print_qr' && <PrintQrStudioTab />}
-          {activeTab === 'domains' && <DomainManagerTab />}
-          {activeTab === 'team_pin' && <TeamPinAccessTab />}
-          {activeTab === 'tax_pb1' && <TaxComplianceTab />}
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-20 text-xs text-muted-foreground gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span>Memuat modul hub...</span>
+            </div>
+          }>
+            {activeTab === 'payouts' && <PayoutsSettlementTab />}
+            {activeTab === 'insights' && <ExecutiveInsightsTab />}
+            {activeTab === 'holding_entities' && <MultiEntityHoldingTab />}
+            {activeTab === 'print_qr' && <PrintQrStudioTab />}
+            {activeTab === 'domains' && <DomainManagerTab />}
+            {activeTab === 'team_pin' && <TeamPinAccessTab />}
+            {activeTab === 'tax_pb1' && <TaxComplianceTab />}
+          </Suspense>
         </div>
       </main>
     </div>

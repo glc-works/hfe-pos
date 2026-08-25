@@ -40,6 +40,13 @@ export const Tab2ExecutiveInsightsAndZReport: Story = {
   },
 }
 
+export const TabHoldingAndMultiEntity: Story = {
+  args: {
+    initialTab: 'holding_entities',
+    bypassPinForTesting: true,
+  },
+}
+
 export const Tab3PrintAndQrStudio: Story = {
   args: {
     initialTab: 'print_qr',
