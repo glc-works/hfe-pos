@@ -463,5 +463,22 @@ export interface ServiceTicket {
   status: 'open' | 'in_progress' | 'resolved'; createdAt: string; resolvedAt?: string; assignedStaffName?: string; notes?: string
 }
 
+// --- ACTIVE OPERATIONS TRAY & PARKED TABS (L2-POS-TRAY) ---
+export interface ParkedOperationTab {
+  id: string
+  label: string
+  fulfillmentMode: OrderFulfillmentMode
+  tableName?: string
+  customerName?: string
+  customerPhone?: string
+  items: CartItem[]
+  rawSubtotal: number
+  packagingFee: number
+  totalAmount: number
+  parkedAt: string
+  elapsedMinutes?: number
+  notes?: string
+}
+
 // --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---
 export * from './identity'
