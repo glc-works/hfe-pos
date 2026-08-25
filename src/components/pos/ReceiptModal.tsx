@@ -67,14 +67,14 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-4 sm:p-6 flex flex-col gap-4 shadow-2xl animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-4 sm:p-6 flex flex-col gap-4 shadow-2xl animate-in zoom-in-95 duration-200 text-slate-900 dark:text-slate-100">
         
         {/* HEADER MODAL */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white">Struk Pelunasan Pembayaran</h3>
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Struk Pelunasan Pembayaran</h3>
           </div>
           <IconButton
             aria-label="Tutup Modal"
@@ -86,7 +86,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         </div>
 
         {/* PRINTER RECEIPT PREVIEW (58mm / 80mm Thermal Layout) */}
-        <div className="bg-white text-slate-950 font-mono text-[11px] p-4 rounded-2xl border border-slate-300 shadow-inner overflow-y-auto max-h-80 select-all leading-tight">
+        <div className="bg-slate-50 dark:bg-white text-slate-950 font-mono text-[11px] p-4 rounded-2xl border border-slate-200 dark:border-slate-300 shadow-inner overflow-y-auto max-h-80 select-all leading-tight">
           <pre className="whitespace-pre-wrap font-mono">{receiptText}</pre>
         </div>
 

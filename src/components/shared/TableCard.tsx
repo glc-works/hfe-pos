@@ -30,15 +30,15 @@ export const TableCard: React.FC<TableCardProps> = ({
 
   // Dynamic status-colored borders and backgrounds
   const statusClasses = {
-    free: 'dark:bg-slate-900/60 bg-white border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500',
-    occupied: 'dark:bg-amber-950/20 bg-amber-50 border-amber-400 dark:border-amber-500/50 text-amber-950 dark:text-amber-100 hover:border-amber-500 dark:hover:border-amber-400',
-    'open-tab': 'dark:bg-amber-950/20 bg-amber-50 border-amber-400 dark:border-amber-500/50 text-amber-950 dark:text-amber-100 hover:border-amber-500 dark:hover:border-amber-400',
-    billing: 'dark:bg-emerald-950/20 bg-emerald-50 border-emerald-400 dark:border-emerald-500/50 text-emerald-950 dark:text-emerald-100 hover:border-emerald-500 dark:hover:border-emerald-400',
-    reserved: 'dark:bg-blue-950/20 bg-blue-50 border-blue-400 dark:border-blue-500/50 text-blue-950 dark:text-blue-100 hover:border-blue-500 dark:hover:border-blue-400',
-  }[table.status] || 'dark:bg-slate-900/40 bg-slate-50 border-slate-200 dark:border-slate-800'
+    free: 'bg-white dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-sm hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md',
+    occupied: 'bg-amber-500/[0.06] dark:bg-amber-950/30 border-amber-500/40 dark:border-amber-500/40 text-amber-950 dark:text-amber-100 shadow-sm hover:border-amber-500 hover:shadow-md hover:shadow-amber-500/5',
+    'open-tab': 'bg-amber-500/[0.06] dark:bg-amber-950/30 border-amber-500/40 dark:border-amber-500/40 text-amber-950 dark:text-amber-100 shadow-sm hover:border-amber-500 hover:shadow-md hover:shadow-amber-500/5',
+    billing: 'bg-emerald-500/[0.06] dark:bg-emerald-950/30 border-emerald-500/40 dark:border-emerald-500/40 text-emerald-950 dark:text-emerald-100 shadow-sm hover:border-emerald-500 hover:shadow-md hover:shadow-emerald-500/5',
+    reserved: 'bg-blue-500/[0.06] dark:bg-blue-950/30 border-blue-500/40 dark:border-blue-500/40 text-blue-950 dark:text-blue-100 shadow-sm hover:border-blue-500 hover:shadow-md hover:shadow-blue-500/5',
+  }[table.status] || 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800'
 
   const selectedClass = isSelected
-    ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-950 shadow-lg shadow-amber-500/10'
+    ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-950 shadow-lg shadow-amber-500/10'
     : ''
 
   const colSpanClass = slotSpan === 2 ? 'col-span-2' : 'col-span-1'
@@ -47,7 +47,7 @@ export const TableCard: React.FC<TableCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`relative flex flex-col justify-between p-2.5 rounded-xl border transition-all duration-150 cursor-pointer select-none min-w-[105px] ${colSpanClass} ${statusClasses} ${selectedClass} ${className}`}
+      className={`relative flex flex-col justify-between p-3 rounded-2xl border transition-all duration-150 cursor-pointer select-none min-w-[105px] active:scale-[0.98] ${colSpanClass} ${statusClasses} ${selectedClass} ${className}`}
     >
       {/* Top Anchor Row: Table Number + Capacity + Timer */}
       <div className="flex items-center justify-between gap-1.5 min-w-0">
