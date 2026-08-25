@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Card, Button, Badge, TextInput } from '../../ui'
-import { Landmark, ArrowUpRight, Clock, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Landmark, ArrowUpRight, Clock, ShieldCheck, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react'
+import { FindAndMatchReconciliationModal } from './FindAndMatchReconciliationModal'
 
 interface PayoutRecord {
   id: string
@@ -20,6 +21,7 @@ export function PayoutsSettlementTab() {
   const [accountNumber, setAccountNumber] = useState('8830-1928-33')
   const [accountHolder, setAccountHolder] = useState('PT Kopi Nusantara Abadi')
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
+  const [showReconciliationModal, setShowReconciliationModal] = useState(false)
   const [withdrawAmount, setWithdrawAmount] = useState('14850000')
   const [withdrawSuccess, setWithdrawSuccess] = useState(false)
 
@@ -136,6 +138,35 @@ export function PayoutsSettlementTab() {
           </Button>
         </Card>
       </div>
+
+      {/* Split-Screen Find & Match Bank Reconciliation Card (Xero-Style) */}
+      <Card className="p-5 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border-emerald-500/40 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+              <Landmark className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-black text-white">Rekonsiliasi Bank & QRIS (Find & Match)</h4>
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-[10px]">
+                  3 Menunggu Cocok
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Pencocokan 2-arah mutasi rekening koran BCA/Mandiri vs Transaksi Kasir POS & Buku Besar Hfe CORE.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => setShowReconciliationModal(true)}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-lg shadow-emerald-950/50"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Buka Find & Match ➔</span>
+          </Button>
+        </div>
+      </Card>
 
       {/* MDR Transparency Info Box */}
       <Card className="p-4 bg-muted/30 border-dashed">
@@ -284,6 +315,12 @@ export function PayoutsSettlementTab() {
           </Card>
         </div>
       )}
+
+      {/* Find & Match Bank Reconciliation Modal */}
+      <FindAndMatchReconciliationModal
+        isOpen={showReconciliationModal}
+        onClose={() => setShowReconciliationModal(false)}
+      />
     </div>
   )
 }
