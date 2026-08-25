@@ -10,6 +10,7 @@ import { PosMobileCartDrawer } from '../components/pos/PosMobileCartDrawer'
 import { PosCommandHeader } from '../components/pos/PosCommandHeader'
 import { PosBookingReservationsSection } from '../components/pos/PosBookingReservationsSection'
 import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsCluster'
+import { FinancialStatusBanner } from '../components/pos/FinancialStatusBanner'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useTranslation } from '../context/LanguageContext'
 import { useViewport } from '../context/ViewportContext'
@@ -160,7 +161,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
   const availableCount = useMemo(() => tablesGrid.filter((t) => t.status === 'free').length, [tablesGrid])
 
-  const { financialStatus, financialNotice, handleCheckout: handleCheckoutAction } = useCafeSettlement({
+  const { financialStatus, financialNotice, financialFailureCode, handleCheckout: handleCheckoutAction, resumeCheckout } = useCafeSettlement({
     financialPort, companyBookId, authorityContext, cashierId,
     selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
     fulfillmentMode, paymentMethod: posPayMethod, subtotal, taxAmount: pb1Tax, grandTotal,
@@ -217,21 +218,12 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const isImageUrl = (url?: string) => Boolean(url && (url.startsWith('http') || url.startsWith('/') || url.includes('unsplash.com')))
 
   return (
-    <div data-financial-status={financialStatus} className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950">
-      {financialNotice && financialStatus !== 'idle' && (
-        <div
-          role="status"
-          className={`shrink-0 px-3 py-2 text-center text-xs font-bold ${
-            financialStatus === 'error'
-              ? 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200'
-              : financialStatus === 'posted'
-                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200'
-                : 'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-200'
-          }`}
-        >
-          {t.cart.financialNotices[financialNotice]}
-        </div>
-      )}
+    <div
+      data-financial-status={financialStatus}
+      data-financial-failure-code={financialFailureCode || undefined}
+      className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950"
+    >
+      <FinancialStatusBanner status={financialStatus} notice={financialNotice} failureCode={financialFailureCode} onResume={resumeCheckout} />
       <main className={`flex-1 min-h-0 w-full h-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-2 sm:gap-4 ${
         isMobile
           ? 'flex flex-col overflow-hidden'

@@ -119,7 +119,8 @@ export const idTranslations: TranslationDictionary = {
       outcome_unknown: 'Hasil pembayaran belum pasti. Jangan bayar ulang; minta manajer memeriksa CORE.',
       posted: 'Posting CORE terverifikasi.',
       failed: 'Checkout gagal. Minta manajer memeriksa CORE.'
-    }
+    },
+    resumeFinancialAttempt: 'Lanjutkan pemeriksaan dengan transaksi yang sama'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',

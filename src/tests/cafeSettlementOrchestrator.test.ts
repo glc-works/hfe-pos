@@ -6,6 +6,7 @@ import type {
   SubmitRetailTransactionResponse,
 } from '../services/financial/HfePosFinancialPort'
 import { settleCafeOrder } from '../services/financial/CafeSettlementOrchestrator'
+import { classifyCheckoutFailure } from '../hooks/useCafeSettlement'
 
 const payload = { idempotency_key: 'stable-key' } as SubmitRetailTransactionPayload
 const context = { companyBookId: 'BOOK-1', authorityContext: 'AUTH-1' } as RetailPostingContext
@@ -41,5 +42,19 @@ describe('flagship cafe settlement orchestration', () => {
 
     await expect(settleCafeOrder({ port, payload, context, commitPaidState })).rejects.toThrow('lineage mismatch')
     expect(commitPaidState).not.toHaveBeenCalled()
+  })
+})
+
+describe('checkout failure classification', () => {
+  it.each([
+    ['Hfe Core API Error (401): Unauthorized', 'auth'],
+    ['Hfe Core API Error (403): Forbidden', 'auth'],
+    ['Hfe Core API Error (404): Not Found', 'contract'],
+    ['Network failure connecting to Hfe Core', 'network'],
+    ['POS amount mismatch: totals differ', 'validation'],
+    ['Hfe Core API Error (409): conflict', 'conflict'],
+    ['unexpected failure', 'unknown'],
+  ] as const)('classifies %s as %s without exposing the raw message', (message, expected) => {
+    expect(classifyCheckoutFailure(message)).toBe(expected)
   })
 })

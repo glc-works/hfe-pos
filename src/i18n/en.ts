@@ -119,7 +119,8 @@ export const enTranslations: TranslationDictionary = {
       outcome_unknown: 'Payment outcome is unknown. Do not repay; ask a manager to check CORE.',
       posted: 'CORE posting verified.',
       failed: 'Checkout failed. Ask a manager to check CORE.'
-    }
+    },
+    resumeFinancialAttempt: 'Continue checking the same transaction'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',

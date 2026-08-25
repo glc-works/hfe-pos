@@ -416,7 +416,6 @@ export const INITIAL_ORDERS: Order[] = [
   }
 ]
 
-
 export const INITIAL_CUSTOMER_PROFILES: CustomerProfile[] = [
   {
     id: 'CUST-01',

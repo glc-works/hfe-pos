@@ -27,7 +27,8 @@ import { CompanyBookView } from './views/CompanyBookView'
 import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
 import { HfeitCorporateView } from './views/HfeitCorporateView'
 import { MerchantHomeHubView } from './views/MerchantHomeHubView'
-import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_ORDERS, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
+import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
+import { createRuntimeInitialOrders } from './data/runtimeDemoData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 import { usePosAuth } from './hooks/usePosAuth'
 import { PosAuthLoginView } from './views/PosAuthLoginView'
@@ -40,6 +41,7 @@ function AppMain() {
   const auth = usePosAuth()
   const financialPort = useHfeFinancialPort(auth.authToken)
   const productCatalog = useMemo(createRuntimeProductCatalog, [])
+  const runtimeInitialOrders = useMemo(createRuntimeInitialOrders, [])
   const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>(() => {
     if (typeof window !== 'undefined') {
       const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
@@ -85,7 +87,7 @@ function AppMain() {
   }
 
   const sync = useHfeSync()
-  const [orders, setOrders] = useState<OrderTicket[]>(INITIAL_ORDERS)
+  const [orders, setOrders] = useState<OrderTicket[]>(runtimeInitialOrders)
   const table = useTableState({ orders, setOrders, hfeCompanyProfile: sync.hfeCompanyProfile })
 
   const handleSettleOpenTab = (tableName: string, details: any) => {
@@ -144,7 +146,7 @@ function AppMain() {
         orderCount: idx === 3 ? 2 : 0,
         orderIds: idx === 3 ? ['ORD-8801'] : []
       })))
-      setOrders(INITIAL_ORDERS)
+      setOrders(runtimeInitialOrders)
       showToast('🔄 Status meja dan pesanan berhasil di-reset!')
     })
   }, [])

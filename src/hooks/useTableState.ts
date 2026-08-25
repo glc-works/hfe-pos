@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { TableStatus, TableReservation, OrderTicket, PosPayMethod, PropertyZoneConfig, PropertyZoneId } from '../types/pos'
-import { PROPERTY_ZONES, INITIAL_TABLES } from '../data/mockData'
+import { PROPERTY_ZONES } from '../data/mockData'
+import { createRuntimeInitialTables } from '../data/runtimeDemoData'
 
 export interface UseTableStateOptions {
   orders: OrderTicket[]
@@ -29,7 +30,8 @@ export function useTableState(options: UseTableStateOptions) {
   }
 
   // Tables Grid & Active Selection State
-  const [tablesGrid, setTablesGrid] = useState<TableStatus[]>(INITIAL_TABLES)
+  const initialTables = createRuntimeInitialTables(orders)
+  const [tablesGrid, setTablesGrid] = useState<TableStatus[]>(initialTables)
 
   const [selectedTable, setSelectedTable] = useState<string>(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -42,7 +44,7 @@ export function useTableState(options: UseTableStateOptions) {
   })
 
   const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(() => {
-    return INITIAL_TABLES.find(t => t.status === 'occupied') || INITIAL_TABLES[0] || null
+    return initialTables.find(t => t.status === 'occupied') || initialTables[0] || null
   })
   const [posPayMethod, setPosPayMethod] = useState<PosPayMethod>('cash')
   const [posCashGiven, setPosCashGiven] = useState<string>('100000')
@@ -390,4 +392,3 @@ export function useTableState(options: UseTableStateOptions) {
     handlePOSCheckoutTable
   }
 }
-
