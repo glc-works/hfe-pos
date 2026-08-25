@@ -3,6 +3,7 @@ import type { CartItem, OrderFulfillmentMode, OrderTicket, PosPayMethod, TableSt
 import type { HfePosFinancialPort, SubmitRetailTransactionPayload } from '../services/financial'
 import { CafeCheckoutAttemptCoordinator } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
+import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
 export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
@@ -23,6 +24,12 @@ interface UseCafeSettlementOptions {
   formatPrice: (amount: number) => string
   commitPaidState: () => void
   clearCart: () => void
+}
+
+export function resolveConfiguredCashierSessionId(fallbackSourceId: string): string {
+  return isConnectedFirstPartyRuntime()
+    ? requiredRuntimeUuid('VITE_HFE_CASHIER_SESSION_ID')
+    : fallbackSourceId
 }
 
 export function useCafeSettlement(options: UseCafeSettlementOptions) {
@@ -79,7 +86,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
           {
             companyBookId,
             authorityContext,
-            sessionId: sourceId,
+            sessionId: resolveConfiguredCashierSessionId(sourceId),
             financialDate: now.toISOString().slice(0, 10),
             handover: {
               actorPrincipalId: cashierId,

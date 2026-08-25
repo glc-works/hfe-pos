@@ -1,13 +1,23 @@
 import { useState } from 'react'
 import { HfeCompanyProfile } from '../types/pos'
 import { DEFAULT_COMPANY_PROFILE } from '../data/mockData'
+import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
 
-export function useHfeSync() {
-  const [hfeCompanyProfile, setHfeCompanyProfile] = useState<HfeCompanyProfile>({
+export function createInitialHfeCompanyProfile(): HfeCompanyProfile {
+  return {
     ...DEFAULT_COMPANY_PROFILE,
+    companyBookId: isConnectedFirstPartyRuntime()
+      ? requiredRuntimeUuid('VITE_HFE_BOOK_ID')
+      : DEFAULT_COMPANY_PROFILE.companyBookId,
     isLiveHfeSynced: true,
     lastSyncedAt: '19:30',
-  })
+  }
+}
+
+export function useHfeSync() {
+  const [hfeCompanyProfile, setHfeCompanyProfile] = useState<HfeCompanyProfile>(
+    createInitialHfeCompanyProfile
+  )
 
   const [hfeBranchMode, setHfeBranchMode] = useState<'dimensional' | 'multi_book' | 'sub_account'>('dimensional')
   const [activeBranchId, setActiveBranchId] = useState<string>('OUTLET-SENOPATI-01')

@@ -114,7 +114,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: 'ORDER-001',
-        stable_effect_key: payload.idempotency_key,
+        stable_effect_key: `${payload.idempotency_key}:post`,
       }))
     vi.stubGlobal('fetch', fetchMock)
 
@@ -140,9 +140,13 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/pos/orders/ORDER-001/post',
       'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/postings/POSTING-001',
     ])
+    expect(calls.slice(0, 3).map((call) => call.headers['Idempotency-Key'])).toEqual([
+      `${payload.idempotency_key}:process`,
+      `${payload.idempotency_key}:submit`,
+      `${payload.idempotency_key}:post`,
+    ])
     for (const call of calls.slice(0, 3)) {
       expect(call.headers['X-CBook-Authority-Context']).toBe(context.authorityContext)
-      expect(call.headers['Idempotency-Key']).toBe(payload.idempotency_key)
     }
     expect(calls[0].body).toEqual({
       customer_contact_id: payload.contact_id,

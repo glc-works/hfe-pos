@@ -20,7 +20,7 @@ export function resolveWifiAccessState(params: {
 } {
   const policy = params.policy || 'after_payment'
   const ssid = params.ssid || 'Kopitiam_Senopati_Guest'
-  const password = params.password || 'kopiuenak2026'
+  const password = params.password || 'SYNTHETIC-DEMO-WIFI'
 
   if (policy === 'disabled') {
     return {
@@ -62,13 +62,13 @@ describe('WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)', () 
     expect(DEFAULT_COMPANY_PROFILE.storefrontInfo).toBeDefined()
     expect(DEFAULT_COMPANY_PROFILE.storefrontInfo?.wifiAccessPolicy).toBe('after_payment')
     expect(DEFAULT_COMPANY_PROFILE.storefrontInfo?.wifiSsid).toBe('Kopitiam_Senopati_Guest')
-    expect(DEFAULT_COMPANY_PROFILE.storefrontInfo?.wifiPassword).toBe('kopiuenak2026')
+    expect(DEFAULT_COMPANY_PROFILE.storefrontInfo?.wifiPassword).toBe('SYNTHETIC-DEMO-WIFI')
   })
 
   it('2. Default Onboarding Data Contract: Initial onboarding data contains wifiAccessPolicy', () => {
     expect(DEFAULT_ONBOARDING_DATA.wifiAccessPolicy).toBe('after_payment')
     expect(DEFAULT_ONBOARDING_DATA.wifiSsid).toBe('Artisan_Guest_WiFi')
-    expect(DEFAULT_ONBOARDING_DATA.wifiPassword).toBe('kopiuenak2026')
+    expect(DEFAULT_ONBOARDING_DATA.wifiPassword).toBe('SYNTHETIC-DEMO-WIFI')
   })
 
   it('3. Policy: always_visible - SSID and Password are fully visible before payment', () => {
@@ -76,13 +76,13 @@ describe('WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)', () 
       policy: 'always_visible',
       hasPaidOrder: false,
       ssid: 'Kopitiam_Senopati_Guest',
-      password: 'kopiuenak2026'
+      password: 'SYNTHETIC-DEMO-WIFI'
     })
 
     expect(state.isVisible).toBe(true)
     expect(state.isPasswordRevealed).toBe(true)
     expect(state.displaySsid).toBe('Kopitiam_Senopati_Guest')
-    expect(state.displayPassword).toBe('kopiuenak2026')
+    expect(state.displayPassword).toBe('SYNTHETIC-DEMO-WIFI')
     expect(state.lockNotice).toBeUndefined()
   })
 
@@ -91,12 +91,12 @@ describe('WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)', () 
       policy: 'always_visible',
       hasPaidOrder: true,
       ssid: 'Kopitiam_Senopati_Guest',
-      password: 'kopiuenak2026'
+      password: 'SYNTHETIC-DEMO-WIFI'
     })
 
     expect(state.isVisible).toBe(true)
     expect(state.isPasswordRevealed).toBe(true)
-    expect(state.displayPassword).toBe('kopiuenak2026')
+    expect(state.displayPassword).toBe('SYNTHETIC-DEMO-WIFI')
   })
 
   it('5. Policy: after_payment - Password is locked before payment is settled', () => {
@@ -104,7 +104,7 @@ describe('WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)', () 
       policy: 'after_payment',
       hasPaidOrder: false,
       ssid: 'Kopitiam_Senopati_Guest',
-      password: 'kopiuenak2026'
+      password: 'SYNTHETIC-DEMO-WIFI'
     })
 
     expect(state.isVisible).toBe(true)
@@ -118,12 +118,12 @@ describe('WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)', () 
       policy: 'after_payment',
       hasPaidOrder: true,
       ssid: 'Kopitiam_Senopati_Guest',
-      password: 'kopiuenak2026'
+      password: 'SYNTHETIC-DEMO-WIFI'
     })
 
     expect(state.isVisible).toBe(true)
     expect(state.isPasswordRevealed).toBe(true)
-    expect(state.displayPassword).toBe('kopiuenak2026')
+    expect(state.displayPassword).toBe('SYNTHETIC-DEMO-WIFI')
     expect(state.lockNotice).toBeUndefined()
   })
 
@@ -132,7 +132,7 @@ describe('WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)', () 
       policy: 'disabled',
       hasPaidOrder: false,
       ssid: 'Kopitiam_Senopati_Guest',
-      password: 'kopiuenak2026'
+      password: 'SYNTHETIC-DEMO-WIFI'
     })
 
     expect(stateBeforePay.isVisible).toBe(false)
@@ -142,7 +142,7 @@ describe('WiFi Access Policy & Storefront Settings Suite (POS-ENG-STD-001)', () 
       policy: 'disabled',
       hasPaidOrder: true,
       ssid: 'Kopitiam_Senopati_Guest',
-      password: 'kopiuenak2026'
+      password: 'SYNTHETIC-DEMO-WIFI'
     })
 
     expect(stateAfterPay.isVisible).toBe(false)

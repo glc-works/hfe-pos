@@ -70,7 +70,7 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: mode === 'mismatch' ? 'ORDER-DIFFERENT' : orderId,
-        stable_effect_key: observed[0].headers['idempotency-key'],
+        stable_effect_key: observed[2].headers['idempotency-key'],
       } })
     } else {
       await route.abort('failed')
@@ -109,7 +109,12 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/postings/POSTING-FLAGSHIP-001`,
     ])
     const mutationCalls = observed.slice(0, 3)
-    expect(new Set(mutationCalls.map(({ headers }) => headers['idempotency-key'])).size).toBe(1)
+    const rootKey = mutationCalls[0].headers['idempotency-key'].replace(/:process$/, '')
+    expect(mutationCalls.map(({ headers }) => headers['idempotency-key'])).toEqual([
+      `${rootKey}:process`,
+      `${rootKey}:submit`,
+      `${rootKey}:post`,
+    ])
     for (const { headers } of mutationCalls) {
       expect(headers['x-cbook-authority-context']).toBe(demoAccess.authorityContextId)
     }

@@ -3,6 +3,12 @@ import { usePosAuth } from '../hooks/usePosAuth'
 import { Keyboard, UserCheck, UserPlus, HelpCircle, Store } from 'lucide-react'
 import { PosPinKeypadSection } from '../components/auth/PosPinKeypadSection'
 import { PosOwnerAuthForms } from '../components/auth/PosOwnerAuthForms'
+import { firstPartyAuthEntryPolicy } from '../config/firstPartyRuntime'
+import {
+  configuredSocialProviders,
+  startSocialSignIn,
+  type ToGrowSocialProvider,
+} from '../services/toGrowSocialSignIn'
 
 export interface PosAuthLoginViewProps {
   onSuccess?: () => void
@@ -22,7 +28,9 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
     loginWithPin, loginWithOwner, registerOwner, requestPasswordReset, confirmPasswordReset
   } = usePosAuth()
 
-  const [activeTab, setActiveTab] = useState<AuthTab>('pin')
+  const authPolicy = firstPartyAuthEntryPolicy()
+  const socialProviders = configuredSocialProviders()
+  const [activeTab, setActiveTab] = useState<AuthTab>(authPolicy.initialTab)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -81,6 +89,15 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSocialSignIn = (provider: ToGrowSocialProvider) => {
+    setLoading(true)
+    setErrorMessage(null)
+    void startSocialSignIn(provider).catch((error) => {
+      setLoading(false)
+      setErrorMessage(error instanceof Error ? error.message : 'Login sosial tidak tersedia.')
+    })
   }
 
   const handleOwnerRegister = async (e: React.FormEvent) => {
@@ -148,7 +165,10 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
             { id: 'owner-login', label: 'Owner', icon: UserCheck },
             { id: 'owner-register', label: 'Daftar', icon: UserPlus },
             { id: 'forgot-password', label: 'Bantuan', icon: HelpCircle }
-          ].map(t => {
+          ].filter(t => (
+            (t.id !== 'pin' || authPolicy.allowSyntheticStaffPin)
+            && (t.id !== 'owner-register' || authPolicy.allowLocalRegistration)
+          )).map(t => {
             const Icon = t.icon
             return (
               <button
@@ -217,6 +237,8 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ onSuccess })
             onRequestResetSubmit={handleRequestReset}
             onConfirmResetSubmit={handleConfirmReset}
             getPasswordStrength={getPasswordStrength}
+            socialProviders={socialProviders}
+            onSocialSignIn={handleSocialSignIn}
           />
         )}
       </div>

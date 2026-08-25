@@ -218,13 +218,15 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       throw new Error('POS amount mismatch: item subtotal, subtotal, and grand total must be identical for the cash-only slice.')
     }
 
-    const headers = {
+    const authorityHeaders = {
       'X-CBook-Authority-Context': context.authorityContext,
-      'Idempotency-Key': payload.idempotency_key,
     }
+    const processKey = `${payload.idempotency_key}:process`
+    const submitKey = `${payload.idempotency_key}:submit`
+    const postKey = `${payload.idempotency_key}:post`
     const processed = await this.client.operations.processPosRetailOrder({
       path: { book: targetBook },
-      headers,
+      headers: { ...authorityHeaders, 'Idempotency-Key': processKey },
       body: {
         customer_contact_id: payload.contact_id || null,
         items: payload.items.map((item) => ({
@@ -251,7 +253,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
 
     await this.client.operations.submitPosOrder({
       path: { book: targetBook, order: processed.body.id },
-      headers,
+      headers: { ...authorityHeaders, 'Idempotency-Key': submitKey },
       body: {
         financial_date: context.financialDate,
         handover: {
@@ -263,7 +265,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     })
     const posted = await this.client.operations.postPosOrder({
       path: { book: targetBook, order: processed.body.id },
-      headers,
+      headers: { ...authorityHeaders, 'Idempotency-Key': postKey },
       body: { expected_source_token: sourceToken },
     })
 
@@ -288,7 +290,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       posting.book_id === targetBook &&
       posting.source_capability === 'pos_order' &&
       posting.source_object_id === processed.body.id &&
-      posting.stable_effect_key === payload.idempotency_key
+      posting.stable_effect_key === postKey
 
     if (!exactMatch) {
       throw new Error('Durable posting read-back mismatch: exact posting ID, POS source lineage, and applied finality are required.')

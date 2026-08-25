@@ -35,7 +35,10 @@ describe('@hfe/pos-auth-starterkit SDK & Authentication Engine', () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('local demo has no Hfe Core'))
   })
 
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
 
   it('authenticates valid employee PIN successfully', async () => {
     const res = await employeeLogin(demoAccess.branchId, demoAccess.staff.pin, demoAccess.bookId)
@@ -45,11 +48,9 @@ describe('@hfe/pos-auth-starterkit SDK & Authentication Engine', () => {
     expect(res.user.branch_id).toBe(demoAccess.branchId)
   })
 
-  it('authenticates valid store owner credentials successfully', async () => {
-    const res = await ownerLogin('owner@artisancafe.id', 'password123')
-    expect(res.token).toContain('JWT-OWNER')
-    expect(res.user.role).toBe('owner')
-    expect(res.user.user_id).toBe('USR-OWNER-01')
+  it('does not fabricate an owner session when first-party runtime identity is unconfigured', async () => {
+    await expect(ownerLogin('owner@artisancafe.id', 'password123'))
+      .rejects.toThrow('Hfe POS first-party runtime is missing VITE_TOGROW_ORGANIZATION_ID')
   })
 
   it('throws error for invalid PIN', async () => {

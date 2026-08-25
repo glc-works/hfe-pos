@@ -1,5 +1,7 @@
 import React from 'react'
 import { Mail, Lock, Store, Eye, EyeOff, ShieldAlert, CheckCircle } from 'lucide-react'
+import type { ToGrowSocialProvider } from '../../services/toGrowSocialSignIn'
+import { ToGrowSocialProviderButtons } from './ToGrowSocialProviderButtons'
 
 export interface PosOwnerAuthFormsProps {
   activeTab: 'owner-login' | 'owner-register' | 'forgot-password'
@@ -34,6 +36,8 @@ export interface PosOwnerAuthFormsProps {
   onRequestResetSubmit: (e: React.FormEvent) => void
   onConfirmResetSubmit: (e: React.FormEvent) => void
   getPasswordStrength: (pwd: string) => number
+  socialProviders: ToGrowSocialProvider[]
+  onSocialSignIn: (provider: ToGrowSocialProvider) => void
 }
 
 export const PosOwnerAuthForms: React.FC<PosOwnerAuthFormsProps> = ({
@@ -68,7 +72,9 @@ export const PosOwnerAuthForms: React.FC<PosOwnerAuthFormsProps> = ({
   onOwnerRegisterSubmit,
   onRequestResetSubmit,
   onConfirmResetSubmit,
-  getPasswordStrength
+  getPasswordStrength,
+  socialProviders,
+  onSocialSignIn,
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -89,6 +95,11 @@ export const PosOwnerAuthForms: React.FC<PosOwnerAuthFormsProps> = ({
       {/* 1. OWNER LOGIN FORM */}
       {activeTab === 'owner-login' && (
         <form onSubmit={onOwnerLoginSubmit} className="flex flex-col gap-3.5">
+          <ToGrowSocialProviderButtons
+            providers={socialProviders}
+            disabled={loading}
+            onSelect={onSocialSignIn}
+          />
           <div className="flex flex-col gap-1">
             <label className="text-[11px] text-slate-300 font-medium">Email Pemilik Usaha:</label>
             <div className="relative">
