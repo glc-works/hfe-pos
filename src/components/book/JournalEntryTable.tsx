@@ -140,14 +140,14 @@ export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _
   }
 
   return (
-    <Card className="w-full bg-slate-950 border-slate-800">
-      <CardHeader className="border-b border-slate-800/80 pb-4">
+    <Card className="w-full bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-md text-slate-900 dark:text-slate-100">
+      <CardHeader className="border-b border-slate-200 dark:border-slate-800/80 pb-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-400 border border-amber-500/20"><BookOpen className="w-5 h-5" /></div>
+            <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400 border border-amber-500/20"><BookOpen className="w-5 h-5" /></div>
             <div>
-              <CardTitle className="text-lg font-bold text-slate-100">Jurnal Transaksi (Double-Entry)</CardTitle>
-              <p className="text-xs text-slate-400">Pencatatan Jurnal Otomatis POS & Posting Manual Terverifikasi</p>
+              <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">Jurnal Transaksi (Double-Entry)</CardTitle>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Pencatatan Jurnal Otomatis POS & Posting Manual Terverifikasi</p>
             </div>
           </div>
           <Button variant="default" size="sm" className="gap-1.5" onClick={() => setIsCreateModalOpen(true)}>
@@ -155,7 +155,7 @@ export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-800/60">
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/60">
           <div className="flex flex-wrap items-center gap-1.5">
             {(['ALL', 'SALES', 'PURCHASE', 'BANK', 'PAYROLL', 'GENERAL'] as JournalType[]).map((type) => (
               <Button key={type} variant={selectedType === type ? 'default' : 'outline'} size="sm" className="text-xs h-7 px-2.5" onClick={() => setSelectedType(type)}>
@@ -169,9 +169,9 @@ export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _
               {totals.isBalanced ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
               {totals.isBalanced ? 'Balanced ✓ Debits == Credits' : '⚠️ Imbalance'}
             </Badge>
-            <div className="flex items-center gap-2 font-mono text-xs text-slate-300">
+            <div className="flex items-center gap-2 font-mono text-xs text-slate-700 dark:text-slate-300">
               <span>Dr: <PriceTag amount={totals.totalDebit} size="sm" variant="emerald" /></span>
-              <span className="text-slate-600">|</span>
+              <span className="text-slate-300 dark:text-slate-600">|</span>
               <span>Cr: <PriceTag amount={totals.totalCredit} size="sm" variant="default" /></span>
             </div>
           </div>
@@ -180,8 +180,8 @@ export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _
 
       <CardContent className="pt-4 space-y-3">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-          <Input placeholder="Cari nomor ref, memo, dokumen atau akun..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 bg-slate-900/80 border-slate-800" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400 dark:text-slate-500" />
+          <Input placeholder="Cari nomor ref, memo, dokumen atau akun..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 bg-slate-50 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800" />
         </div>
 
         <div className="space-y-3">
@@ -191,28 +191,28 @@ export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _
             const isBalanced = entryDebit === entryCredit
 
             return (
-              <div key={entry.id} className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                <div className="flex flex-wrap items-center justify-between p-3 bg-slate-900/90 border-b border-slate-800/80 gap-2">
+              <div key={entry.id} className="bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                <div className="flex flex-wrap items-center justify-between p-3 bg-slate-100/70 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800/80 gap-2">
                   <div className="flex items-center gap-2">
                     <Badge variant="default" className="font-mono text-xs">{entry.refNumber}</Badge>
-                    <span className="text-xs text-slate-400 flex items-center gap-1 font-mono"><Calendar className="w-3 h-3 text-slate-500" /> {entry.date}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-mono"><Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" /> {entry.date}</span>
                     <Badge variant="secondary" className="text-[10px] uppercase">{entry.type}</Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    {entry.sourceDoc && <span className="text-[11px] text-slate-400 font-mono bg-slate-800 px-2 py-0.5 rounded-md flex items-center gap-1"><FileText className="w-3 h-3 text-slate-500" /> {entry.sourceDoc}</span>}
+                    {entry.sourceDoc && <span className="text-[11px] text-slate-600 dark:text-slate-400 font-mono bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-md flex items-center gap-1"><FileText className="w-3 h-3 text-slate-400 dark:text-slate-500" /> {entry.sourceDoc}</span>}
                     <Badge variant={isBalanced ? 'emerald' : 'destructive'} className="text-[11px]">{isBalanced ? 'Balanced ✓' : 'Imbalanced'}</Badge>
                   </div>
                 </div>
 
-                <div className="px-4 py-1.5 text-xs text-slate-300 bg-slate-950/40 border-b border-slate-800/40">{entry.memo}</div>
+                <div className="px-4 py-1.5 text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-950/40 border-b border-slate-200 dark:border-slate-800/40">{entry.memo}</div>
 
-                <div className="divide-y divide-slate-800/60">
+                <div className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {entry.lines.map((line) => (
-                    <div key={line.id} className="grid grid-cols-12 px-4 py-2 text-xs items-center hover:bg-slate-900/40">
-                      <div className="col-span-2 font-mono text-slate-400 font-semibold">{line.accountCode}</div>
-                      <div className={`col-span-6 truncate ${line.credit > 0 ? 'pl-4 text-slate-300' : 'text-slate-100 font-medium'}`}>{line.accountName}</div>
-                      <div className="col-span-2 text-right">{line.debit > 0 ? <PriceTag amount={line.debit} size="xs" variant="emerald" /> : <span className="text-slate-600">-</span>}</div>
-                      <div className="col-span-2 text-right">{line.credit > 0 ? <PriceTag amount={line.credit} size="xs" variant="default" /> : <span className="text-slate-600">-</span>}</div>
+                    <div key={line.id} className="grid grid-cols-12 px-4 py-2 text-xs items-center hover:bg-slate-100/60 dark:hover:bg-slate-900/40">
+                      <div className="col-span-2 font-mono text-slate-500 dark:text-slate-400 font-semibold">{line.accountCode}</div>
+                      <div className={`col-span-6 truncate ${line.credit > 0 ? 'pl-4 text-slate-600 dark:text-slate-300' : 'text-slate-900 dark:text-slate-100 font-medium'}`}>{line.accountName}</div>
+                      <div className="col-span-2 text-right">{line.debit > 0 ? <PriceTag amount={line.debit} size="xs" variant="emerald" /> : <span className="text-slate-400 dark:text-slate-600">-</span>}</div>
+                      <div className="col-span-2 text-right">{line.credit > 0 ? <PriceTag amount={line.credit} size="xs" variant="default" /> : <span className="text-slate-400 dark:text-slate-600">-</span>}</div>
                     </div>
                   ))}
                 </div>
@@ -223,21 +223,21 @@ export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _
       </CardContent>
 
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2"><BookOpen className="w-5 h-5 text-amber-400" /><h4 className="font-bold text-slate-100 text-sm">Buat Jurnal Umum Baru</h4></div>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400" onClick={() => setIsCreateModalOpen(false)}><X className="w-4 h-4" /></Button>
+        <div className="fixed inset-0 z-50 bg-slate-950/60 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto text-slate-900 dark:text-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2"><BookOpen className="w-5 h-5 text-amber-500 dark:text-amber-400" /><h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Buat Jurnal Umum Baru</h4></div>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 dark:text-slate-400" onClick={() => setIsCreateModalOpen(false)}><X className="w-4 h-4" /></Button>
             </div>
             <form onSubmit={handleSaveEntry} className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">No. Ref</label>
-                  <Input value={formRef} onChange={(e) => setFormRef(e.target.value)} required />
+                  <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1">No. Ref</label>
+                  <Input value={formRef} onChange={(e) => setFormRef(e.target.value)} required className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800" />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Tipe</label>
-                  <select value={formType} onChange={(e) => setFormType(e.target.value as Exclude<JournalType, 'ALL'>)} className="w-full h-10 rounded-xl border border-slate-800 bg-slate-950 px-3 text-sm text-slate-100">
+                  <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1">Tipe</label>
+                  <select value={formType} onChange={(e) => setFormType(e.target.value as Exclude<JournalType, 'ALL'>)} className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 text-sm text-slate-900 dark:text-slate-100">
                     <option value="GENERAL">General</option>
                     <option value="SALES">Sales</option>
                     <option value="PURCHASE">Purchase</option>
@@ -246,40 +246,40 @@ export const JournalEntryTable: React.FC<JournalEntryTableProps> = ({ entries: _
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Dokumen</label>
-                  <Input placeholder="INV-01" value={formSourceDoc} onChange={(e) => setFormSourceDoc(e.target.value)} />
+                  <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1">Dokumen</label>
+                  <Input placeholder="INV-01" value={formSourceDoc} onChange={(e) => setFormSourceDoc(e.target.value)} className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800" />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Memo</label>
-                <Input placeholder="Rincian jurnal..." value={formMemo} onChange={(e) => setFormMemo(e.target.value)} required />
+                <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1">Memo</label>
+                <Input placeholder="Rincian jurnal..." value={formMemo} onChange={(e) => setFormMemo(e.target.value)} required className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800" />
               </div>
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-300">Baris Double-Entry</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Baris Double-Entry</span>
                   <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleAddLine}><Plus className="w-3 h-3" /> Tambah Baris</Button>
                 </div>
                 <div className="space-y-2 max-h-52 overflow-y-auto p-1">
                   {formLines.map((line, idx) => (
-                    <div key={line.id} className="grid grid-cols-12 gap-2 items-center bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-                      <div className="col-span-3"><Input placeholder="Kode" value={line.accountCode} onChange={(e) => setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, accountCode: e.target.value } : l)))} /></div>
-                      <div className="col-span-4"><Input placeholder="Nama" value={line.accountName} onChange={(e) => setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, accountName: e.target.value } : l)))} /></div>
-                      <div className="col-span-2"><Input type="number" placeholder="Debit" value={line.debit || ''} onChange={(e) => { const v = parseFloat(e.target.value) || 0; setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, debit: v, credit: v > 0 ? 0 : l.credit } : l))) }} /></div>
-                      <div className="col-span-2"><Input type="number" placeholder="Credit" value={line.credit || ''} onChange={(e) => { const v = parseFloat(e.target.value) || 0; setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, credit: v, debit: v > 0 ? 0 : l.debit } : l))) }} /></div>
+                    <div key={line.id} className="grid grid-cols-12 gap-2 items-center bg-slate-50 dark:bg-slate-950/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                      <div className="col-span-3"><Input placeholder="Kode" value={line.accountCode} onChange={(e) => setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, accountCode: e.target.value } : l)))} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs" /></div>
+                      <div className="col-span-4"><Input placeholder="Nama" value={line.accountName} onChange={(e) => setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, accountName: e.target.value } : l)))} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs" /></div>
+                      <div className="col-span-2"><Input type="number" placeholder="Debit" value={line.debit || ''} onChange={(e) => { const v = parseFloat(e.target.value) || 0; setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, debit: v, credit: v > 0 ? 0 : l.credit } : l))) }} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-mono" /></div>
+                      <div className="col-span-2"><Input type="number" placeholder="Credit" value={line.credit || ''} onChange={(e) => { const v = parseFloat(e.target.value) || 0; setFormLines((p) => p.map((l, i) => (i === idx ? { ...l, credit: v, debit: v > 0 ? 0 : l.debit } : l))) }} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-xs font-mono" /></div>
                       <div className="col-span-1 flex justify-center">
-                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-400" onClick={() => handleRemoveLine(line.id)} disabled={formLines.length <= 2}>
+                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500" onClick={() => handleRemoveLine(line.id)} disabled={formLines.length <= 2}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-between p-2.5 bg-slate-950 rounded-xl border border-slate-800 mt-2">
-                  <div className="text-xs text-slate-400">Dr: <PriceTag amount={formTotals.totalDebit} size="xs" variant="emerald" /> | Cr: <PriceTag amount={formTotals.totalCredit} size="xs" variant="default" /></div>
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 mt-2">
+                  <div className="text-xs text-slate-600 dark:text-slate-400">Dr: <PriceTag amount={formTotals.totalDebit} size="xs" variant="emerald" /> | Cr: <PriceTag amount={formTotals.totalCredit} size="xs" variant="default" /></div>
                   <Badge variant={formTotals.isBalanced ? 'emerald' : 'destructive'} className="text-xs">{formTotals.isBalanced ? 'Balanced ✓' : 'Imbalanced'}</Badge>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                 <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateModalOpen(false)}>Batal</Button>
                 <Button type="submit" variant="default" size="sm" disabled={!formTotals.isBalanced}>Posting Jurnal</Button>
               </div>

@@ -49,32 +49,32 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
   }
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col font-sans select-none relative overflow-hidden">
+    <div className="h-[100dvh] w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans select-none relative overflow-hidden">
       {/* FLOATING TOAST */}
       {toastMessage && (
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-amber-300 border border-amber-500/50 px-4 py-2 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-2 text-xs font-bold animate-fadeIn">
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-slate-900 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/50 px-4 py-2 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-2 text-xs font-bold animate-fadeIn">
           <Sparkles className="w-3.5 h-3.5" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* TOP STICKY APP HEADER */}
-      <header className="shrink-0 z-30 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-xl px-4 pt-[max(env(safe-area-inset-top,12px),12px)] pb-3 flex items-center justify-between gap-3 shadow-lg">
+      <header className="shrink-0 z-30 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl px-4 pt-[max(env(safe-area-inset-top,12px),12px)] pb-3 flex items-center justify-between gap-3 shadow-sm">
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
             onClick={onBackToMenu || onBackToLanding}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all active:scale-95 shrink-0 cursor-pointer"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 transition-all active:scale-95 shrink-0 cursor-pointer"
             title="Kembali ke Menu / Landing"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
           <div className="min-w-0">
-            <h1 className="font-black text-sm text-white tracking-tight leading-tight truncate">
+            <h1 className="font-black text-sm text-slate-900 dark:text-white tracking-tight leading-tight truncate">
               HfeCard Passbook & Hub
             </h1>
-            <p className="text-[10px] text-slate-400 font-mono truncate">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">
               {hfeCompanyProfile.brandName} • Multi-Identity Wallet
             </p>
           </div>
@@ -86,7 +86,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
             <button
               type="button"
               onClick={onBackToMenu}
-              className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 shadow flex items-center gap-1.5 transition-all cursor-pointer"
+              className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 shadow flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.97]"
             >
               <Coffee className="w-3.5 h-3.5" />
               <span>Buka Menu</span>
@@ -96,7 +96,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
       </header>
 
       {/* HORIZONTAL TAB NAVIGATION BAR */}
-      <div className="shrink-0 bg-slate-900/60 border-b border-slate-800/80 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-pan-x">
+      <div className="shrink-0 bg-white/70 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800/80 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-pan-x">
         {[
           { id: 'card', label: '🪪 HfeCard Hub', icon: CreditCard },
           { id: 'orders', label: 'Riwayat Pesanan', icon: Receipt },
@@ -111,10 +111,10 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id as PortalTab)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border cursor-pointer active:scale-[0.97] ${
                 isActive
-                  ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 shadow font-black'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-300 dark:border-amber-500/60 text-amber-900 dark:text-amber-300 shadow-sm font-black'
+                  : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />

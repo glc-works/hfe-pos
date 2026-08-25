@@ -149,16 +149,16 @@ export const HfeCardIdentityPassbook: React.FC<HfeCardIdentityPassbookProps> = (
     : activeWorkIdentity
 
   return (
-    <div className="flex flex-col gap-4 w-full text-slate-100">
+    <div className="flex flex-col gap-4 w-full text-slate-900 dark:text-slate-100">
       {/* 1. TOP DUAL-PERSONA SWITCHER (LIFE vs WORK) */}
-      <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl shadow-inner">
+      <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-inner">
         <button
           type="button"
           onClick={() => setPersonaMode('life')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.97] ${
             personaMode === 'life'
               ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-400 hover:text-slate-200'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           <span>🌿</span>
@@ -168,10 +168,10 @@ export const HfeCardIdentityPassbook: React.FC<HfeCardIdentityPassbookProps> = (
         <button
           type="button"
           onClick={() => setPersonaMode('work')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.97] ${
             personaMode === 'work'
               ? 'bg-teal-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-400 hover:text-slate-200'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
           <span>💼</span>
@@ -183,8 +183,8 @@ export const HfeCardIdentityPassbook: React.FC<HfeCardIdentityPassbookProps> = (
       {personaMode === 'life' ? (
         /* MULTI-MERCHANT PASS STACK (APPLE WALLET STYLE) */
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Store className="w-3.5 h-3.5 text-amber-400" />
+          <span className="text-[11px] font-mono font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Store className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
             Pilih Kartu Merchant (Multi-Pass Wallet):
           </span>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -195,10 +195,10 @@ export const HfeCardIdentityPassbook: React.FC<HfeCardIdentityPassbookProps> = (
                   key={pass.id}
                   type="button"
                   onClick={() => setActivePassId(pass.id)}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 active:scale-[0.97] ${
                     isSelected
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/60 shadow font-black scale-102'
-                      : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-500/60 shadow-sm font-black scale-102'
+                      : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <span>{pass.merchantLogo}</span>
@@ -211,8 +211,8 @@ export const HfeCardIdentityPassbook: React.FC<HfeCardIdentityPassbookProps> = (
       ) : (
         /* WORK IDENTITIES SELECTOR */
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Briefcase className="w-3.5 h-3.5 text-teal-400" />
+          <span className="text-[11px] font-mono font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Briefcase className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
             Pilih Penugasan Staf Aktif:
           </span>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -223,10 +223,10 @@ export const HfeCardIdentityPassbook: React.FC<HfeCardIdentityPassbookProps> = (
                   key={work.id}
                   type="button"
                   onClick={() => setActiveWorkId(work.id)}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer shrink-0 active:scale-[0.97] ${
                     isSelected
-                      ? 'bg-teal-500/20 text-teal-300 border-teal-500/60 shadow font-black scale-102'
-                      : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-teal-100 dark:bg-teal-500/20 text-teal-900 dark:text-teal-300 border-teal-300 dark:border-teal-500/60 shadow-sm font-black scale-102'
+                      : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <span>{work.icon}</span>
