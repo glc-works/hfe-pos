@@ -36,7 +36,11 @@ interface ExecuteCheckoutAttempt {
   checkoutKey: string
   bookId: string
   payload: SubmitRetailTransactionPayload
-  post: (payload: SubmitRetailTransactionPayload) => Promise<SubmitRetailTransactionResponse>
+  post: (
+    payload: SubmitRetailTransactionPayload,
+    attempt: CheckoutAttemptRecord,
+  ) => Promise<SubmitRetailTransactionResponse>
+  resumeExisting?: boolean
 }
 
 export class CafeCheckoutAttemptCoordinator {
@@ -55,7 +59,7 @@ export class CafeCheckoutAttemptCoordinator {
     await this.store.remove(checkoutKey)
   }
 
-  async execute({ checkoutKey, bookId, payload, post }: ExecuteCheckoutAttempt): Promise<CheckoutAttemptResult> {
+  async execute({ checkoutKey, bookId, payload, post, resumeExisting = false }: ExecuteCheckoutAttempt): Promise<CheckoutAttemptResult> {
     if (this.inFlight.has(checkoutKey)) return { kind: 'already_in_progress' }
     this.inFlight.add(checkoutKey)
 
@@ -67,30 +71,34 @@ export class CafeCheckoutAttemptCoordinator {
         if (existing.payloadFingerprint !== payloadFingerprint) {
           throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
         }
-        return { kind: 'operator_action_required', attempt: existing }
+        if (!resumeExisting || existing.status === 'posted') {
+          return { kind: 'operator_action_required', attempt: existing }
+        }
       }
 
-      const idempotencyKey = this.createIdempotencyKey()
-      const identifiedPayload = { ...payload, idempotency_key: idempotencyKey }
       const now = new Date().toISOString()
-      const attempt: CheckoutAttemptRecord = {
-        checkoutKey,
-        bookId,
-        idempotencyKey,
-        payloadFingerprint,
-        payload: identifiedPayload,
-        status: 'prepared',
-        createdAt: now,
-        updatedAt: now,
-      }
-      await this.store.put(attempt)
+      const attempt: CheckoutAttemptRecord = existing ?? (() => {
+        const idempotencyKey = this.createIdempotencyKey()
+        const identifiedPayload = { ...payload, idempotency_key: idempotencyKey }
+        return {
+          checkoutKey,
+          bookId,
+          idempotencyKey,
+          payloadFingerprint,
+          payload: identifiedPayload,
+          status: 'prepared',
+          createdAt: now,
+          updatedAt: now,
+        }
+      })()
+      if (!existing) await this.store.put(attempt)
 
       attempt.status = 'outcome_unknown'
       attempt.updatedAt = new Date().toISOString()
       await this.store.put(attempt)
 
       try {
-        const response = await post(identifiedPayload)
+        const response = await post(attempt.payload, attempt)
         if (response.status !== 'posted') {
           attempt.status = 'pending'
           attempt.updatedAt = new Date().toISOString()

@@ -238,10 +238,6 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
         session_id: context.sessionId,
       },
     })
-    const sourceToken = processed.body.content_sha256
-    if (!sourceToken) {
-      throw new Error('CORE POS order omitted its stable source token; posting stopped fail-closed.')
-    }
     if (
       processed.body.subtotal_minor !== String(payload.subtotal) ||
       processed.body.tax_amount_minor !== '0' ||
@@ -251,7 +247,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       throw new Error('CORE amount mismatch: computed POS order totals do not match the cashier amount.')
     }
 
-    await this.client.operations.submitPosOrder({
+    const submitted = await this.client.operations.submitPosOrder({
       path: { book: targetBook, order: processed.body.id },
       headers: { ...authorityHeaders, 'Idempotency-Key': submitKey },
       body: {
@@ -263,6 +259,10 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
         },
       },
     })
+    const sourceToken = submitted.body.content_sha256
+    if (!sourceToken) {
+      throw new Error('Submitted CORE POS order omitted its stable source token; posting stopped fail-closed.')
+    }
     const posted = await this.client.operations.postPosOrder({
       path: { book: targetBook, order: processed.body.id },
       headers: { ...authorityHeaders, 'Idempotency-Key': postKey },

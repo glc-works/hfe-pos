@@ -120,6 +120,7 @@ export interface TranslationDictionary {
       posted: string
       failed: string
     }
+    resumeFinancialAttempt: string
   }
   hostStand: {
     title: string

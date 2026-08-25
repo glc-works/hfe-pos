@@ -87,7 +87,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       .mockResolvedValueOnce(response(201, {
         id: 'ORDER-001',
         company_book_id: context.companyBookId,
-        content_sha256: 'SOURCE-TOKEN-001',
+        content_sha256: null,
         status: 'Draft',
         subtotal_minor: '56000',
         tax_amount_minor: '0',
@@ -167,7 +167,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
 
   it('returns pending and does not fabricate durable truth when CORE accepts posting asynchronously', async () => {
     vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(response(201, { id: 'ORDER-002', content_sha256: 'SOURCE-TOKEN-002', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
+      .mockResolvedValueOnce(response(201, { id: 'ORDER-002', content_sha256: null, subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(200, { id: 'ORDER-002', content_sha256: 'SOURCE-TOKEN-002', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(202, { order_id: 'ORDER-002', status: 'Pending' })))
 
@@ -180,7 +180,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
 
   it('rejects legacy title-case finality instead of treating it as authoritative applied truth', async () => {
     vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(response(201, { id: 'ORDER-LEGACY', content_sha256: 'SOURCE-TOKEN-LEGACY', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
+      .mockResolvedValueOnce(response(201, { id: 'ORDER-LEGACY', content_sha256: null, subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(200, { id: 'ORDER-LEGACY', content_sha256: 'SOURCE-TOKEN-LEGACY', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(200, { finality: 'Applied', order_id: 'ORDER-LEGACY', posting_id: 'POSTING-LEGACY' }))
       .mockResolvedValueOnce(response(200, {
@@ -199,7 +199,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
 
   it('rejects legacy dotted source capability instead of accepting incorrect POS lineage', async () => {
     vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(response(201, { id: 'ORDER-DOTTED', content_sha256: 'SOURCE-TOKEN-DOTTED', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
+      .mockResolvedValueOnce(response(201, { id: 'ORDER-DOTTED', content_sha256: null, subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(200, { id: 'ORDER-DOTTED', content_sha256: 'SOURCE-TOKEN-DOTTED', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(200, { finality: 'applied', order_id: 'ORDER-DOTTED', posting_id: 'POSTING-DOTTED' }))
       .mockResolvedValueOnce(response(200, {
@@ -218,7 +218,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
 
   it('fails closed when durable posting read-back does not match the exact POS lineage', async () => {
     vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(response(201, { id: 'ORDER-003', content_sha256: 'SOURCE-TOKEN-003', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
+      .mockResolvedValueOnce(response(201, { id: 'ORDER-003', content_sha256: null, subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(200, { id: 'ORDER-003', content_sha256: 'SOURCE-TOKEN-003', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
       .mockResolvedValueOnce(response(200, { finality: 'applied', order_id: 'ORDER-003', posting_id: 'POSTING-003' }))
       .mockResolvedValueOnce(response(200, {

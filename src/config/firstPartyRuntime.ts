@@ -1,3 +1,5 @@
+import type { PB1TaxMode } from '../types/pos'
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export function isConnectedFirstPartyRuntime(): boolean {
@@ -29,6 +31,12 @@ export function requiredRuntimeUuid(name: keyof ImportMetaEnv): string {
   const value = requiredRuntimeValue(name)
   if (!UUID_PATTERN.test(value)) throw new Error(`${name} must be a UUID`)
   return value
+}
+
+export function resolveInitialPb1TaxMode(stored: string | null): PB1TaxMode {
+  if (isConnectedFirstPartyRuntime()) return 0
+  const parsed = stored === null ? 1 : Number(stored)
+  return parsed === 0 || parsed === 1 || parsed === 2 ? parsed : 1
 }
 
 export function connectedRuntimeConfigurationError(): string | null {

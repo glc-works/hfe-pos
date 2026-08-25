@@ -7,6 +7,7 @@ import { DEFAULT_AVAILABLE_VOUCHERS } from '../data/mockVouchers'
 import { INITIAL_PARTNER_CONTACTS } from '../data/mockContacts'
 import { DEFAULT_STOREFRONT_CUSTOMIZATION } from '../data/defaultStorefrontCustomization'
 import { normalizeSurfaceHost } from '../utils/surfaceHost'
+import { resolveInitialPb1TaxMode } from '../config/firstPartyRuntime'
 
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
 export type ThemeModeType = 'light' | 'dark' | 'system'
@@ -89,8 +90,8 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [pb1TaxMode, setPb1TaxModeState] = useState<PB1TaxMode>(() => {
     try {
       const stored = localStorage.getItem('hfe_pb1_tax_mode')
-      return stored !== null ? (Number(stored) as PB1TaxMode) : 1
-    } catch { return 1 }
+      return resolveInitialPb1TaxMode(stored)
+    } catch { return resolveInitialPb1TaxMode(null) }
   })
 
   const [takeawaySurcharge, setTakeawaySurchargeState] = useState<number>(() => {
@@ -355,8 +356,9 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
     try { localStorage.setItem('hfe_payment_policy', policy) } catch {}
   }
   const setPb1TaxMode = (mode: PB1TaxMode) => {
-    setPb1TaxModeState(mode)
-    try { localStorage.setItem('hfe_pb1_tax_mode', String(mode)) } catch {}
+    const effectiveMode = resolveInitialPb1TaxMode(String(mode))
+    setPb1TaxModeState(effectiveMode)
+    try { localStorage.setItem('hfe_pb1_tax_mode', String(effectiveMode)) } catch {}
   }
   const setTakeawaySurcharge = (fee: number) => {
     setTakeawaySurchargeState(fee)

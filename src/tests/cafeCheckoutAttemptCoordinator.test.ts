@@ -122,6 +122,35 @@ describe('cafe checkout attempt coordination', () => {
     expect(retryPost).not.toHaveBeenCalled()
   })
 
+  it('resumes an unknown outcome only after explicit operator action and reuses the same identity', async () => {
+    const store = new MemoryAttemptStore()
+    const firstCoordinator = new CafeCheckoutAttemptCoordinator(store, () => '66666666-6666-4666-8666-666666666666')
+    await firstCoordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-1',
+      bookId: 'BOOK-1',
+      payload,
+      post: vi.fn().mockRejectedValue(new Error('connection dropped after request write')),
+    })
+
+    const observedAttemptTimes: string[] = []
+    const retryPost = vi.fn(async (request: SubmitRetailTransactionPayload, attempt: CheckoutAttemptRecord) => {
+      observedAttemptTimes.push(attempt.createdAt)
+      return posted(request.idempotency_key!)
+    })
+    const resumed = await new CafeCheckoutAttemptCoordinator(store).execute({
+      checkoutKey: 'BOOK-1:ORDER-1',
+      bookId: 'BOOK-1',
+      payload,
+      post: retryPost,
+      resumeExisting: true,
+    })
+
+    expect(resumed.kind).toBe('posted')
+    expect(retryPost).toHaveBeenCalledOnce()
+    expect(retryPost.mock.calls[0][0].idempotency_key).toBe('66666666-6666-4666-8666-666666666666')
+    expect(observedAttemptTimes).toEqual([(await store.get('BOOK-1:ORDER-1'))?.createdAt])
+  })
+
   it('keeps an asynchronous CORE result pending and never fabricates Posted', async () => {
     const store = new MemoryAttemptStore()
     const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '55555555-5555-4555-8555-555555555555')

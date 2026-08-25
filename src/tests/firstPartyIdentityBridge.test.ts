@@ -4,6 +4,8 @@ import { parseFirstPartyIdentitySession, renewalDelayMs } from '../hooks/usePosA
 import { createInitialHfeCompanyProfile } from '../hooks/useHfeSync'
 import { resolveConfiguredCashierSessionId } from '../hooks/useCafeSettlement'
 import { createRuntimeProductCatalog } from '../data/mockData'
+import { createRuntimeInitialOrders, createRuntimeInitialTables } from '../data/runtimeDemoData'
+import { resolveInitialPb1TaxMode } from '../config/firstPartyRuntime'
 import {
   connectedRuntimeConfigurationError,
   firstPartyAuthEntryPolicy,
@@ -223,6 +225,32 @@ describe('first-party ToGrow to Hfe CORE identity bridge', () => {
     const catalog = createRuntimeProductCatalog()
     expect(catalog).toHaveLength(1)
     expect(catalog[0].id).toBe('e0da2016-b6b1-44cc-a672-f08dd0bd0c27')
+  })
+
+  it('builds the connected flagship table order only from the provisioned CORE product', () => {
+    configureFlagshipRuntime()
+
+    const orders = createRuntimeInitialOrders()
+    const tables = createRuntimeInitialTables(orders)
+    const flagshipOrder = orders.find((order) => order.id === 'ORD-8801')
+    const flagshipTable = tables.find((table) => table.name === 'OUT-04')
+
+    expect(flagshipOrder?.items).toEqual([
+      expect.objectContaining({
+        id: 'e0da2016-b6b1-44cc-a672-f08dd0bd0c27',
+        name: 'Espresso Aren Latte',
+        price: 28000,
+        quantity: 1,
+      }),
+    ])
+    expect(flagshipOrder).toMatchObject({ table: 'OUT-04', total: 28000, totalPrice: 28000, taxPB1Amount: 0 })
+    expect(flagshipTable).toMatchObject({ totalBill: 28000, orderCount: 1, orderIds: ['ORD-8801'] })
+  })
+
+  it('locks the connected cash-only flagship to the supported zero-tax policy', () => {
+    configureFlagshipRuntime()
+
+    expect(resolveInitialPb1TaxMode('1')).toBe(0)
   })
 
   it('fails closed before checkout when a connected UUID is missing or malformed', () => {

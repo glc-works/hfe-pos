@@ -7,6 +7,17 @@ import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/fir
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
 export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
+export type CheckoutFailureCode = 'auth' | 'contract' | 'network' | 'validation' | 'conflict' | 'unknown'
+
+export function classifyCheckoutFailure(message?: string): CheckoutFailureCode {
+  const normalized = (message || '').toLowerCase()
+  if (/\((401|403)\)|unauthorized|forbidden/.test(normalized)) return 'auth'
+  if (/\(404\)|not found|unexpected successful http status/.test(normalized)) return 'contract'
+  if (/network|timed out|timeout|fetch/.test(normalized)) return 'network'
+  if (/\(409\)|conflict/.test(normalized)) return 'conflict'
+  if (/mismatch|required|invalid|must be|unsupported|does not yet support/.test(normalized)) return 'validation'
+  return 'unknown'
+}
 
 interface UseCafeSettlementOptions {
   financialPort: HfePosFinancialPort
@@ -35,9 +46,10 @@ export function resolveConfiguredCashierSessionId(fallbackSourceId: string): str
 export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const [financialStatus, setFinancialStatus] = useState<CafeFinancialStatus>('idle')
   const [financialNotice, setFinancialNotice] = useState<CafeFinancialNotice>(null)
+  const [financialFailureCode, setFinancialFailureCode] = useState<CheckoutFailureCode | null>(null)
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator(new OfflineIntentQueue()))
 
-  const handleCheckout = async () => {
+  const executeCheckout = async (resumeExisting: boolean) => {
     const {
       selectedTable, items, orders, fulfillmentMode, paymentMethod, cashierId,
       financialPort, companyBookId, authorityContext, subtotal, taxAmount,
@@ -75,26 +87,26 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     setFinancialStatus('pending')
     setFinancialNotice('submitting')
     try {
-      const now = new Date()
       const checkoutKey = `${companyBookId}:${sourceId}`
       const result = await coordinator.current.execute({
         checkoutKey,
         bookId: companyBookId,
         payload,
-        post: (identifiedPayload) => financialPort.postRetailOrder(
+        post: (identifiedPayload, attempt) => financialPort.postRetailOrder(
           identifiedPayload,
           {
             companyBookId,
             authorityContext,
             sessionId: resolveConfiguredCashierSessionId(sourceId),
-            financialDate: now.toISOString().slice(0, 10),
+            financialDate: attempt.createdAt.slice(0, 10),
             handover: {
               actorPrincipalId: cashierId,
               evidenceReference: `pos-order:${sourceId}`,
-              occurredAt: now.toISOString(),
+              occurredAt: attempt.createdAt,
             },
           },
         ),
+        resumeExisting,
       })
       if (result.kind === 'already_in_progress') {
         setFinancialNotice('in_progress')
@@ -107,25 +119,35 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       if (result.kind === 'operator_action_required') {
         setFinancialStatus(result.attempt.status === 'posted' ? 'error' : 'pending')
         setFinancialNotice(result.attempt.status === 'posted' ? 'posted_unacknowledged' : 'outcome_unknown')
+        setFinancialFailureCode(classifyCheckoutFailure(result.attempt.lastError))
         return
       }
       if (result.kind === 'outcome_unknown') {
         setFinancialStatus('error')
         setFinancialNotice('outcome_unknown')
+        setFinancialFailureCode(classifyCheckoutFailure(result.message))
         return
       }
 
       setFinancialStatus('posted')
       setFinancialNotice('posted')
+      setFinancialFailureCode(null)
       commitPaidState()
       clearCart()
       await coordinator.current.acknowledgePosted(checkoutKey)
       alert(`🎉 Pembayaran ${selectedTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedTable?.totalBill || 0))} LUNAS via ${paymentMethod.toUpperCase()}!`)
-    } catch {
+    } catch (error) {
       setFinancialStatus('error')
       setFinancialNotice('failed')
+      setFinancialFailureCode(classifyCheckoutFailure(error instanceof Error ? error.message : String(error)))
     }
   }
 
-  return { financialStatus, financialNotice, handleCheckout }
+  return {
+    financialStatus,
+    financialNotice,
+    financialFailureCode,
+    handleCheckout: () => executeCheckout(false),
+    resumeCheckout: () => executeCheckout(true),
+  }
 }
