@@ -6,7 +6,8 @@ This repository is an **implementation workspace**. It is not the standalone sou
 
 1. **Product Canon first:** `glc-works/hfeit-product`
    - repository entry contract: `product/repository-entry-contract.md`
-   - CARD / BOARD / ORDER boundaries: `product/experience-card-board-order-boundaries.md`
+   - CARD / BOARD / ORDER boundaries: `product/level-1/experience-card-board-order.md`
+   - canonical public and authenticated surfaces: `product/level-1/experience-surface-map.md`
 2. **Local technical authority:** `ARCHITECTURE.md` and approved standards under `docs/active/standards/`.
 3. **Hfe CORE/backend authority:** governed contracts in `glc-works/headless-company-books` where business/financial truth is involved.
 4. **Deployment/environment truth:** `glc-works/hfe-deployment-governance` when the task touches domains, environments, runtime or promotion.
