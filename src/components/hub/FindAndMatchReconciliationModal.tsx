@@ -179,7 +179,7 @@ export const FindAndMatchReconciliationModal: React.FC<FindAndMatchReconciliatio
       return c
     }))
 
-    const msg = `✅ Berhasil mencocokkan [${activeStatement.sourceBank}] Rp ${activeStatement.amount.toLocaleString('id-ID')} dengan ${selectedCandidateIds.length} transaksi POS.`
+    const msg = `🧪 Rekonsiliasi Lokal: [${activeStatement.sourceBank}] Rp ${activeStatement.amount.toLocaleString('id-ID')} dicocokkan di memori browser (Draft).`
     setToastMessage(msg)
     if (onReconcileSuccess) onReconcileSuccess(1)
 
@@ -206,7 +206,7 @@ export const FindAndMatchReconciliationModal: React.FC<FindAndMatchReconciliatio
       return s
     }))
 
-    setToastMessage(`⚡ Auto-Match Selesai: ${count} transaksi dengan tingkat keyakinan >= 95% otomatis terekonsiliasi ke Buku Besar Hfe CORE!`)
+    setToastMessage(`🧪 Auto-Match Simulasi: ${count} transaksi dicocokkan di memori browser (Draft).`)
     if (onReconcileSuccess) onReconcileSuccess(count)
     setTimeout(() => setToastMessage(null), 3500)
   }
@@ -226,12 +226,12 @@ export const FindAndMatchReconciliationModal: React.FC<FindAndMatchReconciliatio
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-sm text-slate-900 dark:text-white tracking-wide">Rekonsiliasi Bank & QRIS</h3>
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-                  Xero-Style Find & Match
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono">
+                  🧪 Simulasi Lokal (Demo Data)
                 </Badge>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Pencocokan 2 arah: Rekening Koran (Statement) ⇄ Transaksi Kasir POS (General Ledger).
+                Pencocokan 2 arah: Rekening Koran ⇄ Transaksi Kasir POS (Memori Browser).
               </p>
             </div>
           </div>

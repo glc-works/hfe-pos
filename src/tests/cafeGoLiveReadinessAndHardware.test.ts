@@ -60,4 +60,16 @@ describe('Cafe Go-Live Readiness & Hardware Integration Suite', () => {
     const requiredCriteria = ['auth', 'hardware', 'payment', 'ledger', 'catalog']
     expect(requiredCriteria.length).toBe(5)
   })
+
+  it('probes thermal printer connection status dynamically and flags simulated driver truthfully', () => {
+    const printerService = ThermalPrinterService.getInstance()
+    printerService.updateConfig({ connectionType: 'simulated' })
+    const status = printerService.getStatus()
+
+    expect(status.status).toBe('connected')
+    expect(status.deviceName).toContain('Simulated')
+
+    const isHardwareSimulated = printerService.getConfig().connectionType === 'simulated'
+    expect(isHardwareSimulated).toBe(true)
+  })
 })

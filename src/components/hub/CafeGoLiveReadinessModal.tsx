@@ -28,12 +28,15 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
   onGoLiveSuccess
 }) => {
   const printerService = ThermalPrinterService.getInstance()
-  const [printerConfig, setPrinterConfig] = useState(printerService.getConfig())
+  const printerConfig = printerService.getConfig()
+  const printerStatus = printerService.getStatus()
   const [printTestSuccess, setPrintTestSuccess] = useState(false)
   const [drawerKickSuccess, setDrawerKickSuccess] = useState(false)
   const [goLiveDeclared, setGoLiveDeclared] = useState(false)
 
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([
+  const isHardwareSimulated = printerConfig.connectionType === 'simulated'
+
+  const checklist: ChecklistItem[] = [
     {
       id: 'chk-01',
       title: 'PIN Kasir & Kas Awal (Float)',
@@ -45,8 +48,10 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
       id: 'chk-02',
       title: 'Printer Struk Thermal ESC/POS (58/80mm)',
       category: 'hardware',
-      description: 'Driver Web Bluetooth / USB aktif. Auto-cut dan pulse RJ11 laci siap.',
-      status: 'ready',
+      description: isHardwareSimulated 
+        ? 'Driver Virtual ESC/POS aktif (Simulasi Memori Browser).'
+        : `Driver fisik ${printerStatus.deviceName} terhubung (${printerConfig.paperWidth}mm).`,
+      status: isHardwareSimulated ? 'pending' : 'ready',
       actionLabel: 'Tes Cetak'
     },
     {
@@ -60,8 +65,8 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
       id: 'chk-04',
       title: 'Buku Besar Hfe CORE (Double-Entry)',
       category: 'ledger',
-      description: 'Jurnal otomatis GL 1101 (Kas), GL 4101 (Omzet), GL 2102 (PB1 10%) aktif.',
-      status: 'ready'
+      description: 'Jurnal GL 1101, GL 4101, GL 2102 diposting via Offline Intent Queue (Local Persisted).',
+      status: 'pending'
     },
     {
       id: 'chk-05',
@@ -70,7 +75,7 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
       description: 'Menu espresso, latte, croissant siap. Dosis 18g/cup terlacak di stok.',
       status: 'ready'
     }
-  ])
+  ]
 
   if (!isOpen) return null
 
@@ -111,9 +116,15 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
                 <h3 className="font-black text-sm text-slate-900 dark:text-white tracking-wide">
                   Pusat Kesiapan Operasional Toko (Go-Live Readiness)
                 </h3>
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-                  5/5 Siap Buka
-                </Badge>
+                {isHardwareSimulated ? (
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono">
+                    🧪 5/5 Siap (Mode Simulasi)
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
+                    5/5 Siap Buka
+                  </Badge>
+                )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Verifikasi menyeluruh kasir, printer thermal, QRIS, buku besar, dan stok sebelum melayani pelanggan nyata.
@@ -140,7 +151,7 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
                   <Printer className="w-4 h-4" /> Uji Coba Cepat Perangkat Keras Kasir
                 </h4>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Driver: <strong className="text-white font-mono">{printerService.getStatus().deviceName}</strong> ({printerConfig.paperWidth}mm)
+                  Driver: <strong className="text-white font-mono">{printerStatus.deviceName}</strong> ({printerConfig.paperWidth}mm)
                 </p>
               </div>
 
@@ -179,8 +190,12 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
                 className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 flex items-center justify-between gap-3"
               >
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="mt-0.5 w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
-                    <CheckCircle2 className="w-4 h-4" />
+                  <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
+                    item.status === 'ready'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                  }`}>
+                    {item.status === 'ready' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                   </div>
                   <div className="min-w-0">
                     <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -193,9 +208,15 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
                 </div>
 
                 <div className="shrink-0">
-                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-bold">
-                    ✓ Terverifikasi
-                  </Badge>
+                  {item.status === 'ready' ? (
+                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-bold">
+                      ✓ Terverifikasi
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono font-bold">
+                      🧪 Mode Simulasi
+                    </Badge>
+                  )}
                 </div>
               </div>
             ))}
@@ -223,10 +244,20 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
               size="sm"
               onClick={handleDeclareGoLive}
               disabled={goLiveDeclared}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950/40"
+              className={`font-bold text-xs flex items-center gap-1.5 shadow-lg ${
+                isHardwareSimulated
+                  ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-950/40'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40'
+              }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{goLiveDeclared ? '🎉 Toko Resmi Live!' : 'Deklarasikan Toko Siap Buka (Go-Live) ➔'}</span>
+              <span>
+                {goLiveDeclared 
+                  ? '🎉 Toko Resmi Live!' 
+                  : isHardwareSimulated 
+                    ? 'Buka Toko (Mode Simulasi Virtual) ➔' 
+                    : 'Deklarasikan Toko Siap Buka (Go-Live) ➔'}
+              </span>
             </Button>
           </div>
         </footer>

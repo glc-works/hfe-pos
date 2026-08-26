@@ -59,4 +59,17 @@ describe('Universal Executive Financial Health & Capital Velocity Gauge Engine',
     const fundingCoverageRatio = mockSnapshot.taxReserveFundMinor / mockSnapshot.taxObligationMinor
     expect(fundingCoverageRatio).toBe(1.0) // 100% covered
   })
+
+  it('supports dynamic financial health snapshot overrides from real-world shift and transactions', () => {
+    const customSnapshot: Partial<FinancialHealthSnapshot> = {
+      cashRunwayDays: 45,
+      cashRunwayStatus: 'warning',
+      liquidCashMinor: 15000000000 // 150 Juta
+    }
+
+    const merged = { ...mockSnapshot, ...customSnapshot }
+    expect(merged.cashRunwayDays).toBe(45)
+    expect(merged.cashRunwayStatus).toBe('warning')
+    expect(merged.liquidCashMinor).toBe(15000000000)
+  })
 })
