@@ -9,6 +9,7 @@ export * from './HfeSdkAdapter'
 export * from './MockHfeAdapter'
 export * from './OfflineIntentQueue'
 export * from './CafeSettlementOrchestrator'
+export * from './HfePostingReadbackValidator'
 
 export type FinancialPortMode = 'production' | 'mock' | 'auto'
 

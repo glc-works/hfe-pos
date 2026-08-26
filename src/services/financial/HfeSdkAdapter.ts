@@ -17,6 +17,11 @@ import {
   CashierShiftCloseResponse,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
+import {
+  HfePostingReadbackValidator,
+  generateUUIDv4,
+  assertCanonicalCashOrderPayload,
+} from './HfePostingReadbackValidator'
 
 export class HfeNetworkError extends Error {
   constructor(message: string, public readonly cause?: unknown) {
@@ -30,17 +35,6 @@ export class HfeApiError extends Error {
     super(`Hfe Core API Error (${status}): ${message}`)
     this.name = 'HfeApiError'
   }
-}
-
-function generateUUIDv4(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
 }
 
 export interface HfeSdkAdapterOptions {
@@ -198,25 +192,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse> {
     const targetBook = this.resolveTargetBook(context.companyBookId)
-    if (!context.authorityContext.trim()) {
-      throw new Error('authorityContext is required for POS posting. Fail-closed: zero fallback allowed.')
-    }
-    if (!payload.idempotency_key) {
-      throw new Error('idempotency_key is required for canonical POS posting and retry stability.')
-    }
-    if (payload.payment_method !== 'cash') {
-      throw new Error('Canonical CORE POS posting is cash-only until governed tender semantics are available.')
-    }
-    if (payload.tax_pb1_amount !== 0 || payload.service_fee_amount !== 0 || payload.discount_amount !== 0) {
-      throw new Error('Canonical CORE POS posting does not yet support tax, fee, or discount amounts.')
-    }
-    if (payload.items.length === 0) {
-      throw new Error('Canonical CORE POS posting requires at least one real order item.')
-    }
-    const itemSubtotal = payload.items.reduce((total, item) => total + (item.price * item.qty), 0)
-    if (itemSubtotal !== payload.subtotal || itemSubtotal !== payload.grand_total) {
-      throw new Error('POS amount mismatch: item subtotal, subtotal, and grand total must be identical for the cash-only slice.')
-    }
+    assertCanonicalCashOrderPayload(payload, context, 'posting')
 
     const authorityHeaders = {
       'X-CBook-Authority-Context': context.authorityContext,
@@ -275,35 +251,38 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
         status: 'pending',
         created_at: processed.body.created_at,
         grand_total: payload.grand_total,
-        idempotency_key: payload.idempotency_key,
+        idempotency_key: payload.idempotency_key!,
       }
     }
 
     const durable = await this.client.operations.getPosting({
       path: { book: targetBook, posting: posted.body.posting_id },
     })
-    const posting = durable.body
-    const exactMatch =
-      posted.body.finality === 'applied' &&
-      posting.finality === 'applied' &&
-      posting.id === posted.body.posting_id &&
-      posting.book_id.trim() !== '' &&
-      posting.source_capability === 'pos_order' &&
-      posting.source_object_id === processed.body.id &&
-      posting.stable_effect_key === postKey
+    const validation = HfePostingReadbackValidator.validate(
+      {
+        postingId: posted.body.posting_id,
+        sourceCapability: 'pos_order',
+        sourceObjectId: processed.body.id,
+        stableEffectKey: postKey,
+      },
+      durable.body as any
+    )
 
-    if (!exactMatch) {
-      throw new Error('Durable posting read-back mismatch: exact posting ID, POS source lineage, and applied finality are required.')
+    if (!validation.isValid) {
+      throw new Error(
+        `Durable posting read-back mismatch: ${validation.mismatchReason || 'exact posting ID, POS source lineage, and applied finality are required.'}`
+      )
     }
 
+    const postingId = (durable.body as any).id || posted.body.posting_id
     return {
       tx_id: processed.body.id,
       status: 'posted',
       created_at: processed.body.created_at,
       grand_total: payload.grand_total,
-      idempotency_key: payload.idempotency_key,
-      ledger_journal_id: posting.id,
-      posting_id: posting.id,
+      idempotency_key: payload.idempotency_key!,
+      ledger_journal_id: postingId,
+      posting_id: postingId,
     }
   }
 
@@ -312,25 +291,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse> {
     const targetBook = this.resolveTargetBook(context.companyBookId)
-    if (!context.authorityContext.trim()) {
-      throw new Error('authorityContext is required for POS reconciliation. Fail-closed: zero fallback allowed.')
-    }
-    if (!payload.idempotency_key) {
-      throw new Error('idempotency_key is required for canonical POS reconciliation.')
-    }
-    if (payload.payment_method !== 'cash') {
-      throw new Error('Canonical CORE POS reconciliation is cash-only until governed tender semantics are available.')
-    }
-    if (payload.tax_pb1_amount !== 0 || payload.service_fee_amount !== 0 || payload.discount_amount !== 0) {
-      throw new Error('Canonical CORE POS reconciliation does not yet support tax, fee, or discount amounts.')
-    }
-    if (payload.items.length === 0) {
-      throw new Error('Canonical CORE POS reconciliation requires at least one real order item.')
-    }
-    const itemSubtotal = payload.items.reduce((total, item) => total + (item.price * item.qty), 0)
-    if (itemSubtotal !== payload.subtotal || itemSubtotal !== payload.grand_total) {
-      throw new Error('POS amount mismatch: item subtotal, subtotal, and grand total must be identical for reconciliation.')
-    }
+    assertCanonicalCashOrderPayload(payload, context, 'reconciliation')
 
     const processKey = `${payload.idempotency_key}:process`
     const postKey = `${payload.idempotency_key}:post`
@@ -375,33 +336,38 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
         status: 'pending',
         created_at: current.body.created_at,
         grand_total: payload.grand_total,
-        idempotency_key: payload.idempotency_key,
+        idempotency_key: payload.idempotency_key!,
       }
     }
 
     const durable = await this.client.operations.getPosting({
       path: { book: targetBook, posting: current.body.posting_id },
     })
-    const posting = durable.body
-    if (
-      posting.finality !== 'applied' ||
-      posting.id !== current.body.posting_id ||
-      posting.book_id.trim() === '' ||
-      posting.source_capability !== 'pos_order' ||
-      posting.source_object_id !== current.body.id ||
-      posting.stable_effect_key !== postKey
-    ) {
-      throw new Error('Durable posting reconciliation mismatch: exact posting ID, POS source lineage, and applied finality are required.')
+    const validation = HfePostingReadbackValidator.validate(
+      {
+        postingId: current.body.posting_id,
+        sourceCapability: 'pos_order',
+        sourceObjectId: current.body.id,
+        stableEffectKey: postKey,
+      },
+      durable.body as any
+    )
+
+    if (!validation.isValid) {
+      throw new Error(
+        `Durable posting reconciliation mismatch: ${validation.mismatchReason || 'exact posting ID, POS source lineage, and applied finality are required.'}`
+      )
     }
 
+    const postingId = (durable.body as any).id || current.body.posting_id
     return {
       tx_id: current.body.id,
       status: 'posted',
       created_at: current.body.created_at,
       grand_total: payload.grand_total,
-      idempotency_key: payload.idempotency_key,
-      ledger_journal_id: posting.id,
-      posting_id: posting.id,
+      idempotency_key: payload.idempotency_key!,
+      ledger_journal_id: postingId,
+      posting_id: postingId,
     }
   }
 
