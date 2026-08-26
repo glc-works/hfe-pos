@@ -141,6 +141,9 @@ export const MultiEntityHoldingTab: React.FC = () => {
                 </div>
               </>
             )}
+            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono ml-1">
+              🧪 Simulasi Multi-Entitas (Data Lokal)
+            </Badge>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -347,18 +350,27 @@ export const MultiEntityHoldingTab: React.FC = () => {
             </div>
 
             {eliminationSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-2 animate-fadeIn">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>Jurnal eliminasi timbal-balik berhasil dieksekusi. Laporan laba rugi konsolidasi bersih dari double-counting.</span>
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 dark:text-amber-200 space-y-1.5 animate-fadeIn">
+                <div className="flex items-center gap-2 font-bold text-amber-700 dark:text-amber-300">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>🧪 Draft Jurnal Eliminasi Konsolidasi Dibuat (Memori Lokal):</span>
+                </div>
+                <div className="font-mono text-[10px] bg-white dark:bg-slate-900 p-2 rounded border border-amber-500/20 space-y-0.5">
+                  <div>Debit:  GL 2106 (Utang Inter-Co)   Rp 45.000.000</div>
+                  <div>Kredit: GL 1106 (Piutang Inter-Co) Rp 45.000.000</div>
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Draft tersimpan di sesi browser. Hubungkan ke Hfe CORE Multi-Tenant API untuk posting final.
+                </p>
               </div>
             )}
 
             <Button
               onClick={handleRunElimination}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40"
+              className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-950/40"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Jalankan Eliminasi Jurnal Konsolidasi</span>
+              <span>Simulasikan Jurnal Eliminasi Konsolidasi</span>
             </Button>
           </Card>
         </div>

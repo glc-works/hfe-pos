@@ -33,9 +33,21 @@ const ASSET_CATEGORIES: { id: AssetValuationCategory; label: string; glyph: stri
   { id: 'general_fixed_assets', label: 'Aset Tetap & Mesin Espresso', glyph: '⚙️', desc: 'Mesin La Marzocco, grinder Mazzer, kompresor' }
 ]
 
-export const UniversalFinancialHealthGauge: React.FC = () => {
-  const [snapshot, setSnapshot] = useState<FinancialHealthSnapshot>(DEFAULT_SNAPSHOT)
+export interface UniversalFinancialHealthGaugeProps {
+  customSnapshot?: Partial<FinancialHealthSnapshot>
+  isCoreConnected?: boolean
+}
+
+export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGaugeProps> = ({
+  customSnapshot,
+  isCoreConnected = false
+}) => {
   const [selectedAssetCat, setSelectedAssetCat] = useState<AssetValuationCategory>('fnb_raw_ingredients')
+
+  const snapshot: FinancialHealthSnapshot = {
+    ...DEFAULT_SNAPSHOT,
+    ...customSnapshot
+  }
 
   const activeCategoryConfig = ASSET_CATEGORIES.find(c => c.id === selectedAssetCat) || ASSET_CATEGORIES[0]
 
@@ -49,23 +61,29 @@ export const UniversalFinancialHealthGauge: React.FC = () => {
             <Activity className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-black text-sm text-slate-900 dark:text-white">
                 Universal Executive Financial Health & Capital Velocity
               </h3>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-                🟢 Skor: 94/100 (Optimal)
-              </Badge>
+              {isCoreConnected ? (
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
+                  🟢 Hfe CORE Live GL
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono">
+                  🧪 Model Finansial Simulasi
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Monitoring real-time 4 pilar likuiditas, efisiensi margin, kecepatan perputaran modal & cadangan pajak.
+              Derivasi metrik likuiditas, efisiensi margin, kecepatan perputaran modal & cadangan pajak.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-xs font-mono bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            Siklus: Real-time Hfe CORE
+            {isCoreConnected ? 'Siklus: Real-time Hfe CORE' : 'Siklus: Standar Industri F&B'}
           </Badge>
         </div>
       </div>
