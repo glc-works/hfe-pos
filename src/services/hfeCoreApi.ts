@@ -143,6 +143,10 @@ export function openOfflineDB(): Promise<IDBDatabase> {
 }
 
 export async function saveToOfflineBuffer(payload: SubmitTransactionPayload): Promise<void> {
+  if (typeof indexedDB === 'undefined') {
+    // In headless test environments / SSR without IndexedDB, silently skip persistent buffering
+    return
+  }
   try {
     const db = await openOfflineDB()
     const tx = db.transaction(STORE_NAME, 'readwrite')
