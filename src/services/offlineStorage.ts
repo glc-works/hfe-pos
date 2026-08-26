@@ -126,6 +126,9 @@ export async function saveOfflineTransaction(
  * Retrieve all pending un-synced transactions sorted by creation date.
  */
 export async function getPendingTransactions(): Promise<OfflineTransactionEntry[]> {
+  if (typeof indexedDB === 'undefined') {
+    return []
+  }
   try {
     const db = await openOfflineStorageDB()
     const tx = db.transaction(STORE_TRANSACTIONS, 'readonly')
