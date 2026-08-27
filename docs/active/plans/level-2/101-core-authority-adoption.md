@@ -551,6 +551,26 @@ Omit `OfflineIntentQueue.ts` when its serialization already preserves the respon
 - Consumes: the exact generated HCB #1019 tenant/book-scoped catalog/category/item/modifier contract. Its operation/type names must be copied into this section when #1019 merges; generic `MenuItem[]` from `/products` is not accepted evidence.
 - Produces: `loadGovernedPosCatalog(bookId, context): Promise<GovernedPosCatalogView>` where every row has governed identity, active status, display metadata, category/modifier references, and no client-owned settlement price authority.
 
+**Connected identity precondition:** The configured organization, Company Book,
+authority context, and cashier session are not four independent browser facts.
+Before catalog or quote access, HFE POS must consume one immutable,
+revision-bound HLab/runtime receipt that maps the Product Canon aliases
+`tenant.nusantara` and `book.nusantara-indonesia` to their materialized UUIDs,
+ToGrow organization/token claims, authority context, and cashier session. The
+receipt must also bind the exact allowed POS and CORE origins. The authenticated
+principal/session remains authoritative; environment values are only expected
+identities to compare against it and may never manufacture or override claims.
+
+Stop this task until ToGrow #25 resolves the relying-party/customer-org token
+semantics, ToGrow #26 materializes the synthetic identities and organization,
+HCB #1022 publishes the alias-to-tenant/book/generation receipt through the
+trusted local seam from HCB #1020, and HCB #964 publishes governed cashier
+session/attestation evidence. HFE POS #100 must then consume those receipts
+rather than mint a parallel fixture. A collection of independent `VITE_*`
+values, an opaque fake JWT, a ToGrow person UUID treated as cashier authority,
+an `org.hfeit` token treated as Nusantara customer-org proof, or an HLab slug
+used as a UUID is not sufficient evidence.
+
 - [ ] **Step 1: Stop if the provider dependency is not merged and generated**
 
 Run:
@@ -563,7 +583,15 @@ git -C /Users/aldi/claudefiles/headless-company-books show origin/main:packages/
 
 Expected: issue closed with implementation evidence and a matching generated operation. Task 5 is deliberately non-executable until a reviewed amendment replaces the generic `GovernedPosCatalogView` boundary above with those exact merged operation/type names. Do not substitute `/v1/company-books/{book}/products` or infer a contract from `/items`.
 
-- [ ] **Step 2: Write red catalog authority tests**
+- [ ] **Step 2: Write red connected-identity and catalog authority tests**
+
+First prove the runtime identity binding fails closed before any CORE request.
+Cover organization-claim, book, authority-context, cashier-session, receipt
+revision, and allowed-origin mismatches individually. Assert the current
+opaque fake-JWT fixture cannot satisfy the connected proof merely because the
+independent environment values are syntactically valid. The positive fixture
+must use the single canonical synthetic receipt produced by Issue #100; no
+second test-only mapping is allowed.
 
 Cover book/tenant scope, inactive/foreign/unknown/duplicate item rejection, category and modifier mapping, empty/error states, and no fallback to `PRODUCT_CATALOG` in connected mode. Assert mock/demo mode still uses canonical synthetic fixture explicitly.
 
@@ -662,6 +690,26 @@ git commit -m "docs: make CORE authoritative for connected sale truth"
 - Consumes: canonical synthetic identity through `e2e/helpers/demoSession.ts`, connected runtime, HLab-preserved local environment, and all implementation tasks.
 - Produces: browser and backend evidence for one quote/order/tender/Posting truth with zero duplicate effects.
 
+**QRIS confirmation owner and precondition:** The browser never calls
+`confirmPosQrisProviderEvent`. Issue #100's product-owned HLab verification
+action must invoke the generated HCB authenticated provider-confirmation
+operation as the separately authorized synthetic provider principal, bound to
+the exact tenant/book/provider-connection/origin identities in the immutable
+runtime receipt. Its evidence output must record the request idempotency key,
+provider event/reference, connection ID, tender ID/effect key, authenticated
+principal, and terminal response without returning a provider secret to the
+browser. The Playwright flow may then resume only through
+`getGovernedPosTenderOutcome` and Posting read-back.
+
+Before writing or running the applied-path QRIS proof, require all of the
+following: ToGrow #25/#26 provide the correct customer-organization token and
+identity receipt; HCB #1020, #1022, and #964 are merged; HFE POS #100 is merged
+at an exact SHA; the HLab manifest pins the exact POS/CORE/Company Books origins
+and synthetic provider connection; and the product-owned action declares the
+exact generated operation plus auth scope. If any precondition is absent, stop
+and report `qris_confirmation_harness_unavailable`; do not intercept a success,
+call the provider mutation from the browser, or treat `pending` as applied.
+
 - [ ] **Step 1: Coordinate the file fence with Issue #100**
 
 Before touching `e2e/` or `package.json`, inspect the #100 worktree and obtain its owner’s committed head/handoff. Rebase Issue #101 onto that head or choose a new spec filename with no overlap. Never copy or overwrite its uncommitted files.
@@ -678,7 +726,13 @@ The new spec must use `e2e/helpers/demoSession.ts` and prove:
    lineage through acceptance-by-idempotency-key and tender-outcome reads;
 6. QRIS timeout/reload resumes with outcome GET, not a second mutation;
 7. only applied outcome clears the cart;
-8. final posting link/read-back matches book, order, tender, effect key, amount, currency, and applied finality.
+8. the HLab action receipt proves one authenticated provider confirmation for
+   the exact synthetic connection/tender, while browser network evidence proves
+   zero provider-confirmation mutations;
+9. final posting link/read-back matches book, order, tender, effect key, amount, currency, and applied finality;
+10. the runtime receipt binds token organization claims, materialized book,
+    authority context, cashier session, and allowed origins; every single-field
+    mismatch fails before quote or financial mutation.
 
 Count unique idempotency/effect identities rather than raw retransmissions:
 assert one quote ID, one order ID, one tender/effect key, and one Posting. Any
@@ -709,7 +763,7 @@ Send the full content of every added or modified first-party code file to `aikid
 
 - [ ] **Step 6: Perform live synthetic reconciliation**
 
-With HLab preserving the local environment, execute exactly one synthetic cash and one synthetic QRIS case. Record quote ID/revision/digest, order ID, tender ID/effect key, provider event evidence, Posting ID, journal/read-back identity, and request counts. Query PostgreSQL/TigerBeetle only through existing read-only proof tooling; do not reset or mutate shared runtime during observation.
+With HLab preserving the local environment, execute exactly one synthetic cash and one synthetic QRIS case. Record the immutable runtime-receipt revision and alias-to-UUID/claim binding; quote ID/revision/digest; order ID; tender ID/effect key; the product-owned HLab provider-confirmation receipt; Posting ID; journal/read-back identity; and request counts. Query PostgreSQL/TigerBeetle only through existing read-only proof tooling; do not reset or mutate shared runtime during observation.
 
 Stop if any duplicate quote, order, tender, Posting, journal, or dispatch effect appears, or if PostgreSQL and TigerBeetle evidence cannot be reconciled.
 
@@ -730,6 +784,12 @@ Omit `package.json` when no dedicated script was added.
 - Stop QRIS recovery when the outcome endpoint lacks exact accepted-tender lineage or applied Posting evidence. Preserve the attempt for investigation; do not recreate it.
 - Stop if generated SDK source commit/digests differ from the approved provenance or if a local edit appears inside generated code.
 - Stop and coordinate if Issue #100 modifies any intended `package.json`, `e2e/`, fixture, helper, script, or test path.
+- Stop before connected access when the immutable runtime receipt is absent,
+  stale, untrusted, origin-mismatched, or disagrees with organization/token,
+  book, authority-context, or cashier-session identity.
+- Stop the QRIS applied-path proof when Issue #100/HLab has no exact
+  authenticated synthetic provider-confirmation action and receipt; browser
+  interception or browser-owned confirmation is not a substitute.
 - Stop if HCB #1019 is not merged into the SDK; do not fabricate catalog routes or project generic items as a POS catalog.
 - Stop if local gates fail, Aikido reports unresolved issues, browser proof only passes with intercepted/fabricated financial success, or live read-only evidence shows duplicate effects.
 
