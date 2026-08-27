@@ -4,7 +4,7 @@
 
 **Goal:** Make the connected flagship cafe consume one authoritative Hfe CORE flow—catalog reference, reviewed quote, exact acceptance, cash or QRIS tender, and durable outcome—without browser-owned monetary or accounting truth.
 
-**Architecture:** Keep UI intent, local device state, and durable retry coordination in HFE POS, while generated `@hfe/sdk` contracts remain the only CORE transport vocabulary. Split quote preparation from order acceptance so the cashier reviews a frozen CORE projection; persist accepted tender evidence and reconcile QRIS through the read-only outcome endpoint without replaying mutations. Catalog adoption is gated on HCB #1019 and must fail closed until a published tenant/book-scoped resolution contract exists.
+**Architecture:** Keep UI intent, local device state, and durable retry coordination in HFE POS, while generated `@hfe/sdk` contracts remain the only CORE transport vocabulary. Split quote preparation from order acceptance so the cashier reviews a frozen CORE projection; persist accepted tender evidence and reconcile QRIS through the read-only outcome endpoint without replaying mutations. Catalog adoption is gated on HCB #1019 and #1025 and must fail closed until complete item resolution plus governed category/modifier selection contracts are published.
 
 **Tech Stack:** React 19, TypeScript, Vite, Vitest, Playwright, generated `@hfe/sdk`, IndexedDB-backed `OfflineIntentQueue`, Hfe CORE REST contracts.
 
@@ -13,7 +13,8 @@
 ## Global Constraints
 
 - Baseline HFE POS authority is `origin/main` `721d2eb52f9ca7f0533cc90b850c968ac1ba413d`; refresh and stop if the implementation branch no longer descends from it without a reviewed rebase.
-- SDK provider authority is `glc-works/headless-company-books` `origin/main` `d3f75a337e6318519022769976bf799ad34a3b9b`; its generated `packages/hfe-sdk/src/index.ts` SHA-256 is `1f8095178ecbc8441c80ed1b8e4bad777e488ec9f8d35b4925ff14c6154db9ed`, and `hcb2/openapi.json` SHA-256 is `0b71f54c8af1458b381e9cdc199d98afb0826b1c895becd1ad4f5f4e14a88452`.
+- Product Canon was reconciled through `glc-works/hfeit-product@a3a702f5a0c878a784c05c24afdccc365db0f496`. The delta from the original #970 basis changes CORE public surface-zone/Console/research material, not POS catalog, quote, ORDER, tender, or financial authority.
+- SDK provider authority is `glc-works/headless-company-books` `origin/main` `e2bc43373d544d22406373eeee4c1fc06f48b27b`; its generated `packages/hfe-sdk/src/index.ts` SHA-256 is `1f8095178ecbc8441c80ed1b8e4bad777e488ec9f8d35b4925ff14c6154db9ed`, and `hcb2/openapi.json` SHA-256 is `0b71f54c8af1458b381e9cdc199d98afb0826b1c895becd1ad4f5f4e14a88452`.
 - Replace current consumer provenance `6dbe6c9a2aa5dcf2bace856f32cc14e05e788103`; never hand-author a shadow operation or response interface when the generated SDK supplies it.
 - The canonical sequence is `calculatePosSaleQuote -> acceptGovernedPosOrder -> confirmGovernedPosCashTender` or authenticated QRIS provider confirmation `-> getGovernedPosTenderOutcome`.
 - `processPosRetailOrder` is compatibility-only and must not appear in the connected flagship path.
@@ -22,7 +23,7 @@
 - Exact idempotency keys, quote revision/digest, accepted tender effect key, tender ID, and Posting lineage are evidence—not disposable UI state.
 - No production/provider/deployment/secrets, real credentials/data, HCB financial-kernel changes, or fabricated routes are in scope.
 - Issue #100 owns its existing `package.json`, `e2e/`, fixture, script, and test changes. Do not edit or overwrite its uncommitted work; coordinate/rebase before the final browser-proof task.
-- HCB #1019 is a hard dependency for authoritative catalog/category/item/modifier projection. Do not infer suitability from generic `/items` or the old invented `/products` adapter.
+- HCB #972 is the merged quote/configuration authority. HCB #1019 owns complete item resolution beyond the bounded first page, and HCB #1025 owns the missing governed category/modifier selection projection. Both open provider gaps are hard dependencies for the connected catalog; do not infer suitability from generic `/items` or the old invented `/products` adapter.
 - Run first-party full-file Aikido scanning for every modified or added code file and reach zero findings before delivery.
 
 ## State Machine and Authority Model
@@ -83,7 +84,7 @@ The implementation is intentionally divided into reviewable fences. Do not broad
 | Durable attempt state | `src/services/financial/CafeCheckoutAttemptCoordinator.ts`, `src/services/financial/OfflineIntentQueue.ts` only if serialization needs the added evidence |
 | Connected orchestration | `src/hooks/useCafeSettlement.ts`, `src/config/firstPartyRuntime.ts` |
 | Cashier projection | `src/views/UnifiedPosView.tsx`, `src/components/pos/PosCartSection.tsx`, `src/components/pos/PosMobileCartDrawer.tsx`, `src/components/pos/GovernedQrisPendingModal.tsx`, `src/components/pos/FinancialStatusBanner.tsx` |
-| Catalog cutover after #1019 | `src/App.tsx`, `src/data/mockData.ts`, `src/data/runtimeDemoData.ts`, plus one new focused `src/services/financial/GovernedPosCatalog.ts` |
+| Catalog cutover after #1019/#1025 | `src/App.tsx`, `src/data/mockData.ts`, `src/data/runtimeDemoData.ts`, plus one new focused `src/services/financial/GovernedPosCatalog.ts` |
 | Architecture truth | `ARCHITECTURE.md` |
 | Unit/component proof | `src/tests/hfeSdkPosOrderPosting.test.ts`, `src/tests/hfeSdkGovernedQris.test.ts`, `src/tests/cafeCheckoutAttemptCoordinator.test.ts`, `src/tests/governedCafeCheckoutPayload.test.ts`, `src/tests/firstPartyIdentityBridge.test.ts`, and new focused tests named below |
 | Browser proof | A new Issue #101-owned spec only after coordination with #100; do not modify #100 files in parallel |
@@ -107,11 +108,17 @@ The implementation is intentionally divided into reviewable fences. Do not broad
 Run:
 
 ```bash
+set -euo pipefail
 HFE_CORE_CHECKOUT="${HFE_CORE_CHECKOUT:?set HFE_CORE_CHECKOUT to a headless-company-books checkout}"
+EXPECTED_PROVIDER_COMMIT="e2bc43373d544d22406373eeee4c1fc06f48b27b"
+EXPECTED_SDK_SHA256="1f8095178ecbc8441c80ed1b8e4bad777e488ec9f8d35b4925ff14c6154db9ed"
+EXPECTED_OPENAPI_SHA256="0b71f54c8af1458b381e9cdc199d98afb0826b1c895becd1ad4f5f4e14a88452"
 git -C "$HFE_CORE_CHECKOUT" fetch --prune origin
-test "$(git -C "$HFE_CORE_CHECKOUT" rev-parse origin/main)" = d3f75a337e6318519022769976bf799ad34a3b9b
-git -C "$HFE_CORE_CHECKOUT" show origin/main:packages/hfe-sdk/src/index.ts | shasum -a 256
-git -C "$HFE_CORE_CHECKOUT" show origin/main:hcb2/openapi.json | shasum -a 256
+test "$(git -C "$HFE_CORE_CHECKOUT" rev-parse origin/main)" = "$EXPECTED_PROVIDER_COMMIT"
+SDK_SHA256="$(git -C "$HFE_CORE_CHECKOUT" show "$EXPECTED_PROVIDER_COMMIT":packages/hfe-sdk/src/index.ts | shasum -a 256 | awk '{print $1}')"
+OPENAPI_SHA256="$(git -C "$HFE_CORE_CHECKOUT" show "$EXPECTED_PROVIDER_COMMIT":hcb2/openapi.json | shasum -a 256 | awk '{print $1}')"
+test "$SDK_SHA256" = "$EXPECTED_SDK_SHA256"
+test "$OPENAPI_SHA256" = "$EXPECTED_OPENAPI_SHA256"
 ```
 
 Expected: the exact hashes in Global Constraints. If either differs, stop and update this plan/provenance through review rather than silently pinning a moving provider.
@@ -148,12 +155,16 @@ Expected: TypeScript/test failure because the currently pinned SDK has no `getGo
 
 - [ ] **Step 4: Replace the SDK only from the verified provider artifact and write exact provenance**
 
-Copy the provider-generated package content without editing generated TypeScript by hand. Set `packages/hfe-sdk/provenance.json` to the verified source commit and digest:
+Materialize `packages/hfe-sdk/src/index.ts` directly from the verified commit,
+then assert the copied consumer bytes hash to `EXPECTED_SDK_SHA256`. Do not edit
+generated TypeScript by hand. Set `provenance.json.digest_sha256` to that same
+verified byte digest (not a directory/tree hash), and set the OpenAPI digest to
+the separately verified OpenAPI bytes:
 
 ```json
 {
   "source_repo": "glc-works/headless-company-books",
-  "source_commit": "d3f75a337e6318519022769976bf799ad34a3b9b",
+  "source_commit": "e2bc43373d544d22406373eeee4c1fc06f48b27b",
   "source_path": "packages/hfe-sdk",
   "contract_version": "2.1.0",
   "synced_at": "2026-08-28T00:00:00Z",
@@ -483,6 +494,11 @@ Cover:
 - network timeout leaves the attempt resumable with the same evidence;
 - repeated QRIS resume performs GET outcome/read-back only and never quote,
   QRIS generation, accept, or confirm;
+- dismissing `GovernedQrisPendingModal` leaves
+  `canResumeFinancialAttempt === true`, keeps the durable attempt, and exposes
+  the existing `FinancialStatusBanner` resume entry point in
+  `UnifiedPosView.tsx`; resuming from that banner performs only outcome GET and
+  Posting read-back;
 - repeated cash recovery may retransmit only the byte-identical confirmation
   with the persisted confirm key; it never re-quotes, re-accepts, or changes
   tender/effect evidence.
@@ -543,7 +559,7 @@ evidence, or mint a replacement phase key.
 
 - [ ] **Step 5: Wire operator-controlled resume**
 
-The QRIS modal and financial banner expose a localized “Check payment status” action. Closing the modal does not discard the attempt. Pending and unknown results stay resumable; only applied + validated Posting calls `commitPaidState`, clears the cart, and acknowledges the attempt.
+The QRIS modal and financial banner expose a localized “Check payment status” action. Closing the modal clears only modal visibility: it must not set `canResumeFinancialAttempt` false or discard the attempt. The existing `FinancialStatusBanner` in `UnifiedPosView.tsx` remains visible with the resume action. Pending and unknown results stay resumable; only applied + validated Posting calls `commitPaidState`, clears the cart, and acknowledges the attempt.
 
 - [ ] **Step 6: Run the stateful regression group**
 
@@ -568,7 +584,7 @@ git commit -m "feat: resume governed QRIS from authoritative outcome"
 
 Omit `OfflineIntentQueue.ts` when its serialization already preserves the response unchanged.
 
-### Task 5: Adopt Authoritative Catalog Only After HCB #1019 Ships
+### Task 5: Adopt Authoritative Catalog Only After HCB #1019 and #1025 Ship
 
 **Files:**
 - Create: `src/services/financial/GovernedPosCatalog.ts`
@@ -583,7 +599,7 @@ Omit `OfflineIntentQueue.ts` when its serialization already preserves the respon
 - Modify: `src/tests/firstPartyIdentityBridge.test.ts`
 
 **Interfaces:**
-- Consumes: the exact generated HCB #1019 tenant/book-scoped catalog/category/item/modifier contract. Its operation/type names must be copied into this section when #1019 merges; generic `MenuItem[]` from `/products` is not accepted evidence.
+- Consumes: the merged HCB #972 governed quote contract plus the exact generated HCB #1019 complete-item-resolution and HCB #1025 tenant/book-scoped category/modifier selection contracts. Their operation/type names must be copied into this section when both provider issues merge; generic `MenuItem[]` from `/products` is not accepted evidence.
 - Produces: `loadGovernedPosCatalog(bookId, context): Promise<GovernedPosCatalogView>` where every row has governed identity, active status, display metadata, category/modifier references, and no client-owned settlement price authority.
 
 **Connected identity precondition:** The configured organization, Company Book,
@@ -606,18 +622,27 @@ values, an opaque fake JWT, a ToGrow person UUID treated as cashier authority,
 an `org.hfeit` token treated as Nusantara customer-org proof, or an HLab slug
 used as a UUID is not sufficient evidence.
 
-- [ ] **Step 1: Stop if the provider dependency is not merged and generated**
+- [ ] **Step 1: Stop if either provider dependency is not merged and generated**
 
 Run:
 
 ```bash
-gh issue view 1019 --repo glc-works/headless-company-books --json state,closedAt,url
+set -euo pipefail
+ITEM_RESOLUTION_STATE="$(gh issue view 1019 --repo glc-works/headless-company-books --json state --jq .state)"
+ITEM_RESOLUTION_CLOSED_AT="$(gh issue view 1019 --repo glc-works/headless-company-books --json closedAt --jq '.closedAt // empty')"
+CATALOG_PROJECTION_STATE="$(gh issue view 1025 --repo glc-works/headless-company-books --json state --jq .state)"
+CATALOG_PROJECTION_CLOSED_AT="$(gh issue view 1025 --repo glc-works/headless-company-books --json closedAt --jq '.closedAt // empty')"
+test "$ITEM_RESOLUTION_STATE" = "CLOSED"
+test -n "$ITEM_RESOLUTION_CLOSED_AT"
+test "$CATALOG_PROJECTION_STATE" = "CLOSED"
+test -n "$CATALOG_PROJECTION_CLOSED_AT"
 HFE_CORE_CHECKOUT="${HFE_CORE_CHECKOUT:?set HFE_CORE_CHECKOUT to a headless-company-books checkout}"
 git -C "$HFE_CORE_CHECKOUT" fetch --prune origin
-git -C "$HFE_CORE_CHECKOUT" show origin/main:packages/hfe-sdk/src/index.ts | rg -n '(^|    )(get|list|resolve).*(Catalog|Category|Item|Modifier)'
+CATALOG_PROVIDER_COMMIT="$(git -C "$HFE_CORE_CHECKOUT" rev-parse origin/main)"
+git -C "$HFE_CORE_CHECKOUT" show "$CATALOG_PROVIDER_COMMIT":packages/hfe-sdk/src/index.ts | rg -n '(^|    )(get|list|resolve).*(Catalog|Category|Item|Modifier)'
 ```
 
-Expected: issue closed with implementation evidence and a matching generated operation. Task 5 is deliberately non-executable until a reviewed amendment replaces the generic `GovernedPosCatalogView` boundary above with those exact merged operation/type names. Do not substitute `/v1/company-books/{book}/products` or infer a contract from `/items`.
+Expected: both issues are closed with implementation evidence and matching generated operations. Task 5 is deliberately non-executable until a reviewed amendment replaces the generic `GovernedPosCatalogView` boundary above with those exact merged operation/type names. Do not substitute `/v1/company-books/{book}/products`, infer category/modifier eligibility from `/items`, or use generic item prices/accounts as connected monetary authority.
 
 - [ ] **Step 2: Write red connected-identity and catalog authority tests**
 
@@ -847,7 +872,7 @@ Omit `package.json` when no dedicated script was added.
 - Stop the QRIS applied-path proof when Issue #100/HLab has no exact
   authenticated synthetic provider-confirmation action and receipt; browser
   interception or browser-owned confirmation is not a substitute.
-- Stop if HCB #1019 is not merged into the SDK; do not fabricate catalog routes or project generic items as a POS catalog.
+- Stop if HCB #1019 or #1025 is not merged into the SDK; do not fabricate catalog routes, infer category/modifier eligibility, or project generic items as a POS catalog.
 - Stop if local gates fail, Aikido reports unresolved issues, browser proof only passes with intercepted/fabricated financial success, or live read-only evidence shows duplicate effects.
 
 ## Final Completeness Receipt
@@ -861,4 +886,4 @@ Before requesting review, attach:
 - browser matrix for ports 5173/4173 and widths 360/390/768/1280;
 - one synthetic cash and QRIS lineage table showing one quote, order, tender, and Posting effect;
 - explicit statement that no production/provider/deployment/secret mutation occurred;
-- explicit residual status for HCB #1019, HCB #964 cashier attribution, HCB #1010 legacy route retirement, and HFE POS #100 verification ownership.
+- explicit residual status for HCB #1019/#1025, HCB #964 cashier attribution, HCB #1010 legacy route retirement, and HFE POS #100 verification ownership.
