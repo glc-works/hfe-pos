@@ -737,6 +737,19 @@ principal, and terminal response without returning a provider secret to the
 browser. The Playwright flow may then resume only through
 `getGovernedPosTenderOutcome` and Posting read-back.
 
+Before its first POST, that provider-confirmation owner must durably persist the
+connection ID, provider event ID, canonical confirmation body, and one stable
+confirmation idempotency key. On timeout or lost response it retries
+`confirmPosQrisProviderEvent` with the same path/event, canonical body, and key;
+it never mints a replacement event or retry key. Outcome GET is observation
+only: it may recover evidence already committed by CORE, but
+`awaiting_provider_confirmation` cannot distinguish a request that never
+arrived and never creates provider evidence. The browser remains GET-only;
+only the authenticated provider-confirmation owner performs an ambiguous POST
+retry. Require a stateful HCB/HLab regression proving lost response plus exact
+same-key/body replay returns the same provider receipt/effect/Posting and leaves
+exactly one financial effect, journal, and dispatch lineage.
+
 Before writing or running the applied-path QRIS proof, require all of the
 following: ToGrow #25/#26 provide the correct customer-organization token and
 identity receipt; HCB #1020, #1022, and #964 are merged; HFE POS #100 is merged
@@ -776,9 +789,13 @@ Count unique idempotency/effect identities rather than raw retransmissions:
 assert one quote ID, one order ID, one tender/effect key, and one Posting. Any
 retransmitted quote/QRIS-intent request must be byte-identical and reuse its
 phase key. Acceptance response-loss recovery uses the generated idempotency-key
-GET. QRIS/provider-confirmation recovery remains GET-only; cash confirmation
-response loss may replay only the exact persisted request with the same confirm
-key/body. Assert no `processPosRetailOrder` request.
+GET. Browser QRIS recovery remains GET-only; ambiguous provider-confirmation
+recovery is performed only by the authenticated provider-confirmation owner via
+exact replay of the persisted path/event, canonical body, and idempotency key.
+Cash confirmation response loss may replay only the exact persisted request
+with the same confirm key/body. The separate HLab/provider receipt must prove
+that QRIS retry converged to one receipt/effect/Posting. Assert no
+`processPosRetailOrder` request.
 
 - [ ] **Step 3: Run browser proof at required ports/viewports**
 
