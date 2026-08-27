@@ -63,7 +63,8 @@ an idempotent request after a lost response.”
 | `quote_requested` without quote receipt | retransmit the byte-identical quote request with `<attemptId>:quote`; require the same converged quote identity |
 | `qris_intent_requested` without provider-intent receipt | retransmit the byte-identical QRIS-intent request with `<attemptId>:qris-intent`; require the same provider intent |
 | `accept_requested` without accepted receipt | call generated `getAcceptedPosOrderByIdempotencyKey(book, <attemptId>:accept)`; do not repeat acceptance until a definitive not-found contract is available |
-| `accepted` / `confirm_requested` without final cash result | call `getGovernedPosTenderOutcome(book, tenderId)` using the durably stored accepted receipt; never send another confirmation |
+| cash `accepted` / `confirm_requested` without a durably stored confirmation response | retransmit the byte-identical `confirmGovernedPosCashTender` body with the persisted `<attemptId>:confirm` key; require the same converged effect/Posting response and never mint a replacement key |
+| cash confirmation response persisted as `pending_dispatch` | observe its returned Posting identity through generated `getPosting`; an exact confirm replay with the same body/key is allowed when the response/effect state is uncertain, but a new confirmation key/body is forbidden |
 | QRIS `accepted` or later | call `getGovernedPosTenderOutcome(book, tenderId)`; provider confirmation remains external to the browser |
 
 Every successful phase response is atomically written to IndexedDB before the
@@ -106,10 +107,11 @@ The implementation is intentionally divided into reviewable fences. Do not broad
 Run:
 
 ```bash
-git -C /Users/aldi/claudefiles/headless-company-books fetch --prune origin
-test "$(git -C /Users/aldi/claudefiles/headless-company-books rev-parse origin/main)" = d3f75a337e6318519022769976bf799ad34a3b9b
-git -C /Users/aldi/claudefiles/headless-company-books show origin/main:packages/hfe-sdk/src/index.ts | shasum -a 256
-git -C /Users/aldi/claudefiles/headless-company-books show origin/main:hcb2/openapi.json | shasum -a 256
+HFE_CORE_CHECKOUT="${HFE_CORE_CHECKOUT:?set HFE_CORE_CHECKOUT to a headless-company-books checkout}"
+git -C "$HFE_CORE_CHECKOUT" fetch --prune origin
+test "$(git -C "$HFE_CORE_CHECKOUT" rev-parse origin/main)" = d3f75a337e6318519022769976bf799ad34a3b9b
+git -C "$HFE_CORE_CHECKOUT" show origin/main:packages/hfe-sdk/src/index.ts | shasum -a 256
+git -C "$HFE_CORE_CHECKOUT" show origin/main:hcb2/openapi.json | shasum -a 256
 ```
 
 Expected: the exact hashes in Global Constraints. If either differs, stop and update this plan/provenance through review rather than silently pinning a moving provider.
@@ -394,6 +396,13 @@ attempt and fingerprint. Never retire, overwrite, or reuse an attempt at
 
 - [ ] **Step 4: Project authoritative totals and supported tenders**
 
+At application startup, resolve `VITE_HFE_RUNTIME_MODE` through one exhaustive
+parser that accepts only `connected` or `synthetic`. A missing, blank, or
+unrecognized mode is a fatal configuration error before rendering or network
+access. `isConnectedFirstPartyRuntime()` must delegate to that parser; no
+caller may interpret an invalid mode as disconnected. Tests and local launch
+scripts must set `synthetic` explicitly rather than depending on absence.
+
 In connected mode:
 
 - render CORE amount, discount, tax/service/rounding fields only when present in the generated quote contract;
@@ -472,7 +481,11 @@ Cover:
 - `failed` remains failed and never commits paid state;
 - mismatches and ambiguous outcomes throw before UI acknowledgement;
 - network timeout leaves the attempt resumable with the same evidence;
-- repeated resume performs GET outcome/read-back only and never quote, QRIS generation, accept, or confirm.
+- repeated QRIS resume performs GET outcome/read-back only and never quote,
+  QRIS generation, accept, or confirm;
+- repeated cash recovery may retransmit only the byte-identical confirmation
+  with the persisted confirm key; it never re-quotes, re-accepts, or changes
+  tender/effect evidence.
 
 ```ts
 expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
@@ -499,14 +512,34 @@ identity across close, reload, and resume.
 
 - [ ] **Step 4: Implement read-only reconciliation and exact durable validation**
 
-Call `getGovernedPosTenderOutcome` with only book and tender ID. Compare every returned identity/value against persisted accepted evidence. For `applied`, independently call `getPosting` and pass exact expected source/effect evidence into `HfePostingReadbackValidator`. Return `posted` only after both checks pass.
+For QRIS, call `getGovernedPosTenderOutcome` with only book and tender ID.
+Compare every returned identity/value—including order ID, amount, and
+currency—against persisted accepted evidence. For `applied`, independently
+call `getPosting` and pass exact expected book/source/effect and currency into
+`HfePostingReadbackValidator`. The generic Posting contract has neither order
+ID nor a top-level tender total: order and exact amount are therefore proven by
+the governed tender outcome, while Posting lineage is proven by
+`source_object_id === tenderId`. The Posting validator must compare
+`functional_currency` exactly and validate positive, balanced journal lines
+with exact `BigInt` arithmetic; it must not invent a tender total from arbitrary
+journal-line semantics or coerce values through JavaScript `number`. Add
+independent mismatch tests for outcome order, outcome amount, outcome currency,
+and Posting currency, plus unbalanced/non-positive Posting lines. Return
+`posted` only after both outcome and Posting checks pass.
 
-Do not call `postGovernedRetailOrder` from `reconcileGovernedRetailOrder`.
+Do not call `postGovernedRetailOrder` from `reconcileGovernedTenderOutcome`.
+Replace the adapter's existing `reconcileGovernedRetailOrder` surface and every
+connected caller with `reconcileGovernedTenderOutcome`; the new implementation
+must not delegate to `postGovernedRetailOrder` for cash or QRIS.
 Recover a lost acceptance response with generated
 `getAcceptedPosOrderByIdempotencyKey` and the stable accept key. Once an
-accepted receipt exists, both cash and QRIS unknown outcomes use
-`getGovernedPosTenderOutcome` with the stored tender ID. Never recreate the
-order or resend cash confirmation.
+accepted receipt exists, QRIS unknown outcomes use
+`getGovernedPosTenderOutcome` with the stored tender ID. That endpoint is
+QRIS-only and cannot create or resolve a missing cash confirmation. Cash
+response loss must replay the exact `confirmGovernedPosCashTender` request with
+the stored body and `<attemptId>:confirm` key, then validate the converged
+Posting response/read-back. Never recreate the order, alter confirmation
+evidence, or mint a replacement phase key.
 
 - [ ] **Step 5: Wire operator-controlled resume**
 
@@ -522,7 +555,9 @@ npm run check:truth-boundary
 npm run typecheck
 ```
 
-Expected: all pass; the QRIS resume tests observe zero mutation calls.
+Expected: all pass; QRIS resume tests observe zero mutation calls, while cash
+response-loss tests observe only byte-identical confirmation replay with one
+stable confirm key/effect.
 
 - [ ] **Step 7: Commit QRIS outcome recovery**
 
@@ -577,8 +612,9 @@ Run:
 
 ```bash
 gh issue view 1019 --repo glc-works/headless-company-books --json state,closedAt,url
-git -C /Users/aldi/claudefiles/headless-company-books fetch --prune origin
-git -C /Users/aldi/claudefiles/headless-company-books show origin/main:packages/hfe-sdk/src/index.ts | rg -n '(^|    )(get|list|resolve).*(Catalog|Category|Item|Modifier)'
+HFE_CORE_CHECKOUT="${HFE_CORE_CHECKOUT:?set HFE_CORE_CHECKOUT to a headless-company-books checkout}"
+git -C "$HFE_CORE_CHECKOUT" fetch --prune origin
+git -C "$HFE_CORE_CHECKOUT" show origin/main:packages/hfe-sdk/src/index.ts | rg -n '(^|    )(get|list|resolve).*(Catalog|Category|Item|Modifier)'
 ```
 
 Expected: issue closed with implementation evidence and a matching generated operation. Task 5 is deliberately non-executable until a reviewed amendment replaces the generic `GovernedPosCatalogView` boundary above with those exact merged operation/type names. Do not substitute `/v1/company-books/{book}/products` or infer a contract from `/items`.
@@ -723,7 +759,9 @@ The new spec must use `e2e/helpers/demoSession.ts` and prove:
 3. exact CORE quote is visible before accept;
 4. unsupported card is absent/disabled;
 5. cash response-loss recovery preserves one acceptance/confirmation effect
-   lineage through acceptance-by-idempotency-key and tender-outcome reads;
+   lineage through acceptance-by-idempotency-key lookup, byte-identical cash
+   confirmation replay with the persisted confirm key/body, and Posting
+   read-back;
 6. QRIS timeout/reload resumes with outcome GET, not a second mutation;
 7. only applied outcome clears the cart;
 8. the HLab action receipt proves one authenticated provider confirmation for
@@ -737,8 +775,10 @@ The new spec must use `e2e/helpers/demoSession.ts` and prove:
 Count unique idempotency/effect identities rather than raw retransmissions:
 assert one quote ID, one order ID, one tender/effect key, and one Posting. Any
 retransmitted quote/QRIS-intent request must be byte-identical and reuse its
-phase key; acceptance and confirmation recovery must be GET-only. Assert no
-`processPosRetailOrder` request.
+phase key. Acceptance response-loss recovery uses the generated idempotency-key
+GET. QRIS/provider-confirmation recovery remains GET-only; cash confirmation
+response loss may replay only the exact persisted request with the same confirm
+key/body. Assert no `processPosRetailOrder` request.
 
 - [ ] **Step 3: Run browser proof at required ports/viewports**
 
