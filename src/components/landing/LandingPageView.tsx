@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { HfeCompanyProfile, MenuItem, ViewportModeType } from '../../types/pos'
 import {
   Coffee, Building, CalendarCheck, QrCode, Sparkles, ChevronRight,
-  Smartphone, Ticket, Copy, Check, Calendar, Music, MapPin, MessageCircle, Tag, CreditCard, Sliders, Search
+  Smartphone, Ticket, Copy, Check, Calendar, Music, MapPin, MessageCircle, Tag, CreditCard, Search
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useViewport } from '../../context/ViewportContext'
 import { EventTicketItem, PurchasedEventTicket } from '../../types/pos'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
-import { MerchantStorefrontCustomizerModal } from '../settings/MerchantStorefrontCustomizerModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
 import { OneTransactionOneTruthSection } from './OneTransactionOneTruthSection'
 
@@ -34,7 +33,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const { vouchers, setActiveApp, storefrontConfig } = useMerchantConfig()
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [selectedEventForTicket, setSelectedEventForTicket] = useState<EventTicketItem | null>(null)
-  const [showCustomizerModal, setShowCustomizerModal] = useState(false)
   const [showSpotlightModal, setShowSpotlightModal] = useState(false)
 
   // Public Spotlight Keyboard Listener (⌘K, Ctrl+K, /)
@@ -145,15 +143,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <Search className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
             <span className="hidden sm:inline">Cari</span>
             <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[9px] font-mono text-slate-600 dark:text-slate-400 font-bold">⌘K</kbd>
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowCustomizerModal(true)}
-            className="hidden sm:flex bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-700 items-center gap-1 whitespace-nowrap shadow-xs transition-all cursor-pointer"
-            title="Kustomisasi Tampilan Ruang Toko"
-          >
-            <Sliders className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
-            <span>Kustomisasi</span>
           </button>
           <button
             type="button"
@@ -426,13 +415,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         }}
       />
 
-      {/* 🛠️ MERCHANT STOREFRONT CUSTOMIZER MODAL */}
-      <MerchantStorefrontCustomizerModal
-        isOpen={showCustomizerModal}
-        onClose={() => setShowCustomizerModal(false)}
-        initialTab="landing"
-      />
-
       {/* 🔍 PUBLIC SPOTLIGHT OMNI-SEARCH MODAL */}
       <SpotlightOmniSearchModal
         isOpen={showSpotlightModal}
@@ -444,10 +426,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         onSelectTable={(_tableId) => {
           setShowSpotlightModal(false)
           onSwitchToCustomerApp()
-        }}
-        onOpenStorefrontStudio={() => {
-          setShowSpotlightModal(false)
-          setShowCustomizerModal(true)
         }}
         onNavigateApp={(appId) => {
           setShowSpotlightModal(false)
