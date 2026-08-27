@@ -84,7 +84,7 @@ The implementation is intentionally divided into reviewable fences. Do not broad
 | Durable attempt state | `src/services/financial/CafeCheckoutAttemptCoordinator.ts`, `src/services/financial/OfflineIntentQueue.ts` only if serialization needs the added evidence |
 | Connected orchestration | `src/hooks/useCafeSettlement.ts`, `src/config/firstPartyRuntime.ts` |
 | Cashier projection | `src/views/UnifiedPosView.tsx`, `src/components/pos/PosCartSection.tsx`, `src/components/pos/PosMobileCartDrawer.tsx`, `src/components/pos/GovernedQrisPendingModal.tsx`, `src/components/pos/FinancialStatusBanner.tsx` |
-| Catalog cutover after #1019/#1025 | `src/App.tsx`, `src/data/mockData.ts`, `src/data/runtimeDemoData.ts`, plus one new focused `src/services/financial/GovernedPosCatalog.ts` |
+| Catalog cutover after #1019/#1025 (minimum, non-exhaustive Task 5 fence) | `src/App.tsx`, `src/data/mockData.ts`, `src/data/runtimeDemoData.ts`, `src/services/financial/HfePosFinancialPort.ts`, `src/services/financial/HfeSdkAdapter.ts`, `src/services/financial/MockHfeAdapter.ts`, `src/config/firstPartyRuntime.ts`, plus one new focused `src/services/financial/GovernedPosCatalog.ts` and the catalog/identity tests named in Task 5 |
 | Architecture truth | `ARCHITECTURE.md` |
 | Unit/component proof | `src/tests/hfeSdkPosOrderPosting.test.ts`, `src/tests/hfeSdkGovernedQris.test.ts`, `src/tests/cafeCheckoutAttemptCoordinator.test.ts`, `src/tests/governedCafeCheckoutPayload.test.ts`, `src/tests/firstPartyIdentityBridge.test.ts`, and new focused tests named below |
 | Browser proof | A new Issue #101-owned spec only after coordination with #100; do not modify #100 files in parallel |
@@ -639,10 +639,19 @@ test -n "$CATALOG_PROJECTION_CLOSED_AT"
 HFE_CORE_CHECKOUT="${HFE_CORE_CHECKOUT:?set HFE_CORE_CHECKOUT to a headless-company-books checkout}"
 git -C "$HFE_CORE_CHECKOUT" fetch --prune origin
 CATALOG_PROVIDER_COMMIT="$(git -C "$HFE_CORE_CHECKOUT" rev-parse origin/main)"
-git -C "$HFE_CORE_CHECKOUT" show "$CATALOG_PROVIDER_COMMIT":packages/hfe-sdk/src/index.ts | rg -n '(^|    )(get|list|resolve).*(Catalog|Category|Item|Modifier)'
+SDK_BYTES="$(git -C "$HFE_CORE_CHECKOUT" show "$CATALOG_PROVIDER_COMMIT":packages/hfe-sdk/src/index.ts)"
+# #1025 has an accepted exact operation/type contract. Check it independently.
+rg -F 'getGovernedPosCatalogItem' <<<"$SDK_BYTES"
+rg -F 'GovernedPosCatalogItemView' <<<"$SDK_BYTES"
+# #1019 deliberately has not yet selected cursor pagination versus targeted/batch
+# lookup. There is therefore no reviewed operation/type name this plan may invent.
+# STOP here until an accepted #1019 plan and a reviewed amendment to this Task 5
+# replace this stop with separate exact `rg -F` assertions for its merged
+# operationId, request/response types, continuation semantics, and provider commit.
+false
 ```
 
-Expected: both issues are closed with implementation evidence and matching generated operations. Task 5 is deliberately non-executable until a reviewed amendment replaces the generic `GovernedPosCatalogView` boundary above with those exact merged operation/type names. Do not substitute `/v1/company-books/{book}/products`, infer category/modifier eligibility from `/items`, or use generic item prices/accounts as connected monetary authority.
+Expected today: the command always stops after proving #1025's exact generated contract because #1019 has no accepted exact contract yet. Once #1019 is accepted and merged, a reviewed amendment must remove only the terminal `false`, add its exact operation/type/continuation assertions, and pin the provider implementation commit before Task 5 can execute. Merely closing either issue, matching a broad `get/list/resolve` regex, or finding generic item symbols is insufficient. Do not substitute `/v1/company-books/{book}/products`, infer category/modifier eligibility from `/items`, or use generic item prices/accounts as connected monetary authority.
 
 - [ ] **Step 2: Write red connected-identity and catalog authority tests**
 
