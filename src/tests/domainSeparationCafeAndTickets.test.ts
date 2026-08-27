@@ -68,4 +68,14 @@ describe('Domain Separation between Cafe Operations and Event Ticketing (L2-POS-
     const openCount = serviceTickets.filter(t => t.status !== 'resolved').length
     expect(openCount).toBe(2)
   })
+
+  it('enforces Pillar BOARD (LandingPageView) zero-leakage of MerchantStorefrontCustomizerModal', async () => {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const landingFile = path.resolve(__dirname, '../components/landing/LandingPageView.tsx')
+    const landingContent = fs.readFileSync(landingFile, 'utf-8')
+    expect(landingContent).not.toContain('MerchantStorefrontCustomizerModal')
+    expect(landingContent).not.toContain('showCustomizerModal')
+    expect(landingContent).not.toContain('Kustomisasi Tampilan Ruang Toko')
+  })
 })
