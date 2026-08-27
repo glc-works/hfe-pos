@@ -151,6 +151,64 @@ def check_pillar_6_customer_experience_safety_and_non_overlap():
         if "border-b" not in text:
             violations.append("Pillar VI [Flat Bottom]: 'CustomerHeader.tsx' must enforce clean 'border-b' header structure.")
 
+def check_pillar_7_strict_domain_isolation_and_no_admin_leakage():
+    """Verify Pillar VII: Strict 4-Pillar Domain Isolation & Zero Admin Settings Leakage."""
+    public_customer_dirs = [
+        SRC_DIR / "components" / "landing",
+        SRC_DIR / "components" / "customer",
+    ]
+    public_customer_views = [
+        SRC_DIR / "views" / "LandingPageView.tsx",
+        SRC_DIR / "views" / "LandingView.tsx",
+        SRC_DIR / "views" / "CustomerMobileView.tsx",
+        SRC_DIR / "views" / "CustomerPortalView.tsx",
+    ]
+
+    forbidden_import_patterns = [
+        re.compile(r'from\s+[\'"].*components/settings/.*[\'"]'),
+        re.compile(r'from\s+[\'"].*components/hub/.*[\'"]'),
+        re.compile(r'from\s+[\'"].*components/pos/.*[\'"]'),
+        re.compile(r'from\s+[\'"].*components/kds/.*[\'"]'),
+    ]
+
+    banned_admin_tokens = [
+        "MerchantStorefrontCustomizerModal",
+        "CashierShiftModal",
+        "PinPadAuthModal",
+        "FindAndMatchReconciliationModal",
+        "CafeGoLiveReadinessModal"
+    ]
+
+    files_to_check = set(public_customer_views)
+    for pdir in public_customer_dirs:
+        if pdir.exists():
+            for f in pdir.rglob("*.tsx"):
+                files_to_check.add(f)
+
+    for fpath in files_to_check:
+        if not fpath.exists():
+            continue
+        try:
+            content = fpath.read_text(encoding="utf-8")
+            rel_path = fpath.relative_to(ROOT_DIR)
+
+            # Check forbidden import paths
+            for pattern in forbidden_import_patterns:
+                if pattern.search(content):
+                    violations.append(f"Pillar VII [Domain Isolation]: '{rel_path}' illegally imports internal admin/settings/pos components.")
+
+            # Check banned admin modals on public surfaces
+            for token in banned_admin_tokens:
+                if token in content:
+                    violations.append(f"Pillar VII [Zero Leakage]: '{rel_path}' exposes merchant admin token '{token}' on a public customer surface.")
+
+            # Check shortcut hook leakage on mobile views
+            if ("CustomerMobileView" in str(fpath) or "CustomerPortalView" in str(fpath)) and "useSpotlightShortcuts" in content:
+                violations.append(f"Pillar VII [Shortcut Isolation]: '{rel_path}' must not register cashier workstation shortcuts (F1-F12).")
+
+        except Exception as e:
+            violations.append(f"Error reading file '{fpath}': {e}")
+
 def main():
     print("==================================================")
     print(" 🛡️ Hfe Universal UI & Standards Auditor (HFE-UI-STD-001)")
@@ -162,6 +220,7 @@ def main():
     check_pillar_4_accounting_truth()
     check_pillar_5_atomic_layer_architecture()
     check_pillar_6_customer_experience_safety_and_non_overlap()
+    check_pillar_7_strict_domain_isolation_and_no_admin_leakage()
 
     if violations:
         print(f"\n❌ [AUDIT FAILED] Found {len(violations)} standard violation(s):\n")
@@ -170,14 +229,16 @@ def main():
         print("\nPlease fix these violations to satisfy HFE-UI-STD-001.")
         sys.exit(1)
     else:
-        print("\n✅ [AUDIT PASSED] 100% Compliant with HFE-UI-STD-001 (Pillars I - VI).")
+        print("\n✅ [AUDIT PASSED] 100% Compliant with HFE-UI-STD-001 (Pillars I - VII).")
         print("   • Pillar I   (Hardware Viewport & Cross-Browser Parity): PASSED")
         print("   • Pillar II  (Experience Pillars: POS, CARD, BOARD, ORDER): PASSED")
         print("   • Pillar III (Offline ACID Resilience & Durability):     PASSED")
         print("   • Pillar IV  (Universal Accounting Truth & Idempotency): PASSED")
         print("   • Pillar V   (6-Tier Atomic Architecture & Primitives):  PASSED")
         print("   • Pillar VI  (Customer QR Experience & Non-Overlap):     PASSED")
+        print("   • Pillar VII (4-Pillar Domain Isolation & Zero Leakage): PASSED")
         sys.exit(0)
 
 if __name__ == "__main__":
     main()
+
