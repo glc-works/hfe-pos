@@ -5,6 +5,7 @@ import {
   Store, KeyRound, ShieldCheck, Sparkles, X, ChevronRight,
   DollarSign, Wifi, Terminal, ExternalLink
 } from 'lucide-react'
+import { useDataTruth } from '@/context/DataTruthContext'
 import { ThermalPrinterService } from '../../services/hardware/ThermalPrinterService'
 
 export interface CafeGoLiveReadinessModalProps {
@@ -27,6 +28,8 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
   onClose,
   onGoLiveSuccess
 }) => {
+  const { channel } = useDataTruth()
+  const isLiveCore = channel === 'live-core'
   const printerService = ThermalPrinterService.getInstance()
   const printerConfig = printerService.getConfig()
   const printerStatus = printerService.getStatus()
@@ -65,8 +68,10 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
       id: 'chk-04',
       title: 'Buku Besar Hfe CORE (Double-Entry)',
       category: 'ledger',
-      description: 'Jurnal GL 1101, GL 4101, GL 2102 diposting via Offline Intent Queue (Local Persisted).',
-      status: 'pending'
+      description: isLiveCore
+        ? 'Terhubung langsung ke Hfe CORE (PostgreSQL & TigerBeetle GL 1101, GL 4101, GL 2102).'
+        : 'Jurnal GL 1101, GL 4101, GL 2102 diposting via Offline Intent Queue (Local Persisted).',
+      status: isLiveCore ? 'ready' : 'pending'
     },
     {
       id: 'chk-05',

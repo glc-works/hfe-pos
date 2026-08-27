@@ -4,6 +4,7 @@ import {
   ShieldCheck, TrendingUp, Landmark, RefreshCw, 
   Sparkles, CheckCircle2, AlertCircle, Layers, Activity, Gauge
 } from 'lucide-react'
+import { useDataTruth } from '@/context/DataTruthContext'
 import { FinancialHealthSnapshot, AssetValuationCategory } from '../../types/financialHealth'
 
 const DEFAULT_SNAPSHOT: FinancialHealthSnapshot = {
@@ -40,8 +41,10 @@ export interface UniversalFinancialHealthGaugeProps {
 
 export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGaugeProps> = ({
   customSnapshot,
-  isCoreConnected = false
+  isCoreConnected: propIsCoreConnected
 }) => {
+  const { channel } = useDataTruth()
+  const isCoreConnected = propIsCoreConnected ?? (channel === 'live-core')
   const [selectedAssetCat, setSelectedAssetCat] = useState<AssetValuationCategory>('fnb_raw_ingredients')
 
   const snapshot: FinancialHealthSnapshot = {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Card, Button, Badge, TruthChannelBadge } from '@/ui'
+import { useDataTruth } from '@/context/DataTruthContext'
 import { 
   Building2, Layers, GitFork, ArrowRightLeft, ShieldCheck, 
   ChevronRight, CheckCircle2, Globe, Store, Sparkles, RefreshCw, FileText
@@ -94,6 +95,8 @@ const MOCK_INTERCOMPANY_MAPPINGS: InterCompanyAccountMapping[] = [
 ]
 
 export const MultiEntityHoldingTab: React.FC = () => {
+  const { channel } = useDataTruth()
+  const isLiveCore = channel === 'live-core'
   const [selection, setSelection] = useState<EntityHierarchySelection>({
     scope: 'consolidated_holding',
     tenantId: MOCK_TENANT.id
@@ -119,14 +122,10 @@ export const MultiEntityHoldingTab: React.FC = () => {
       <Card className="p-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-              Hierarki Aktif:
-            </span>
-            <TruthChannelBadge />
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20">
-              <Globe className="w-3.5 h-3.5" />
-              <span>Tenant: {MOCK_TENANT.name} ({MOCK_TENANT.tenantCode})</span>
+          <div className="flex items-center gap-2 text-xs flex-wrap">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-black border border-purple-500/20">
+              <Layers className="w-3.5 h-3.5" />
+              <span>Grup: {MOCK_TENANT.name}</span>
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/20">
@@ -142,9 +141,7 @@ export const MultiEntityHoldingTab: React.FC = () => {
                 </div>
               </>
             )}
-            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono ml-1">
-              🧪 Simulasi Multi-Entitas (Data Lokal)
-            </Badge>
+            <TruthChannelBadge />
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -351,27 +348,43 @@ export const MultiEntityHoldingTab: React.FC = () => {
             </div>
 
             {eliminationSuccess && (
-              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 dark:text-amber-200 space-y-1.5 animate-fadeIn">
-                <div className="flex items-center gap-2 font-bold text-amber-700 dark:text-amber-300">
-                  <CheckCircle2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span>🧪 Draft Jurnal Eliminasi Konsolidasi Dibuat (Memori Lokal):</span>
+              <div className={`p-3.5 rounded-xl border text-xs space-y-1.5 animate-fadeIn ${
+                isLiveCore
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200'
+              }`}>
+                <div className={`flex items-center gap-2 font-bold ${
+                  isLiveCore ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'
+                }`}>
+                  <CheckCircle2 className={`w-4 h-4 shrink-0 ${
+                    isLiveCore ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
+                  }`} />
+                  <span>{isLiveCore ? '🟢 Jurnal Eliminasi Konsolidasi Diposting ke Hfe CORE:' : '🧪 Draft Jurnal Eliminasi Konsolidasi Dibuat (Memori Lokal):'}</span>
                 </div>
-                <div className="font-mono text-[10px] bg-white dark:bg-slate-900 p-2 rounded border border-amber-500/20 space-y-0.5">
+                <div className={`font-mono text-[10px] bg-white dark:bg-slate-900 p-2 rounded border space-y-0.5 ${
+                  isLiveCore ? 'border-emerald-500/20' : 'border-amber-500/20'
+                }`}>
                   <div>Debit:  GL 2106 (Utang Inter-Co)   Rp 45.000.000</div>
                   <div>Kredit: GL 1106 (Piutang Inter-Co) Rp 45.000.000</div>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                  Draft tersimpan di sesi browser. Hubungkan ke Hfe CORE Multi-Tenant API untuk posting final.
+                  {isLiveCore
+                    ? 'Posting berhasil diaplikasikan secara permanen pada multi-tenant general ledger Hfe CORE.'
+                    : 'Draft tersimpan di sesi browser. Hubungkan ke Hfe CORE Multi-Tenant API untuk posting final.'}
                 </p>
               </div>
             )}
 
             <Button
               onClick={handleRunElimination}
-              className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-950/40"
+              className={`w-full text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg ${
+                isLiveCore
+                  ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/40'
+                  : 'bg-amber-600 hover:bg-amber-500 shadow-amber-950/40'
+              }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Simulasikan Jurnal Eliminasi Konsolidasi</span>
+              <span>{isLiveCore ? 'Posting Jurnal Eliminasi ke Hfe CORE' : 'Simulasikan Jurnal Eliminasi Konsolidasi'}</span>
             </Button>
           </Card>
         </div>
