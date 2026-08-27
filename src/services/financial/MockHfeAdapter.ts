@@ -6,6 +6,7 @@ import {
   CompanyBookSettingsResponse,
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
+  GovernedRetailCheckoutPayload,
   SubmitRetailTransactionResponse,
   RetailPostingContext,
   UniversalMultiTenderRequest,
@@ -170,6 +171,20 @@ export class MockHfeAdapter implements HfePosFinancialPort {
     return this.submitRetailTransaction(payload)
   }
 
+  async postGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
+    _context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    return Promise.resolve({
+      tx_id: `ORDER-SIM-${Date.now()}`,
+      status: 'posted',
+      created_at: new Date().toISOString(),
+      grand_total: 0,
+      idempotency_key: payload.idempotency_key || `IDEMP-SIM-${Date.now()}`,
+      isSimulated: true,
+    })
+  }
+
   async reconcileRetailOrder(
     payload: SubmitRetailTransactionPayload,
     _context: RetailPostingContext
@@ -182,6 +197,13 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       idempotency_key: payload.idempotency_key || 'SIMULATED-UNRESOLVED',
       isSimulated: true,
     })
+  }
+
+  async reconcileGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    return this.postGovernedRetailOrder(payload, context)
   }
 
   async settleUniversalMultiTender(

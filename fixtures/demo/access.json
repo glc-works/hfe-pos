@@ -6,6 +6,11 @@
   "bookId": "BOOK-CAFE-HQ-88",
   "authorityContextId": "AUTHCTX-DEMO-BARISTA-01",
   "branchId": "BRANCH-HQ-01",
+  "quoteContext": {
+    "outletId": "OUTLET-CAFE-HQ",
+    "terminalId": "TERMINAL-04",
+    "currency": "IDR"
+  },
   "staff": {
     "id": "USR-DEMO-BARISTA-01",
     "name": "Siti Barista",

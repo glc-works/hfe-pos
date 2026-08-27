@@ -90,6 +90,38 @@ describe('cafe checkout attempt coordination', () => {
     await first
   })
 
+  it('persists a pending QRIS receipt so reload does not require recreating the intent', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '88888888-8888-4888-8888-888888888888')
+    const pending: SubmitRetailTransactionResponse = {
+      tx_id: 'ORDER-QRIS-1',
+      status: 'pending',
+      created_at: '2026-08-27T00:00:00Z',
+      grand_total: 30_800,
+      idempotency_key: '88888888-8888-4888-8888-888888888888',
+      qris_payment: {
+        payment_id: 'QRIS-INTENT-1',
+        tender_id: 'TENDER-QRIS-1',
+        qris_string: '000201010212',
+        qr_image_url: 'https://provider.example/QRIS-INTENT-1.png',
+        expires_at: '2026-08-27T00:15:00Z',
+      },
+    }
+
+    const result = await coordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-QRIS-1',
+      bookId: 'BOOK-1',
+      payload,
+      post: vi.fn().mockResolvedValue(pending),
+    })
+
+    expect(result).toEqual({ kind: 'pending', response: pending })
+    expect(await store.get('BOOK-1:ORDER-QRIS-1')).toMatchObject({
+      status: 'pending',
+      response: { qris_payment: { payment_id: 'QRIS-INTENT-1' } },
+    })
+  })
+
   it('does not retry an unknown outcome after a reload and keeps the stable payload fingerprint', async () => {
     const store = new MemoryAttemptStore()
     const firstCoordinator = new CafeCheckoutAttemptCoordinator(store, () => '33333333-3333-4333-8333-333333333333')
