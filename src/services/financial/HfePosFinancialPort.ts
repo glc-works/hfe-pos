@@ -136,6 +136,45 @@ export interface RetailPostingContext {
   }
 }
 
+export type GovernedTenderType = 'cash' | 'qris'
+export type ExactMinorString = string
+
+export interface ReviewedPosQuote {
+  quoteId: string
+  revision: string
+  digestSha256: string
+  currency: string
+  subtotalMinor: ExactMinorString
+  amountDueMinor: ExactMinorString
+  discountTotalMinor: ExactMinorString
+  taxTotalMinor: ExactMinorString
+  serviceChargeTotalMinor: ExactMinorString
+  tipTotalMinor: ExactMinorString
+  roundingTotalMinor: ExactMinorString
+  presetId: string
+  presetVersion: string
+  lines: Array<{
+    ordinal: number
+    itemId: string
+    quantity: string
+    modifierIds: string[]
+    discountAllocatedMinor: ExactMinorString
+  }>
+  expiresAt: string
+  tenderEligibility: Array<{ tenderType: GovernedTenderType; eligible: boolean; reasonCode?: string }>
+  source: 'hfe-core'
+}
+
+export interface GovernedAcceptedTenderEvidence {
+  orderId: string
+  acceptedAt: string
+  tenderId: string
+  acceptanceEffectKey: string
+  tenderType: GovernedTenderType
+  amountMinor: ExactMinorString
+  quote: Pick<ReviewedPosQuote, 'quoteId' | 'revision' | 'digestSha256' | 'currency' | 'amountDueMinor' | 'presetId' | 'presetVersion'>
+}
+
 export interface GenerateQrisPayload {
   transaction_id: string
   amount_idr: number
@@ -259,6 +298,22 @@ export interface HfePosFinancialPort {
     payload: GovernedRetailCheckoutPayload,
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse>
+
+  /** Prepare and project a frozen CORE sales quote for cashier review. */
+  prepareGovernedRetailQuote(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext,
+    bookId?: string
+  ): Promise<ReviewedPosQuote>
+
+  /** Accept a reviewed CORE sales quote and return authoritative tender evidence. */
+  acceptGovernedRetailQuote(
+    payload: GovernedRetailCheckoutPayload,
+    reviewed: ReviewedPosQuote,
+    context: RetailPostingContext,
+    bookId?: string,
+    providerIntentReference?: string
+  ): Promise<GovernedAcceptedTenderEvidence>
 
   /**
    * Reconcile an unresolved canonical POS attempt without submitting or posting it again.

@@ -2,23 +2,19 @@
 // Official REST API Transport Layer powered by @hfe/sdk (Strict Fail-Closed)
 
 import { HfeClient, HfeApiError as SdkApiError, type Int64String } from '@hfe/sdk'
-import {
-  HfePosFinancialPort,
-  CompanyBookSettingsResponse,
-  ResolveContactResponse,
-  SubmitRetailTransactionPayload,
-  GovernedRetailCheckoutPayload,
-  SubmitRetailTransactionResponse,
-  RetailPostingContext,
-  UniversalMultiTenderRequest,
-  UniversalMultiTenderResponse,
-  GenerateQrisPayload,
-  QrisPaymentResponse,
-  CashierShiftResponse,
-  CashierShiftCloseResponse,
+import type {
+  HfePosFinancialPort, CompanyBookSettingsResponse, ResolveContactResponse,
+  SubmitRetailTransactionPayload, GovernedRetailCheckoutPayload, SubmitRetailTransactionResponse,
+  RetailPostingContext, UniversalMultiTenderRequest, UniversalMultiTenderResponse,
+  GenerateQrisPayload, QrisPaymentResponse, CashierShiftResponse, CashierShiftCloseResponse,
+  ReviewedPosQuote, GovernedAcceptedTenderEvidence,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
-import { postGovernedPosCheckout } from './GovernedPosCheckout'
+import {
+  postGovernedPosCheckout,
+  prepareGovernedRetailQuote,
+  acceptGovernedRetailQuote,
+} from './GovernedPosCheckout'
 import {
   HfePostingReadbackValidator,
   generateUUIDv4,
@@ -302,6 +298,36 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     )
   }
 
+  async prepareGovernedRetailQuote(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext,
+    bookId?: string,
+  ): Promise<ReviewedPosQuote> {
+    return prepareGovernedRetailQuote(
+      this.client,
+      payload,
+      context,
+      this.resolveTargetBook(bookId || context.companyBookId),
+    )
+  }
+
+  async acceptGovernedRetailQuote(
+    payload: GovernedRetailCheckoutPayload,
+    reviewed: ReviewedPosQuote,
+    context: RetailPostingContext,
+    bookId?: string,
+    providerIntentReference?: string,
+  ): Promise<GovernedAcceptedTenderEvidence> {
+    return acceptGovernedRetailQuote(
+      this.client,
+      payload,
+      reviewed,
+      context,
+      this.resolveTargetBook(bookId || context.companyBookId),
+      providerIntentReference,
+    )
+  }
+
   async reconcileRetailOrder(
     payload: SubmitRetailTransactionPayload,
     context: RetailPostingContext
@@ -431,65 +457,34 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     )
   }
 
-  async generateQrisPayment(
-    payload: GenerateQrisPayload,
-    bookId?: string
-  ): Promise<QrisPaymentResponse> {
+  async generateQrisPayment(payload: GenerateQrisPayload, bookId?: string): Promise<QrisPaymentResponse> {
     const targetBook = this.resolveTargetBook(bookId)
-    const bodyPayload = {
-      transaction_id: payload.transaction_id,
-      amount_idr: payload.amount_idr,
-      biller_split_fee_idr: payload.biller_split_fee_idr ?? 250,
-      merchant_name: payload.merchant_name,
-    }
-
-    return this.request<QrisPaymentResponse>(
-      'POST',
-      `/v1/company-books/${targetBook}/payments/qris/generate`,
-      { body: bodyPayload }
-    )
+    return this.request<QrisPaymentResponse>('POST', `/v1/company-books/${targetBook}/payments/qris/generate`, {
+      body: {
+        transaction_id: payload.transaction_id,
+        amount_idr: payload.amount_idr,
+        biller_split_fee_idr: payload.biller_split_fee_idr ?? 250,
+        merchant_name: payload.merchant_name,
+      },
+    })
   }
 
-  async openCashierShift(
-    cashierId: string,
-    initialFloat: number,
-    bookId?: string
-  ): Promise<CashierShiftResponse> {
+  async openCashierShift(cashierId: string, initialFloat: number, bookId?: string): Promise<CashierShiftResponse> {
     const targetBook = this.resolveTargetBook(bookId)
-    return this.request<CashierShiftResponse>(
-      'POST',
-      `/v1/company-books/${targetBook}/shifts/open`,
-      {
-        body: {
-          cashier_id: cashierId,
-          initial_float: initialFloat,
-        },
-      }
-    )
+    return this.request<CashierShiftResponse>('POST', `/v1/company-books/${targetBook}/shifts/open`, {
+      body: { cashier_id: cashierId, initial_float: initialFloat },
+    })
   }
 
-  async closeCashierShift(
-    shiftId: string,
-    reportedCash: number,
-    bookId?: string
-  ): Promise<CashierShiftCloseResponse> {
+  async closeCashierShift(shiftId: string, reportedCash: number, bookId?: string): Promise<CashierShiftCloseResponse> {
     const targetBook = this.resolveTargetBook(bookId)
-    return this.request<CashierShiftCloseResponse>(
-      'POST',
-      `/v1/company-books/${targetBook}/shifts/${shiftId}/close`,
-      {
-        body: {
-          reported_cash: reportedCash,
-        },
-      }
-    )
+    return this.request<CashierShiftCloseResponse>('POST', `/v1/company-books/${targetBook}/shifts/${shiftId}/close`, {
+      body: { reported_cash: reportedCash },
+    })
   }
 
   async fetchCompanyBookSettings(bookId?: string): Promise<CompanyBookSettingsResponse> {
     const targetBook = this.resolveTargetBook(bookId)
-    return this.request<CompanyBookSettingsResponse>(
-      'GET',
-      `/v1/company-books/${targetBook}/settings`
-    )
+    return this.request<CompanyBookSettingsResponse>('GET', `/v1/company-books/${targetBook}/settings`)
   }
 }

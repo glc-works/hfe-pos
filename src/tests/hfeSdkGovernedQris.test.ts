@@ -44,7 +44,7 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
         quote_id: 'QUOTE-QRIS-001', revision: '3', digest_sha256: 'd'.repeat(64),
         preset_id: 'PRESET-CAFE-ID', preset_version: '3', currency: 'IDR',
         amount_due_minor: '30800', discount_total_minor: '0',
-        expires_at: '2026-08-24T10:05:00.000Z', lines: [],
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), lines: [],
         tender_eligibility: [{ eligible: true, tender_type: 'qris' }],
       }))
       .mockResolvedValueOnce(response(200, {
