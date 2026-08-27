@@ -6,6 +6,7 @@ import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
 import { companyBookPostingHref } from '../config/companyBookPostingLink'
 import { useLiveCoreActivation } from '../context/DataTruthContext'
+import { appendDeadLetterEntry } from '../services/financial/deadLetterLedger'
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
 export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
@@ -140,12 +141,25 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
         setFinancialStatus(result.attempt.status === 'posted' ? 'error' : 'pending')
         setFinancialNotice(result.attempt.status === 'posted' ? 'posted_unacknowledged' : 'outcome_unknown')
         setFinancialFailureCode(classifyCheckoutFailure(result.attempt.lastError))
+        void appendDeadLetterEntry({
+          kind: 'operator_action_required',
+          detail: result.attempt.lastError || `attempt status: ${result.attempt.status}`,
+          bookId: companyBookId,
+          checkoutKey,
+          idempotencyKey: result.attempt.idempotencyKey,
+        }).catch(() => {})
         return
       }
       if (result.kind === 'outcome_unknown') {
         setFinancialStatus('error')
         setFinancialNotice('outcome_unknown')
         setFinancialFailureCode(classifyCheckoutFailure(result.message))
+        void appendDeadLetterEntry({
+          kind: 'outcome_unknown',
+          detail: result.message,
+          bookId: companyBookId,
+          checkoutKey,
+        }).catch(() => {})
         return
       }
 
@@ -168,9 +182,11 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       await coordinator.current.acknowledgePosted(checkoutKey)
       alert(`🎉 Pembayaran ${selectedTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${formatPrice(grandTotal > 0 ? grandTotal : (selectedTable?.totalBill || 0))} LUNAS via ${paymentMethod.toUpperCase()}!`)
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
       setFinancialStatus('error')
       setFinancialNotice('failed')
-      setFinancialFailureCode(classifyCheckoutFailure(error instanceof Error ? error.message : String(error)))
+      setFinancialFailureCode(classifyCheckoutFailure(message))
+      void appendDeadLetterEntry({ kind: 'outcome_unknown', detail: message, bookId: companyBookId }).catch(() => {})
     }
   }
 

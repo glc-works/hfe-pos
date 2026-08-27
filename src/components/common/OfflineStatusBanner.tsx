@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { flushManager, FlushStatusState } from '../../services/flushManager'
-import { Wifi, WifiOff, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react'
+import { downloadDeadLetterLog, listDeadLetterEntries } from '../../services/financial/deadLetterLedger'
+import { Wifi, WifiOff, RefreshCw, AlertTriangle, CheckCircle, Download } from 'lucide-react'
 
 export interface OfflineStatusBannerProps {
   className?: string
@@ -8,11 +9,20 @@ export interface OfflineStatusBannerProps {
 
 export const OfflineStatusBanner: React.FC<OfflineStatusBannerProps> = ({ className = '' }) => {
   const [status, setStatus] = useState<FlushStatusState>(flushManager.getStatus())
+  const [deadLetterCount, setDeadLetterCount] = useState(0)
 
   useEffect(() => {
     const unsubscribe = flushManager.subscribe(setStatus)
     return () => unsubscribe()
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    listDeadLetterEntries().then((entries) => {
+      if (!cancelled) setDeadLetterCount(entries.length)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [status.pendingCount])
 
   const handleManualFlush = async () => {
     await flushManager.flushPendingQueue()
@@ -84,6 +94,17 @@ export const OfflineStatusBanner: React.FC<OfflineStatusBannerProps> = ({ classN
             </>
           )}
         </span>
+
+        {/* Rule 19 escape hatch: emergency forensic log always reachable while the banner shows */}
+        <button
+          type="button"
+          onClick={() => void downloadDeadLetterLog('json').catch(() => {})}
+          className="inline-flex items-center gap-1 px-2 py-1 border border-current rounded font-bold text-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          title="Unduh log darurat transaksi & konflik (JSON)"
+        >
+          <Download className="w-3 h-3" />
+          {deadLetterCount > 0 ? `Unduh Log Darurat (${deadLetterCount})` : 'Unduh Log Darurat'}
+        </button>
       </div>
     </div>
   )
