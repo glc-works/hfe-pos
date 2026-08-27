@@ -1,7 +1,4 @@
-// --- HFE MOCK FINANCIAL ADAPTER (POS-ENG-STD-001) ---
-// Explicit Mock Implementation for Storybook, Vitest, and Local Simulation
-
-import {
+import type {
   HfePosFinancialPort,
   CompanyBookSettingsResponse,
   ResolveContactResponse,
@@ -15,7 +12,10 @@ import {
   QrisPaymentResponse,
   CashierShiftResponse,
   CashierShiftCloseResponse,
-  GlPostingEntry
+  GlPostingEntry,
+  ReviewedPosQuote,
+  GovernedAcceptedTenderEvidence,
+  GovernedTenderOutcomeQuery,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
 import { PRODUCT_CATALOG } from '../../data/mockData'
@@ -182,6 +182,68 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       grand_total: 0,
       idempotency_key: payload.idempotency_key || `IDEMP-SIM-${Date.now()}`,
       isSimulated: true,
+    })
+  }
+
+  async prepareGovernedRetailQuote(
+    payload: GovernedRetailCheckoutPayload,
+    _context: RetailPostingContext,
+    _bookId?: string
+  ): Promise<ReviewedPosQuote> {
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+    return Promise.resolve({
+      quoteId: `QUOTE-SIM-${Date.now()}`,
+      revision: '1',
+      digestSha256: '0'.repeat(64),
+      currency: payload.currency,
+      subtotalMinor: '0',
+      amountDueMinor: '0',
+      discountTotalMinor: '0',
+      taxTotalMinor: '0',
+      serviceChargeTotalMinor: '0',
+      tipTotalMinor: '0',
+      roundingTotalMinor: '0',
+      presetId: 'PRESET-SIM',
+      presetVersion: '1',
+      lines: payload.items.map((it, idx) => ({
+        ordinal: idx,
+        itemId: it.product_id,
+        quantity: String(it.quantity),
+        modifierIds: it.modifier_ids || [],
+        discountAllocatedMinor: '0',
+      })),
+      expiresAt,
+      tenderEligibility: [
+        { tenderType: 'cash', eligible: true },
+        { tenderType: 'qris', eligible: true },
+      ],
+      source: 'hfe-core',
+    })
+  }
+
+  async acceptGovernedRetailQuote(
+    payload: GovernedRetailCheckoutPayload,
+    reviewed: ReviewedPosQuote,
+    _context: RetailPostingContext,
+    _bookId?: string,
+    _providerIntentReference?: string
+  ): Promise<GovernedAcceptedTenderEvidence> {
+    return Promise.resolve({
+      orderId: `ORDER-SIM-${Date.now()}`,
+      acceptedAt: new Date().toISOString(),
+      tenderId: `TENDER-SIM-${Date.now()}`,
+      acceptanceEffectKey: 'a'.repeat(64),
+      tenderType: payload.payment_method as any,
+      amountMinor: reviewed.amountDueMinor,
+      quote: {
+        quoteId: reviewed.quoteId,
+        revision: reviewed.revision,
+        digestSha256: reviewed.digestSha256,
+        currency: reviewed.currency,
+        amountDueMinor: reviewed.amountDueMinor,
+        presetId: reviewed.presetId,
+        presetVersion: reviewed.presetVersion,
+      },
     })
   }
 
@@ -354,6 +416,30 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       },
       isSimulated: true,
       fetched_at: new Date().toISOString(),
+    })
+  }
+
+  async reconcileGovernedTenderOutcome(
+    query: GovernedTenderOutcomeQuery,
+    _context: RetailPostingContext,
+    _bookId?: string,
+  ): Promise<SubmitRetailTransactionResponse> {
+    const postingId = `POSTING-SIM-${Date.now()}`
+    return Promise.resolve({
+      tx_id: query.orderId,
+      status: 'posted',
+      created_at: new Date().toISOString(),
+      grand_total: Number(query.amountMinor),
+      idempotency_key: query.tenderId,
+      ledger_journal_id: postingId,
+      posting_id: postingId,
+      readback_validation: {
+        isValid: true,
+        finality: 'applied',
+        isApplied: true,
+        isMismatch: false,
+        journalLinesCount: 2,
+      },
     })
   }
 }

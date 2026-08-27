@@ -61,17 +61,28 @@ The Experience Layer is completely agnostic to backend subledger storage mechani
 
 ---
 
-## 3. Financial & Tax Calculation Protocol
+## Financial and Tax Authority Protocol
 
-### PB1 Cafe Tax Calculation Modes:
+In connected mode, HFE POS submits governed identities, quantities, modifiers,
+promotion intent, and tender intent. Hfe CORE is the sole authority for price,
+discount/funding allocation, tax/PB1, service charge, rounding, amount due,
+semantic accounts, and Posting outcome. The cashier must review the exact CORE
+quote revision and digest before acceptance; HFE POS must not recalculate or
+override a returned monetary component.
+
+The PB1 and service-fee formulas below apply only to explicit local synthetic
+simulation. Simulation output is non-authoritative and must never be serialized
+into a connected mutation.
+
+### PB1 Cafe Tax Calculation Modes (Simulation Only):
 - **Mode 0 (Disabled):** `taxAmount = 0`
 - **Mode 1 (Exclude Tax):** `taxAmount = Math.round(subtotal * 0.10)`
 - **Mode 2 (Include Tax):** `taxAmount = Math.round(subtotal - (subtotal / 1.10))`
 
-### Service Fee Calculation:
+### Service Fee Calculation (Simulation Only):
 - `serviceFeeAmount = Math.round(subtotal * (serviceFeeRate / 100))` (Default: 5%)
 
-### Biller Split Settlement:
+### Biller Split Settlement (Simulation Only):
 - Transaction fee Rp 250 per transaction for split biller settlement (`biller.create_split`).
 
 ---

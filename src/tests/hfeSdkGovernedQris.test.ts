@@ -44,7 +44,7 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
         quote_id: 'QUOTE-QRIS-001', revision: '3', digest_sha256: 'd'.repeat(64),
         preset_id: 'PRESET-CAFE-ID', preset_version: '3', currency: 'IDR',
         amount_due_minor: '30800', discount_total_minor: '0',
-        expires_at: '2026-08-24T10:05:00.000Z', lines: [],
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), lines: [],
         tender_eligibility: [{ eligible: true, tender_type: 'qris' }],
       }))
       .mockResolvedValueOnce(response(200, {
@@ -93,5 +93,124 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
       .reconcileGovernedRetailOrder(governedPayload, context))
       .rejects.toThrow(/authoritative QRIS outcome read contract is unavailable/i)
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('exposes the generated governed tender outcome operation on HfeClient', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(200, {
+      accepted_tender_effect_key: 'e'.repeat(64),
+      amount_minor: '30800',
+      currency: 'IDR',
+      order_id: 'ORDER-1',
+      outcome: 'pending',
+      posting_finality: null,
+      posting_id: null,
+      posting_source_capability: null,
+      posting_source_object_id: null,
+      posting_stable_effect_key: null,
+      provider_event_id: null,
+      provider_event_receipt_id: null,
+      provider_occurred_at: null,
+      tender_id: 'TENDER-1',
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    const { HfeClient } = await import('@hfe/sdk')
+    const client = new HfeClient({ baseUrl: 'http://localhost:8080' })
+    const result = await client.operations.getGovernedPosTenderOutcome({
+      path: { book: 'BOOK-1', tender_id: 'TENDER-1' },
+    })
+    expect(result.body).toMatchObject({ tender_id: 'TENDER-1', outcome: 'pending' })
+  })
+
+  it('reconciles QRIS outcome when pending without mutation', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(200, {
+      tender_id: 'TENDER-QRIS-001',
+      order_id: 'ORDER-QRIS-001',
+      amount_minor: '30800',
+      currency: 'IDR',
+      accepted_tender_effect_key: 'e'.repeat(64),
+      outcome: 'pending',
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    const result = await adapter.reconcileGovernedTenderOutcome({
+      orderId: 'ORDER-QRIS-001',
+      tenderId: 'TENDER-QRIS-001',
+      acceptedTenderEffectKey: 'e'.repeat(64),
+      amountMinor: '30800',
+      currency: 'IDR',
+    }, context)
+
+    expect(result).toMatchObject({
+      status: 'pending',
+      tx_id: 'ORDER-QRIS-001',
+      grand_total: 30800,
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('reconciles applied QRIS outcome with Posting read-back verification', async () => {
+    const effectKey = 'e'.repeat(64)
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(200, {
+        tender_id: 'TENDER-QRIS-001',
+        order_id: 'ORDER-QRIS-001',
+        amount_minor: '30800',
+        currency: 'IDR',
+        accepted_tender_effect_key: effectKey,
+        outcome: 'applied',
+        posting_id: 'POSTING-QRIS-001',
+      }))
+      .mockResolvedValueOnce(response(200, {
+        id: 'POSTING-QRIS-001',
+        posting_id: 'POSTING-QRIS-001',
+        book_id: 'BOOK-CAFE-HQ-88',
+        finality: 'applied',
+        source_capability: 'pos_tender_sale',
+        source_object_id: 'TENDER-QRIS-001',
+        stable_effect_key: effectKey,
+        functional_currency: 'IDR',
+        lines: [
+          { account_id: '1104', debit_minor: '30800', credit_minor: '0' },
+          { account_id: '4101', debit_minor: '0', credit_minor: '30800' },
+        ],
+      }))
+    vi.stubGlobal('fetch', fetchMock)
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    const result = await adapter.reconcileGovernedTenderOutcome({
+      orderId: 'ORDER-QRIS-001',
+      tenderId: 'TENDER-QRIS-001',
+      acceptedTenderEffectKey: effectKey,
+      amountMinor: '30800',
+      currency: 'IDR',
+    }, context)
+
+    expect(result).toMatchObject({
+      status: 'posted',
+      tx_id: 'ORDER-QRIS-001',
+      posting_id: 'POSTING-QRIS-001',
+      grand_total: 30800,
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('fails closed when QRIS outcome reports mismatch', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(200, {
+      tender_id: 'TENDER-QRIS-001',
+      order_id: 'ORDER-DIFFERENT',
+      amount_minor: '30800',
+      currency: 'IDR',
+      accepted_tender_effect_key: 'e'.repeat(64),
+      outcome: 'applied',
+      posting_id: 'POSTING-QRIS-001',
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    await expect(adapter.reconcileGovernedTenderOutcome({
+      orderId: 'ORDER-QRIS-001',
+      tenderId: 'TENDER-QRIS-001',
+      acceptedTenderEffectKey: 'e'.repeat(64),
+      amountMinor: '30800',
+      currency: 'IDR',
+    }, context)).rejects.toThrow(/Order outcome mismatch/i)
   })
 })

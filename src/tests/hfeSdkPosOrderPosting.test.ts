@@ -63,7 +63,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
         currency: 'IDR',
         amount_due_minor: '61600',
         discount_total_minor: '4000',
-        expires_at: '2026-08-24T10:05:00.000Z',
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
         lines: [],
         tender_eligibility: [
           { eligible: true, tender_type: 'cash' },
@@ -163,7 +163,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       currency: 'IDR',
       amount_due_minor: '28000',
       discount_total_minor: '0',
-      expires_at: '2026-08-24T10:05:00.000Z',
+      expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
       lines: [],
       tender_eligibility: [{ eligible: false, reason_code: 'terminal_cash_mapping_inactive', tender_type: 'cash' }],
     }))

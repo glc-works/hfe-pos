@@ -18,6 +18,8 @@ import { PosCardTenderForm } from './PosCardTenderForm'
 import { SegmentedControl, Button } from '@/ui'
 import { GLYPHS } from '../../tokens/designTokens'
 
+import type { ReviewedPosQuote } from '../../services/financial'
+
 export interface PosCartSectionProps {
   cartItems: CartItem[]
   selectedPOSTable: TableStatus | null
@@ -30,6 +32,7 @@ export interface PosCartSectionProps {
   fulfillmentMode?: OrderFulfillmentMode
   hideHeader?: boolean
   cardMetadata?: CardTenderMetadata
+  authoritativeQuote?: ReviewedPosQuote | null
   setPosPayMethod: (method: PosPayMethod) => void
   setPosCashGiven: (val: string) => void
   setFulfillmentMode?: (mode: OrderFulfillmentMode) => void
@@ -52,6 +55,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   packagingFee = 0,
   fulfillmentMode = 'dine_in',
   hideHeader = false,
+  authoritativeQuote,
   setPosPayMethod,
   setPosCashGiven,
   setFulfillmentMode,
@@ -70,7 +74,21 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
     setTenderCurrency(baseCurrency)
   }, [baseCurrency])
 
-  const tenderGrandTotal = convertCurrency(grandTotal, baseCurrency, tenderCurrency)
+  const effectiveGrandTotal = authoritativeQuote
+    ? Number(authoritativeQuote.amountDueMinor)
+    : grandTotal
+  const effectiveSubtotal = authoritativeQuote
+    ? Number(authoritativeQuote.subtotalMinor)
+    : subtotal
+  const effectiveTax = authoritativeQuote
+    ? Number(authoritativeQuote.taxTotalMinor)
+    : pb1Tax
+
+  const isCardEligible = authoritativeQuote
+    ? authoritativeQuote.tenderEligibility?.some((t) => (t.tenderType as string) === 'card' && t.eligible) ?? false
+    : true
+
+  const tenderGrandTotal = convertCurrency(effectiveGrandTotal, baseCurrency, tenderCurrency)
   const currencySymbol = getCurrencySymbol(tenderCurrency)
   const cashPresets = getCountryCashPresets(tenderGrandTotal, tenderCurrency, language)
   const cashGivenNum = parseFloat(posCashGiven) || 0
@@ -207,7 +225,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
       <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 pt-2 flex flex-col gap-2">
         <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>{t.cart.subtotal}</span>
-          <span className="font-mono text-slate-800 dark:text-slate-200 whitespace-nowrap shrink-0">{formatPrice(subtotal)}</span>
+          <span className="font-mono text-slate-800 dark:text-slate-200 whitespace-nowrap shrink-0">{formatPrice(effectiveSubtotal)}</span>
         </div>
         {packagingFee > 0 && (
           <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
@@ -217,11 +235,11 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         )}
         <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>{t.cart.pb1Tax}</span>
-          <span className="font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">{formatPrice(pb1Tax)}</span>
+          <span className="font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">{formatPrice(effectiveTax)}</span>
         </div>
         <div className="flex justify-between text-base font-extrabold text-slate-900 dark:text-white border-t border-slate-200 dark:border-slate-800 pt-2">
           <span>{t.cart.totalBill}</span>
-          <span className="font-mono text-emerald-700 dark:text-emerald-400 whitespace-nowrap shrink-0">{formatPrice(grandTotal)}</span>
+          <span data-testid="authoritative-amount-due" className="font-mono text-emerald-700 dark:text-emerald-400 whitespace-nowrap shrink-0">{formatPrice(effectiveGrandTotal)}</span>
         </div>
 
         {/* METODE BAYAR (3 METODE UTAMA: CASH / QRIS / KARTU - STRICT SINGLE LINE) */}
@@ -242,8 +260,15 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setPosPayMethod('card')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            disabled={!isCardEligible}
+            onClick={() => isCardEligible && setPosPayMethod('card')}
+            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${
+              !isCardEligible
+                ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                : posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
+                  ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold'
+                  : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
           >
             <CreditCard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCard}</span>
           </button>

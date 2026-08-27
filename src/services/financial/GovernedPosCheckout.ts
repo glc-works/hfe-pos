@@ -1,17 +1,29 @@
 import type { HfeClient, Int64String } from '@hfe/sdk'
 import type {
+  ExactMinorString,
+  GovernedAcceptedTenderEvidence,
   GovernedRetailCheckoutPayload,
+  GovernedTenderType,
   RetailPostingContext,
+  ReviewedPosQuote,
+  GovernedTenderOutcomeQuery,
   SubmitRetailTransactionResponse,
 } from './HfePosFinancialPort'
 import { HfePostingReadbackValidator } from './HfePostingReadbackValidator'
 
-export async function postGovernedPosCheckout(
+export function exactMinor(value: string, field: string): ExactMinorString {
+  if (!/^(0|[1-9][0-9]*)$/.test(value)) {
+    throw new Error(`CORE ${field} is not a canonical non-negative minor-unit string.`)
+  }
+  return value
+}
+
+export async function prepareGovernedRetailQuote(
   client: HfeClient,
   payload: GovernedRetailCheckoutPayload,
   context: RetailPostingContext,
   targetBook: string,
-): Promise<SubmitRetailTransactionResponse> {
+): Promise<ReviewedPosQuote> {
   if (!context.authorityContext.trim()) {
     throw new Error('authorityContext is required for governed POS posting. Fail-closed: zero fallback allowed.')
   }
@@ -43,78 +55,194 @@ export async function postGovernedPosCheckout(
       terminal_id: payload.terminal_id,
     },
   })
-  const amountDue = Number(quoted.body.amount_due_minor)
-  if (!Number.isSafeInteger(amountDue) || amountDue < 0) {
-    throw new Error('CORE quote amount is outside the POS exact minor-unit range.')
+
+  const body = quoted.body
+  if (body.currency !== payload.currency) {
+    throw new Error(`CORE quote returned currency '${body.currency}' which differs from requested '${payload.currency}'.`)
   }
-  const tenderEligibility = quoted.body.tender_eligibility.filter(
-    (entry) => entry.tender_type === payload.payment_method,
+  if (new Date(body.expires_at).getTime() <= Date.now()) {
+    throw new Error('CORE quote is expired upon receipt.')
+  }
+
+  const tenderEligibility = (body.tender_eligibility || []).map((entry) => ({
+    tenderType: entry.tender_type as GovernedTenderType,
+    eligible: entry.eligible,
+    reasonCode: entry.reason_code ?? undefined,
+  }))
+
+  const selectedEligibility = tenderEligibility.filter(
+    (entry) => entry.tenderType === payload.payment_method,
   )
-  if (tenderEligibility.length !== 1 || !tenderEligibility[0].eligible) {
-    const reason = tenderEligibility[0]?.reason_code || `missing_or_ambiguous_${payload.payment_method}_eligibility`
+  if (selectedEligibility.length !== 1 || !selectedEligibility[0].eligible) {
+    const reason = selectedEligibility[0]?.reasonCode || `missing_or_ambiguous_${payload.payment_method}_eligibility`
     throw new Error(`${payload.payment_method.toUpperCase()} tender is not eligible for this authoritative quote: ${reason}.`)
   }
 
-  const qrisIntent = payload.payment_method === 'qris'
-    ? await client.operations.generatePosQris({
-        path: { book: targetBook },
-        headers: { ...authorityHeaders, 'Idempotency-Key': `${payload.idempotency_key}:qris-intent` },
-        body: {
-          amount_idr: quoted.body.amount_due_minor as Int64String,
-          transaction_id: quoted.body.quote_id,
-        },
-      })
-    : null
+  return {
+    quoteId: body.quote_id,
+    revision: String(body.revision),
+    digestSha256: body.digest_sha256,
+    currency: body.currency,
+    subtotalMinor: exactMinor(body.subtotal_minor || body.amount_due_minor, 'subtotal_minor'),
+    amountDueMinor: exactMinor(body.amount_due_minor, 'amount_due_minor'),
+    discountTotalMinor: exactMinor(body.discount_total_minor || '0', 'discount_total_minor'),
+    taxTotalMinor: exactMinor(body.tax_total_minor || '0', 'tax_total_minor'),
+    serviceChargeTotalMinor: exactMinor(body.service_charge_total_minor || '0', 'service_charge_total_minor'),
+    tipTotalMinor: exactMinor(body.tip_total_minor || '0', 'tip_total_minor'),
+    roundingTotalMinor: exactMinor(body.rounding_total_minor || '0', 'rounding_total_minor'),
+    presetId: body.preset_id,
+    presetVersion: String(body.preset_version),
+    lines: (body.lines || []).map((line, idx) => ({
+      ordinal: line.ordinal ?? idx,
+      itemId: line.item_id,
+      quantity: String(line.quantity),
+      modifierIds: line.modifier_ids || [],
+      discountAllocatedMinor: exactMinor(line.discount_allocated_minor || '0', 'discount_allocated_minor'),
+    })),
+    expiresAt: body.expires_at,
+    tenderEligibility,
+    source: 'hfe-core',
+  }
+}
+
+export async function acceptGovernedRetailQuote(
+  client: HfeClient,
+  payload: GovernedRetailCheckoutPayload,
+  reviewed: ReviewedPosQuote,
+  context: RetailPostingContext,
+  targetBook: string,
+  providerIntentReference?: string,
+): Promise<GovernedAcceptedTenderEvidence> {
+  if (!context.authorityContext.trim()) {
+    throw new Error('authorityContext is required for governed POS posting. Fail-closed: zero fallback allowed.')
+  }
+  if (!payload.idempotency_key) {
+    throw new Error('idempotency_key is required for governed POS posting and retry stability.')
+  }
+  if (new Date(reviewed.expiresAt).getTime() <= Date.now()) {
+    throw new Error('Reviewed CORE quote has expired before acceptance.')
+  }
+  if (reviewed.currency !== payload.currency) {
+    throw new Error(`Reviewed quote currency mismatch: ${reviewed.currency} vs ${payload.currency}.`)
+  }
+
+  const authorityHeaders = { 'X-CBook-Authority-Context': context.authorityContext }
   const accepted = await client.operations.acceptGovernedPosOrder({
     path: { book: targetBook },
     headers: { ...authorityHeaders, 'Idempotency-Key': `${payload.idempotency_key}:accept` },
     body: {
-      quote_digest_sha256: quoted.body.digest_sha256,
-      quote_id: quoted.body.quote_id,
-      quote_revision: quoted.body.revision,
+      quote_digest_sha256: reviewed.digestSha256,
+      quote_id: reviewed.quoteId,
+      quote_revision: reviewed.revision as Int64String,
       tender: {
-        amount_minor: quoted.body.amount_due_minor,
-        ...(qrisIntent ? { provider_intent_reference: qrisIntent.body.payment_id } : {}),
+        amount_minor: reviewed.amountDueMinor,
+        ...(providerIntentReference ? { provider_intent_reference: providerIntentReference } : {}),
         tender_type: payload.payment_method,
       },
     },
   })
 
-  if (payload.payment_method === 'qris') {
-    return pendingResponse(accepted.body, amountDue, payload.idempotency_key, qrisIntent?.body)
+  return {
+    orderId: accepted.body.order_id,
+    acceptedAt: accepted.body.accepted_at,
+    tenderId: accepted.body.tender.tender_id,
+    acceptanceEffectKey: accepted.body.tender.acceptance_effect_key,
+    tenderType: payload.payment_method as GovernedTenderType,
+    amountMinor: exactMinor(accepted.body.quote?.amount_due_minor || reviewed.amountDueMinor, 'amount_minor'),
+    quote: {
+      quoteId: reviewed.quoteId,
+      revision: reviewed.revision,
+      digestSha256: reviewed.digestSha256,
+      currency: reviewed.currency,
+      amountDueMinor: reviewed.amountDueMinor,
+      presetId: reviewed.presetId,
+      presetVersion: reviewed.presetVersion,
+    },
   }
-  const confirmed = await client.operations.confirmGovernedPosCashTender({
-    path: { book: targetBook, tender_id: accepted.body.tender.tender_id },
-    headers: { ...authorityHeaders, 'Idempotency-Key': `${payload.idempotency_key}:confirm` },
-    body: { accepted_tender_effect_key: accepted.body.tender.acceptance_effect_key },
-  })
-  if (confirmed.status === 202 || !('posting_id' in confirmed.body)) {
-    return pendingResponse(accepted.body, amountDue, payload.idempotency_key)
+}
+
+export async function postGovernedPosCheckout(
+  client: HfeClient,
+  payload: GovernedRetailCheckoutPayload,
+  context: RetailPostingContext,
+  targetBook: string,
+): Promise<SubmitRetailTransactionResponse> {
+  const reviewed = await prepareGovernedRetailQuote(client, payload, context, targetBook)
+  const amountDue = Number(reviewed.amountDueMinor)
+
+  const authorityHeaders = { 'X-CBook-Authority-Context': context.authorityContext }
+  const qrisIntent = payload.payment_method === 'qris'
+    ? await client.operations.generatePosQris({
+        path: { book: targetBook },
+        headers: { ...authorityHeaders, 'Idempotency-Key': `${payload.idempotency_key}:qris-intent` },
+        body: {
+          amount_idr: reviewed.amountDueMinor as Int64String,
+          transaction_id: reviewed.quoteId,
+        },
+      })
+    : null
+
+  const evidence = await acceptGovernedRetailQuote(
+    client,
+    payload,
+    reviewed,
+    context,
+    targetBook,
+    qrisIntent?.body.payment_id,
+  )
+
+  const idempotencyKey = payload.idempotency_key!
+
+  if (payload.payment_method === 'qris') {
+    return pendingResponse(
+      { order_id: evidence.orderId, accepted_at: evidence.acceptedAt, tender: { tender_id: evidence.tenderId } },
+      amountDue,
+      idempotencyKey,
+      qrisIntent?.body,
+    )
   }
 
+  const confirmed = await client.operations.confirmGovernedPosCashTender({
+    path: { book: targetBook, tender_id: evidence.tenderId },
+    headers: { ...authorityHeaders, 'Idempotency-Key': `${idempotencyKey}:confirm` },
+    body: { accepted_tender_effect_key: evidence.acceptanceEffectKey },
+  })
+
+  if (confirmed.status === 202 || !('posting_id' in confirmed.body)) {
+    return pendingResponse(
+      { order_id: evidence.orderId, accepted_at: evidence.acceptedAt, tender: { tender_id: evidence.tenderId } },
+      amountDue,
+      idempotencyKey,
+    )
+  }
+
+  const postingId = (confirmed.body as { posting_id: string }).posting_id
+
   const durable = await client.operations.getPosting({
-    path: { book: targetBook, posting: confirmed.body.posting_id },
+    path: { book: targetBook, posting: postingId },
   })
   const validation = HfePostingReadbackValidator.validate({
-    postingId: confirmed.body.posting_id,
+    postingId,
     expectedBookId: targetBook,
     sourceCapability: 'pos_tender_sale',
-    sourceObjectId: accepted.body.tender.tender_id,
-    stableEffectKey: accepted.body.tender.acceptance_effect_key,
+    sourceObjectId: evidence.tenderId,
+    stableEffectKey: evidence.acceptanceEffectKey,
   }, durable.body as any)
+
   if (!validation.isValid) {
     throw new Error(
       `Durable governed tender read-back mismatch: ${validation.mismatchReason || 'exact tender lineage and applied finality are required.'}`,
     )
   }
+
   return {
-    tx_id: accepted.body.order_id,
+    tx_id: evidence.orderId,
     status: 'posted',
-    created_at: accepted.body.accepted_at,
+    created_at: evidence.acceptedAt,
     grand_total: amountDue,
-    idempotency_key: payload.idempotency_key,
-    ledger_journal_id: confirmed.body.posting_id,
-    posting_id: confirmed.body.posting_id,
+    idempotency_key: idempotencyKey,
+    ledger_journal_id: postingId,
+    posting_id: postingId,
     readback_validation: validation,
   }
 }
@@ -144,3 +272,79 @@ function pendingResponse(
     } : {}),
   }
 }
+
+export async function reconcileGovernedTenderOutcome(
+  client: HfeClient,
+  query: GovernedTenderOutcomeQuery,
+  _context: RetailPostingContext,
+  targetBook: string,
+): Promise<SubmitRetailTransactionResponse> {
+  const result = await client.operations.getGovernedPosTenderOutcome({
+    path: { book: targetBook, tender_id: query.tenderId },
+  })
+
+  const body = result.body
+  if (body.tender_id !== query.tenderId) {
+    throw new Error(`Tender outcome mismatch: expected ${query.tenderId} but got ${body.tender_id}.`)
+  }
+  if (body.order_id !== query.orderId) {
+    throw new Error(`Order outcome mismatch: expected ${query.orderId} but got ${body.order_id}.`)
+  }
+  if (body.amount_minor !== query.amountMinor) {
+    throw new Error(`Amount outcome mismatch: expected ${query.amountMinor} but got ${body.amount_minor}.`)
+  }
+  if (body.currency !== query.currency) {
+    throw new Error(`Currency outcome mismatch: expected ${query.currency} but got ${body.currency}.`)
+  }
+  if (body.accepted_tender_effect_key !== query.acceptedTenderEffectKey) {
+    throw new Error('Accepted tender effect key mismatch.')
+  }
+
+  if (body.outcome === 'pending') {
+    return {
+      tx_id: query.orderId,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      grand_total: Number(query.amountMinor),
+      idempotency_key: query.tenderId,
+    }
+  }
+
+  if (body.outcome === 'failed') {
+    throw new Error('Governed tender outcome reported failed by provider.')
+  }
+
+  if (body.outcome === 'applied') {
+    if (!body.posting_id) {
+      throw new Error('Applied governed tender outcome missing posting_id.')
+    }
+    const durable = await client.operations.getPosting({
+      path: { book: targetBook, posting: body.posting_id },
+    })
+    const validation = HfePostingReadbackValidator.validate({
+      postingId: body.posting_id,
+      expectedBookId: targetBook,
+      sourceCapability: 'pos_tender_sale',
+      sourceObjectId: query.tenderId,
+      stableEffectKey: query.acceptedTenderEffectKey,
+    }, durable.body as any)
+
+    if (!validation.isValid) {
+      throw new Error(`Durable tender outcome read-back mismatch: ${validation.mismatchReason || 'lineage mismatch'}`)
+    }
+
+    return {
+      tx_id: query.orderId,
+      status: 'posted',
+      created_at: new Date().toISOString(),
+      grand_total: Number(query.amountMinor),
+      idempotency_key: query.tenderId,
+      ledger_journal_id: body.posting_id,
+      posting_id: body.posting_id,
+      readback_validation: validation,
+    }
+  }
+
+  throw new Error(`Unknown tender outcome state: ${body.outcome}`)
+}
+
