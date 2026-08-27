@@ -121,7 +121,12 @@ export const enTranslations: TranslationDictionary = {
       failed: 'Checkout failed. Ask a manager to check CORE.'
     },
     resumeFinancialAttempt: 'Check the same result in CORE',
-    openCompanyBookPosting: 'Open Books'
+    openCompanyBookPosting: 'Open Books',
+    qrisPendingTitle: 'QRIS Pending',
+    qrisPendingInstruction: 'Scan this official QR. Only CORE can confirm paid status.',
+    qrisPendingReference: 'Reference',
+    qrisPendingExpiry: 'Expires at',
+    qrisPendingClose: 'Close'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',

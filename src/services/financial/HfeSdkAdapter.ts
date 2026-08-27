@@ -7,6 +7,7 @@ import {
   CompanyBookSettingsResponse,
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
+  GovernedRetailCheckoutPayload,
   SubmitRetailTransactionResponse,
   RetailPostingContext,
   UniversalMultiTenderRequest,
@@ -17,6 +18,7 @@ import {
   CashierShiftCloseResponse,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
+import { postGovernedPosCheckout } from './GovernedPosCheckout'
 import {
   HfePostingReadbackValidator,
   generateUUIDv4,
@@ -261,6 +263,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     const validation = HfePostingReadbackValidator.validate(
       {
         postingId: posted.body.posting_id,
+        expectedBookId: targetBook,
         sourceCapability: 'pos_order',
         sourceObjectId: processed.body.id,
         stableEffectKey: postKey,
@@ -285,6 +288,18 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       posting_id: postingId,
       readback_validation: validation,
     }
+  }
+
+  async postGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    return postGovernedPosCheckout(
+      this.client,
+      payload,
+      context,
+      this.resolveTargetBook(context.companyBookId),
+    )
   }
 
   async reconcileRetailOrder(
@@ -347,6 +362,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     const validation = HfePostingReadbackValidator.validate(
       {
         postingId: current.body.posting_id,
+        expectedBookId: targetBook,
         sourceCapability: 'pos_order',
         sourceObjectId: current.body.id,
         stableEffectKey: postKey,
@@ -371,6 +387,18 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       posting_id: postingId,
       readback_validation: validation,
     }
+  }
+
+  async reconcileGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    if (payload.payment_method === 'qris') {
+      throw new Error(
+        'Authoritative QRIS outcome read contract is unavailable; reconciliation stopped without network mutation.'
+      )
+    }
+    return this.postGovernedRetailOrder(payload, context)
   }
 
   async settleUniversalMultiTender(

@@ -3,6 +3,7 @@
 
 export interface ExpectedPostingContext {
   postingId: string
+  expectedBookId: string
   sourceCapability?: string
   sourceObjectId?: string
   stableEffectKey?: string
@@ -18,7 +19,7 @@ export interface ReadbackJournalLine {
 
 export interface RawCorePosting {
   id: string
-  company_book_id?: string
+  book_id?: string
   source_capability?: string
   source_object_id?: string
   stable_effect_key?: string
@@ -70,10 +71,21 @@ export class HfePostingReadbackValidator {
       }
     }
 
-    // 3. Verify Source Capability Lineage if specified
+    // 3. Verify exact tenant / Company Book lineage.
+    if (!actualPosting.book_id || actualPosting.book_id !== expected.expectedBookId) {
+      return {
+        isValid: false,
+        finality: actualPosting.finality,
+        isApplied: false,
+        isMismatch: true,
+        mismatchReason: `Company Book mismatch: expected ${expected.expectedBookId}, got ${actualPosting.book_id || 'missing'}`,
+        journalLinesCount: actualPosting.lines?.length || 0,
+      }
+    }
+
+    // 4. Verify Source Capability Lineage if specified
     if (
       expected.sourceCapability &&
-      actualPosting.source_capability &&
       actualPosting.source_capability !== expected.sourceCapability
     ) {
       return {
@@ -81,15 +93,14 @@ export class HfePostingReadbackValidator {
         finality: actualPosting.finality,
         isApplied: false,
         isMismatch: true,
-        mismatchReason: `Source capability mismatch: expected ${expected.sourceCapability}, got ${actualPosting.source_capability}`,
+        mismatchReason: `Source capability mismatch: expected ${expected.sourceCapability}, got ${actualPosting.source_capability || 'missing'}`,
         journalLinesCount: actualPosting?.lines?.length || 0,
       }
     }
 
-    // 4. Verify Source Object ID Lineage if specified
+    // 5. Verify Source Object ID Lineage if specified
     if (
       expected.sourceObjectId &&
-      actualPosting.source_object_id &&
       actualPosting.source_object_id !== expected.sourceObjectId
     ) {
       return {
@@ -97,15 +108,14 @@ export class HfePostingReadbackValidator {
         finality: actualPosting.finality,
         isApplied: false,
         isMismatch: true,
-        mismatchReason: `Source object ID mismatch: expected ${expected.sourceObjectId}, got ${actualPosting.source_object_id}`,
+        mismatchReason: `Source object ID mismatch: expected ${expected.sourceObjectId}, got ${actualPosting.source_object_id || 'missing'}`,
         journalLinesCount: actualPosting?.lines?.length || 0,
       }
     }
 
-    // 5. Verify Stable Effect Key if specified
+    // 6. Verify Stable Effect Key if specified
     if (
       expected.stableEffectKey &&
-      actualPosting.stable_effect_key &&
       actualPosting.stable_effect_key !== expected.stableEffectKey
     ) {
       return {
@@ -113,12 +123,12 @@ export class HfePostingReadbackValidator {
         finality: actualPosting.finality,
         isApplied: false,
         isMismatch: true,
-        mismatchReason: `Stable effect key mismatch: expected ${expected.stableEffectKey}, got ${actualPosting.stable_effect_key}`,
+        mismatchReason: `Stable effect key mismatch: expected ${expected.stableEffectKey}, got ${actualPosting.stable_effect_key || 'missing'}`,
         journalLinesCount: actualPosting?.lines?.length || 0,
       }
     }
 
-    // 6. Verify Line Balance if journal lines are present
+    // 7. Verify Line Balance if journal lines are present
     if (actualPosting.lines && actualPosting.lines.length > 0) {
       let totalDebit = 0
       let totalCredit = 0
@@ -193,4 +203,3 @@ export function assertCanonicalCashOrderPayload(
     throw new Error(`POS amount mismatch: item subtotal, subtotal, and grand total must be identical for ${action}.`)
   }
 }
-
