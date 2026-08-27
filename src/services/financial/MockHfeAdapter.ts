@@ -15,6 +15,7 @@ import type {
   GlPostingEntry,
   ReviewedPosQuote,
   GovernedAcceptedTenderEvidence,
+  GovernedTenderOutcomeQuery,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
 import { PRODUCT_CATALOG } from '../../data/mockData'
@@ -415,6 +416,30 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       },
       isSimulated: true,
       fetched_at: new Date().toISOString(),
+    })
+  }
+
+  async reconcileGovernedTenderOutcome(
+    query: GovernedTenderOutcomeQuery,
+    _context: RetailPostingContext,
+    _bookId?: string,
+  ): Promise<SubmitRetailTransactionResponse> {
+    const postingId = `POSTING-SIM-${Date.now()}`
+    return Promise.resolve({
+      tx_id: query.orderId,
+      status: 'posted',
+      created_at: new Date().toISOString(),
+      grand_total: Number(query.amountMinor),
+      idempotency_key: query.tenderId,
+      ledger_journal_id: postingId,
+      posting_id: postingId,
+      readback_validation: {
+        isValid: true,
+        finality: 'applied',
+        isApplied: true,
+        isMismatch: false,
+        journalLinesCount: 2,
+      },
     })
   }
 }

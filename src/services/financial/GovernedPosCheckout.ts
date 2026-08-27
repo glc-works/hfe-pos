@@ -6,6 +6,7 @@ import type {
   GovernedTenderType,
   RetailPostingContext,
   ReviewedPosQuote,
+  GovernedTenderOutcomeQuery,
   SubmitRetailTransactionResponse,
 } from './HfePosFinancialPort'
 import { HfePostingReadbackValidator } from './HfePostingReadbackValidator'
@@ -270,5 +271,80 @@ function pendingResponse(
       },
     } : {}),
   }
+}
+
+export async function reconcileGovernedTenderOutcome(
+  client: HfeClient,
+  query: GovernedTenderOutcomeQuery,
+  _context: RetailPostingContext,
+  targetBook: string,
+): Promise<SubmitRetailTransactionResponse> {
+  const result = await client.operations.getGovernedPosTenderOutcome({
+    path: { book: targetBook, tender_id: query.tenderId },
+  })
+
+  const body = result.body
+  if (body.tender_id !== query.tenderId) {
+    throw new Error(`Tender outcome mismatch: expected ${query.tenderId} but got ${body.tender_id}.`)
+  }
+  if (body.order_id !== query.orderId) {
+    throw new Error(`Order outcome mismatch: expected ${query.orderId} but got ${body.order_id}.`)
+  }
+  if (body.amount_minor !== query.amountMinor) {
+    throw new Error(`Amount outcome mismatch: expected ${query.amountMinor} but got ${body.amount_minor}.`)
+  }
+  if (body.currency !== query.currency) {
+    throw new Error(`Currency outcome mismatch: expected ${query.currency} but got ${body.currency}.`)
+  }
+  if (body.accepted_tender_effect_key !== query.acceptedTenderEffectKey) {
+    throw new Error('Accepted tender effect key mismatch.')
+  }
+
+  if (body.outcome === 'pending') {
+    return {
+      tx_id: query.orderId,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      grand_total: Number(query.amountMinor),
+      idempotency_key: query.tenderId,
+    }
+  }
+
+  if (body.outcome === 'failed') {
+    throw new Error('Governed tender outcome reported failed by provider.')
+  }
+
+  if (body.outcome === 'applied') {
+    if (!body.posting_id) {
+      throw new Error('Applied governed tender outcome missing posting_id.')
+    }
+    const durable = await client.operations.getPosting({
+      path: { book: targetBook, posting: body.posting_id },
+    })
+    const validation = HfePostingReadbackValidator.validate({
+      postingId: body.posting_id,
+      expectedBookId: targetBook,
+      sourceCapability: 'pos_tender_sale',
+      sourceObjectId: query.tenderId,
+      stableEffectKey: query.acceptedTenderEffectKey,
+    }, durable.body as any)
+
+    if (!validation.isValid) {
+      throw new Error(`Durable tender outcome read-back mismatch: ${validation.mismatchReason || 'lineage mismatch'}`)
+    }
+
+    return {
+      tx_id: query.orderId,
+      status: 'posted',
+      created_at: new Date().toISOString(),
+      grand_total: Number(query.amountMinor),
+      idempotency_key: query.tenderId,
+      ledger_journal_id: body.posting_id,
+      posting_id: body.posting_id,
+      readback_validation: validation,
+    }
+  }
+
+  throw new Error(`Unknown tender outcome state: ${body.outcome}`)
 }
 

@@ -175,6 +175,14 @@ export interface GovernedAcceptedTenderEvidence {
   quote: Pick<ReviewedPosQuote, 'quoteId' | 'revision' | 'digestSha256' | 'currency' | 'amountDueMinor' | 'presetId' | 'presetVersion'>
 }
 
+export interface GovernedTenderOutcomeQuery {
+  orderId: string
+  tenderId: string
+  acceptedTenderEffectKey: string
+  amountMinor: ExactMinorString
+  currency: string
+}
+
 export interface GenerateQrisPayload {
   transaction_id: string
   amount_idr: number
@@ -327,6 +335,13 @@ export interface HfePosFinancialPort {
   reconcileGovernedRetailOrder(
     payload: GovernedRetailCheckoutPayload,
     context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse>
+
+  /** Reconcile an accepted governed tender through read-only outcome and Posting contracts. */
+  reconcileGovernedTenderOutcome(
+    query: GovernedTenderOutcomeQuery,
+    context: RetailPostingContext,
+    bookId?: string
   ): Promise<SubmitRetailTransactionResponse>
 
   /**

@@ -7,13 +7,14 @@ import type {
   SubmitRetailTransactionPayload, GovernedRetailCheckoutPayload, SubmitRetailTransactionResponse,
   RetailPostingContext, UniversalMultiTenderRequest, UniversalMultiTenderResponse,
   GenerateQrisPayload, QrisPaymentResponse, CashierShiftResponse, CashierShiftCloseResponse,
-  ReviewedPosQuote, GovernedAcceptedTenderEvidence,
+  ReviewedPosQuote, GovernedAcceptedTenderEvidence, GovernedTenderOutcomeQuery,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
 import {
   postGovernedPosCheckout,
   prepareGovernedRetailQuote,
   acceptGovernedRetailQuote,
+  reconcileGovernedTenderOutcome,
 } from './GovernedPosCheckout'
 import {
   HfePostingReadbackValidator,
@@ -146,43 +147,22 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
   ): Promise<SubmitRetailTransactionResponse> {
     const targetBook = this.resolveTargetBook(bookId)
     const idempotencyKey = payload.idempotency_key || generateUUIDv4()
-
-    const bodyPayload = {
-      table_id: payload.table_id || '',
-      contact_id: payload.contact_id,
-      policy: payload.policy,
-      payment_method: payload.payment_method,
-      items: payload.items.map((item) => ({
-        product_id: item.product_id,
-        hfe_gl_account: item.hfe_gl_account,
-        qty: item.qty,
-        price: item.price,
-        modifiers: item.modifiers,
-        cost_price: item.cost_price,
-      })),
-      subtotal: payload.subtotal,
-      tax_pb1_amount: payload.tax_pb1_amount,
-      service_fee_amount: payload.service_fee_amount,
-      discount_amount: payload.discount_amount,
-      grand_total: payload.grand_total,
-      card_metadata: payload.card_metadata,
-      cashier_id: payload.cashier_id,
-      branch_id: payload.branch_id,
-      cost_center_id: payload.cost_center_id,
-      idempotency_key: idempotencyKey,
-    }
-
-    return this.request<SubmitRetailTransactionResponse>(
-      'POST',
-      `/v1/company-books/${targetBook}/transactions`,
-      {
-        body: bodyPayload,
-        headers: {
-          'X-Idempotency-Key': idempotencyKey,
-        },
-        idempotencyKey,
-      }
-    )
+    return this.request<SubmitRetailTransactionResponse>('POST', `/v1/company-books/${targetBook}/transactions`, {
+      body: {
+        table_id: payload.table_id || '', contact_id: payload.contact_id, policy: payload.policy,
+        payment_method: payload.payment_method,
+        items: payload.items.map((item) => ({
+          product_id: item.product_id, hfe_gl_account: item.hfe_gl_account, qty: item.qty,
+          price: item.price, modifiers: item.modifiers, cost_price: item.cost_price,
+        })),
+        subtotal: payload.subtotal, tax_pb1_amount: payload.tax_pb1_amount,
+        service_fee_amount: payload.service_fee_amount, discount_amount: payload.discount_amount,
+        grand_total: payload.grand_total, card_metadata: payload.card_metadata, cashier_id: payload.cashier_id,
+        branch_id: payload.branch_id, cost_center_id: payload.cost_center_id, idempotency_key: idempotencyKey,
+      },
+      headers: { 'X-Idempotency-Key': idempotencyKey },
+      idempotencyKey,
+    })
   }
 
   async postRetailOrder(
@@ -425,6 +405,19 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       )
     }
     return this.postGovernedRetailOrder(payload, context)
+  }
+
+  async reconcileGovernedTenderOutcome(
+    query: GovernedTenderOutcomeQuery,
+    context: RetailPostingContext,
+    bookId?: string,
+  ): Promise<SubmitRetailTransactionResponse> {
+    return reconcileGovernedTenderOutcome(
+      this.client,
+      query,
+      context,
+      this.resolveTargetBook(bookId || context.companyBookId),
+    )
   }
 
   async settleUniversalMultiTender(
