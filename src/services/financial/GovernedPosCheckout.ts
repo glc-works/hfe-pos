@@ -81,7 +81,7 @@ export async function postGovernedPosCheckout(
   })
 
   if (payload.payment_method === 'qris') {
-    return pendingResponse(accepted.body, amountDue, payload.idempotency_key)
+    return pendingResponse(accepted.body, amountDue, payload.idempotency_key, qrisIntent?.body)
   }
   const confirmed = await client.operations.confirmGovernedPosCashTender({
     path: { book: targetBook, tender_id: accepted.body.tender.tender_id },
@@ -97,6 +97,7 @@ export async function postGovernedPosCheckout(
   })
   const validation = HfePostingReadbackValidator.validate({
     postingId: confirmed.body.posting_id,
+    expectedBookId: targetBook,
     sourceCapability: 'pos_tender_sale',
     sourceObjectId: accepted.body.tender.tender_id,
     stableEffectKey: accepted.body.tender.acceptance_effect_key,
@@ -119,9 +120,15 @@ export async function postGovernedPosCheckout(
 }
 
 function pendingResponse(
-  accepted: { order_id: string; accepted_at: string },
+  accepted: { order_id: string; accepted_at: string; tender?: { tender_id: string } },
   amountDue: number,
   idempotencyKey: string,
+  qrisIntent?: {
+    payment_id: string
+    qris_string: string
+    qr_image_url: string
+    expires_at: string
+  },
 ): SubmitRetailTransactionResponse {
   return {
     tx_id: accepted.order_id,
@@ -129,5 +136,11 @@ function pendingResponse(
     created_at: accepted.accepted_at,
     grand_total: amountDue,
     idempotency_key: idempotencyKey,
+    ...(qrisIntent && accepted.tender ? {
+      qris_payment: {
+        ...qrisIntent,
+        tender_id: accepted.tender.tender_id,
+      },
+    } : {}),
   }
 }

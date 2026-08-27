@@ -263,6 +263,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     const validation = HfePostingReadbackValidator.validate(
       {
         postingId: posted.body.posting_id,
+        expectedBookId: targetBook,
         sourceCapability: 'pos_order',
         sourceObjectId: processed.body.id,
         stableEffectKey: postKey,
@@ -361,6 +362,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     const validation = HfePostingReadbackValidator.validate(
       {
         postingId: current.body.posting_id,
+        expectedBookId: targetBook,
         sourceCapability: 'pos_order',
         sourceObjectId: current.body.id,
         stableEffectKey: postKey,
@@ -391,6 +393,11 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     payload: GovernedRetailCheckoutPayload,
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse> {
+    if (payload.payment_method === 'qris') {
+      throw new Error(
+        'Authoritative QRIS outcome read contract is unavailable; reconciliation stopped without network mutation.'
+      )
+    }
     return this.postGovernedRetailOrder(payload, context)
   }
 

@@ -10,6 +10,7 @@ import {
 describe('L2-POS-91: HfePostingReadbackValidator & Cash Order Payload Invariants', () => {
   const validContext: ExpectedPostingContext = {
     postingId: 'post-001',
+    expectedBookId: 'BOOK-CAFE-HQ-88',
     sourceCapability: 'pos_order',
     sourceObjectId: 'order-001',
     stableEffectKey: 'key-post-001',
@@ -17,7 +18,7 @@ describe('L2-POS-91: HfePostingReadbackValidator & Cash Order Payload Invariants
 
   const validPosting: RawCorePosting = {
     id: 'post-001',
-    company_book_id: 'BOOK-CAFE-HQ-88',
+    book_id: 'BOOK-CAFE-HQ-88',
     source_capability: 'pos_order',
     source_object_id: 'order-001',
     stable_effect_key: 'key-post-001',
@@ -51,6 +52,31 @@ describe('L2-POS-91: HfePostingReadbackValidator & Cash Order Payload Invariants
     expect(result.isValid).toBe(false)
     expect(result.isApplied).toBe(false)
     expect(result.mismatchReason).toContain('Posting is not finalized')
+  })
+
+  it.each([
+    ['book_id', 'Company Book'],
+    ['source_capability', 'Source capability'],
+    ['source_object_id', 'Source object ID'],
+    ['stable_effect_key', 'Stable effect key'],
+  ] as const)('fails fail-closed if required %s is missing', (field, reason) => {
+    const postingWithoutRequiredField = { ...validPosting }
+    delete postingWithoutRequiredField[field]
+
+    const result = HfePostingReadbackValidator.validate(validContext, postingWithoutRequiredField)
+
+    expect(result.isValid).toBe(false)
+    expect(result.isMismatch).toBe(true)
+    expect(result.mismatchReason).toContain(reason)
+  })
+
+  it('fails fail-closed if the Posting belongs to a foreign Company Book', () => {
+    const foreignPosting = { ...validPosting, book_id: 'BOOK-FOREIGN-99' }
+    const result = HfePostingReadbackValidator.validate(validContext, foreignPosting)
+
+    expect(result.isValid).toBe(false)
+    expect(result.isMismatch).toBe(true)
+    expect(result.mismatchReason).toContain('Company Book mismatch')
   })
 
   it('fails fail-closed if source capability differs from pos_order', () => {

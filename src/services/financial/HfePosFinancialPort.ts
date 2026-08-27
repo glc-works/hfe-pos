@@ -118,6 +118,8 @@ export interface SubmitRetailTransactionResponse {
   posting_id?: string
   /** Fail-closed proof artifact computed by the transport's own read-back. */
   readback_validation?: ReadbackValidationResult
+  /** CORE-issued QRIS intent shown to the cashier/customer while provider outcome remains pending. */
+  qris_payment?: QrisPaymentResponse & { tender_id: string }
   gl_entries_posted?: GlPostingEntry[]
   isSimulated?: boolean
 }

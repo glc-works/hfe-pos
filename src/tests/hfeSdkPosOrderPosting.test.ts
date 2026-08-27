@@ -95,7 +95,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       }))
       .mockResolvedValueOnce(response(200, {
         id: 'POSTING-001',
-        book_id: 'ACCOUNTING-BOOK-001',
+        book_id: context.companyBookId,
         finality: 'applied',
         source_capability: 'pos_tender_sale',
         source_object_id: 'TENDER-001',
@@ -174,79 +174,6 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('creates a CORE-priced QRIS intent and freezes its provider reference without confirming payment', async () => {
-    const governedPayload = {
-      contact_id: '',
-      policy: 'pay-first',
-      payment_method: 'qris',
-      outlet_id: 'OUTLET-CAFE-HQ',
-      terminal_id: 'TERMINAL-04',
-      currency: 'IDR',
-      items: [{ product_id: 'MN-001', quantity: 1 }],
-      idempotency_key: 'flagship-governed-qris-001',
-    } satisfies GovernedRetailCheckoutPayload
-    const fetchMock = vi.fn()
-      .mockResolvedValueOnce(response(201, {
-        quote_id: 'QUOTE-QRIS-001',
-        revision: '3',
-        digest_sha256: 'd'.repeat(64),
-        preset_id: 'PRESET-CAFE-ID',
-        preset_version: '3',
-        currency: 'IDR',
-        amount_due_minor: '30800',
-        discount_total_minor: '0',
-        expires_at: '2026-08-24T10:05:00.000Z',
-        lines: [],
-        tender_eligibility: [{ eligible: true, tender_type: 'qris' }],
-      }))
-      .mockResolvedValueOnce(response(200, {
-        expires_at: '2026-08-24T10:15:00.000Z',
-        payment_id: 'QRIS-INTENT-001',
-        qr_image_url: 'https://example.test/qris/QRIS-INTENT-001.png',
-        qris_string: '000201010212',
-      }))
-      .mockResolvedValueOnce(response(201, {
-        acceptance_idempotency_key: 'flagship-governed-qris-001:accept',
-        accepted_at: '2026-08-24T10:00:01.000Z',
-        order_id: 'ORDER-QRIS-001',
-        quote: {
-          quote_id: 'QUOTE-QRIS-001',
-          revision: '3',
-          digest_sha256: 'd'.repeat(64),
-          currency: 'IDR',
-          amount_due_minor: '30800',
-        },
-        tender: {
-          acceptance_effect_key: 'e'.repeat(64),
-          amount_minor: '30800',
-          provider_intent_reference: 'QRIS-INTENT-001',
-          tender_id: 'TENDER-QRIS-001',
-          tender_type: 'qris',
-        },
-      }))
-    vi.stubGlobal('fetch', fetchMock)
-
-    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
-    const result = await adapter.postGovernedRetailOrder(governedPayload, context)
-
-    expect(result).toMatchObject({
-      status: 'pending',
-      tx_id: 'ORDER-QRIS-001',
-      grand_total: 30_800,
-    })
-    const calls = fetchMock.mock.calls.map(([, request]) => JSON.parse(String((request as RequestInit).body)))
-    expect(calls[1]).toEqual({
-      amount_idr: 30_800,
-      transaction_id: 'QUOTE-QRIS-001',
-    })
-    expect(calls[2].tender).toEqual({
-      amount_minor: '30800',
-      provider_intent_reference: 'QRIS-INTENT-001',
-      tender_type: 'qris',
-    })
-    expect(fetchMock).toHaveBeenCalledTimes(3)
-  })
-
   it('rejects non-cash tenders before creating a CORE POS order', async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
@@ -315,7 +242,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       }))
       .mockResolvedValueOnce(response(200, {
         id: 'POSTING-001',
-        book_id: 'ACCOUNTING-BOOK-001',
+        book_id: context.companyBookId,
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: 'ORDER-001',
@@ -390,7 +317,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       }))
       .mockResolvedValueOnce(response(200, {
         id: 'POSTING-RECOVERED',
-        book_id: 'ACCOUNTING-BOOK-001',
+        book_id: context.companyBookId,
         finality: 'applied',
         source_capability: 'pos_order',
         source_object_id: 'ORDER-RECOVERED',

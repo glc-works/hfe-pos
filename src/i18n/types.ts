@@ -122,6 +122,11 @@ export interface TranslationDictionary {
     }
     resumeFinancialAttempt: string
     openCompanyBookPosting: string
+    qrisPendingTitle: string
+    qrisPendingInstruction: string
+    qrisPendingReference: string
+    qrisPendingExpiry: string
+    qrisPendingClose: string
   }
   hostStand: {
     title: string

@@ -111,6 +111,7 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
           : await post(attempt.payload, attempt)
         if (response.status !== 'posted') {
           attempt.status = 'pending'
+          attempt.response = response
           attempt.updatedAt = new Date().toISOString()
           await this.store.put(attempt)
           return { kind: 'pending', response }

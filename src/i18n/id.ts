@@ -121,7 +121,12 @@ export const idTranslations: TranslationDictionary = {
       failed: 'Checkout gagal. Minta manajer memeriksa CORE.'
     },
     resumeFinancialAttempt: 'Periksa hasil yang sama di CORE',
-    openCompanyBookPosting: 'Buka Buku'
+    openCompanyBookPosting: 'Buka Buku',
+    qrisPendingTitle: 'QRIS Menunggu',
+    qrisPendingInstruction: 'Scan QR resmi ini. Status lunas hanya berasal dari CORE.',
+    qrisPendingReference: 'Referensi',
+    qrisPendingExpiry: 'Berlaku sampai',
+    qrisPendingClose: 'Tutup'
   },
   hostStand: {
     title: 'Host Stand 5-Star Guest Greeting',

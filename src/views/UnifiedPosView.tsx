@@ -11,6 +11,7 @@ import { PosCommandHeader } from '../components/pos/PosCommandHeader'
 import { PosBookingReservationsSection } from '../components/pos/PosBookingReservationsSection'
 import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsCluster'
 import { FinancialStatusBanner } from '../components/pos/FinancialStatusBanner'
+import { GovernedQrisPendingModal } from '../components/pos/GovernedQrisPendingModal'
 import { ActiveOperationsTrayDock } from '../components/pos/ActiveOperationsTrayDock'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useOperationsTray } from '../hooks/useOperationsTray'
@@ -134,7 +135,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
   const availableCount = useMemo(() => tablesGrid.filter((t) => t.status === 'free').length, [tablesGrid])
 
-  const { financialStatus, financialNotice, financialFailureCode, postingTruthHref, handleCheckout: handleCheckoutAction, resumeCheckout } = useCafeSettlement({
+  const { financialStatus, financialNotice, financialFailureCode, postingTruthHref, pendingQrisPayment, dismissPendingQrisPayment, handleCheckout: handleCheckoutAction, resumeCheckout } = useCafeSettlement({
     financialPort, organizationId, companyBookId, authorityContext, cashierId,
     selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
     fulfillmentMode, paymentMethod: posPayMethod,
@@ -216,6 +217,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950"
     >
       <FinancialStatusBanner status={financialStatus} notice={financialNotice} failureCode={financialFailureCode} onResume={resumeCheckout} postingTruthHref={postingTruthHref} />
+      {pendingQrisPayment && (
+        <GovernedQrisPendingModal payment={pendingQrisPayment} onClose={dismissPendingQrisPayment} />
+      )}
       <main className={`flex-1 min-h-0 w-full max-w-7xl mx-auto p-2.5 sm:p-4 gap-2 sm:gap-4 ${
         isMobile
           ? 'flex flex-col overflow-hidden'

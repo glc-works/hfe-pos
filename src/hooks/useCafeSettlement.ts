@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { CartItem, OrderFulfillmentMode, OrderTicket, PosPayMethod, TableStatus } from '../types/pos'
-import type { GovernedRetailCheckoutPayload, HfePosFinancialPort } from '../services/financial'
+import type { GovernedRetailCheckoutPayload, HfePosFinancialPort, QrisPaymentResponse } from '../services/financial'
 import { CafeCheckoutAttemptCoordinator } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 import { isConnectedFirstPartyRuntime, requiredRuntimeUuid, resolveGovernedQuoteContext } from '../config/firstPartyRuntime'
@@ -87,6 +87,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const [financialNotice, setFinancialNotice] = useState<CafeFinancialNotice>(null)
   const [financialFailureCode, setFinancialFailureCode] = useState<CheckoutFailureCode | null>(null)
   const [postingTruthHref, setPostingTruthHref] = useState<string | null>(null)
+  const [pendingQrisPayment, setPendingQrisPayment] = useState<(QrisPaymentResponse & { tender_id: string }) | null>(null)
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(
     new OfflineIntentQueue<GovernedRetailCheckoutPayload>(),
   ))
@@ -161,10 +162,12 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
         return
       }
       if (result.kind === 'pending') {
+        setPendingQrisPayment(result.response.qris_payment || null)
         setFinancialNotice('pending_core')
         return
       }
       if (result.kind === 'operator_action_required') {
+        setPendingQrisPayment(result.attempt.response?.qris_payment || null)
         setFinancialStatus(result.attempt.status === 'posted' ? 'error' : 'pending')
         setFinancialNotice(result.attempt.status === 'posted' ? 'posted_unacknowledged' : 'outcome_unknown')
         setFinancialFailureCode(classifyCheckoutFailure(result.attempt.lastError))
@@ -191,6 +194,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       }
 
       setFinancialStatus('posted')
+      setPendingQrisPayment(null)
       setFinancialNotice('posted')
       setFinancialFailureCode(null)
 
@@ -222,6 +226,8 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     financialNotice,
     financialFailureCode,
     postingTruthHref,
+    pendingQrisPayment,
+    dismissPendingQrisPayment: () => setPendingQrisPayment(null),
     handleCheckout: () => executeCheckout(false),
     resumeCheckout: () => executeCheckout(true),
   }
