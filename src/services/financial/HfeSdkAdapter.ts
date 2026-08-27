@@ -283,6 +283,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       idempotency_key: payload.idempotency_key!,
       ledger_journal_id: postingId,
       posting_id: postingId,
+      readback_validation: validation,
     }
   }
 
@@ -368,6 +369,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       idempotency_key: payload.idempotency_key!,
       ledger_journal_id: postingId,
       posting_id: postingId,
+      readback_validation: validation,
     }
   }
 

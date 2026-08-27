@@ -2,6 +2,7 @@
 // Universal Financial Integration Port Contract for POS & Commerce Suite
 
 import { MenuItem } from '../../types/pos'
+import type { ReadbackValidationResult } from './HfePostingReadbackValidator'
 
 export type AccountingTopologyMode = 'dimensional' | 'multi_book' | 'sub_account'
 
@@ -87,6 +88,8 @@ export interface SubmitRetailTransactionResponse {
   ledger_journal_id?: string
   /** Canonical Posting identity proven by independent CORE read-back. */
   posting_id?: string
+  /** Fail-closed proof artifact computed by the transport's own read-back. */
+  readback_validation?: ReadbackValidationResult
   gl_entries_posted?: GlPostingEntry[]
   isSimulated?: boolean
 }

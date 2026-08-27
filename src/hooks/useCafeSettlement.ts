@@ -5,6 +5,7 @@ import { CafeCheckoutAttemptCoordinator } from '../services/financial/CafeChecko
 import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
 import { companyBookPostingHref } from '../config/companyBookPostingLink'
+import { useLiveCoreActivation } from '../context/DataTruthContext'
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
 export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
@@ -51,6 +52,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const [financialFailureCode, setFinancialFailureCode] = useState<CheckoutFailureCode | null>(null)
   const [postingTruthHref, setPostingTruthHref] = useState<string | null>(null)
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator(new OfflineIntentQueue()))
+  const activateLiveCore = useLiveCoreActivation()
 
   const executeCheckout = async (resumeExisting: boolean) => {
     const {
@@ -150,6 +152,14 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       setFinancialStatus('posted')
       setFinancialNotice('posted')
       setFinancialFailureCode(null)
+
+      // #35: the ONLY sanctioned live-core activation — feed the transport's own
+      // fail-closed read-back proof into the Data Truth Boundary. Any gate throw
+      // falls into the catch below and surfaces as a loud financial failure.
+      if (result.response.readback_validation && result.response.posting_id) {
+        activateLiveCore(result.response.readback_validation, result.response.posting_id)
+      }
+
       setPostingTruthHref(result.response.posting_id
         ? companyBookPostingHref(organizationId, companyBookId, result.response.posting_id, result.response.tx_id)
         : null)

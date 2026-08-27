@@ -205,4 +205,26 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/postings/${flagshipPostingId}`,
     ])
   })
+
+  test('flips the truth channel to LIVE only after the applied read-back chain (#35)', async ({ page }) => {
+    const { driver } = await openCanonicalCashier(page, 'applied')
+
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
+    await expect(page.getByText(/LIVE •/)).toHaveCount(0) // pre-settlement: channel must stay demo/pending
+    await driver.processSettlement(cashScenario)
+    await driver.verifySettlementSuccess(cashScenario.tableNumber)
+
+    await expect(page.getByText(/LIVE •/).first()).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('keeps the truth channel demo when the durable read-back lineage mismatches (#35)', async ({ page }) => {
+    const { driver } = await openCanonicalCashier(page, 'mismatch')
+
+    await driver.selectOccupiedTable(cashScenario.tableNumber)
+    await driver.processSettlement(cashScenario)
+    await expect(page.locator('[data-financial-status="error"]')).toBeVisible()
+
+    await expect(page.getByText(/🧪/).first()).toBeVisible()
+    await expect(page.getByText(/LIVE •/)).toHaveCount(0)
+  })
 })

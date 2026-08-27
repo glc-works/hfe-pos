@@ -1,4 +1,5 @@
 import { useTranslation } from '../../context/LanguageContext'
+import { TruthChannelBadge } from '../../ui'
 import type { CafeFinancialNotice, CafeFinancialStatus, CheckoutFailureCode } from '../../hooks/useCafeSettlement'
 
 interface FinancialStatusBannerProps {
@@ -22,6 +23,7 @@ export function FinancialStatusBanner({ status, notice, failureCode, onResume, p
   return (
     <div role="status" data-financial-failure-code={failureCode || undefined} className={`relative z-[90] shrink-0 px-3 py-2 text-center text-xs font-bold ${tone}`}>
       <span>{t.cart.financialNotices[notice]}</span>
+      <TruthChannelBadge className="ml-2 align-middle" />
       {status === 'posted' && postingTruthHref && (
         <a href={postingTruthHref} target="_blank" rel="noreferrer" className="ml-2 inline-flex whitespace-nowrap rounded-md border border-current px-2 py-1 underline-offset-2 hover:underline">
           {t.cart.openCompanyBookPosting}
