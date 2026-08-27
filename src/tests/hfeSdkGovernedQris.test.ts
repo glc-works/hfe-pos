@@ -94,4 +94,30 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
       .rejects.toThrow(/authoritative QRIS outcome read contract is unavailable/i)
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  it('exposes the generated governed tender outcome operation on HfeClient', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(200, {
+      accepted_tender_effect_key: 'e'.repeat(64),
+      amount_minor: '30800',
+      currency: 'IDR',
+      order_id: 'ORDER-1',
+      outcome: 'pending',
+      posting_finality: null,
+      posting_id: null,
+      posting_source_capability: null,
+      posting_source_object_id: null,
+      posting_stable_effect_key: null,
+      provider_event_id: null,
+      provider_event_receipt_id: null,
+      provider_occurred_at: null,
+      tender_id: 'TENDER-1',
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    const { HfeClient } = await import('@hfe/sdk')
+    const client = new HfeClient({ baseUrl: 'http://localhost:8080' })
+    const result = await client.operations.getGovernedPosTenderOutcome({
+      path: { book: 'BOOK-1', tender_id: 'TENDER-1' },
+    })
+    expect(result.body).toMatchObject({ tender_id: 'TENDER-1', outcome: 'pending' })
+  })
 })
