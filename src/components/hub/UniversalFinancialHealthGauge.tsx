@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Card, Button, Badge } from '@/ui'
+import { Card, Button, Badge, TruthChannelBadge } from '@/ui'
 import { 
   ShieldCheck, TrendingUp, Landmark, RefreshCw, 
   Sparkles, CheckCircle2, AlertCircle, Layers, Activity, Gauge
@@ -65,15 +65,7 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
               <h3 className="font-black text-sm text-slate-900 dark:text-white">
                 Universal Executive Financial Health & Capital Velocity
               </h3>
-              {isCoreConnected ? (
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-                  🟢 Hfe CORE Live GL
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono">
-                  🧪 Model Finansial Simulasi
-                </Badge>
-              )}
+              <TruthChannelBadge channel={isCoreConnected ? 'live-core' : 'demo'} />
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Derivasi metrik likuiditas, efisiensi margin, kecepatan perputaran modal & cadangan pajak.

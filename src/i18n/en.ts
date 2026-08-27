@@ -323,6 +323,11 @@ export const enTranslations: TranslationDictionary = {
     oneTruthStep5Title: '5. HQ Consolidation',
     oneTruthStep5Desc: 'Owners and executive management monitor real-time net cash flow across outlets.',
   },
+  truth: {
+    liveLabel: 'LIVE • Verified Core',
+    pendingLabel: 'Pending Core Sync',
+    demoLabel: 'Demo Data',
+  },
   hub: {
     businessTruthTitle: '⚡ Realtime Business Truth: Last Transaction Impact',
     businessTruthPostedBadge: 'Posted to General Ledger ✓',

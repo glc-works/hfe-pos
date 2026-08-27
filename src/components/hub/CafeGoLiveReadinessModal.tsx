@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Card, Button, Badge } from '@/ui'
+import { Card, Button, Badge, TruthChannelBadge } from '@/ui'
 import { 
   CheckCircle2, AlertCircle, Printer, Landmark, QrCode, 
   Store, KeyRound, ShieldCheck, Sparkles, X, ChevronRight,
@@ -116,15 +116,7 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
                 <h3 className="font-black text-sm text-slate-900 dark:text-white tracking-wide">
                   Pusat Kesiapan Operasional Toko (Go-Live Readiness)
                 </h3>
-                {isHardwareSimulated ? (
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono">
-                    🧪 5/5 Siap (Mode Simulasi)
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-                    5/5 Siap Buka
-                  </Badge>
-                )}
+                <TruthChannelBadge channel={isHardwareSimulated ? 'pending-sync' : 'live-core'} />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Verifikasi menyeluruh kasir, printer thermal, QRIS, buku besar, dan stok sebelum melayani pelanggan nyata.

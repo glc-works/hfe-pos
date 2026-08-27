@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Card, Button, Badge } from '../../ui'
+import { Card, Button, Badge, TruthChannelBadge } from '../../ui'
 import { TrendingUp, DollarSign, PieChart, Clock, FileText, Printer, Sparkles, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { UniversalFinancialHealthGauge } from './UniversalFinancialHealthGauge'
@@ -138,6 +138,7 @@ export function ExecutiveInsightsTab({
             </h4>
           </div>
           {renderPostingBadge()}
+          <TruthChannelBadge channel={postingStatus === 'posted' ? 'live-core' : postingStatus === 'pending' ? 'pending-sync' : 'demo'} />
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">

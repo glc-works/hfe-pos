@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Card, Button, Badge, TextInput } from '@/ui'
+import { Card, Button, Badge, TextInput, TruthChannelBadge } from '@/ui'
 import { 
   Landmark, CheckCircle2, AlertCircle, ArrowRight, Search, 
   Sparkles, RefreshCw, Download, Filter, HelpCircle, X, ShieldCheck
@@ -226,9 +226,7 @@ export const FindAndMatchReconciliationModal: React.FC<FindAndMatchReconciliatio
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-sm text-slate-900 dark:text-white tracking-wide">Rekonsiliasi Bank & QRIS</h3>
-                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-mono">
-                  🧪 Simulasi Lokal (Demo Data)
-                </Badge>
+                <TruthChannelBadge />
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Pencocokan 2 arah: Rekening Koran ⇄ Transaksi Kasir POS (Memori Browser).

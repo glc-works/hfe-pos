@@ -323,6 +323,11 @@ export const idTranslations: TranslationDictionary = {
     oneTruthStep5Title: '5. Konsolidasi HQ',
     oneTruthStep5Desc: 'Owner dan manajemen memantau arus kas bersih jaringan secara instan.',
   },
+  truth: {
+    liveLabel: 'LIVE • Terverifikasi CORE',
+    pendingLabel: 'Menunggu Sinkron CORE',
+    demoLabel: 'Data Demo',
+  },
   hub: {
     businessTruthTitle: '⚡ Realtime Business Truth: Dampak Transaksi Terakhir',
     businessTruthPostedBadge: 'Terposting ke Buku Besar ✓',

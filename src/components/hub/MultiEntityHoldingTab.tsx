@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Card, Button, Badge } from '@/ui'
+import { Card, Button, Badge, TruthChannelBadge } from '@/ui'
 import { 
   Building2, Layers, GitFork, ArrowRightLeft, ShieldCheck, 
   ChevronRight, CheckCircle2, Globe, Store, Sparkles, RefreshCw, FileText
@@ -123,6 +123,7 @@ export const MultiEntityHoldingTab: React.FC = () => {
             <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
               Hierarki Aktif:
             </span>
+            <TruthChannelBadge />
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20">
               <Globe className="w-3.5 h-3.5" />
               <span>Tenant: {MOCK_TENANT.name} ({MOCK_TENANT.tenantCode})</span>

@@ -4,6 +4,7 @@ import { LanguageProvider } from '../../context/LanguageContext'
 import { MerchantConfigProvider, useMerchantConfig } from '../../context/MerchantConfigContext'
 import { NotificationProvider } from '../../context/NotificationContext'
 import { ViewportProvider } from '../../context/ViewportContext'
+import { DataTruthProvider } from '../../context/DataTruthContext'
 import { connectedRuntimeConfigurationError } from '../../config/firstPartyRuntime'
 import { RuntimeConfigurationErrorView } from '../auth/RuntimeConfigurationErrorView'
 
@@ -19,7 +20,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <LanguageProvider>
         <MerchantConfigProvider>
           <NotificationProvider>
-            <ViewportConsumer>{children}</ViewportConsumer>
+            <DataTruthProvider>
+              <ViewportConsumer>{children}</ViewportConsumer>
+            </DataTruthProvider>
           </NotificationProvider>
         </MerchantConfigProvider>
       </LanguageProvider>

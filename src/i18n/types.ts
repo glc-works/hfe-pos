@@ -323,6 +323,11 @@ export interface TranslationDictionary {
     oneTruthStep5Title: string
     oneTruthStep5Desc: string
   }
+  truth: {
+    liveLabel: string
+    pendingLabel: string
+    demoLabel: string
+  }
   hub: {
     businessTruthTitle: string
     businessTruthPostedBadge: string

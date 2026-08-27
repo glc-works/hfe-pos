@@ -1,0 +1,14 @@
+{
+  "$comment": "Single source of truth for the Data Truth Boundary gate. Every listed financial/operational surface MUST consume useDataTruth() or TruthChannelBadge before rendering truth claims. Consumed by scripts/check-truth-boundary.mjs (CI Step 10) and src/tests/dataTruthBoundary.test.ts.",
+  "surfaces": [
+    "src/components/hub/ExecutiveInsightsTab.tsx",
+    "src/components/hub/UniversalFinancialHealthGauge.tsx",
+    "src/components/hub/CafeGoLiveReadinessModal.tsx",
+    "src/components/hub/FindAndMatchReconciliationModal.tsx",
+    "src/components/hub/MultiEntityHoldingTab.tsx"
+  ],
+  "bannedPatternScopes": ["src/services"],
+  "bannedPatterns": {
+    "fabricated-settlement-in-catch": "catch[\\s\\S]{0,400}?status:\\s*['\"]settled['\"]"
+  }
+}
