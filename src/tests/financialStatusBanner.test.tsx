@@ -47,4 +47,20 @@ describe('financial status recovery action', () => {
 
     expect(html).not.toContain('<button')
   })
+
+  it('does not offer reconciliation for QRIS while CORE has no authoritative outcome read', () => {
+    const html = renderToStaticMarkup(
+      <FinancialStatusBanner
+        status="pending"
+        notice="pending_core"
+        failureCode={null}
+        onResume={vi.fn()}
+        canResume={false}
+        postingTruthHref={null}
+      />,
+    )
+
+    expect(html).toContain('CORE masih memproses')
+    expect(html).not.toContain('<button')
+  })
 })

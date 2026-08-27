@@ -135,7 +135,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
   const availableCount = useMemo(() => tablesGrid.filter((t) => t.status === 'free').length, [tablesGrid])
 
-  const { financialStatus, financialNotice, financialFailureCode, postingTruthHref, pendingQrisPayment, dismissPendingQrisPayment, handleCheckout: handleCheckoutAction, resumeCheckout } = useCafeSettlement({
+  const { financialStatus, financialNotice, financialFailureCode, postingTruthHref, pendingQrisPayment, canResumeFinancialAttempt, dismissPendingQrisPayment, handleCheckout: handleCheckoutAction, resumeCheckout } = useCafeSettlement({
     financialPort, organizationId, companyBookId, authorityContext, cashierId,
     selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
     fulfillmentMode, paymentMethod: posPayMethod,
@@ -216,7 +216,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       data-financial-failure-code={financialFailureCode || undefined}
       className="relative flex-1 min-h-0 flex flex-col h-full overflow-hidden w-full bg-slate-100 dark:bg-slate-950"
     >
-      <FinancialStatusBanner status={financialStatus} notice={financialNotice} failureCode={financialFailureCode} onResume={resumeCheckout} postingTruthHref={postingTruthHref} />
+      <FinancialStatusBanner status={financialStatus} notice={financialNotice} failureCode={financialFailureCode} onResume={resumeCheckout} canResume={canResumeFinancialAttempt} postingTruthHref={postingTruthHref} />
       {pendingQrisPayment && (
         <GovernedQrisPendingModal payment={pendingQrisPayment} onClose={dismissPendingQrisPayment} />
       )}

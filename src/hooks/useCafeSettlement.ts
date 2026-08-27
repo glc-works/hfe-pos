@@ -88,6 +88,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const [financialFailureCode, setFinancialFailureCode] = useState<CheckoutFailureCode | null>(null)
   const [postingTruthHref, setPostingTruthHref] = useState<string | null>(null)
   const [pendingQrisPayment, setPendingQrisPayment] = useState<(QrisPaymentResponse & { tender_id: string }) | null>(null)
+  const [canResumeFinancialAttempt, setCanResumeFinancialAttempt] = useState(true)
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(
     new OfflineIntentQueue<GovernedRetailCheckoutPayload>(),
   ))
@@ -117,6 +118,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       quoteContext: resolveGovernedQuoteContext(),
       items,
     })
+    setCanResumeFinancialAttempt(payload.payment_method !== 'qris')
 
     setFinancialStatus('pending')
     setPostingTruthHref(null)
@@ -227,6 +229,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     financialFailureCode,
     postingTruthHref,
     pendingQrisPayment,
+    canResumeFinancialAttempt,
     dismissPendingQrisPayment: () => setPendingQrisPayment(null),
     handleCheckout: () => executeCheckout(false),
     resumeCheckout: () => executeCheckout(true),

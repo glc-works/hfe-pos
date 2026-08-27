@@ -7,10 +7,11 @@ interface FinancialStatusBannerProps {
   notice: CafeFinancialNotice
   failureCode: CheckoutFailureCode | null
   onResume: () => void
+  canResume?: boolean
   postingTruthHref: string | null
 }
 
-export function FinancialStatusBanner({ status, notice, failureCode, onResume, postingTruthHref }: FinancialStatusBannerProps) {
+export function FinancialStatusBanner({ status, notice, failureCode, onResume, canResume = true, postingTruthHref }: FinancialStatusBannerProps) {
   const { t } = useTranslation()
   if (!notice || status === 'idle') return null
 
@@ -29,7 +30,7 @@ export function FinancialStatusBanner({ status, notice, failureCode, onResume, p
           {t.cart.openCompanyBookPosting}
         </a>
       )}
-      {(notice === 'outcome_unknown' || notice === 'pending_core' || notice === 'posted_unacknowledged') && (
+      {canResume && (notice === 'outcome_unknown' || notice === 'pending_core' || notice === 'posted_unacknowledged') && (
         <button type="button" onClick={onResume} className="ml-3 rounded-md border border-current px-2 py-1 underline-offset-2 hover:underline">
           {t.cart.resumeFinancialAttempt}
         </button>
