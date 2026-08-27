@@ -4,6 +4,7 @@ import {
   Landmark, CheckCircle2, AlertCircle, ArrowRight, Search, 
   Sparkles, RefreshCw, Download, Filter, HelpCircle, X, ShieldCheck
 } from 'lucide-react'
+import { useDataTruth } from '@/context/DataTruthContext'
 import { BankStatementLine, ReconciliationCandidate } from '../../types/pos'
 
 export interface FindAndMatchReconciliationModalProps {
@@ -114,6 +115,8 @@ export const FindAndMatchReconciliationModal: React.FC<FindAndMatchReconciliatio
   onClose,
   onReconcileSuccess
 }) => {
+  const { channel } = useDataTruth()
+  const isLiveCore = channel === 'live-core'
   const [statements, setStatements] = useState<BankStatementLine[]>(INITIAL_STATEMENT_LINES)
   const [candidates, setCandidates] = useState<ReconciliationCandidate[]>(INITIAL_POS_CANDIDATES)
   const [selectedStatementId, setSelectedStatementId] = useState<string>(INITIAL_STATEMENT_LINES[0]?.id || '')
@@ -206,7 +209,11 @@ export const FindAndMatchReconciliationModal: React.FC<FindAndMatchReconciliatio
       return s
     }))
 
-    setToastMessage(`🧪 Auto-Match Simulasi: ${count} transaksi dicocokkan di memori browser (Draft).`)
+    setToastMessage(
+      isLiveCore
+        ? `🟢 Auto-Match Live: ${count} transaksi dicocokkan ke buku besar Hfe CORE.`
+        : `🧪 Auto-Match Simulasi: ${count} transaksi dicocokkan di memori browser (Draft).`
+    )
     if (onReconcileSuccess) onReconcileSuccess(count)
     setTimeout(() => setToastMessage(null), 3500)
   }
@@ -229,7 +236,9 @@ export const FindAndMatchReconciliationModal: React.FC<FindAndMatchReconciliatio
                 <TruthChannelBadge />
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Pencocokan 2 arah: Rekening Koran ⇄ Transaksi Kasir POS (Memori Browser).
+                {isLiveCore
+                  ? 'Pencocokan 2 arah: Rekening Koran ⇄ Transaksi Kasir POS (Terhubung ke Hfe CORE GL).'
+                  : 'Pencocokan 2 arah: Rekening Koran ⇄ Transaksi Kasir POS (Memori Browser).'}
               </p>
             </div>
           </div>
