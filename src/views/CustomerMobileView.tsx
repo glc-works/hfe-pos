@@ -64,6 +64,7 @@ export interface CustomerMobileViewProps {
   onSettleOpenTab?: (tableName: string, details: any) => void
   onSwitchToLandingPage?: () => void
   onJoinMembership?: (phone: string) => void
+  onResetGuestSession?: () => void
   onSwitchToPos?: () => void
 }
 
@@ -113,6 +114,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
   onSettleOpenTab,
   onSwitchToLandingPage,
   onJoinMembership,
+  onResetGuestSession,
   onSwitchToPos
 }) => {
   const categoryRefsMap = useRef<Record<string, HTMLDivElement | null>>({})
@@ -378,6 +380,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
                 grandTotalBill={grandTotalBill}
                 isCustomerSessionActive={isCustomerSessionActive}
                 onJoinMembership={onJoinMembership}
+                onResetGuestSession={onResetGuestSession}
                 setQrStepView={setQrStepView}
                 handleUpdateQty={handleUpdateQty}
                 handleApplyPromo={handleApplyPromo}

@@ -138,6 +138,15 @@ export interface TranslationDictionary {
   }
   customer: {
     welcome: string
+    membershipJoinIdle: string
+    membershipJoinSuccess: string
+    membershipJoinCta: string
+    membershipPhonePlaceholder: string
+    membershipSaveCta: string
+    membershipCancelCta: string
+    membershipHintSuccess: string
+    membershipHintIdle: string
+    resetDemoSession: string
     tableNo: string
     seatNo: string
     loyaltyPoints: string

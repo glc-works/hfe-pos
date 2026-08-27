@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from '../../context/LanguageContext'
 
 export interface ValueLedMembershipBannerProps {
   isCustomerSessionActive?: boolean
@@ -9,6 +10,7 @@ export const ValueLedMembershipBanner: React.FC<ValueLedMembershipBannerProps> =
   isCustomerSessionActive = false,
   onJoinMembership
 }) => {
+  const { t } = useTranslation()
   const [showJoinPhone, setShowJoinPhone] = useState(false)
   const [joinPhoneInput, setJoinPhoneInput] = useState('')
   const [joinedSuccess, setJoinedSuccess] = useState(false)
@@ -17,17 +19,17 @@ export const ValueLedMembershipBanner: React.FC<ValueLedMembershipBannerProps> =
 
   return (
     <div className="border border-emerald-500/30 bg-emerald-500/10 rounded-xl p-2.5 flex flex-col gap-1.5 shadow-sm text-xs">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-          🎁 {joinedSuccess ? 'Member Aktif: Poin Tersimpan!' : 'Gabung Member: Hemat & Kumpulkan Poin'}
+          🎁 {joinedSuccess ? t.customer.membershipJoinSuccess : t.customer.membershipJoinIdle}
         </span>
         {!joinedSuccess && !showJoinPhone && (
           <button
             type="button"
             onClick={() => setShowJoinPhone(true)}
-            className="px-2 py-0.5 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition-colors"
+            className="min-h-[44px] px-3 rounded-lg bg-emerald-600 text-white font-bold text-[11px] active:scale-[0.97] hover:bg-emerald-700 transition-colors shrink-0"
           >
-            ✨ Gabung (1-Ketuk)
+            {t.customer.membershipJoinCta}
           </button>
         )}
       </div>
@@ -35,10 +37,10 @@ export const ValueLedMembershipBanner: React.FC<ValueLedMembershipBannerProps> =
         <div className="flex items-center gap-1.5 pt-1">
           <input
             type="tel"
-            placeholder="Nomor HP (cth: 08123456789)"
+            placeholder={t.customer.membershipPhonePlaceholder}
             value={joinPhoneInput}
             onChange={(e) => setJoinPhoneInput(e.target.value)}
-            className="flex-1 text-xs px-2 py-1 rounded-lg border bg-background border-border outline-none"
+            className="flex-1 min-h-[44px] text-xs px-2 rounded-lg border bg-background border-border outline-none"
           />
           <button
             type="button"
@@ -49,21 +51,21 @@ export const ValueLedMembershipBanner: React.FC<ValueLedMembershipBannerProps> =
                 setShowJoinPhone(false)
               }
             }}
-            className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700"
+            className="min-h-[44px] px-3 rounded-lg bg-emerald-600 text-white font-bold text-xs active:scale-[0.97] hover:bg-emerald-700 transition-colors shrink-0"
           >
-            Simpan
+            {t.customer.membershipSaveCta}
           </button>
           <button
             type="button"
             onClick={() => setShowJoinPhone(false)}
-            className="text-[11px] text-muted-foreground px-1"
+            className="min-h-[44px] text-[11px] text-muted-foreground px-2 active:scale-[0.97] transition-transform shrink-0"
           >
-            Batal
+            {t.customer.membershipCancelCta}
           </button>
         </div>
       )}
       <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">
-        {joinedSuccess ? 'Nomor terhubung ke transaksi ini.' : 'Daftar instan tanpa password untuk struk digital & reward point.'}
+        {joinedSuccess ? t.customer.membershipHintSuccess : t.customer.membershipHintIdle}
       </p>
     </div>
   )

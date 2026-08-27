@@ -283,6 +283,7 @@ function AppMain() {
             handleSubmitOrder={() => cart.handleSubmitOrder(table.selectedTable, setQrStepView)}
             onSettleOpenTab={handleSettleOpenTab}
             onJoinMembership={handleJoinMembershipAtCheckout}
+            onResetGuestSession={resetCanonicalGuestSession}
             onSwitchToLandingPage={() => config.setActiveApp('landing')}
             onSwitchToPos={() => config.setActiveApp('cafe')}
           />

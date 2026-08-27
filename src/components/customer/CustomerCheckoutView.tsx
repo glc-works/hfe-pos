@@ -25,6 +25,7 @@ export interface CustomerCheckoutViewProps {
   hasPaidOrder?: boolean
   isCustomerSessionActive?: boolean
   onJoinMembership?: (phone: string) => void
+  onResetGuestSession?: () => void
   promoCodeInput: string
   setPromoCodeInput: (val: string) => void
   appliedPromo: { code: string; discount: number } | null
@@ -54,6 +55,7 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
   hasPaidOrder = false,
   isCustomerSessionActive = false,
   onJoinMembership,
+  onResetGuestSession,
   promoCodeInput,
   setPromoCodeInput,
   appliedPromo,
@@ -419,6 +421,17 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
           isCustomerSessionActive={isCustomerSessionActive}
           onJoinMembership={onJoinMembership}
         />
+
+        {/* DETERMINISTIC GUEST-SESSION RESET (canonical flagship start state, Issue #42) */}
+        {onResetGuestSession && (
+          <button
+            type="button"
+            onClick={onResetGuestSession}
+            className="min-h-[44px] w-full rounded-xl border border-dashed border-border text-[11px] font-bold text-muted-foreground flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform select-none"
+          >
+            🔄 {t.customer.resetDemoSession}
+          </button>
+        )}
 
         {/* LEGAL & NON-CANCELLABLE DISPUTE PREVENTION WARNING */}
         <div 
