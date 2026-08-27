@@ -72,6 +72,34 @@ export interface SubmitRetailTransactionPayload {
   idempotency_key?: string
 }
 
+export interface GovernedRetailCheckoutItem {
+  product_id: string
+  quantity: number
+  modifier_ids?: string[]
+}
+
+/**
+ * Connected cashier intent. Monetary, policy-calculation, and accounting facts are
+ * deliberately absent: CORE resolves them from the accepted catalog and preset.
+ */
+export interface GovernedRetailCheckoutPayload {
+  table_id?: string
+  contact_id: string
+  policy: 'pay-first' | 'open-tab'
+  payment_method: 'cash' | 'qris'
+  outlet_id: string
+  terminal_id: string
+  currency: string
+  promotion_codes?: string[]
+  items: GovernedRetailCheckoutItem[]
+  cashier_id?: string
+  idempotency_key?: string
+}
+
+export type PersistedRetailCheckoutPayload =
+  | SubmitRetailTransactionPayload
+  | GovernedRetailCheckoutPayload
+
 export interface GlPostingEntry {
   account: string
   account_name?: string
@@ -224,11 +252,23 @@ export interface HfePosFinancialPort {
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse>
 
+  /** Execute a CORE-priced checkout without accepting caller-owned money or GL facts. */
+  postGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse>
+
   /**
    * Reconcile an unresolved canonical POS attempt without submitting or posting it again.
    */
   reconcileRetailOrder(
     payload: SubmitRetailTransactionPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse>
+
+  /** Reuse the same governed idempotency lineage to resolve an unknown outcome. */
+  reconcileGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse>
 

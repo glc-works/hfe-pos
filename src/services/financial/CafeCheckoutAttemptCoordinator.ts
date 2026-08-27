@@ -1,4 +1,5 @@
 import type {
+  PersistedRetailCheckoutPayload,
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
 } from './HfePosFinancialPort'
@@ -6,12 +7,12 @@ import { generatePayloadChecksum } from '../../utils/cryptoHasher'
 
 export type CheckoutAttemptStatus = 'prepared' | 'outcome_unknown' | 'pending' | 'posted'
 
-export interface CheckoutAttemptRecord {
+export interface CheckoutAttemptRecord<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> {
   checkoutKey: string
   bookId: string
   idempotencyKey: string
   payloadFingerprint: string
-  payload: SubmitRetailTransactionPayload
+  payload: TPayload
   status: CheckoutAttemptStatus
   createdAt: string
   updatedAt: string
@@ -19,39 +20,39 @@ export interface CheckoutAttemptRecord {
   response?: SubmitRetailTransactionResponse
 }
 
-export interface CheckoutAttemptStore {
-  get(checkoutKey: string): Promise<CheckoutAttemptRecord | null>
-  put(record: CheckoutAttemptRecord): Promise<void>
+export interface CheckoutAttemptStore<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> {
+  get(checkoutKey: string): Promise<CheckoutAttemptRecord<TPayload> | null>
+  put(record: CheckoutAttemptRecord<TPayload>): Promise<void>
   remove(checkoutKey: string): Promise<void>
 }
 
-export type CheckoutAttemptResult =
+export type CheckoutAttemptResult<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> =
   | { kind: 'posted'; response: SubmitRetailTransactionResponse }
   | { kind: 'pending'; response: SubmitRetailTransactionResponse }
   | { kind: 'outcome_unknown'; message: string }
-  | { kind: 'operator_action_required'; attempt: CheckoutAttemptRecord }
+  | { kind: 'operator_action_required'; attempt: CheckoutAttemptRecord<TPayload> }
   | { kind: 'already_in_progress' }
 
-interface ExecuteCheckoutAttempt {
+interface ExecuteCheckoutAttempt<TPayload extends PersistedRetailCheckoutPayload> {
   checkoutKey: string
   bookId: string
-  payload: SubmitRetailTransactionPayload
+  payload: TPayload
   post: (
-    payload: SubmitRetailTransactionPayload,
-    attempt: CheckoutAttemptRecord,
+    payload: TPayload,
+    attempt: CheckoutAttemptRecord<TPayload>,
   ) => Promise<SubmitRetailTransactionResponse>
   reconcile?: (
-    payload: SubmitRetailTransactionPayload,
-    attempt: CheckoutAttemptRecord,
+    payload: TPayload,
+    attempt: CheckoutAttemptRecord<TPayload>,
   ) => Promise<SubmitRetailTransactionResponse>
   resumeExisting?: boolean
 }
 
-export class CafeCheckoutAttemptCoordinator {
+export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> {
   private readonly inFlight = new Set<string>()
 
   constructor(
-    private readonly store: CheckoutAttemptStore,
+    private readonly store: CheckoutAttemptStore<TPayload>,
     private readonly createIdempotencyKey: () => string = () => crypto.randomUUID(),
   ) {}
 
@@ -63,7 +64,7 @@ export class CafeCheckoutAttemptCoordinator {
     await this.store.remove(checkoutKey)
   }
 
-  async execute({ checkoutKey, bookId, payload, post, reconcile, resumeExisting = false }: ExecuteCheckoutAttempt): Promise<CheckoutAttemptResult> {
+  async execute({ checkoutKey, bookId, payload, post, reconcile, resumeExisting = false }: ExecuteCheckoutAttempt<TPayload>): Promise<CheckoutAttemptResult<TPayload>> {
     if (this.inFlight.has(checkoutKey)) return { kind: 'already_in_progress' }
     this.inFlight.add(checkoutKey)
 
@@ -84,9 +85,9 @@ export class CafeCheckoutAttemptCoordinator {
       }
 
       const now = new Date().toISOString()
-      const attempt: CheckoutAttemptRecord = existing ?? (() => {
+      const attempt: CheckoutAttemptRecord<TPayload> = existing ?? (() => {
         const idempotencyKey = this.createIdempotencyKey()
-        const identifiedPayload = { ...payload, idempotency_key: idempotencyKey }
+        const identifiedPayload = { ...payload, idempotency_key: idempotencyKey } as TPayload
         return {
           checkoutKey,
           bookId,

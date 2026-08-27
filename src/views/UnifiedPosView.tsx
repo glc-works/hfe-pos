@@ -137,7 +137,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const { financialStatus, financialNotice, financialFailureCode, postingTruthHref, handleCheckout: handleCheckoutAction, resumeCheckout } = useCafeSettlement({
     financialPort, organizationId, companyBookId, authorityContext, cashierId,
     selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
-    fulfillmentMode, paymentMethod: posPayMethod, subtotal, taxAmount: pb1Tax, grandTotal,
+    fulfillmentMode, paymentMethod: posPayMethod,
     formatPrice,
     commitPaidState: () => { if (selectedPOSTable) handlePOSCheckoutTable() },
     clearCart: () => { setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false) },

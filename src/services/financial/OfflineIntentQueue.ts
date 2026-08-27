@@ -1,7 +1,7 @@
 // --- HFE OFFLINE INTENT QUEUE (POS-ENG-STD-001) ---
 // Strict Fail-Closed Intent Buffer for Disconnected POS Operations
 
-import { SubmitRetailTransactionPayload } from './HfePosFinancialPort'
+import { PersistedRetailCheckoutPayload, SubmitRetailTransactionPayload } from './HfePosFinancialPort'
 import { generatePayloadChecksum } from '../../utils/cryptoHasher'
 import type { CheckoutAttemptRecord, CheckoutAttemptStore } from './CafeCheckoutAttemptCoordinator'
 
@@ -22,9 +22,9 @@ const STORE_NAME = 'financial_intents'
 const CHECKOUT_ATTEMPTS_STORE = 'checkout_attempts'
 import { generateUUIDv4 } from './HfePostingReadbackValidator'
 
-export class OfflineIntentQueue implements CheckoutAttemptStore {
+export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> implements CheckoutAttemptStore<TPayload> {
   private inMemoryQueue: Map<string, QueuedFinancialIntent> = new Map()
-  private inMemoryCheckoutAttempts: Map<string, CheckoutAttemptRecord> = new Map()
+  private inMemoryCheckoutAttempts: Map<string, CheckoutAttemptRecord<TPayload>> = new Map()
 
   private openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
@@ -46,12 +46,12 @@ export class OfflineIntentQueue implements CheckoutAttemptStore {
     })
   }
 
-  async get(checkoutKey: string): Promise<CheckoutAttemptRecord | null> {
+  async get(checkoutKey: string): Promise<CheckoutAttemptRecord<TPayload> | null> {
     try {
       const db = await this.openDB()
       const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readonly')
       const request = tx.objectStore(CHECKOUT_ATTEMPTS_STORE).get(checkoutKey)
-      return await new Promise<CheckoutAttemptRecord | null>((resolve, reject) => {
+      return await new Promise<CheckoutAttemptRecord<TPayload> | null>((resolve, reject) => {
         request.onsuccess = () => resolve(request.result || null)
         request.onerror = () => reject(request.error)
       })
@@ -60,7 +60,7 @@ export class OfflineIntentQueue implements CheckoutAttemptStore {
     }
   }
 
-  async put(record: CheckoutAttemptRecord): Promise<void> {
+  async put(record: CheckoutAttemptRecord<TPayload>): Promise<void> {
     try {
       const db = await this.openDB()
       const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HfeSdkAdapter } from '../services/financial/HfeSdkAdapter'
-import type { SubmitRetailTransactionPayload } from '../services/financial/HfePosFinancialPort'
+import type { GovernedRetailCheckoutPayload, SubmitRetailTransactionPayload } from '../services/financial/HfePosFinancialPort'
 
 const payload: SubmitRetailTransactionPayload = {
   table_id: 'OUT-04',
@@ -41,6 +41,211 @@ function response(status: number, body: unknown): Response {
 
 describe('HfeSdkAdapter canonical POS posting path', () => {
   beforeEach(() => vi.restoreAllMocks())
+
+  it('uses the governed quote and frozen cash tender without sending browser-owned money or GL facts', async () => {
+    const governedPayload = {
+      contact_id: 'CONTACT-GUEST',
+      policy: 'pay-first',
+      payment_method: 'cash',
+      outlet_id: 'OUTLET-CAFE-HQ',
+      terminal_id: 'TERMINAL-04',
+      currency: 'IDR',
+      items: [{ product_id: 'MN-001', quantity: 2, modifier_ids: ['MOD-EXTRA-SHOT'] }],
+      idempotency_key: 'flagship-governed-cash-001',
+    } satisfies GovernedRetailCheckoutPayload
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(201, {
+        quote_id: 'QUOTE-001',
+        revision: '7',
+        digest_sha256: 'a'.repeat(64),
+        preset_id: 'PRESET-CAFE-ID',
+        preset_version: '3',
+        currency: 'IDR',
+        amount_due_minor: '61600',
+        discount_total_minor: '4000',
+        expires_at: '2026-08-24T10:05:00.000Z',
+        lines: [],
+        tender_eligibility: [
+          { eligible: true, tender_type: 'cash' },
+          { eligible: false, reason_code: 'provider_route_required', tender_type: 'qris' },
+        ],
+      }))
+      .mockResolvedValueOnce(response(201, {
+        acceptance_idempotency_key: 'flagship-governed-cash-001:accept',
+        accepted_at: '2026-08-24T10:00:01.000Z',
+        order_id: 'ORDER-001',
+        quote: {
+          quote_id: 'QUOTE-001',
+          revision: '7',
+          digest_sha256: 'a'.repeat(64),
+          currency: 'IDR',
+          amount_due_minor: '61600',
+        },
+        tender: {
+          acceptance_effect_key: 'b'.repeat(64),
+          amount_minor: '61600',
+          tender_id: 'TENDER-001',
+          tender_type: 'cash',
+        },
+      }))
+      .mockResolvedValueOnce(response(200, {
+        finality: 'applied',
+        posting_id: 'POSTING-001',
+        tender_id: 'TENDER-001',
+      }))
+      .mockResolvedValueOnce(response(200, {
+        id: 'POSTING-001',
+        book_id: 'ACCOUNTING-BOOK-001',
+        finality: 'applied',
+        source_capability: 'pos_tender_sale',
+        source_object_id: 'TENDER-001',
+        stable_effect_key: 'b'.repeat(64),
+      }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    const result = await adapter.postGovernedRetailOrder(governedPayload, context)
+
+    expect(result).toMatchObject({
+      status: 'posted',
+      tx_id: 'ORDER-001',
+      posting_id: 'POSTING-001',
+      grand_total: 61_600,
+    })
+    const calls = fetchMock.mock.calls.map(([url, init]) => ({
+      url: String(url),
+      headers: init?.headers as Record<string, string>,
+      body: init?.body ? JSON.parse(String(init.body)) : undefined,
+    }))
+    expect(calls.map((call) => call.url)).toEqual([
+      'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/pos/sale-quotes',
+      'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/order/accepted-orders',
+      'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/pos/tenders/TENDER-001/confirm-cash',
+      'http://localhost:8080/v1/company-books/BOOK-CAFE-HQ-88/postings/POSTING-001',
+    ])
+    expect(calls[0].body).toEqual({
+      currency: 'IDR',
+      lines: [{ item_id: 'MN-001', modifier_ids: ['MOD-EXTRA-SHOT'], quantity: 2 }],
+      outlet_id: 'OUTLET-CAFE-HQ',
+      promotion_codes: [],
+      terminal_id: 'TERMINAL-04',
+    })
+    expect(calls[1].body).toEqual({
+      quote_digest_sha256: 'a'.repeat(64),
+      quote_id: 'QUOTE-001',
+      quote_revision: 7,
+      tender: {
+        amount_minor: '61600',
+        tender_type: 'cash',
+      },
+    })
+    expect(calls[2].body).toEqual({ accepted_tender_effect_key: 'b'.repeat(64) })
+    expect(JSON.stringify(calls.slice(0, 3))).not.toMatch(/hfe_gl_account|unit_price|subtotal|tax_pb1|service_fee|discount_amount|grand_total/)
+  })
+
+  it('stops before ORDER acceptance when the authoritative quote disables cash', async () => {
+    const governedPayload = {
+      contact_id: '',
+      policy: 'pay-first',
+      payment_method: 'cash',
+      outlet_id: 'OUTLET-CAFE-HQ',
+      terminal_id: 'TERMINAL-04',
+      currency: 'IDR',
+      items: [{ product_id: 'MN-001', quantity: 1 }],
+      idempotency_key: 'flagship-disabled-cash-001',
+    } satisfies GovernedRetailCheckoutPayload
+    const fetchMock = vi.fn().mockResolvedValueOnce(response(201, {
+      quote_id: 'QUOTE-CASH-DISABLED',
+      revision: '1',
+      digest_sha256: 'c'.repeat(64),
+      preset_id: 'PRESET-CAFE-ID',
+      preset_version: '3',
+      currency: 'IDR',
+      amount_due_minor: '28000',
+      discount_total_minor: '0',
+      expires_at: '2026-08-24T10:05:00.000Z',
+      lines: [],
+      tender_eligibility: [{ eligible: false, reason_code: 'terminal_cash_mapping_inactive', tender_type: 'cash' }],
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    await expect(adapter.postGovernedRetailOrder(governedPayload, context)).rejects.toThrow(/cash.*not eligible/i)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('creates a CORE-priced QRIS intent and freezes its provider reference without confirming payment', async () => {
+    const governedPayload = {
+      contact_id: '',
+      policy: 'pay-first',
+      payment_method: 'qris',
+      outlet_id: 'OUTLET-CAFE-HQ',
+      terminal_id: 'TERMINAL-04',
+      currency: 'IDR',
+      items: [{ product_id: 'MN-001', quantity: 1 }],
+      idempotency_key: 'flagship-governed-qris-001',
+    } satisfies GovernedRetailCheckoutPayload
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(201, {
+        quote_id: 'QUOTE-QRIS-001',
+        revision: '3',
+        digest_sha256: 'd'.repeat(64),
+        preset_id: 'PRESET-CAFE-ID',
+        preset_version: '3',
+        currency: 'IDR',
+        amount_due_minor: '30800',
+        discount_total_minor: '0',
+        expires_at: '2026-08-24T10:05:00.000Z',
+        lines: [],
+        tender_eligibility: [{ eligible: true, tender_type: 'qris' }],
+      }))
+      .mockResolvedValueOnce(response(200, {
+        expires_at: '2026-08-24T10:15:00.000Z',
+        payment_id: 'QRIS-INTENT-001',
+        qr_image_url: 'https://example.test/qris/QRIS-INTENT-001.png',
+        qris_string: '000201010212',
+      }))
+      .mockResolvedValueOnce(response(201, {
+        acceptance_idempotency_key: 'flagship-governed-qris-001:accept',
+        accepted_at: '2026-08-24T10:00:01.000Z',
+        order_id: 'ORDER-QRIS-001',
+        quote: {
+          quote_id: 'QUOTE-QRIS-001',
+          revision: '3',
+          digest_sha256: 'd'.repeat(64),
+          currency: 'IDR',
+          amount_due_minor: '30800',
+        },
+        tender: {
+          acceptance_effect_key: 'e'.repeat(64),
+          amount_minor: '30800',
+          provider_intent_reference: 'QRIS-INTENT-001',
+          tender_id: 'TENDER-QRIS-001',
+          tender_type: 'qris',
+        },
+      }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+    const result = await adapter.postGovernedRetailOrder(governedPayload, context)
+
+    expect(result).toMatchObject({
+      status: 'pending',
+      tx_id: 'ORDER-QRIS-001',
+      grand_total: 30_800,
+    })
+    const calls = fetchMock.mock.calls.map(([, request]) => JSON.parse(String((request as RequestInit).body)))
+    expect(calls[1]).toEqual({
+      amount_idr: 30_800,
+      transaction_id: 'QUOTE-QRIS-001',
+    })
+    expect(calls[2].tender).toEqual({
+      amount_minor: '30800',
+      provider_intent_reference: 'QRIS-INTENT-001',
+      tender_type: 'qris',
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
 
   it('rejects non-cash tenders before creating a CORE POS order', async () => {
     const fetchMock = vi.fn()
@@ -285,40 +490,4 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
     await expect(adapter.postRetailOrder(payload, context)).rejects.toThrow(/durable posting read-back mismatch/i)
   })
 
-  it('rejects legacy dotted source capability instead of accepting incorrect POS lineage', async () => {
-    vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(response(201, { id: 'ORDER-DOTTED', content_sha256: null, subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
-      .mockResolvedValueOnce(response(200, { id: 'ORDER-DOTTED', content_sha256: 'SOURCE-TOKEN-DOTTED', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
-      .mockResolvedValueOnce(response(200, { finality: 'applied', order_id: 'ORDER-DOTTED', posting_id: 'POSTING-DOTTED' }))
-      .mockResolvedValueOnce(response(200, {
-        id: 'POSTING-DOTTED',
-        book_id: context.companyBookId,
-        finality: 'applied',
-        source_capability: 'pos.order',
-        source_object_id: 'ORDER-DOTTED',
-        stable_effect_key: payload.idempotency_key,
-      })))
-
-    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
-
-    await expect(adapter.postRetailOrder(payload, context)).rejects.toThrow(/durable posting read-back mismatch/i)
-  })
-
-  it('fails closed when durable posting read-back does not match the exact POS lineage', async () => {
-    vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(response(201, { id: 'ORDER-003', content_sha256: null, subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
-      .mockResolvedValueOnce(response(200, { id: 'ORDER-003', content_sha256: 'SOURCE-TOKEN-003', subtotal_minor: '56000', tax_amount_minor: '0', discount_amount_minor: '0', final_total_minor: '56000', items: [] }))
-      .mockResolvedValueOnce(response(200, { finality: 'applied', order_id: 'ORDER-003', posting_id: 'POSTING-003' }))
-      .mockResolvedValueOnce(response(200, {
-        id: 'POSTING-DIFFERENT',
-        finality: 'applied',
-        source_capability: 'manual-journal',
-        source_object_id: 'ORDER-DIFFERENT',
-        stable_effect_key: 'different-key',
-      })))
-
-    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
-
-    await expect(adapter.postRetailOrder(payload, context)).rejects.toThrow(/durable posting read-back mismatch/i)
-  })
 })

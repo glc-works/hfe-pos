@@ -41,6 +41,19 @@ export function resolveHfeitOrganizationId(): string {
     : demoAccess.organizationId
 }
 
+export function resolveGovernedQuoteContext(): {
+  outletId: string
+  terminalId: string
+  currency: string
+} {
+  if (!isConnectedFirstPartyRuntime()) return demoAccess.quoteContext
+  return {
+    outletId: requiredRuntimeValue('VITE_HFE_OUTLET_ID'),
+    terminalId: requiredRuntimeValue('VITE_HFE_TERMINAL_ID'),
+    currency: requiredRuntimeValue('VITE_HFE_CURRENCY'),
+  }
+}
+
 export function resolveInitialPb1TaxMode(stored: string | null): PB1TaxMode {
   if (isConnectedFirstPartyRuntime()) return 0
   const parsed = stored === null ? 1 : Number(stored)
@@ -56,6 +69,9 @@ export function connectedRuntimeConfigurationError(): string | null {
     import.meta.env.VITE_HFE_AUTHORITY_CONTEXT_ID,
     import.meta.env.VITE_HFE_CASHIER_SESSION_ID,
     import.meta.env.VITE_HFE_FLAGSHIP_PRODUCT_ID,
+    import.meta.env.VITE_HFE_OUTLET_ID,
+    import.meta.env.VITE_HFE_TERMINAL_ID,
+    import.meta.env.VITE_HFE_CURRENCY,
   ]
   if (!isConnectedFirstPartyRuntime()) {
     return connectedSignals.some(Boolean)
@@ -72,6 +88,9 @@ export function connectedRuntimeConfigurationError(): string | null {
     requiredRuntimeUuid('VITE_HFE_BOOK_ID')
     requiredRuntimeUuid('VITE_HFE_AUTHORITY_CONTEXT_ID')
     requiredRuntimeValue('VITE_HFE_BRANCH_ID')
+    requiredRuntimeValue('VITE_HFE_OUTLET_ID')
+    requiredRuntimeValue('VITE_HFE_TERMINAL_ID')
+    requiredRuntimeValue('VITE_HFE_CURRENCY')
     requiredRuntimeUuid('VITE_HFE_CASHIER_SESSION_ID')
     requiredRuntimeUuid('VITE_HFE_FLAGSHIP_PRODUCT_ID')
     return null

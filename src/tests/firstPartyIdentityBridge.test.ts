@@ -9,6 +9,7 @@ import { resolveInitialPb1TaxMode } from '../config/firstPartyRuntime'
 import {
   connectedRuntimeConfigurationError,
   firstPartyAuthEntryPolicy,
+  resolveGovernedQuoteContext,
 } from '../config/firstPartyRuntime'
 
 const DEMO_AUTHORITY_CONTEXT_ID = ['10e50fd1', '71af', '4636', '8223', '7f46f06d6648'].join('-')
@@ -40,6 +41,9 @@ function configureFlagshipRuntime() {
   vi.stubEnv('VITE_HFE_BOOK_ID', '7ea35a48-4012-556d-bd71-3203795b40dc')
   vi.stubEnv('VITE_HFE_AUTHORITY_CONTEXT_ID', DEMO_AUTHORITY_CONTEXT_ID)
   vi.stubEnv('VITE_HFE_BRANCH_ID', 'branch-demo-1')
+  vi.stubEnv('VITE_HFE_OUTLET_ID', 'outlet-demo-1')
+  vi.stubEnv('VITE_HFE_TERMINAL_ID', 'terminal-demo-4')
+  vi.stubEnv('VITE_HFE_CURRENCY', 'IDR')
   vi.stubEnv('VITE_HFE_CASHIER_SESSION_ID', 'd187e5f3-9aa9-40ff-88a6-011f1885c452')
   vi.stubEnv('VITE_HFE_FLAGSHIP_PRODUCT_ID', 'e0da2016-b6b1-44cc-a672-f08dd0bd0c27')
 }
@@ -218,6 +222,16 @@ describe('first-party ToGrow to Hfe CORE identity bridge', () => {
     configureFlagshipRuntime()
 
     expect(resolveConfiguredCashierSessionId('walk-in-dine-in')).toBe('d187e5f3-9aa9-40ff-88a6-011f1885c452')
+  })
+
+  it('uses the provisioned outlet, terminal, and currency for governed quoting', () => {
+    configureFlagshipRuntime()
+
+    expect(resolveGovernedQuoteContext()).toEqual({
+      outletId: 'outlet-demo-1',
+      terminalId: 'terminal-demo-4',
+      currency: 'IDR',
+    })
   })
 
   it('maps the flagship menu item to its provisioned CORE product UUID', () => {

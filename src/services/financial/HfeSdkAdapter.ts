@@ -7,6 +7,7 @@ import {
   CompanyBookSettingsResponse,
   ResolveContactResponse,
   SubmitRetailTransactionPayload,
+  GovernedRetailCheckoutPayload,
   SubmitRetailTransactionResponse,
   RetailPostingContext,
   UniversalMultiTenderRequest,
@@ -17,6 +18,7 @@ import {
   CashierShiftCloseResponse,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
+import { postGovernedPosCheckout } from './GovernedPosCheckout'
 import {
   HfePostingReadbackValidator,
   generateUUIDv4,
@@ -287,6 +289,18 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     }
   }
 
+  async postGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    return postGovernedPosCheckout(
+      this.client,
+      payload,
+      context,
+      this.resolveTargetBook(context.companyBookId),
+    )
+  }
+
   async reconcileRetailOrder(
     payload: SubmitRetailTransactionPayload,
     context: RetailPostingContext
@@ -371,6 +385,13 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
       posting_id: postingId,
       readback_validation: validation,
     }
+  }
+
+  async reconcileGovernedRetailOrder(
+    payload: GovernedRetailCheckoutPayload,
+    context: RetailPostingContext
+  ): Promise<SubmitRetailTransactionResponse> {
+    return this.postGovernedRetailOrder(payload, context)
   }
 
   async settleUniversalMultiTender(
