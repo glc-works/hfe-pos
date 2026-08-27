@@ -28,4 +28,6 @@ export * from './UnifiedKdsView'
 export * from './UnifiedPosView'
 export * from './WarehouseManagementView'
 export * from './MerchantHomeHubView'
+export * from './NativeComponentGalleryView'
+export * from './HfeitCorporateView'
 

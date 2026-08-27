@@ -35,4 +35,17 @@ describe('Theme Contrast & Parity Audit Suite (POS-ENG-STD-001 & GLC-FNB-AUDIT-0
       expect(darkTheme.textColorHex).toBeDefined()
     }
   })
+
+  it('should enforce that LandingPageView uses dual-theme classes without raw un-prefixed text-white on headings', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const landingFile = path.resolve(__dirname, '../components/landing/LandingPageView.tsx')
+    const content = fs.readFileSync(landingFile, 'utf-8')
+
+    // Must declare dark:text-white text-slate-900 on main hero headline
+    expect(content).toContain('text-slate-900 dark:text-white')
+    expect(content).toContain('dark:border-slate-800')
+    expect(content).toContain('dark:bg-slate-950')
+  })
 })
+

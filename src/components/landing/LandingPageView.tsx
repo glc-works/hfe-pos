@@ -103,7 +103,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   ]
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-950 theme-customer-container overflow-y-auto overscroll-contain">
+    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 theme-customer-container overflow-y-auto overscroll-contain">
       {/* 📢 TOP PROMOTIONAL ANNOUNCEMENT BAR (MERCHANT CUSTOMIZABLE) */}
       {storefrontConfig.announcementBarActive && (
         <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-3 py-1.5 text-center text-[10px] sm:text-xs font-black tracking-wide flex items-center justify-center gap-1.5 shadow-sm">
@@ -113,7 +113,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       )}
 
       {/* LANDING PAGE NAVBAR */}
-      <header className={`border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-40 flex items-center justify-between gap-2 shadow-lg ${
+      <header className={`border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-40 flex items-center justify-between gap-2 shadow-xs dark:shadow-lg ${
         isMobile ? 'px-3 pt-[max(env(safe-area-inset-top,8px),8px)] pb-2.5' : 'px-4 sm:px-8 py-3'
       }`}>
         <div className="flex items-center gap-2.5 min-w-0">
@@ -125,10 +125,10 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="font-extrabold text-xs sm:text-base text-white tracking-tight leading-tight truncate max-w-[120px] sm:max-w-none">
+            <h1 className="font-extrabold text-xs sm:text-base text-slate-900 dark:text-white tracking-tight leading-tight truncate max-w-[120px] sm:max-w-none">
               {hfeCompanyProfile.brandName}
             </h1>
-            <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium flex items-center gap-1 truncate max-w-[120px] sm:max-w-none">
+            <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1 truncate max-w-[120px] sm:max-w-none">
               <Building className="w-3 h-3 text-amber-500 shrink-0" /> <span className="truncate">{hfeCompanyProfile.ptLegalName}</span>
             </p>
           </div>
@@ -139,28 +139,28 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <button
             type="button"
             onClick={() => setShowSpotlightModal(true)}
-            className="p-1.5 sm:px-3 sm:py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 text-[11px] sm:text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-1.5 whitespace-nowrap shadow-sm transition-all cursor-pointer"
+            className="p-1.5 sm:px-3 sm:py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 text-[11px] sm:text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 whitespace-nowrap shadow-xs transition-all cursor-pointer"
             title="Pencarian Spotlight Publik (⌘K atau /)"
           >
-            <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Search className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
             <span className="hidden sm:inline">Cari</span>
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[9px] font-mono text-slate-400 font-bold">⌘K</kbd>
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[9px] font-mono text-slate-600 dark:text-slate-400 font-bold">⌘K</kbd>
           </button>
           <button
             type="button"
             onClick={() => setShowCustomizerModal(true)}
-            className="hidden sm:flex bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-700 items-center gap-1 whitespace-nowrap shadow-sm transition-all cursor-pointer"
+            className="hidden sm:flex bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-700 items-center gap-1 whitespace-nowrap shadow-xs transition-all cursor-pointer"
             title="Kustomisasi Tampilan Ruang Toko"
           >
-            <Sliders className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Sliders className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
             <span>Kustomisasi</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveApp('customer-portal')}
-            className="hidden md:flex bg-slate-900 hover:bg-slate-800 text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-amber-500/40 items-center gap-1.5 whitespace-nowrap shadow-sm hover:border-amber-400 cursor-pointer"
+            className="hidden md:flex bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-amber-500/40 items-center gap-1.5 whitespace-nowrap shadow-xs hover:border-amber-500 cursor-pointer"
           >
-            <CreditCard className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <CreditCard className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
             <span>Kartu Member</span>
           </button>
           <button
@@ -174,7 +174,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <button
             type="button"
             onClick={onSwitchToCustomerApp}
-            className="bg-slate-900 hover:bg-slate-800 text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-800 flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+            className="bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
           >
             <QrCode className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span>{isMobile ? 'Menu' : t.landing.scanQrOrder}</span>
@@ -187,15 +187,15 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         isMobile ? 'flex-col px-4 py-6' : 'flex-col md:flex-row items-center px-4 sm:px-8 py-10 sm:py-16'
       }`}>
         <div className="flex-1 flex flex-col gap-3.5 sm:gap-4 min-w-0">
-          <span className="text-[11px] sm:text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 w-fit">
+          <span className="text-[11px] sm:text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 w-fit">
             {t.landing.heroTag}
           </span>
-          <h2 className={`font-black text-white tracking-tight leading-tight ${
+          <h2 className={`font-black text-slate-900 dark:text-white tracking-tight leading-tight ${
             isMobile ? 'text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
           }`}>
             {storefrontConfig.heroHeadline || t.landing.heroTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
             {storefrontConfig.heroTagline || t.landing.heroSubtitle}
           </p>
 
@@ -206,7 +206,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               <img
                 src={storefrontConfig.heroBannerUrl}
                 alt="Store Banner"
-                className="relative rounded-2xl object-cover border border-slate-800 shadow-xl w-full h-48"
+                className="relative rounded-2xl object-cover border border-slate-200 dark:border-slate-800 shadow-xl w-full h-48"
               />
             </div>
           )}
@@ -225,11 +225,11 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <button
               type="button"
               onClick={onSwitchToCustomerApp}
-              className={`bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold px-4 py-3 rounded-xl border border-slate-800 flex items-center justify-center gap-2 text-center transition-all ${
+              className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 text-center transition-all ${
                 isMobile ? 'w-full' : ''
               }`}
             >
-              <Smartphone className="w-4 h-4 text-amber-400 shrink-0" /> {storefrontConfig.ctaOrderText || t.landing.menuAndQr}
+              <Smartphone className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" /> {storefrontConfig.ctaOrderText || t.landing.menuAndQr}
             </button>
           </div>
         </div>
@@ -241,7 +241,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <img
               src={storefrontConfig.heroBannerUrl}
               alt="Store Banner"
-              className="relative rounded-3xl object-cover border border-slate-800 shadow-2xl w-full h-64 sm:h-80"
+              className="relative rounded-3xl object-cover border border-slate-200 dark:border-slate-800 shadow-2xl w-full h-64 sm:h-80"
             />
           </div>
         )}
@@ -249,40 +249,40 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
       {/* 🎟️ PROMOS & CLAIMABLE COUPONS SECTION */}
       {activePromos.length > 0 && (
-        <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-800/80 ${
+        <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
           isMobile ? 'px-4' : 'px-4 sm:px-8'
         }`}>
           <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
               <Ticket className="w-4 h-4 text-amber-500 shrink-0" /> Promo & Kupon Spesial
             </h3>
-            <span className="text-[11px] text-slate-400 font-mono">Salin & pakai di menu QR</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">Salin & pakai di menu QR</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {activePromos.map((voucher) => (
-              <div key={voucher.code} className="bg-gradient-to-br from-slate-900 to-slate-950 border border-amber-500/30 rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-lg relative overflow-hidden">
+              <div key={voucher.code} className="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 border border-amber-500/30 rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-xs dark:shadow-lg relative overflow-hidden">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
                       {voucher.code}
                     </span>
-                    <h4 className="font-bold text-xs text-white mt-1.5">{voucher.title}</h4>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{voucher.description || 'Gunakan saat pemesanan online / QR meja'}</p>
+                    <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1.5">{voucher.title}</h4>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">{voucher.description || 'Gunakan saat pemesanan online / QR meja'}</p>
                   </div>
-                  <Tag className="w-4 h-4 text-amber-400 shrink-0 opacity-60" />
+                  <Tag className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0 opacity-70" />
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                  <span className="text-[10px] text-slate-400 font-mono">Min. {formatPrice(voucher.minSpend || 0)}</span>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Min. {formatPrice(voucher.minSpend || 0)}</span>
                   <button
                     type="button"
                     onClick={() => handleCopyVoucher(voucher.code)}
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 flex items-center gap-1 transition-all"
+                    className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1 transition-all"
                   >
                     {copiedCode === voucher.code ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-400" />
+                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                         <span>Tersalin!</span>
                       </>
                     ) : (
@@ -300,49 +300,49 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       )}
 
       {/* 🎉 UPCOMING EVENTS & COMMUNITY CALENDAR */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-800/80 ${
+      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
         <div className="flex items-center justify-between">
-          <h3 className="text-xs sm:text-sm font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
-            <Music className="w-4 h-4 text-purple-400 shrink-0" /> Jadwal Event & Hiburan
+          <h3 className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
+            <Music className="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" /> Jadwal Event & Hiburan
           </h3>
-          <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1">
+          <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1">
             RSVP Tempat <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {upcomingEvents.map((evt) => (
-            <div key={evt.id} className="bg-slate-900/90 border border-purple-500/20 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-xl">
+            <div key={evt.id} className="bg-white dark:bg-slate-900/90 border border-purple-500/25 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-xs dark:shadow-xl">
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-bold text-purple-300 bg-purple-500/20 px-2.5 py-0.5 rounded-full border border-purple-500/30 font-mono uppercase">
+                  <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-500/10 dark:bg-purple-500/20 px-2.5 py-0.5 rounded-full border border-purple-500/30 font-mono uppercase">
                     {evt.category.replace('_', ' ')}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Sisa Kuota: <strong className="text-amber-400">{evt.quotaRemaining}</strong>/{evt.quotaTotal}
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                    Sisa Kuota: <strong className="text-amber-600 dark:text-amber-400">{evt.quotaRemaining}</strong>/{evt.quotaTotal}
                   </span>
                 </div>
-                <h4 className="font-bold text-sm text-white mt-2">{evt.title}</h4>
-                <p className="text-xs text-slate-400 mt-1">{evt.description}</p>
-                <div className="flex items-center gap-2 text-[10px] text-purple-300 mt-2 font-mono">
-                  <MapPin className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white mt-2">{evt.title}</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{evt.description}</p>
+                <div className="flex items-center gap-2 text-[10px] text-purple-600 dark:text-purple-300 mt-2 font-mono">
+                  <MapPin className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400 shrink-0" />
                   <span>{evt.location}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-mono block">Harga Tiket:</span>
-                  <span className="text-xs font-mono font-black text-amber-400">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono block">Harga Tiket:</span>
+                  <span className="text-xs font-mono font-black text-amber-600 dark:text-amber-400">
                     {formatPrice(evt.price)}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedEventForTicket(evt)}
-                  className="text-xs font-bold px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-lg flex items-center gap-1.5 transition-all transform active:scale-95"
+                  className="text-xs font-bold px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-md flex items-center gap-1.5 transition-all transform active:scale-95 cursor-pointer"
                 >
                   <Ticket className="w-3.5 h-3.5" />
                   <span>{evt.category === 'workshop_class' ? 'Booking Kelas' : 'Beli Tiket'}</span>
@@ -354,10 +354,10 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       </section>
 
       {/* FACILITY & AMBIANCE CARDS */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-800/80 ${
+      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
-        <h3 className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.facilitiesTitle}
         </h3>
 
@@ -368,38 +368,38 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             { icon: '📶', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
             { icon: '🅿️', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
           ].map((fac, idx) => (
-            <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-1 shadow-lg">
+            <div key={idx} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-1 shadow-xs dark:shadow-lg">
               <span className="text-xl sm:text-2xl">{fac.icon}</span>
-              <h4 className="font-bold text-xs text-white mt-1">{fac.title}</h4>
-              <p className="text-[10px] text-slate-400 leading-tight">{fac.desc}</p>
+              <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1">{fac.title}</h4>
+              <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">{fac.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* FEATURED SPECIALTY MENU */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-800/80 ${
+      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
         <div className="flex items-center justify-between">
-          <h3 className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+          <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
             <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.featuredMenuTitle}
           </h3>
-          <button type="button" onClick={onSwitchToCustomerApp} className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1">
+          <button type="button" onClick={onSwitchToCustomerApp} className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer">
             {t.landing.viewAllCatalog} <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           </button>
         </div>
 
         <div className={`grid gap-3 sm:gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-3'}`}>
           {productCatalog.slice(0, 3).map(item => (
-            <div key={item.id} className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex gap-3 shadow-xl">
-              <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-800 shrink-0" />
+            <div key={item.id} className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex gap-3 shadow-xs dark:shadow-xl">
+              <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
               <div className="flex-1 flex flex-col justify-between min-w-0">
                 <div>
-                  <h4 className="font-bold text-xs text-white truncate">{item.name}</h4>
-                  <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
+                  <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{item.name}</h4>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
                 </div>
-                <span className="text-xs font-mono font-bold text-amber-400 mt-1">{formatPrice(item.price)}</span>
+                <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-1">{formatPrice(item.price)}</span>
               </div>
             </div>
           ))}
@@ -410,10 +410,10 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       <OneTransactionOneTruthSection />
 
       {/* FOOTER & ADDRESS */}
-      <footer className="mt-auto border-t border-slate-800 bg-slate-950 px-4 sm:px-8 py-6 text-center text-xs text-slate-500 flex flex-col gap-2">
-        <p className="font-bold text-slate-300">{hfeCompanyProfile.brandName} • {hfeCompanyProfile.ptLegalName}</p>
-        <p className="text-[10px] sm:text-[11px] text-slate-400 font-mono">NPWP: {hfeCompanyProfile.taxIdNpwp} • {hfeCompanyProfile.address}</p>
-        <p className="text-[9px] sm:text-[10px] text-slate-600">{t.landing.hours}</p>
+      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-8 py-6 text-center text-xs text-slate-500 flex flex-col gap-2">
+        <p className="font-bold text-slate-800 dark:text-slate-300">{hfeCompanyProfile.brandName} • {hfeCompanyProfile.ptLegalName}</p>
+        <p className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 font-mono">NPWP: {hfeCompanyProfile.taxIdNpwp} • {hfeCompanyProfile.address}</p>
+        <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-600">{t.landing.hours}</p>
       </footer>
 
       {/* 🎟️ EVENT TICKET & WORKSHOP BOOKING MODAL */}

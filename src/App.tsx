@@ -27,16 +27,17 @@ import { CompanyBookView } from './views/CompanyBookView'
 import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
 import { HfeitCorporateView } from './views/HfeitCorporateView'
 import { MerchantHomeHubView } from './views/MerchantHomeHubView'
+import { PosAuthLoginView } from './views/PosAuthLoginView'
 import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { createRuntimeInitialOrders } from './data/runtimeDemoData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 import { usePosAuth } from './hooks/usePosAuth'
-import { PosAuthLoginView } from './views/PosAuthLoginView'
 import { normalizeSurfaceHost } from './utils/surfaceHost'
 import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
 import { AppProviders } from './components/app/AppProviders'
 import { ToGrowSocialCallbackView } from './components/auth/ToGrowSocialCallbackView'
 import { resolveHfeitOrganizationId } from './config/firstPartyRuntime'
+
 function AppMain() {
   const config = useMerchantConfig()
   const auth = usePosAuth()
@@ -58,24 +59,22 @@ function AppMain() {
   const [qrStepView, setQrStepView] = useState<'catalog' | 'checkout'>('catalog')
   const [isCustomerSessionActive, setIsCustomerSessionActive] = useState<boolean>(false)
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
-  const [aiStylesheetInput, setAiStylesheetInput] = useState<string>('')
+  const [aiStylesheetInput, setAiStylesheetInput] = useState('')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
-    setTimeout(() => setToastMessage(null), 2500)
+    setTimeout(() => setToastMessage(null), 3000)
   }
 
   const resetCanonicalGuestSession = () => {
-    setIsCustomerSessionActive(false)
-    cart.setCart([])
-    cart.setLoginType('guest-name')
-    cart.setGuestName('Tamu')
+    cart.clearCart()
+    cart.setGuestName('Tamu Meja')
     cart.setCustomerPhone('')
+    cart.setLoginType('guest-name')
     cart.setLoyaltyPoints(0)
-    cart.setAppliedPromo(null)
+    setIsCustomerSessionActive(false)
     setQrStepView('catalog')
-    showToast('🔄 Sesi Tamu Direset ke Awal (Guest-First)')
   }
 
   const handleJoinMembershipAtCheckout = (phone: string) => {
@@ -92,18 +91,7 @@ function AppMain() {
   const table = useTableState({ orders, setOrders, hfeCompanyProfile: sync.hfeCompanyProfile })
 
   const handleSettleOpenTab = (tableName: string, details: any) => {
-    table.setTablesGrid((prev) => prev.map(t => {
-      if (t.name === tableName) {
-        return {
-          ...t,
-          status: 'occupied',
-          totalBill: 0,
-          orderCount: 0,
-          customerName: `${(t.customerName || 'Tamu').replace(' (Lunas)', '')} (Lunas)`
-        }
-      }
-      return t
-    }))
+    table.setTablesGrid((prev) => prev.map(t => t.name === tableName ? { ...t, status: 'occupied', totalBill: 0, orderCount: 0, customerName: `${(t.customerName || 'Tamu').replace(' (Lunas)', '')} (Lunas)` } : t))
     setOrders((prev) => prev.map(o => o.table === tableName ? { ...o, status: 'served' as const } : o))
     cart.setLoyaltyPoints((prev) => prev + (details?.pointsEarned || Math.floor((details?.paidAmount || 50000) / 1000)))
     showToast(`🎉 Pembayaran Meja ${tableName} Lunas (Rp ${(details?.paidAmount || 0).toLocaleString('id-ID')})!`)
@@ -114,18 +102,7 @@ function AppMain() {
     hfeCompanyProfile: sync.hfeCompanyProfile,
     onOrderSubmitted: (newOrder) => {
       setOrders((prev) => [newOrder, ...prev])
-      table.setTablesGrid((prev) => prev.map(t => {
-        if (t.name === newOrder.table) {
-          return {
-            ...t,
-            status: newOrder.policy === 'open-tab' ? 'open-tab' : 'occupied',
-            customerName: newOrder.customerName || t.customerName || 'Tamu',
-            totalBill: (t.totalBill || 0) + newOrder.total,
-            orderCount: (t.orderCount || 0) + newOrder.items.length
-          }
-        }
-        return t
-      }))
+      table.setTablesGrid((prev) => prev.map(t => t.name === newOrder.table ? { ...t, status: newOrder.policy === 'open-tab' ? 'open-tab' : 'occupied', customerName: newOrder.customerName || t.customerName || 'Tamu', totalBill: (t.totalBill || 0) + newOrder.total, orderCount: (t.orderCount || 0) + newOrder.items.length } : t))
       showToast(`🛎️ Pesanan ${newOrder.table} terkirim ke KDS Dapur!`)
     }
   })
@@ -188,7 +165,7 @@ function AppMain() {
         } else {
           showToast('❌ Format file tema tidak valid.')
         }
-      } catch (err) {
+      } catch {
         showToast('❌ Gagal membaca file JSON tema.')
       }
     }
@@ -204,7 +181,7 @@ function AppMain() {
       } else {
         showToast('❌ Format JSON tema tidak valid.')
       }
-    } catch (err) {
+    } catch {
       showToast('❌ Format JSON tidak valid.')
     }
   }
@@ -235,10 +212,16 @@ function AppMain() {
           --brand-radius: ${effectiveTheme.borderRadiusPx || 16}px;
           --brand-font: ${effectiveTheme.fontFamily};
         }
-        .theme-customer-container { background-color: var(--brand-bg) !important; color: var(--brand-text) !important; font-family: var(--brand-font) !important; }
-        .theme-customer-header { background-color: var(--brand-header-bg) !important; border-radius: 0 !important; }
-        .theme-customer-card { background-color: var(--brand-card-bg) !important; border-radius: var(--brand-radius) !important; }
-        .theme-customer-btn-primary { background-color: var(--brand-primary) !important; color: ${effectiveTheme.mode === 'light' ? '#ffffff' : '#020617'} !important; border-radius: calc(var(--brand-radius) * 0.75) !important; }
+        .theme-customer-container { font-family: var(--brand-font) !important; }
+        .light .theme-customer-container { background-color: var(--brand-bg, #faf8f5) !important; color: var(--brand-text, #0f172a) !important; }
+        .dark .theme-customer-container { background-color: #020617 !important; color: #f8fafc !important; }
+        .theme-customer-header { border-radius: 0 !important; }
+        .light .theme-customer-header { background-color: var(--brand-header-bg, #ffffffea) !important; }
+        .dark .theme-customer-header { background-color: #0f172af0 !important; }
+        .theme-customer-card { border-radius: var(--brand-radius) !important; }
+        .light .theme-customer-card { background-color: var(--brand-card-bg, #ffffff) !important; }
+        .dark .theme-customer-card { background-color: #0f172a !important; }
+        .theme-customer-btn-primary { background-color: var(--brand-primary) !important; color: #ffffff !important; border-radius: calc(var(--brand-radius) * 0.75) !important; }
         .theme-customer-btn-primary:hover { background-color: var(--brand-primary-hover) !important; }
         .theme-customer-badge { background-color: var(--brand-badge-bg) !important; color: var(--brand-badge-text) !important; }
         ${effectiveTheme.customCssOverrides || ''}
@@ -463,7 +446,7 @@ function AppMain() {
         )}
 
         {config.activeApp === 'hfeit-corporate' && (
-          <HfeitCorporateView onNavigateToApp={(app) => config.setActiveApp(app as any)} />
+          <HfeitCorporateView onNavigateToApp={(app: any) => config.setActiveApp(app)} />
         )}
       </div>
 
