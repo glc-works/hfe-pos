@@ -135,12 +135,15 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
   const availableCount = useMemo(() => tablesGrid.filter((t) => t.status === 'free').length, [tablesGrid])
 
-  const { financialStatus, financialNotice, financialFailureCode, postingTruthHref, pendingQrisPayment, canResumeFinancialAttempt, dismissPendingQrisPayment, handleCheckout: handleCheckoutAction, resumeCheckout } = useCafeSettlement({
+  const {
+    financialStatus, financialNotice, financialFailureCode, postingTruthHref,
+    pendingQrisPayment, canResumeFinancialAttempt, authoritativeQuote,
+    dismissPendingQrisPayment, handleCheckout: handleCheckoutAction, resumeCheckout,
+  } = useCafeSettlement({
     financialPort, organizationId, companyBookId, authorityContext, cashierId,
     selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
-    fulfillmentMode, paymentMethod: posPayMethod,
-    formatPrice,
-    commitPaidState: () => { if (selectedPOSTable) handlePOSCheckoutTable() },
+    fulfillmentMode, paymentMethod: posPayMethod, formatPrice,
+    commitPaidState: handlePOSCheckoutTable,
     clearCart: () => { setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false) },
   })
 
@@ -336,6 +339,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               grandTotal={grandTotal}
               packagingFee={packagingFee}
               fulfillmentMode={fulfillmentMode}
+              authoritativeQuote={authoritativeQuote}
               setPosPayMethod={setPosPayMethod}
               setPosCashGiven={setPosCashGiven}
               setFulfillmentMode={setFulfillmentMode}
@@ -441,7 +445,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       <PosMobileCartDrawer
         show={showMobileCartDrawer} cartItems={activeTableCartItems} selectedPOSTable={selectedPOSTable}
         posPayMethod={posPayMethod} posCashGiven={posCashGiven} subtotal={subtotal} pb1Tax={pb1Tax} grandTotal={grandTotal}
-        packagingFee={packagingFee} fulfillmentMode={fulfillmentMode} onClose={() => setShowMobileCartDrawer(false)}
+        packagingFee={packagingFee} fulfillmentMode={fulfillmentMode} authoritativeQuote={authoritativeQuote} onClose={() => setShowMobileCartDrawer(false)}
         setPosPayMethod={setPosPayMethod} setPosCashGiven={setPosCashGiven} setFulfillmentMode={setFulfillmentMode}
         onUpdateQty={handleUpdateQty} onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
         onCheckout={handleCheckoutAction} onOpenSplitPayment={() => setShowTableOpsModal(true)}

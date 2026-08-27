@@ -5,6 +5,8 @@ import { PosCartSection } from './PosCartSection'
 import { useTranslation } from '../../context/LanguageContext'
 import { IconButton } from '@/ui'
 
+import type { ReviewedPosQuote } from '../../services/financial'
+
 export interface PosMobileCartDrawerProps {
   show: boolean
   cartItems: CartItem[]
@@ -16,6 +18,7 @@ export interface PosMobileCartDrawerProps {
   grandTotal: number
   packagingFee?: number
   fulfillmentMode?: OrderFulfillmentMode
+  authoritativeQuote?: ReviewedPosQuote | null
   onClose: () => void
   setPosPayMethod: (method: PosPayMethod) => void
   setPosCashGiven: (val: string) => void
@@ -39,6 +42,7 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
   grandTotal,
   packagingFee = 0,
   fulfillmentMode = 'dine_in',
+  authoritativeQuote,
   onClose,
   setPosPayMethod,
   setPosCashGiven,
@@ -125,6 +129,7 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
             grandTotal={grandTotal}
             packagingFee={packagingFee}
             fulfillmentMode={fulfillmentMode}
+            authoritativeQuote={authoritativeQuote}
             setPosPayMethod={setPosPayMethod}
             setPosCashGiven={setPosCashGiven}
             setFulfillmentMode={setFulfillmentMode}
