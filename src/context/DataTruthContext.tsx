@@ -1,4 +1,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useReducer } from 'react'
+import { toLiveCoreProof } from '../services/financial/liveCoreActivation'
+import type { LiveCoreProof } from '../services/financial/liveCoreActivation'
+import type { ReadbackValidationResult } from '../services/financial/HfePostingReadbackValidator'
 
 /**
  * Data Truth Boundary (single source of truth for data authenticity).
@@ -100,4 +103,26 @@ export function DataTruthProvider({ children }: { children: React.ReactNode }) {
 
 export function useDataTruth(): DataTruthContextValue {
   return useContext(DataTruthContext) ?? DEMO_TRUTH_FALLBACK
+}
+
+/**
+ * #35 activation bridge: the ONLY sanctioned way a runtime flips the channel to
+ * live-core — by presenting an applied, fully-matched L2-POS-91 read-back.
+ * Throws on every failed gate; treat as financial-integrity event.
+ *
+ * Integration point: call this in the REAL settlement handler immediately after
+ * port.submitRetailTransaction + validator round-trip once connected checkout
+ * ships (see src/services/financial/liveCoreActivation.ts). Never wire into the
+ * simulated QR/alert flows.
+ */
+export function useLiveCoreActivation() {
+  const { confirmLiveCore } = useDataTruth()
+  return useCallback(
+    (validation: ReadbackValidationResult, postingId: string): LiveCoreProof => {
+      const proof = toLiveCoreProof(validation, postingId)
+      confirmLiveCore(proof.source, proof.referenceId)
+      return proof
+    },
+    [confirmLiveCore]
+  )
 }
