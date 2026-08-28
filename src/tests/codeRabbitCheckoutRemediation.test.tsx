@@ -8,7 +8,7 @@ import { PosCashTenderForm, cashValueAfterCurrencySelection } from '../component
 import { MockHfeAdapter } from '../services/financial/MockHfeAdapter'
 import type { GovernedRetailCheckoutPayload, ReviewedPosQuote } from '../services/financial/HfePosFinancialPort'
 import { formatExactMinorCurrency } from '../utils/localeNumberFormat'
-import { formatPostedCheckoutAmount, settleQuoteRetirement } from '../hooks/useCafeSettlement'
+import { formatPostedCheckoutAmount, settleQuoteRetirement, shouldAcceptQuoteResponse } from '../hooks/useCafeSettlement'
 
 const quote: ReviewedPosQuote = {
   quoteId: 'QUOTE-1', revision: '1', digestSha256: 'd'.repeat(64), currency: 'IDR',
@@ -38,6 +38,20 @@ describe('CodeRabbit checkout remediation', () => {
 
   it('preserves entered cash when the reviewed quote currency is reselected', () => {
     expect(cashValueAfterCurrencySelection(quote, '50000', 33000, 'IDR', 'IDR')).toBe('50000')
+  })
+
+  it('renders the authoritative quote currency as the active tender currency', () => {
+    const html = renderToStaticMarkup(
+      <LanguageProvider><MerchantConfigProvider><PosCashTenderForm
+        authoritativeQuote={{ ...quote, currency: 'USD' }} posCashGiven="50000" setPosCashGiven={vi.fn()} grandTotal={33000}
+      /></MerchantConfigProvider></LanguageProvider>,
+    )
+    expect(html).toMatch(/<button[^>]*class="[^"]*bg-amber-500[^"]*"[^>]*><span>🇺🇸<\/span><span>USD<\/span>/)
+  })
+
+  it('accepts a quote response only while its requested fingerprint is still current', () => {
+    expect(shouldAcceptQuoteResponse('fingerprint-a', 'fingerprint-a')).toBe(true)
+    expect(shouldAcceptQuoteResponse('fingerprint-a', 'fingerprint-b')).toBe(false)
   })
 
   it('renders the mobile cash input at a zoom-safe 16px font size', () => {

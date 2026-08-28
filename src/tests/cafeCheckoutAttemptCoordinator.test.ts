@@ -160,6 +160,27 @@ describe('cafe checkout attempt coordination', () => {
     expect(remove).toHaveBeenCalledTimes(2)
   })
 
+  it('keeps a pre-mutation validation failure prepared and retryable', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000204')
+    const first = await coordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-PREFLIGHT', bookId: 'BOOK-1', payload,
+      post: async () => { throw new Error('local validation failed before request') },
+    })
+
+    expect(first.kind).toBe('validation_failed')
+    expect(await store.get('BOOK-1:ORDER-PREFLIGHT')).toMatchObject({ status: 'prepared' })
+
+    const post = vi.fn(async (request: SubmitRetailTransactionPayload) => posted(request.idempotency_key!))
+    const second = await coordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-PREFLIGHT', bookId: 'BOOK-1', payload, post,
+    })
+
+    expect(await store.get('BOOK-1:ORDER-PREFLIGHT')).toMatchObject({ status: 'posted' })
+    expect(second.kind).toBe('posted')
+    expect(post).toHaveBeenCalledOnce()
+  })
+
   it('writes durable pre-quote lineage and lets its first reviewed acceptance mutate once', async () => {
     const store = new MemoryAttemptStore()
     const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000101')
@@ -288,7 +309,10 @@ describe('cafe checkout attempt coordination', () => {
   it('does not retry an unknown outcome after a reload and keeps the stable payload fingerprint', async () => {
     const store = new MemoryAttemptStore()
     const firstCoordinator = new CafeCheckoutAttemptCoordinator(store, () => '33333333-3333-4333-8333-333333333333')
-    const failedPost = vi.fn().mockRejectedValue(new Error('connection dropped after request write'))
+    const failedPost = vi.fn(async (_payload, _attempt, markMutationSent: () => Promise<void>) => {
+      await markMutationSent()
+      throw new Error('connection dropped after request write')
+    })
 
     const first = await firstCoordinator.execute({
       checkoutKey: 'BOOK-1:ORDER-1',
@@ -324,7 +348,10 @@ describe('cafe checkout attempt coordination', () => {
       checkoutKey: 'BOOK-1:ORDER-1',
       bookId: 'BOOK-1',
       payload,
-      post: vi.fn().mockRejectedValue(new Error('connection dropped after request write')),
+      post: vi.fn(async (_payload, _attempt, markMutationSent) => {
+        await markMutationSent()
+        throw new Error('connection dropped after request write')
+      }),
     })
 
     const observedAttemptTimes: string[] = []

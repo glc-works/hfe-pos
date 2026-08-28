@@ -93,6 +93,10 @@ export async function recoverGovernedPosCheckout(
     amountMinor: evidence.amountMinor, currency: evidence.quote.currency,
   }, context, targetBook)
   if (result.status === 'pending' && stored.qrisIntent) {
+    const expiresAt = requireTimestamp(stored.qrisIntent.expires_at, 'recovered QRIS expires_at')
+    if (Date.parse(expiresAt) <= Date.now()) {
+      throw new Error('Recovered pending QRIS intent is expired and cannot be displayed or paid.')
+    }
     result.idempotency_key = payload.idempotency_key
     result.qris_payment = { ...stored.qrisIntent, tender_id: evidence.tenderId }
   }

@@ -64,11 +64,11 @@ describe('Fase 2 #61 — offline chaos requalification (adversarial)', () => {
     const coord = new CafeCheckoutAttemptCoordinator(store)
     await coord.execute({
       checkoutKey: 'k1', bookId: 'b1', payload: basePayload,
-      post: async () => { throw new Error('ECONNRESET mid-flight') },
+      post: async (_payload, _attempt, markMutationSent) => { await markMutationSent(); throw new Error('ECONNRESET mid-flight') },
     })
-    // status transitions persisted: prepared -> outcome_unknown (marker precedes network I/O),
-    // then the forensic write carrying lastError — three durable beats total.
-    expect(store.history.map((h) => h.status)).toEqual(['prepared', 'outcome_unknown', 'outcome_unknown'])
+    // The explicit mutation marker is durable before the network call, then
+    // the forensic outcome_unknown write records the transport failure.
+    expect(store.history.map((h) => h.status)).toEqual(['prepared', 'prepared', 'outcome_unknown'])
     expect(store.history[0].lastError).toBeUndefined()
     expect(store.history.at(-1)!.lastError).toMatch(/ECONNRESET/)
   })
@@ -79,7 +79,7 @@ describe('Fase 2 #61 — offline chaos requalification (adversarial)', () => {
 
     const first = await coord.execute({
       checkoutKey: 'k2', bookId: 'b1', payload: basePayload,
-      post: async () => { calls.post += 1; throw new Error('network died after CORE applied') },
+      post: async (_payload, _attempt, markMutationSent) => { calls.post += 1; await markMutationSent(); throw new Error('network died after CORE applied') },
     })
     expect(first.kind).toBe('outcome_unknown')
 

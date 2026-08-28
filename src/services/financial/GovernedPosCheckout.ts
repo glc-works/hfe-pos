@@ -10,6 +10,12 @@ import type {
 } from './HfePosFinancialPort'
 import { HfePostingReadbackValidator } from './HfePostingReadbackValidator'
 import type { GovernedCheckoutEvidence } from './GovernedCheckoutDurability'
+import type { GovernedCheckoutDurability } from './GovernedCheckoutDurability'
+
+function requireGovernedDurability(context: RetailPostingContext): GovernedCheckoutDurability {
+  if (!context.governedAttempt) throw new Error('Durable governed phase evidence is required before any governed financial operation.')
+  return context.governedAttempt
+}
 
 export function exactMinor(value: string, field: string): ExactMinorString {
   if (!/^(0|[1-9][0-9]*)$/.test(value)) {
@@ -111,6 +117,7 @@ export async function prepareGovernedRetailQuote(
   context: RetailPostingContext,
   targetBook: string,
 ): Promise<ReviewedPosQuote> {
+  const durability = requireGovernedDurability(context)
   if (!context.authorityContext.trim()) {
     throw new Error('authorityContext is required for governed POS posting. Fail-closed: zero fallback allowed.')
   }
@@ -129,13 +136,12 @@ export async function prepareGovernedRetailQuote(
     throw new Error('Governed POS quoting requires active item identities and positive whole quantities.')
   }
 
-  const durability = context.governedAttempt
   const authorityHeaders = { 'X-CBook-Authority-Context': context.authorityContext }
-  const stored = await durability?.load()
+  const stored = await durability.load()
   let body = stored?.quote
   const needsQuoteRequest = !body
   if (!body) {
-    await durability?.transition('quote_requested')
+    await durability.transition('quote_requested')
     const quoted = await client.operations.calculatePosSaleQuote({
       path: { book: targetBook },
       headers: { ...authorityHeaders, 'Idempotency-Key': deriveGovernedCheckoutPhaseKey(payload.idempotency_key, 'quote') },
@@ -212,7 +218,7 @@ export async function prepareGovernedRetailQuote(
     intentFingerprint: governedIntentFingerprint(payload, context, targetBook),
     source: 'hfe-core',
   }
-  if (needsQuoteRequest) await durability?.transition('quote_ready', { quote: body })
+  if (needsQuoteRequest) await durability.transition('quote_ready', { quote: body })
   return reviewed
 }
 
@@ -224,16 +230,16 @@ export async function acceptGovernedRetailQuote(
   targetBook: string,
   providerIntentReference?: string,
 ): Promise<GovernedAcceptedTenderEvidence> {
+  const durability = requireGovernedDurability(context)
   validateReviewedAcceptance(payload, reviewed, context, targetBook)
-  const durability = context.governedAttempt
-  const stored = await durability?.load()
-  if (durability) assertDurableReviewedQuote(stored, reviewed)
+  const stored = await durability.load()
+  assertDurableReviewedQuote(stored, reviewed)
   if (stored?.phase === 'accept_requested' && !stored.acceptedOrder) {
     throw new Error('Acceptance outcome is unknown; use the read-only accepted-order recovery lookup.')
   }
   const authorityHeaders = { 'X-CBook-Authority-Context': context.authorityContext }
   const acceptKey = deriveGovernedCheckoutPhaseKey(payload.idempotency_key!, 'accept')
-  if (!stored?.acceptedOrder) await durability?.transition('accept_requested')
+  if (!stored?.acceptedOrder) await durability.transition('accept_requested')
   const acceptedBody = stored?.acceptedOrder ?? (await client.operations.acceptGovernedPosOrder({
     path: { book: targetBook },
     headers: { ...authorityHeaders, 'Idempotency-Key': acceptKey },
@@ -279,7 +285,7 @@ export async function acceptGovernedRetailQuote(
   const acceptedAt = requireTimestamp(acceptedBody.accepted_at, 'accepted_at')
   const tenderId = requireIdentifier(acceptedTender.tender_id, 'accepted tender_id')
   const acceptanceEffectKey = requireSha256(acceptedTender.acceptance_effect_key, 'accepted acceptance_effect_key')
-  await durability?.transition('accepted', { acceptedOrder: acceptedBody })
+  await durability.transition('accepted', { acceptedOrder: acceptedBody })
 
   return {
     orderId, acceptedAt, tenderId, acceptanceEffectKey,
@@ -345,20 +351,20 @@ export async function postGovernedPosCheckout(
   targetBook: string,
   reviewedQuote: ReviewedPosQuote,
 ): Promise<SubmitRetailTransactionResponse> {
+  const durability = requireGovernedDurability(context)
   const reviewed = reviewedQuote
   if (!reviewed) {
     throw new Error('A reviewed CORE quote is required; governed completion cannot create or accept a fresh quote.')
   }
 
   validateReviewedAcceptance(payload, reviewed, context, targetBook)
-  const durability = context.governedAttempt
-  const stored = await durability?.load()
-  if (durability) assertDurableReviewedQuote(stored, reviewed)
+  const stored = await durability.load()
+  assertDurableReviewedQuote(stored, reviewed)
   const authorityHeaders = { 'X-CBook-Authority-Context': context.authorityContext }
   let qrisIntent = stored?.qrisIntent
   let generatedQrisIntent = false
   if (payload.payment_method === 'qris' && !qrisIntent) {
-    await durability?.transition('qris_intent_requested')
+    await durability.transition('qris_intent_requested')
     qrisIntent = (await client.operations.generatePosQris({
         path: { book: targetBook },
         headers: { ...authorityHeaders, 'Idempotency-Key': deriveGovernedCheckoutPhaseKey(payload.idempotency_key!, 'qris-intent') },
@@ -371,7 +377,7 @@ export async function postGovernedPosCheckout(
     requireText(qrisIntent?.qris_string, 'QRIS qris_string')
     requireText(qrisIntent?.qr_image_url, 'QRIS qr_image_url')
     requireFutureTimestamp(qrisIntent!.expires_at, 'QRIS expires_at')
-    if (generatedQrisIntent) await durability?.transition('qris_intent_ready', { qrisIntent })
+    if (generatedQrisIntent) await durability.transition('qris_intent_ready', { qrisIntent })
   }
   const evidence = await acceptGovernedRetailQuote(
     client, payload, reviewed, context, targetBook, qrisIntent?.payment_id,
@@ -398,17 +404,17 @@ export async function completeGovernedCashTender(
   targetBook: string,
   evidence: GovernedAcceptedTenderEvidence,
 ): Promise<SubmitRetailTransactionResponse> {
+  const durability = requireGovernedDurability(context)
   const idempotencyKey = payload.idempotency_key!
-  const durability = context.governedAttempt
   const authorityHeaders = { 'X-CBook-Authority-Context': context.authorityContext }
   const confirmKey = deriveGovernedCheckoutPhaseKey(idempotencyKey, 'confirm')
   const confirmBody = { accepted_tender_effect_key: evidence.acceptanceEffectKey }
-  const persistedConfirm = (await durability?.load())?.cashConfirm
+  const persistedConfirm = (await durability.load()).cashConfirm
   if (persistedConfirm && (
     persistedConfirm.idempotencyKey !== confirmKey || persistedConfirm.tenderId !== evidence.tenderId ||
     persistedConfirm.body.accepted_tender_effect_key !== confirmBody.accepted_tender_effect_key
   )) throw new Error('Persisted cash confirmation evidence does not match the accepted tender.')
-  if (!persistedConfirm) await durability?.transition('confirm_requested', {
+  if (!persistedConfirm) await durability.transition('confirm_requested', {
     cashConfirm: { idempotencyKey: confirmKey, tenderId: evidence.tenderId, body: confirmBody },
   })
   const needsConfirmRequest = !persistedConfirm?.response || !('posting_id' in persistedConfirm.response)
@@ -419,7 +425,7 @@ export async function completeGovernedCashTender(
         body: confirmBody,
       })
     : { status: 200 as const, body: persistedConfirm.response }
-  if (needsConfirmRequest && durability) {
+  if (needsConfirmRequest) {
     const phase = (await durability.load()).phase
     await durability.transition(phase, {
       cashConfirm: { idempotencyKey: confirmKey, tenderId: evidence.tenderId, body: confirmBody, response: confirmed.body },

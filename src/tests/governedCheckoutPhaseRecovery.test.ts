@@ -276,6 +276,42 @@ describe('governed checkout durable phase recovery', () => {
     expect(fetchMock).toHaveBeenCalledTimes(4)
   })
 
+  it('rejects a pending recovered QRIS outcome when its stored intent is expired', async () => {
+    const durable = await durability({
+      phase: 'accepted', quote: quoteEvidence(), acceptedOrder: accepted('qris', 'QRIS-1') as any,
+      qrisIntent: { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: new Date(Date.now() - 60_000).toISOString() },
+    })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(200, {
+      tender_id: 'TENDER-QRIS-1', order_id: 'ORDER-1', amount_minor: '30800', currency: 'IDR',
+      accepted_tender_effect_key: 'e'.repeat(64), outcome: 'pending',
+    })))
+
+    await expect(new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+      .reconcileGovernedRetailOrder(payload, makeContext(durable.port))).rejects.toThrow(/QRIS.*expired/i)
+  })
+
+  it('accepts an applied recovered QRIS outcome even when its display intent is expired', async () => {
+    const durable = await durability({
+      phase: 'accepted', quote: quoteEvidence(), acceptedOrder: accepted('qris', 'QRIS-1') as any,
+      qrisIntent: { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: new Date(Date.now() - 60_000).toISOString() },
+    })
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(response(200, {
+        tender_id: 'TENDER-QRIS-1', order_id: 'ORDER-1', amount_minor: '30800', currency: 'IDR',
+        accepted_tender_effect_key: 'e'.repeat(64), outcome: 'applied', posting_id: 'POSTING-1',
+        posting_finality: 'applied', posting_source_capability: 'pos_tender_sale',
+        posting_source_object_id: 'TENDER-QRIS-1', posting_stable_effect_key: 'e'.repeat(64),
+      }))
+      .mockResolvedValueOnce(response(200, {
+        id: 'POSTING-1', book_id: 'BOOK-1', finality: 'applied', source_capability: 'pos_tender_sale',
+        source_object_id: 'TENDER-QRIS-1', stable_effect_key: 'e'.repeat(64), functional_currency: 'IDR',
+        lines: [{ account_code: '1104', debit_minor: '30800', credit_minor: '0' }, { account_code: '4101', debit_minor: '0', credit_minor: '30800' }],
+      })))
+
+    await expect(new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+      .reconcileGovernedRetailOrder(payload, makeContext(durable.port))).resolves.toMatchObject({ status: 'posted', posting_id: 'POSTING-1' })
+  })
+
   it('preserves the accepted-order lookup failure as the recovery error cause', async () => {
     const durable = await durability({
       phase: 'accept_requested', quote: quoteEvidence(),

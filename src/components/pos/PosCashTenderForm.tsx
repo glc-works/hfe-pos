@@ -27,8 +27,8 @@ export function PosCashTenderForm({ authoritativeQuote, posCashGiven, setPosCash
   const { t, formatPrice, language } = useTranslation()
   const { merchantTheme } = useMerchantConfig()
   const baseCurrency = (merchantTheme as any)?.currency || 'IDR'
-  const [tenderCurrency, setTenderCurrency] = useState(baseCurrency)
-  useEffect(() => setTenderCurrency(baseCurrency), [baseCurrency])
+  const [tenderCurrency, setTenderCurrency] = useState(authoritativeQuote?.currency ?? baseCurrency)
+  useEffect(() => setTenderCurrency(authoritativeQuote?.currency ?? baseCurrency), [authoritativeQuote?.currency, baseCurrency])
 
   const reviewedCashGiven = /^\d+$/.test(posCashGiven) ? BigInt(posCashGiven || '0') : 0n
   const reviewedAmount = authoritativeQuote ? BigInt(authoritativeQuote.amountDueMinor) : null

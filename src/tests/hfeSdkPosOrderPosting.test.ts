@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HfeSdkAdapter } from '../services/financial/HfeSdkAdapter'
-import type { GovernedRetailCheckoutPayload, SubmitRetailTransactionPayload } from '../services/financial/HfePosFinancialPort'
+import type {
+  GovernedRetailCheckoutPayload,
+  RetailPostingContext,
+  SubmitRetailTransactionPayload,
+} from '../services/financial/HfePosFinancialPort'
+import type { GovernedCheckoutEvidence } from '../services/financial/GovernedCheckoutDurability'
 
 const payload: SubmitRetailTransactionPayload = {
   table_id: 'OUT-04',
@@ -17,12 +22,20 @@ const payload: SubmitRetailTransactionPayload = {
   idempotency_key: ['test', 'idempotency', 'flagship', '35'].join(':'),
 }
 
-const context = {
+let durableEvidence: GovernedCheckoutEvidence = { phase: 'prepared' }
+
+const context: RetailPostingContext = {
   companyBookId: 'BOOK-CAFE-HQ-88',
   organizationId: 'ORG-CAFE-HQ-88',
   authorityContext: 'AUTHCTX-DEMO-BARISTA-01',
   sessionId: 'SESSION-OUT-04',
   financialDate: '2026-08-24',
+  governedAttempt: {
+    load: async () => structuredClone(durableEvidence),
+    transition: async (phase, evidence = {}) => {
+      durableEvidence = { ...durableEvidence, ...evidence, phase }
+    },
+  },
   handover: {
     actorPrincipalId: 'USR-DEMO-BARISTA-01',
     evidenceReference: 'POS-RECEIPT-OUT-04',
@@ -41,7 +54,10 @@ function response(status: number, body: unknown): Response {
 }
 
 describe('HfeSdkAdapter canonical POS posting path', () => {
-  beforeEach(() => vi.restoreAllMocks())
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    durableEvidence = { phase: 'prepared' }
+  })
 
   it('uses the governed quote and frozen cash tender without sending browser-owned money or GL facts', async () => {
     const governedPayload = {

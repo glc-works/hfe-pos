@@ -22,6 +22,7 @@ export interface CheckoutAttemptRecord<TPayload extends PersistedRetailCheckoutP
   status: CheckoutAttemptStatus
   createdAt: string
   updatedAt: string
+  mutationSentAt?: string
   lastError?: string
   response?: SubmitRetailTransactionResponse
   quote?: GovernedCheckoutEvidence['quote']
@@ -48,6 +49,7 @@ export type CheckoutAttemptResult<TPayload extends PersistedRetailCheckoutPayloa
   | { kind: 'posted'; response: SubmitRetailTransactionResponse }
   | { kind: 'pending'; response: SubmitRetailTransactionResponse }
   | { kind: 'outcome_unknown'; message: string }
+  | { kind: 'validation_failed'; message: string }
   | { kind: 'operator_action_required'; attempt: CheckoutAttemptRecord<TPayload> }
   | { kind: 'already_in_progress' }
 
@@ -59,6 +61,7 @@ interface ExecuteCheckoutAttempt<TPayload extends PersistedRetailCheckoutPayload
   post: (
     payload: TPayload,
     attempt: CheckoutAttemptRecord<TPayload>,
+    markMutationSent: () => Promise<void>,
   ) => Promise<SubmitRetailTransactionResponse>
   reconcile?: (
     payload: TPayload,
@@ -190,19 +193,18 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
       const durableAttempt = existing ?? await this.store.createIfAbsent(attempt)
       if (!existing) assertAttemptIdentity(durableAttempt, bookId, payloadFingerprint, scopeFingerprint)
 
-      if (!recoverExisting && !('outlet_id' in durableAttempt.payload)) {
-        durableAttempt.status = 'outcome_unknown'
-        durableAttempt.updatedAt = new Date().toISOString()
-        await this.store.put(durableAttempt)
-      }
-
       try {
         // A prepared record is durable pre-quote lineage, not evidence that an
         // acceptance mutation was sent. Only an unresolved post-accept record
         // may use the read-only recovery path.
         const response = recoverExisting
           ? await reconcile!(durableAttempt.payload, durableAttempt)
-          : await post(durableAttempt.payload, durableAttempt)
+          : await post(durableAttempt.payload, durableAttempt, async () => {
+              if (durableAttempt.mutationSentAt) return
+              durableAttempt.mutationSentAt = new Date().toISOString()
+              durableAttempt.updatedAt = durableAttempt.mutationSentAt
+              await this.store.put(durableAttempt)
+            })
         const current = await this.store.get(checkoutKey) ?? durableAttempt
         if (response.status !== 'posted') {
           current.status = 'pending'
@@ -219,9 +221,16 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
         return { kind: 'posted', response }
       } catch (error) {
         const current = await this.store.get(checkoutKey) ?? durableAttempt
-        if (current.status === 'prepared') current.status = 'outcome_unknown'
         current.lastError = error instanceof Error ? error.message : String(error)
         current.updatedAt = new Date().toISOString()
+        const mutationMayHaveBeenSent = Boolean(current.mutationSentAt) || [
+          'quote_requested', 'qris_intent_requested', 'accept_requested', 'confirm_requested',
+        ].includes(current.status)
+        if (!mutationMayHaveBeenSent) {
+          await this.store.put(current)
+          return { kind: 'validation_failed', message: current.lastError }
+        }
+        current.status = 'outcome_unknown'
         await this.store.put(current)
         return { kind: 'outcome_unknown', message: current.lastError }
       }

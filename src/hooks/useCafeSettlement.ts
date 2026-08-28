@@ -58,6 +58,10 @@ export async function settleQuoteRetirement(
   }
 }
 
+export function shouldAcceptQuoteResponse(requestedFingerprint: string, latestFingerprint: string): boolean {
+  return requestedFingerprint === latestFingerprint
+}
+
 interface UseCafeSettlementOptions {
   financialPort: HfePosFinancialPort
   companyBookId: string
@@ -183,6 +187,8 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     setCheckoutPhase({ kind: 'editing' })
   }
   const intentFingerprint = checkoutIntentFingerprint(options, options.paymentMethod)
+  const latestIntentFingerprint = useRef(intentFingerprint)
+  latestIntentFingerprint.current = intentFingerprint
   useEffect(() => {
     if (reviewedIntentFingerprint.current !== null && reviewedIntentFingerprint.current !== intentFingerprint) {
       invalidateQuote()
@@ -216,6 +222,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       idempotency_key: quoteIdempotencyKey.current ?? undefined,
     }
     const checkoutKey = `${companyBookId}:${sourceId}`
+    const requestedFingerprint = checkoutIntentFingerprint(options, intendedPaymentMethod)
     quoteRequestInFlight.current = true
     setCheckoutPhase({ kind: 'quoting' })
     try {
@@ -249,6 +256,10 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
             occurredAt: new Date().toISOString(),
           },
         })
+        if (!shouldAcceptQuoteResponse(requestedFingerprint, latestIntentFingerprint.current)) {
+          invalidateQuote()
+          return
+        }
         setAuthoritativeQuote(quote)
         reviewedIntentFingerprint.current = checkoutIntentFingerprint(options, intendedPaymentMethod)
         setCheckoutPhase({ kind: 'review', quote, payloadFingerprint: attempt.payloadFingerprint })
@@ -378,6 +389,13 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
           bookId: companyBookId,
           checkoutKey,
         }).catch(() => {})
+        return
+      }
+      if (result.kind === 'validation_failed') {
+        setFinancialStatus('error')
+        setFinancialNotice('failed')
+        setFinancialFailureCode(classifyCheckoutFailure(result.message))
+        setCheckoutPhase({ kind: 'failed', message: result.message })
         return
       }
 

@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HfeSdkAdapter } from '../services/financial/HfeSdkAdapter'
 import type { GovernedRetailCheckoutPayload } from '../services/financial/HfePosFinancialPort'
+import type { GovernedCheckoutEvidence } from '../services/financial/GovernedCheckoutDurability'
+
+let durableEvidence: GovernedCheckoutEvidence = { phase: 'prepared' }
 
 const context = {
   companyBookId: 'BOOK-CAFE-HQ-88',
@@ -8,6 +11,12 @@ const context = {
   authorityContext: 'AUTHCTX-DEMO-BARISTA-01',
   sessionId: 'SESSION-OUT-04',
   financialDate: '2026-08-24',
+  governedAttempt: {
+    load: async () => structuredClone(durableEvidence),
+    transition: async (phase: GovernedCheckoutEvidence['phase'], evidence = {}) => {
+      durableEvidence = { ...durableEvidence, ...evidence, phase }
+    },
+  },
   handover: {
     actorPrincipalId: 'USR-DEMO-BARISTA-01',
     evidenceReference: 'POS-RECEIPT-OUT-04',
@@ -37,8 +46,21 @@ function response(status: number, body: unknown): Response {
   } as Response
 }
 
+function seedReviewedQuote(reviewed: any): void {
+  durableEvidence = { phase: 'quote_ready', quote: {
+    quote_id: reviewed.quoteId, revision: reviewed.revision, digest_sha256: reviewed.digestSha256,
+    currency: reviewed.currency, subtotal_minor: reviewed.subtotalMinor, amount_due_minor: reviewed.amountDueMinor,
+    discount_total_minor: reviewed.discountTotalMinor, tax_total_minor: reviewed.taxTotalMinor,
+    service_charge_total_minor: reviewed.serviceChargeTotalMinor, tip_total_minor: reviewed.tipTotalMinor,
+    rounding_total_minor: reviewed.roundingTotalMinor, preset_id: reviewed.presetId, preset_version: reviewed.presetVersion,
+    expires_at: reviewed.expiresAt, lines: reviewed.lines.map((line: any) => ({ ordinal: line.ordinal, item_id: line.itemId,
+      quantity: line.quantity, modifier_ids: line.modifierIds, discount_allocated_minor: line.discountAllocatedMinor })),
+    tender_eligibility: reviewed.tenderEligibility.map((entry: any) => ({ tender_type: entry.tenderType, eligible: entry.eligible })),
+  } as any }
+}
+
 describe('HfeSdkAdapter governed QRIS lifecycle', () => {
-  beforeEach(() => vi.restoreAllMocks())
+  beforeEach(() => { vi.restoreAllMocks(); durableEvidence = { phase: 'prepared' } })
 
   it('returns the CORE QR receipt and freezes its provider reference without confirming payment', async () => {
     const qrisExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
@@ -110,6 +132,7 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
       tenderEligibility: [{ tenderType: 'qris' as const, eligible: true }], source: 'hfe-core' as const,
       intentFingerprint: (await import('../services/financial/GovernedPosCheckout')).governedIntentFingerprint(governedPayload, context, context.companyBookId),
     }
+    seedReviewedQuote(reviewed)
 
     await expect(new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
       .postGovernedRetailOrder(governedPayload, context, reviewed))
