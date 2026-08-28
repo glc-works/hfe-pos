@@ -3,6 +3,7 @@ import { Card, Button, Badge, TruthChannelBadge } from '../../ui'
 import { TrendingUp, DollarSign, PieChart, Clock, FileText, Printer, Sparkles, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { UniversalFinancialHealthGauge } from './UniversalFinancialHealthGauge'
+import { FavoriteProductsLeaderboard } from './FavoriteProductsLeaderboard'
 
 export type FinancialTruthPostingStatus = 'posted' | 'pending' | 'failed' | 'demo'
 
@@ -192,6 +193,9 @@ export function ExecutiveInsightsTab({
           </div>
         </Card>
       </div>
+
+      {/* Favorite Products Leaderboard (Bakehouse Benchmark Pattern) */}
+      <FavoriteProductsLeaderboard />
 
       {/* Rush Hour Heatmap */}
       <Card className="p-5">
