@@ -7,11 +7,19 @@ import { isConnectedFirstPartyRuntime, requiredRuntimeUuid, resolveGovernedQuote
 import { companyBookPostingHref } from '../config/companyBookPostingLink'
 import { useLiveCoreActivation } from '../context/DataTruthContext'
 import { appendDeadLetterEntry } from '../services/financial/deadLetterLedger'
-import { formatExactMinorCurrency } from '../utils/localeNumberFormat'
+import {
+  acknowledgeConfirmedPosted,
+  activeQuotePaymentMethod,
+  classifyCheckoutFailure,
+  formatPostedCheckoutAmount,
+  settleQuoteRetirement,
+  shouldAcceptQuoteResponse,
+} from './cafeSettlementOutcome'
+import type { CheckoutFailureCode } from './cafeSettlementOutcome'
+export * from './cafeSettlementOutcome'
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
 export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
-export type CheckoutFailureCode = 'auth' | 'contract' | 'network' | 'validation' | 'conflict' | 'unknown'
 
 export type GovernedCheckoutPhase =
   | { kind: 'editing' }
@@ -21,54 +29,6 @@ export type GovernedCheckoutPhase =
   | { kind: 'pending_outcome'; quote: ReviewedPosQuote; tenderId: string }
   | { kind: 'posted'; postingId: string }
   | { kind: 'failed'; message: string }
-
-export function classifyCheckoutFailure(message?: string): CheckoutFailureCode {
-  const normalized = (message || '').toLowerCase()
-  if (/\((401|403)\)|unauthorized|forbidden/.test(normalized)) return 'auth'
-  if (/\(404\)|not found|unexpected successful http status/.test(normalized)) return 'contract'
-  if (/network|timed out|timeout|fetch/.test(normalized)) return 'network'
-  if (/\(409\)|conflict/.test(normalized)) return 'conflict'
-  if (/mismatch|required|invalid|must be|unsupported|does not yet support/.test(normalized)) return 'validation'
-  return 'unknown'
-}
-
-export function formatPostedCheckoutAmount(
-  value: number | string,
-  currency: string,
-  language: string,
-  fallback: () => string,
-): string {
-  if (typeof value === 'number') return Number.isFinite(value) ? fallback() : String(value)
-  try {
-    return formatExactMinorCurrency(value, currency, language)
-  } catch {
-    return fallback()
-  }
-}
-
-export async function settleQuoteRetirement(
-  retirement: Promise<void>,
-  onFailure: (error: unknown) => void,
-): Promise<void> {
-  try {
-    await retirement
-  } catch (error) {
-    onFailure(error)
-    throw error
-  }
-}
-
-export function shouldAcceptQuoteResponse(requestedFingerprint: string, latestFingerprint: string): boolean {
-  return requestedFingerprint === latestFingerprint
-}
-
-export function activeQuotePaymentMethod(
-  configuredAtRequest: PosPayMethod,
-  intendedAtRequest: PosPayMethod,
-  currentlyConfigured: PosPayMethod,
-): PosPayMethod {
-  return currentlyConfigured === configuredAtRequest ? intendedAtRequest : currentlyConfigured
-}
 
 interface UseCafeSettlementOptions {
   financialPort: HfePosFinancialPort
@@ -167,6 +127,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const reviewedIntentFingerprint = useRef<string | null>(null)
   const configuredPaymentMethodAtQuote = useRef(options.paymentMethod)
   const intendedQuotePaymentMethod = useRef(options.paymentMethod)
+  const postedAcknowledgementKey = useRef<string | null>(null)
 
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(
     new OfflineIntentQueue<GovernedRetailCheckoutPayload>(),
@@ -385,9 +346,23 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
         return
       }
       if (result.kind === 'operator_action_required') {
+        if (result.attempt.status === 'posted' && result.attempt.response) {
+          const acknowledgement = await acknowledgeConfirmedPosted(
+            result.attempt.response,
+            () => coordinator.current.acknowledgePosted(checkoutKey),
+          )
+          setFinancialStatus('posted')
+          setFinancialFailureCode(null)
+          setFinancialNotice(acknowledgement.kind === 'acknowledged' ? 'posted' : 'posted_unacknowledged')
+          if (result.attempt.response.posting_id) {
+            setCheckoutPhase({ kind: 'posted', postingId: result.attempt.response.posting_id })
+          }
+          postedAcknowledgementKey.current = acknowledgement.kind === 'acknowledged' ? null : checkoutKey
+          return
+        }
         setPendingQrisPayment(result.attempt.response?.qris_payment || null)
-        setFinancialStatus(result.attempt.status === 'posted' ? 'error' : 'pending')
-        setFinancialNotice(result.attempt.status === 'posted' ? 'posted_unacknowledged' : 'outcome_unknown')
+        setFinancialStatus('pending')
+        setFinancialNotice('outcome_unknown')
         setFinancialFailureCode(classifyCheckoutFailure(result.attempt.lastError))
         void appendDeadLetterEntry({
           kind: 'operator_action_required',
@@ -442,7 +417,26 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       setAuthoritativeQuote(null)
       commitPaidState()
       clearCart()
-      await coordinator.current.acknowledgePosted(checkoutKey)
+      const acknowledgement = await acknowledgeConfirmedPosted(
+        result.response,
+        () => coordinator.current.acknowledgePosted(checkoutKey),
+      )
+      if (acknowledgement.kind === 'posted_unacknowledged') {
+        postedAcknowledgementKey.current = checkoutKey
+        const detail = acknowledgement.error instanceof Error
+          ? acknowledgement.error.message
+          : String(acknowledgement.error)
+        setFinancialStatus('posted')
+        setFinancialNotice('posted_unacknowledged')
+        setFinancialFailureCode(null)
+        void appendDeadLetterEntry({
+          kind: 'operator_action_required', detail, bookId: companyBookId,
+          checkoutKey, idempotencyKey: result.response.idempotency_key,
+          postingId: result.response.posting_id,
+        }).catch(() => {})
+        return
+      }
+      postedAcknowledgementKey.current = null
       const displayedAmount = formatPostedCheckoutAmount(
         result.response.grand_total,
         authoritativeQuote?.currency || resolveGovernedQuoteContext().currency,
@@ -462,6 +456,23 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     }
   }
 
+  const retryPostedAcknowledgement = async () => {
+    const checkoutKey = postedAcknowledgementKey.current
+    if (!checkoutKey) return
+    const acknowledgement = await acknowledgeConfirmedPosted(
+      checkoutKey,
+      () => coordinator.current.acknowledgePosted(checkoutKey),
+    )
+    setFinancialStatus('posted')
+    setFinancialFailureCode(null)
+    if (acknowledgement.kind === 'acknowledged') {
+      postedAcknowledgementKey.current = null
+      setFinancialNotice('posted')
+    } else {
+      setFinancialNotice('posted_unacknowledged')
+    }
+  }
+
   return {
     financialStatus,
     financialNotice,
@@ -475,6 +486,8 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     invalidateQuote,
     dismissPendingQrisPayment: () => setPendingQrisPayment(null),
     handleCheckout: (intendedPaymentMethod?: PosPayMethod) => executeCheckout(false, intendedPaymentMethod),
-    resumeCheckout: () => executeCheckout(true),
+    resumeCheckout: () => postedAcknowledgementKey.current
+      ? retryPostedAcknowledgement()
+      : executeCheckout(true),
   }
 }

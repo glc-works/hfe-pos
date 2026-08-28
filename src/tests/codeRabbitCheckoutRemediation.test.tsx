@@ -9,6 +9,7 @@ import { MockHfeAdapter } from '../services/financial/MockHfeAdapter'
 import type { GovernedRetailCheckoutPayload, ReviewedPosQuote } from '../services/financial/HfePosFinancialPort'
 import { formatExactMinorCurrency } from '../utils/localeNumberFormat'
 import {
+  acknowledgeConfirmedPosted,
   activeQuotePaymentMethod,
   formatPostedCheckoutAmount,
   settleQuoteRetirement,
@@ -65,6 +66,21 @@ describe('CodeRabbit checkout remediation', () => {
 
   it('switches to the newly configured tender when checkout inputs genuinely drift', () => {
     expect(activeQuotePaymentMethod('cash', 'qris', 'card')).toBe('card')
+  })
+
+  it('preserves the exact posted response and retries acknowledgement without reposting', async () => {
+    const response = { status: 'posted' as const, tx_id: 'ORDER-1', posting_id: 'POSTING-1', grand_total: '30800' }
+    const repost = vi.fn()
+    const acknowledge = vi.fn()
+      .mockRejectedValueOnce(new Error('cleanup failed'))
+      .mockResolvedValueOnce(undefined)
+
+    const failedCleanup = await acknowledgeConfirmedPosted(response, acknowledge)
+    expect(failedCleanup).toEqual({ kind: 'posted_unacknowledged', response, error: expect.any(Error) })
+    const retriedCleanup = await acknowledgeConfirmedPosted(failedCleanup.response, acknowledge)
+    expect(retriedCleanup).toEqual({ kind: 'acknowledged', response })
+    expect(acknowledge).toHaveBeenCalledTimes(2)
+    expect(repost).not.toHaveBeenCalled()
   })
 
   it('renders the mobile cash input at a zoom-safe 16px font size', () => {
