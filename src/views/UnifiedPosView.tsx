@@ -13,6 +13,7 @@ import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsClust
 import { FinancialStatusBanner } from '../components/pos/FinancialStatusBanner'
 import { GovernedQrisPendingModal } from '../components/pos/GovernedQrisPendingModal'
 import { ActiveOperationsTrayDock } from '../components/pos/ActiveOperationsTrayDock'
+import { PosTrackOrderDock } from '../components/pos/PosTrackOrderDock'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useOperationsTray } from '../hooks/useOperationsTray'
 import { useTranslation } from '../context/LanguageContext'
@@ -37,7 +38,7 @@ export interface UnifiedPosViewProps {
 export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   activeStaffSurface = 'barista-pos', setActiveStaffSurface, tablesGrid, selectedPOSTable, productCatalog,
   posPayMethod, posCashGiven, orders, enableTableFloorPlan = true, viewportMode = 'responsive',
-  setSelectedPOSTable, setTablesGrid, setPosPayMethod, setPosCashGiven, handlePOSCheckoutTable,
+  setSelectedPOSTable, setTablesGrid, setPosPayMethod, setPosCashGiven, handlePOSCheckoutTable, handleMoveStatus,
   financialPort, organizationId, companyBookId, authorityContext, cashierId,
 }) => {
   const { isMobile: isContextMobile } = useViewport()
@@ -233,29 +234,15 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         <div className={isMobile ? 'w-full h-full min-h-0 flex flex-col gap-2 overflow-hidden' : 'md:col-span-7 lg:col-span-8 flex flex-col h-full min-h-0 gap-2 overflow-hidden'}>
           <div className="shrink-0 z-20">
             <PosCommandHeader
-              posModeTab={posModeTab}
-              enableTableFloorPlan={enableTableFloorPlan}
-              setPosModeTab={setPosModeTab}
-              onOpenAppDrawer={() => setIsAppDrawerOpen(true)}
-              onOpenGuestBinding={() => setShowTableGuestBindingDrawer(true)}
-              onOpenScanner={() => setShowCameraScanner(true)}
-              onOpenTableOps={() => setShowTableOpsModal(true)}
-              onOpenNotifications={() => setShowNotificationCenter(true)}
-              onOpenSpotlight={() => setShowSpotlightModal(true)}
-              propertyZones={PROPERTY_ZONES}
-              activeZoneId={selectedZoneId}
-              onSelectZone={setSelectedZoneId}
-              tableStatusFilter={tableStatusFilter}
-              setTableStatusFilter={setTableStatusFilter}
-              unpaidCount={unpaidCount}
-              availableCount={availableCount}
-              tablesGrid={tablesGrid}
-              categories={categories}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              catalogSkuCount={filteredCatalog.length}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
+              posModeTab={posModeTab} enableTableFloorPlan={enableTableFloorPlan} setPosModeTab={setPosModeTab}
+              onOpenAppDrawer={() => setIsAppDrawerOpen(true)} onOpenGuestBinding={() => setShowTableGuestBindingDrawer(true)}
+              onOpenScanner={() => setShowCameraScanner(true)} onOpenTableOps={() => setShowTableOpsModal(true)}
+              onOpenNotifications={() => setShowNotificationCenter(true)} onOpenSpotlight={() => setShowSpotlightModal(true)}
+              propertyZones={PROPERTY_ZONES} activeZoneId={selectedZoneId} onSelectZone={setSelectedZoneId}
+              tableStatusFilter={tableStatusFilter} setTableStatusFilter={setTableStatusFilter}
+              unpaidCount={unpaidCount} availableCount={availableCount} tablesGrid={tablesGrid}
+              categories={categories} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
+              catalogSkuCount={filteredCatalog.length} viewMode={viewMode} setViewMode={setViewMode}
             />
           </div>
 
@@ -435,6 +422,16 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
           )}
         </div>
       )}
+
+      {/* 2.5 LIVE TRACK ORDER AMBIENT DOCK (BAKEHOUSE BENCHMARK PATTERN) */}
+      <PosTrackOrderDock
+        orders={orders}
+        onUpdateOrderStatus={handleMoveStatus}
+        onSelectOrderTable={(tName) => {
+          const matched = tablesGrid.find(t => t.name === tName)
+          if (matched) setSelectedPOSTable(matched)
+        }}
+      />
 
       {/* 3. ACTIVE OPERATIONS TRAY (CLICKUP TASK TRAY PATTERN) */}
       <ActiveOperationsTrayDock

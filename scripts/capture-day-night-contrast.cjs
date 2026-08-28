@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const path = require('path');
+const demoAccess = require('../fixtures/demo/access.json');
 
 (async () => {
   const browser = await chromium.launch();
@@ -8,45 +9,80 @@ const path = require('path');
 
   console.log(`Starting visual capture on port ${port}...`);
 
-  // 1. BOARD Public Storefront with Dual-CTA (Desktop & Mobile)
-  const boardContext = await browser.newContext({
-    viewport: { width: 1280, height: 800 },
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
     deviceScaleFactor: 2
   });
-  const boardPage = await boardContext.newPage();
-  await boardPage.goto(`http://localhost:${port}/?app=landing`);
-  await boardPage.waitForTimeout(800);
-  const boardScreenshotPath = path.join(brainDir, 'board_dual_cta_verified.png');
-  await boardPage.screenshot({ path: boardScreenshotPath });
-  console.log(`✓ BOARD Dual-CTA captured: ${boardScreenshotPath}`);
-  await boardContext.close();
+  const page = await context.newPage();
 
-  // 2. Online Customer Order (No Table Leakage)
-  const onlineOrderContext = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    deviceScaleFactor: 2
-  });
-  const onlineOrderPage = await onlineOrderContext.newPage();
-  await onlineOrderPage.goto(`http://localhost:${port}/?app=customer`);
-  await onlineOrderPage.waitForTimeout(800);
-  const onlineOrderScreenshotPath = path.join(brainDir, 'online_order_no_table_leakage_verified.png');
-  await onlineOrderPage.screenshot({ path: onlineOrderScreenshotPath });
-  console.log(`✓ Online Order (No Table) captured: ${onlineOrderScreenshotPath}`);
-  await onlineOrderContext.close();
+  // 1. Login as demo staff
+  await page.goto(`http://localhost:${port}/?app=cafe`);
+  await page.waitForTimeout(800);
 
-  // 3. In-Store Table QR Scan (With Table OUT-04)
-  const inStoreContext = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    deviceScaleFactor: 2
-  });
-  const inStorePage = await inStoreContext.newPage();
-  await inStorePage.goto(`http://localhost:${port}/?app=customer&table=OUT-04&seat=Seat%201`);
-  await inStorePage.waitForTimeout(800);
-  const inStoreScreenshotPath = path.join(brainDir, 'in_store_table_qr_verified.png');
-  await inStorePage.screenshot({ path: inStoreScreenshotPath });
-  console.log(`✓ In-Store Table QR captured: ${inStoreScreenshotPath}`);
-  await inStoreContext.close();
+  const pinText = page.getByText('Masukkan 6 Digit PIN Kasir');
+  if (await pinText.isVisible()) {
+    try {
+      await page.locator('select').selectOption(demoAccess.branchId);
+    } catch (e) {}
+    for (const digit of demoAccess.staff.pin) {
+      await page.getByRole('button', { name: digit, exact: true }).click();
+      await page.waitForTimeout(40);
+    }
+    await page.getByRole('button', { name: 'Masuk ke Kasir POS ➔' }).click();
+    await page.waitForTimeout(1000);
+  }
 
+  // 2. Expand Track Order Dock on POS
+  try {
+    const trackBtn = page.getByRole('button', { name: /Lacak Pesanan Dapur/i });
+    if (await trackBtn.count() > 0) {
+      await trackBtn.first().click();
+      await page.waitForTimeout(500);
+    }
+  } catch (e) {
+    console.log('Track dock button toggle skipped');
+  }
+
+  const posScreenshotPath = path.join(brainDir, 'pos_track_order_dock_verified.png');
+  await page.screenshot({ path: posScreenshotPath });
+  console.log(`✓ POS Track Order Dock captured: ${posScreenshotPath}`);
+
+  // 3. Navigate to Merchant Hub & Unlock PIN
+  await page.goto(`http://localhost:${port}/?app=cafe&surface=merchant-hub`);
+  await page.waitForTimeout(1000);
+
+  const pinInput = page.locator('input[type="password"]');
+  if (await pinInput.isVisible()) {
+    await pinInput.fill('8888');
+    await page.getByRole('button', { name: /Buka Akses Hub/i }).click();
+    await page.waitForTimeout(1000);
+  }
+
+  // Click on Executive Insights Tab
+  const insightsTab = page.locator('button:has-text("Executive Insights")').first();
+  if (await insightsTab.count() > 0) {
+    await insightsTab.click();
+    await page.waitForTimeout(1000);
+  }
+
+  // Scroll to Favorite Products Leaderboard
+  const leaderboard = page.locator('text=Menu Terlaris (Favorite Products)').first();
+  if (await leaderboard.count() > 0) {
+    await leaderboard.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(600);
+  } else {
+    await page.evaluate(() => {
+      const scrollable = document.querySelector('.overflow-y-auto') || document.querySelector('main');
+      if (scrollable) scrollable.scrollTop = 650;
+    });
+    await page.waitForTimeout(600);
+  }
+
+  const hubScreenshotPath = path.join(brainDir, 'hub_favorite_products_verified.png');
+  await page.screenshot({ path: hubScreenshotPath });
+  console.log(`✓ HUB Favorite Products captured: ${hubScreenshotPath}`);
+
+  await context.close();
   await browser.close();
   console.log('All visual verification captures completed!');
 })();
