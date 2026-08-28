@@ -45,21 +45,49 @@ export interface UniversalFinancialHealthGaugeProps {
     asOf: string
     source: string
   }
+  expectedBookId?: string
+  trustedSource?: string
+  maxReceiptAgeMs?: number
+}
+
+const FINANCIAL_METRIC_KEYS: (keyof FinancialHealthSnapshot)[] = [
+  'cashRunwayDays', 'quickRatio', 'grossMarginPercent', 'operatingMarginPercent',
+  'netMarginPercent', 'workingCapitalMinor', 'inventoryTurnoverDays',
+  'taxReserveFundMinor', 'taxObligationMinor', 'assetValuationMinor',
+  'assetTurnoverVelocityScore', 'dailyBurnRateMinor', 'liquidCashMinor',
+]
+
+function isValidAuthoritativeReceipt(
+  receipt: UniversalFinancialHealthGaugeProps['authoritativeSnapshot'],
+  expectedBookId: string | undefined,
+  trustedSource: string | undefined,
+  maxAgeMs: number,
+): boolean {
+  if (!receipt || !expectedBookId || !trustedSource) return false
+  if (receipt.bookId !== expectedBookId || receipt.source !== trustedSource) return false
+  const periodStart = Date.parse(receipt.periodStart)
+  const periodEnd = Date.parse(receipt.periodEnd)
+  const asOf = Date.parse(receipt.asOf)
+  if (![periodStart, periodEnd, asOf].every(Number.isFinite)) return false
+  if (periodStart > periodEnd || asOf < periodEnd || asOf > Date.now() || Date.now() - asOf > maxAgeMs) return false
+  const metrics = receipt.metrics as Partial<FinancialHealthSnapshot> | undefined
+  if (!metrics || !FINANCIAL_METRIC_KEYS.every((key) => Number.isFinite(metrics[key]))) return false
+  if (!['healthy', 'warning', 'critical'].includes(String(metrics.cashRunwayStatus))) return false
+  if (!ASSET_CATEGORIES.some(({ id }) => id === metrics.assetCategory)) return false
+  const sufficient = metrics.taxReserveFundMinor! >= metrics.taxObligationMinor!
+  return metrics.taxReserveFundStatus === (sufficient ? 'sufficient' : 'deficit')
 }
 
 export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGaugeProps> = ({
   customSnapshot,
   isCoreConnected: propIsCoreConnected,
-  authoritativeSnapshot
+  authoritativeSnapshot,
+  expectedBookId,
+  trustedSource,
+  maxReceiptAgeMs = 24 * 60 * 60 * 1000
 }) => {
   const { channel } = useDataTruth()
-  const hasReportReceipt = Boolean(
-    authoritativeSnapshot?.bookId.trim()
-      && authoritativeSnapshot.periodStart.trim()
-      && authoritativeSnapshot.periodEnd.trim()
-      && authoritativeSnapshot.asOf.trim()
-      && authoritativeSnapshot.source.trim()
-  )
+  const hasReportReceipt = isValidAuthoritativeReceipt(authoritativeSnapshot, expectedBookId, trustedSource, maxReceiptAgeMs)
   const isCoreConnected = (propIsCoreConnected ?? (channel === 'live-core')) && hasReportReceipt
   const [selectedAssetCat, setSelectedAssetCat] = useState<AssetValuationCategory>('fnb_raw_ingredients')
 

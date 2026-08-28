@@ -30,6 +30,8 @@ const AUTHORITATIVE_FINANCIAL_HEALTH: FinancialHealthSnapshot = {
   dailyBurnRateMinor: 280000000,
   liquidCashMinor: 21560000000,
 }
+const EXPECTED_BOOK = 'BOOK-NCG-HOLDING'
+const TRUSTED_SOURCE = 'GET /v1/company-books/BOOK-NCG-HOLDING/reports/financial-health'
 
 function renderWithProviders(ui: React.ReactElement): string {
   return renderToString(
@@ -70,13 +72,15 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     const html = renderWithProviders(
       <UniversalFinancialHealthGauge
         isCoreConnected
+        expectedBookId={EXPECTED_BOOK}
+        trustedSource={TRUSTED_SOURCE}
         authoritativeSnapshot={{
           metrics: AUTHORITATIVE_FINANCIAL_HEALTH,
-          bookId: 'BOOK-NCG-HOLDING',
+          bookId: EXPECTED_BOOK,
           periodStart: '2026-08-01',
           periodEnd: '2026-08-28',
           asOf: '2026-08-28T06:00:00Z',
-          source: 'GET /v1/company-books/BOOK-NCG-HOLDING/reports/financial-health',
+          source: TRUSTED_SOURCE,
         }}
       />
     )
@@ -92,6 +96,8 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     const html = renderWithProviders(
       <UniversalFinancialHealthGauge
         isCoreConnected
+        expectedBookId={EXPECTED_BOOK}
+        trustedSource={TRUSTED_SOURCE}
         authoritativeSnapshot={{
           metrics: {
             ...AUTHORITATIVE_FINANCIAL_HEALTH,
@@ -99,11 +105,11 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
             taxObligationMinor: 4000000000,
             taxReserveFundStatus: 'deficit',
           },
-          bookId: 'BOOK-NCG-HOLDING',
+          bookId: EXPECTED_BOOK,
           periodStart: '2026-08-01',
           periodEnd: '2026-08-28',
           asOf: '2026-08-28T06:00:00Z',
-          source: 'GET /v1/company-books/BOOK-NCG-HOLDING/reports/financial-health',
+          source: TRUSTED_SOURCE,
         }}
       />
     )
@@ -113,6 +119,55 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     expect(html).toContain('width:25%')
     expect(html).not.toContain('100% Siap')
     expect(html).not.toContain('Terproteksi 100%')
+  })
+
+  it.each([
+    ['foreign book', { bookId: 'BOOK-FOREIGN' }],
+    ['stale receipt', { asOf: '2026-08-20T06:00:00Z' }],
+    ['inverted period', { periodStart: '2026-08-29', periodEnd: '2026-08-28' }],
+    ['untrusted source', { source: 'GET /untrusted/report' }],
+  ])('keeps %s authoritative receipt in demo mode (#87)', (_case, override) => {
+    const html = renderWithProviders(
+      <UniversalFinancialHealthGauge
+        isCoreConnected
+        expectedBookId={EXPECTED_BOOK}
+        trustedSource={TRUSTED_SOURCE}
+        authoritativeSnapshot={{
+          metrics: AUTHORITATIVE_FINANCIAL_HEALTH,
+          bookId: EXPECTED_BOOK,
+          periodStart: '2026-08-01',
+          periodEnd: '2026-08-28',
+          asOf: '2026-08-28T06:00:00Z',
+          source: TRUSTED_SOURCE,
+          ...override,
+        }}
+      />
+    )
+    expect(html).toContain('Data Demo')
+    expect(html).toContain('Sample Snapshot: 2026-08-25')
+  })
+
+  it.each([
+    ['partial metrics', { cashRunwayDays: 77 }],
+    ['non-finite metrics', { ...AUTHORITATIVE_FINANCIAL_HEALTH, quickRatio: Number.NaN }],
+    ['contradictory reserve status', { ...AUTHORITATIVE_FINANCIAL_HEALTH, taxReserveFundStatus: 'deficit' }],
+  ])('keeps %s in demo mode (#87)', (_case, metrics) => {
+    const html = renderWithProviders(
+      <UniversalFinancialHealthGauge
+        isCoreConnected
+        expectedBookId={EXPECTED_BOOK}
+        trustedSource={TRUSTED_SOURCE}
+        authoritativeSnapshot={{
+          metrics: metrics as FinancialHealthSnapshot,
+          bookId: EXPECTED_BOOK,
+          periodStart: '2026-08-01',
+          periodEnd: '2026-08-28',
+          asOf: '2026-08-28T06:00:00Z',
+          source: TRUSTED_SOURCE,
+        }}
+      />
+    )
+    expect(html).toContain('Data Demo')
   })
 
   it('renders Multi-Entity Holding Tab with simulation indicator in demo mode (#86)', () => {
