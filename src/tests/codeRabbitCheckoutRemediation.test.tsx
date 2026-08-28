@@ -8,7 +8,12 @@ import { PosCashTenderForm, cashValueAfterCurrencySelection } from '../component
 import { MockHfeAdapter } from '../services/financial/MockHfeAdapter'
 import type { GovernedRetailCheckoutPayload, ReviewedPosQuote } from '../services/financial/HfePosFinancialPort'
 import { formatExactMinorCurrency } from '../utils/localeNumberFormat'
-import { formatPostedCheckoutAmount, settleQuoteRetirement, shouldAcceptQuoteResponse } from '../hooks/useCafeSettlement'
+import {
+  activeQuotePaymentMethod,
+  formatPostedCheckoutAmount,
+  settleQuoteRetirement,
+  shouldAcceptQuoteResponse,
+} from '../hooks/useCafeSettlement'
 
 const quote: ReviewedPosQuote = {
   quoteId: 'QUOTE-1', revision: '1', digestSha256: 'd'.repeat(64), currency: 'IDR',
@@ -49,9 +54,17 @@ describe('CodeRabbit checkout remediation', () => {
     expect(html).toMatch(/<button[^>]*class="[^"]*bg-amber-500[^"]*"[^>]*><span>🇺🇸<\/span><span>USD<\/span>/)
   })
 
-  it('accepts a quote response only while its requested fingerprint is still current', () => {
-    expect(shouldAcceptQuoteResponse('fingerprint-a', 'fingerprint-a')).toBe(true)
-    expect(shouldAcceptQuoteResponse('fingerprint-a', 'fingerprint-b')).toBe(false)
+  it('rejects an in-flight quote response after genuine cart or context fingerprint drift', () => {
+    expect(shouldAcceptQuoteResponse('qris:cart-v1:context-v1', 'qris:cart-v1:context-v1')).toBe(true)
+    expect(shouldAcceptQuoteResponse('qris:cart-v1:context-v1', 'qris:cart-v2:context-v1')).toBe(false)
+  })
+
+  it('tracks an explicitly requested QRIS quote while the configured method remains cash', () => {
+    expect(activeQuotePaymentMethod('cash', 'qris', 'cash')).toBe('qris')
+  })
+
+  it('switches to the newly configured tender when checkout inputs genuinely drift', () => {
+    expect(activeQuotePaymentMethod('cash', 'qris', 'card')).toBe('card')
   })
 
   it('renders the mobile cash input at a zoom-safe 16px font size', () => {

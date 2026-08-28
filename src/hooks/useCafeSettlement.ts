@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { CartItem, OrderFulfillmentMode, OrderTicket, PosPayMethod, TableStatus } from '../types/pos'
 import type { GovernedRetailCheckoutPayload, HfePosFinancialPort, QrisPaymentResponse, ReviewedPosQuote } from '../services/financial'
 import { CafeCheckoutAttemptCoordinator } from '../services/financial/CafeCheckoutAttemptCoordinator'
@@ -60,6 +60,14 @@ export async function settleQuoteRetirement(
 
 export function shouldAcceptQuoteResponse(requestedFingerprint: string, latestFingerprint: string): boolean {
   return requestedFingerprint === latestFingerprint
+}
+
+export function activeQuotePaymentMethod(
+  configuredAtRequest: PosPayMethod,
+  intendedAtRequest: PosPayMethod,
+  currentlyConfigured: PosPayMethod,
+): PosPayMethod {
+  return currentlyConfigured === configuredAtRequest ? intendedAtRequest : currentlyConfigured
 }
 
 interface UseCafeSettlementOptions {
@@ -157,6 +165,8 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const quoteRetirementInFlight = useRef<Promise<void> | null>(null)
   const quoteRequestInFlight = useRef(false)
   const reviewedIntentFingerprint = useRef<string | null>(null)
+  const configuredPaymentMethodAtQuote = useRef(options.paymentMethod)
+  const intendedQuotePaymentMethod = useRef(options.paymentMethod)
 
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(
     new OfflineIntentQueue<GovernedRetailCheckoutPayload>(),
@@ -186,15 +196,21 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     setAuthoritativeQuote(null)
     setCheckoutPhase({ kind: 'editing' })
   }
-  const intentFingerprint = checkoutIntentFingerprint(options, options.paymentMethod)
-  const latestIntentFingerprint = useRef(intentFingerprint)
-  latestIntentFingerprint.current = intentFingerprint
-  useEffect(() => {
-    if (reviewedIntentFingerprint.current !== null && reviewedIntentFingerprint.current !== intentFingerprint) {
+  const configuredIntentFingerprint = checkoutIntentFingerprint(options, options.paymentMethod)
+  const latestIntentFingerprint = useRef(configuredIntentFingerprint)
+  useLayoutEffect(() => {
+    const paymentMethod = activeQuotePaymentMethod(
+      configuredPaymentMethodAtQuote.current,
+      intendedQuotePaymentMethod.current,
+      options.paymentMethod,
+    )
+    const latestFingerprint = checkoutIntentFingerprint(options, paymentMethod)
+    latestIntentFingerprint.current = latestFingerprint
+    if (reviewedIntentFingerprint.current !== null && reviewedIntentFingerprint.current !== latestFingerprint) {
+      reviewedIntentFingerprint.current = null
       invalidateQuote()
     }
-    reviewedIntentFingerprint.current = intentFingerprint
-  }, [intentFingerprint])
+  }, [configuredIntentFingerprint])
 
   const requestQuote = async (intendedPaymentMethod: PosPayMethod = options.paymentMethod) => {
     if (quoteRequestInFlight.current) return
@@ -223,6 +239,9 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     }
     const checkoutKey = `${companyBookId}:${sourceId}`
     const requestedFingerprint = checkoutIntentFingerprint(options, intendedPaymentMethod)
+    configuredPaymentMethodAtQuote.current = options.paymentMethod
+    intendedQuotePaymentMethod.current = intendedPaymentMethod
+    latestIntentFingerprint.current = requestedFingerprint
     quoteRequestInFlight.current = true
     setCheckoutPhase({ kind: 'quoting' })
     try {
