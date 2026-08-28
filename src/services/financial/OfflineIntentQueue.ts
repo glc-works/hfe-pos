@@ -143,20 +143,23 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
       const store = tx.objectStore(CHECKOUT_ATTEMPTS_STORE)
       const request = store.get(checkoutKey)
       const deleted = await new Promise<boolean>((resolve, reject) => {
+        let matched = false
+        let settled = false
+        const resolveOnce = (value: boolean) => { if (!settled) { settled = true; resolve(value) } }
+        const rejectOnce = (error: unknown) => { if (!settled) { settled = true; reject(error) } }
         request.onsuccess = () => {
-          if (!matches(request.result)) {
-            resolve(false)
-            return
+          try {
+            matched = matches(request.result)
+            if (matched) store.delete(checkoutKey)
+          } catch (error) {
+            try { tx.abort() } catch { /* transaction already aborting */ }
+            rejectOnce(error)
           }
-          store.delete(checkoutKey)
-          resolve(true)
         }
-        request.onerror = () => reject(request.error)
-        tx.onerror = () => reject(tx.error)
-      })
-      await new Promise<void>((resolve, reject) => {
-        tx.oncomplete = () => resolve()
-        tx.onabort = () => reject(tx.error)
+        request.onerror = () => rejectOnce(request.error)
+        tx.oncomplete = () => resolveOnce(matched)
+        tx.onerror = () => rejectOnce(tx.error)
+        tx.onabort = () => rejectOnce(tx.error || new Error('Atomic posted acknowledgement transaction aborted.'))
       })
       if (deleted) OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
       return deleted

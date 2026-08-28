@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { GovernedRetailCheckoutPayload, SubmitRetailTransactionResponse } from '../services/financial/HfePosFinancialPort'
 import {
   CafeCheckoutAttemptCoordinator,
@@ -6,7 +6,8 @@ import {
   type CheckoutAttemptStore,
   type PostedDeleteExpectation,
 } from '../services/financial/CafeCheckoutAttemptCoordinator'
-import { canonicalCleanupEvidence } from '../services/financial/CheckoutCleanupEvidence'
+import { canonicalCleanupEvidence, checkoutAttemptKind } from '../services/financial/CheckoutCleanupEvidence'
+import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 
 const scope = { organizationId: 'ORG-1', authorityContext: 'AUTH-1', cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1' }
 const payload: GovernedRetailCheckoutPayload = {
@@ -68,6 +69,7 @@ describe('governed posted acknowledgement cleanup', () => {
     ['response status', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.status = 'pending' }],
     ['idempotency identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.idempotency_key = 'OTHER' }],
     ['posting identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.posting_id = 'POSTING-OTHER' }],
+    ['applied finality', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.readback_validation!.finality = 'pending' }],
   ])('retains governed record with missing or mismatched %s', async (_label, corrupt) => {
     const { store, coordinator } = await postedAttempt()
     corrupt(store.record!)
@@ -89,6 +91,41 @@ describe('governed posted acknowledgement cleanup', () => {
     expect(store.record?.recordKind).toBe('governed')
     await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/fingerprint|governed/i)
     expect(store.record).not.toBeNull()
+  })
+
+  it('rejects malformed version/discriminator and canonical encoding collisions', () => {
+    const base = { bookId: 'B', idempotencyKey: 'I', payload: {}, response: null, acceptedOrder: null }
+    expect(() => checkoutAttemptKind({ ...base, schemaVersion: 1 })).toThrow(/missing.*record kind/i)
+    expect(checkoutAttemptKind({ ...base, scopeFingerprint: 'scoped' })).toBe('governed')
+    expect(canonicalCleanupEvidence({ ...base, payload: { value: '__undefined__' } }))
+      .not.toBe(canonicalCleanupEvidence({ ...base, payload: { value: null } }))
+    expect(canonicalCleanupEvidence({ ...base, payload: { b: 2, a: 1 } }))
+      .toBe(canonicalCleanupEvidence({ ...base, payload: { a: 1, b: 2 } }))
+    expect(() => canonicalCleanupEvidence({ ...base, payload: { value: undefined } })).toThrow(/undefined/i)
+    expect(() => canonicalCleanupEvidence({ ...base, payload: { value: Number.NaN } })).toThrow(/non-finite/i)
+  })
+
+  it('aborts and rejects a malformed IndexedDB match without hanging or deleting', async () => {
+    vi.stubGlobal('indexedDB', {})
+    const queue = new OfflineIntentQueue<GovernedRetailCheckoutPayload>()
+    const request: any = {}
+    const deleteRecord = vi.fn()
+    const tx: any = {
+      objectStore: () => ({ get: () => request, delete: deleteRecord }),
+      abort: () => queueMicrotask(() => tx.onabort?.()),
+    }
+    ;(queue as any).openDB = async () => ({ transaction: () => tx })
+    const malformed = { status: 'posted', bookId: 'BOOK-1', idempotencyKey: 'I', schemaVersion: 1, payload: {} }
+    const result = queue.compareAndDeletePosted('K', {
+      bookId: 'BOOK-1', idempotencyKey: 'I', canonicalEvidence: 'expected',
+    })
+    queueMicrotask(() => { request.result = malformed; request.onsuccess?.() })
+    await expect(Promise.race([
+      result,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 250)),
+    ])).rejects.toThrow(/record kind|atomic posted acknowledgement/i)
+    expect(deleteRecord).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
   })
 
   it('fails closed on ambiguous or failed durable discovery', async () => {

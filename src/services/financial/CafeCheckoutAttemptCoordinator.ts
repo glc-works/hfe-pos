@@ -346,6 +346,7 @@ async function assertDurablePostedEvidence<TPayload extends PersistedRetailCheck
   }
   if (response.readback_validation && (
     !response.readback_validation.isValid || !response.readback_validation.isApplied || response.readback_validation.isMismatch
+    || response.readback_validation.finality !== 'applied'
   )) {
     throw new Error('Durable posted response read-back evidence is not exact and applied.')
   }
@@ -365,7 +366,7 @@ async function assertDurablePostedEvidence<TPayload extends PersistedRetailCheck
       throw new Error('Governed durable posted response currency does not match the accepted order and checkout intent.')
     }
   }
-  const fingerprint = await generatePayloadChecksum(JSON.parse(canonicalCleanupEvidence(attempt)))
+  const fingerprint = await generatePayloadChecksum({ canonicalEvidence: canonicalCleanupEvidence(attempt) })
   if (governed && !allowUnpersistedFingerprint && !attempt.cleanupEvidenceFingerprint) {
     throw new Error('Governed durable posted response is missing its cleanup evidence fingerprint.')
   }
