@@ -166,6 +166,11 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     ['malformed date', { asOf: 'not-a-date' }],
     ['calendar-invalid period date', { periodStart: '2026-02-30' }],
     ['calendar-invalid as-of date', { asOf: '2026-02-30T06:00:00Z' }],
+    ['out-of-range hour', { asOf: '2026-02-28T24:00:00Z' }],
+    ['out-of-range minute', { asOf: '2026-02-28T23:60:00Z' }],
+    ['out-of-range second', { asOf: '2026-02-28T23:59:60Z' }],
+    ['out-of-range offset hour', { asOf: '2026-02-28T23:59:59+24:00' }],
+    ['out-of-range offset minute', { asOf: '2026-02-28T23:59:59+07:60' }],
     ['inverted period', { periodStart: '2026-08-29', periodEnd: '2026-08-28' }],
     ['untrusted source', { source: 'GET /untrusted/report' }],
   ])('keeps %s authoritative receipt in demo mode (#87)', (_case, override) => {

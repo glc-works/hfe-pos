@@ -60,9 +60,19 @@ const FINANCIAL_METRIC_KEYS: (keyof FinancialHealthSnapshot)[] = [
 function parseCanonicalReceiptDate(value: string, dateOnly: boolean): number | undefined {
   const pattern = dateOnly
     ? /^(\d{4})-(\d{2})-(\d{2})$/
-    : /^(\d{4})-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
+    : /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/
   const match = pattern.exec(value)
   if (!match) return undefined
+  if (!dateOnly) {
+    const [, , , , hour, minute, second, offsetHour, offsetMinute] = match
+    if (
+      Number(hour) > 23
+      || Number(minute) > 59
+      || Number(second) > 59
+      || (offsetHour !== undefined && Number(offsetHour) > 23)
+      || (offsetMinute !== undefined && Number(offsetMinute) > 59)
+    ) return undefined
+  }
 
   const canonicalDay = `${match[1]}-${match[2]}-${match[3]}`
   const midnight = Date.parse(`${canonicalDay}T00:00:00Z`)
