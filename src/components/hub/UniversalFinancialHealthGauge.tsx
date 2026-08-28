@@ -67,7 +67,13 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
     ? authoritativeSnapshot.metrics
     : { ...DEFAULT_SNAPSHOT, ...customSnapshot }
 
-  const activeCategoryConfig = ASSET_CATEGORIES.find(c => c.id === selectedAssetCat) || ASSET_CATEGORIES[0]
+  const effectiveAssetCategory = isCoreConnected ? snapshot.assetCategory : selectedAssetCat
+  const activeCategoryConfig = ASSET_CATEGORIES.find(c => c.id === effectiveAssetCategory) || ASSET_CATEGORIES[0]
+  const taxCoveragePercent = snapshot.taxObligationMinor > 0
+    ? Math.min(100, Math.max(0, Math.round((snapshot.taxReserveFundMinor / snapshot.taxObligationMinor) * 100)))
+    : 100
+  const taxReserveIsSufficient = snapshot.taxReserveFundStatus === 'sufficient' && taxCoveragePercent >= 100
+  const taxShortfallMinor = Math.max(0, snapshot.taxObligationMinor - snapshot.taxReserveFundMinor)
 
   return (
     <div className="space-y-6 text-slate-800 dark:text-slate-100 font-sans">
@@ -233,8 +239,10 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
               <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                 <ShieldCheck className="w-4 h-4" /> Cadangan Pajak PB1/PPN
               </span>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px]">
-                100% Siap
+              <Badge variant="outline" className={taxReserveIsSufficient
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px]'
+                : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 text-[9px]'}>
+                {`${taxCoveragePercent}% Tersedia`}
               </Badge>
             </div>
 
@@ -246,8 +254,8 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
               <div 
-                className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: '100%' }}
+                className={`${taxReserveIsSufficient ? 'bg-emerald-500' : 'bg-rose-500'} h-full rounded-full transition-all duration-500`}
+                style={{ width: `${taxCoveragePercent}%` }}
               />
             </div>
           </div>
@@ -261,7 +269,11 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
             </div>
             <div className="flex justify-between">
               <span>Ring-Fence Fund:</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">Terproteksi 100%</span>
+              <span className={`${taxReserveIsSufficient ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} font-bold`}>
+                {taxReserveIsSufficient
+                  ? 'Terproteksi 100%'
+                  : `Defisit Rp ${(taxShortfallMinor / 100).toLocaleString('id-ID')}`}
+              </span>
             </div>
           </div>
         </Card>
@@ -287,9 +299,11 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
           {ASSET_CATEGORIES.map(cat => (
             <button
               key={cat.id}
+              disabled={isCoreConnected}
+              aria-pressed={effectiveAssetCategory === cat.id}
               onClick={() => setSelectedAssetCat(cat.id)}
-              className={`px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all select-none shrink-0 ${
-                selectedAssetCat === cat.id
+              className={`px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all select-none shrink-0 disabled:cursor-default ${
+                effectiveAssetCategory === cat.id
                   ? 'bg-purple-600 text-white shadow-md shadow-purple-950/40'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}

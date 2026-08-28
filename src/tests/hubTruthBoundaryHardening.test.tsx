@@ -83,7 +83,36 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     expect(html).toContain('LIVE • Terverifikasi CORE')
     expect(html).toContain('77')
     expect(html).toContain('2026-08-28T06:00:00Z')
+    expect(html).toContain('Stok Ritel &amp; Merchandise')
+    expect(html).toContain('disabled=""')
     expect(html).not.toContain('Sample Snapshot: 2026-08-25')
+  })
+
+  it('renders an authoritative tax-reserve deficit without a fully funded claim (#87)', () => {
+    const html = renderWithProviders(
+      <UniversalFinancialHealthGauge
+        isCoreConnected
+        authoritativeSnapshot={{
+          metrics: {
+            ...AUTHORITATIVE_FINANCIAL_HEALTH,
+            taxReserveFundMinor: 1000000000,
+            taxObligationMinor: 4000000000,
+            taxReserveFundStatus: 'deficit',
+          },
+          bookId: 'BOOK-NCG-HOLDING',
+          periodStart: '2026-08-01',
+          periodEnd: '2026-08-28',
+          asOf: '2026-08-28T06:00:00Z',
+          source: 'GET /v1/company-books/BOOK-NCG-HOLDING/reports/financial-health',
+        }}
+      />
+    )
+    expect(html).toContain('25% Tersedia')
+    expect(html).toContain('Defisit Rp')
+    expect(html).toContain('30.000.000')
+    expect(html).toContain('width:25%')
+    expect(html).not.toContain('100% Siap')
+    expect(html).not.toContain('Terproteksi 100%')
   })
 
   it('renders Multi-Entity Holding Tab with simulation indicator in demo mode (#86)', () => {
