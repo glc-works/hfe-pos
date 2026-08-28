@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { GovernedRetailCheckoutPayload, SubmitRetailTransactionResponse } from '../services/financial/HfePosFinancialPort'
 import {
   CafeCheckoutAttemptCoordinator,
@@ -67,20 +67,24 @@ async function postedAttempt(store = new Store()) {
 }
 
 describe('governed posted acknowledgement cleanup', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it.each([
-    ['posting_id', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { delete record.response!.posting_id }],
-    ['ledger_journal_id', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { delete record.response!.ledger_journal_id }],
-    ['readback_validation', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { delete record.response!.readback_validation }],
-    ['accepted order tx identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.tx_id = 'ORDER-OTHER' }],
-    ['response status', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.status = 'pending' }],
-    ['idempotency identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.idempotency_key = 'OTHER' }],
-    ['posting identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.posting_id = 'POSTING-OTHER' }],
-    ['applied finality', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.readback_validation!.finality = 'pending' }],
-  ])('retains governed record with missing or mismatched %s', async (_label, corrupt) => {
+    ['posting_id', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { delete record.response!.posting_id }, /canonical posting identity/i],
+    ['ledger_journal_id', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { delete record.response!.ledger_journal_id }, /canonical posting identity/i],
+    ['readback_validation', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { delete record.response!.readback_validation }, /read-back validation evidence/i],
+    ['accepted order tx identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.tx_id = 'ORDER-OTHER' }, /transaction identity does not match/i],
+    ['response status', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.status = 'pending' }, /non-posted status/i],
+    ['idempotency identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.idempotency_key = 'OTHER' }, /idempotency identity mismatch/i],
+    ['posting identity', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.posting_id = 'POSTING-OTHER' }, /posting identity mismatch/i],
+    ['applied finality', (record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) => { record.response!.readback_validation!.finality = 'pending' }, /read-back evidence is not exact and applied/i],
+  ])('retains governed record with missing or mismatched %s', async (_label, corrupt, expectedError) => {
     const { store, coordinator } = await postedAttempt()
     corrupt(store.record!)
-    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/durable posted|fingerprint|posting identity/i)
-    await expect(coordinator.acknowledgePosted('BOOK-1:ORDER-1', 'BOOK-1', scope)).rejects.toThrow()
+    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(expectedError)
+    await expect(coordinator.acknowledgePosted('BOOK-1:ORDER-1', 'BOOK-1', scope)).rejects.toThrow(expectedError)
     expect(store.record).not.toBeNull()
   })
 
@@ -152,7 +156,6 @@ describe('governed posted acknowledgement cleanup', () => {
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 250)),
     ])).rejects.toThrow(/record kind|atomic posted acknowledgement/i)
     expect(deleteRecord).not.toHaveBeenCalled()
-    vi.unstubAllGlobals()
   })
 
   it('fails closed on ambiguous or failed durable discovery', async () => {

@@ -134,7 +134,6 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const reviewedIntentFingerprint = useRef<string | null>(null)
   const configuredPaymentMethodAtQuote = useRef(options.paymentMethod)
   const intendedQuotePaymentMethod = useRef(options.paymentMethod)
-  const postedAcknowledgementKey = useRef<string | null>(null)
 
   const coordinator = useRef(new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(
     new OfflineIntentQueue<GovernedRetailCheckoutPayload>(),
@@ -300,10 +299,8 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       },
     )
     if (acknowledgement.kind === 'acknowledged') {
-      postedAcknowledgementKey.current = null
       return
     }
-    postedAcknowledgementKey.current = checkoutKey
     setFinancialStatus('posted')
     setFinancialNotice('posted_unacknowledged')
     setFinancialFailureCode(null)
@@ -467,7 +464,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
           actorPrincipalId: options.cashierId,
         }),
         async (restored) => {
-          await settleConfirmedPosted(restored.checkoutKey, restored.response!, options.paymentMethod)
+          await settleConfirmedPosted(restored.checkoutKey, restored.response!, restored.payload.payment_method)
         },
       )
       if (resumedPosted) return

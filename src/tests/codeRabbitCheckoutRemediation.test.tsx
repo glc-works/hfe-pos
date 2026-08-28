@@ -71,7 +71,6 @@ describe('CodeRabbit checkout remediation', () => {
 
   it('preserves the exact posted response and retries acknowledgement without reposting', async () => {
     const response = { status: 'posted' as const, tx_id: 'ORDER-1', posting_id: 'POSTING-1', grand_total: '30800' }
-    const repost = vi.fn()
     const acknowledge = vi.fn()
       .mockRejectedValueOnce(new Error('cleanup failed'))
       .mockResolvedValueOnce(undefined)
@@ -81,21 +80,23 @@ describe('CodeRabbit checkout remediation', () => {
     const retriedCleanup = await acknowledgeConfirmedPosted(failedCleanup.response, acknowledge)
     expect(retriedCleanup).toEqual({ kind: 'acknowledged', response })
     expect(acknowledge).toHaveBeenCalledTimes(2)
-    expect(repost).not.toHaveBeenCalled()
   })
 
-  it.each(['live activation', 'posting projection', 'paid-state UI', 'cart cleanup', 'amount display', 'alert'])(
-    'ends the financial failure boundary before %s throws',
-    async () => {
-      const response = { status: 'posted' as const, tx_id: 'ORDER-1', posting_id: 'POSTING-1', grand_total: '30800' }
-      const acknowledge = vi.fn()
-      const result = await acknowledgeConfirmedPosted(response, acknowledge, () => {
-        throw new Error('post-confirmation projection failed')
-      })
-      expect(result).toEqual({ kind: 'posted_unacknowledged', response, error: expect.any(Error) })
-      expect(acknowledge).not.toHaveBeenCalled()
-    },
-  )
+  it('ends the financial failure boundary when post-confirmation projection throws', async () => {
+    const response = { status: 'posted' as const, tx_id: 'ORDER-1', posting_id: 'POSTING-1', grand_total: '30800' }
+    const acknowledge = vi.fn()
+    const result = await acknowledgeConfirmedPosted(response, acknowledge, () => {
+      throw new Error('post-confirmation projection failed')
+    })
+    expect(result).toEqual({ kind: 'posted_unacknowledged', response, error: expect.any(Error) })
+    expect(acknowledge).not.toHaveBeenCalled()
+  })
+
+  it('uses the restored posted payload tender when resuming acknowledgement', () => {
+    const source = readFileSync(new URL('../hooks/useCafeSettlement.ts', import.meta.url), 'utf8')
+    expect(source).toContain('restored.payload.payment_method')
+    expect(source).not.toContain('settleConfirmedPosted(restored.checkoutKey, restored.response!, options.paymentMethod)')
+  })
 
   it('keeps discovery failure outside posted handling and performs no cleanup or mutation', async () => {
     const settlePosted = vi.fn()

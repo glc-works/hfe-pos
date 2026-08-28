@@ -215,8 +215,10 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
       const existing = await this.store.get(checkoutKey)
       if (existing) {
         assertAttemptIdentity(existing, bookId, payloadFingerprint, scopeFingerprint)
-        if (existing.status === 'posted' && existing.response) {
-          return { kind: 'posted', response: existing.response }
+        if (existing.status === 'posted') {
+          return existing.response
+            ? { kind: 'posted', response: existing.response }
+            : { kind: 'operator_action_required', attempt: existing }
         }
         const directPhases: CheckoutAttemptStatus[] = ['prepared', 'quote_requested', 'quote_ready', 'qris_intent_requested', 'qris_intent_ready']
         if (!directPhases.includes(existing.status) && (!resumeExisting || !reconcile)) {
@@ -385,9 +387,8 @@ function canAdvanceGovernedPhase(from: CheckoutAttemptStatus, to: CheckoutAttemp
     qris_intent_requested: ['qris_intent_ready'],
     qris_intent_ready: ['accept_requested'],
     accept_requested: ['accepted'],
-    accepted: ['confirm_requested', 'pending', 'posted'],
-    confirm_requested: ['pending', 'posted'],
-    pending: ['posted'],
+    accepted: ['confirm_requested', 'pending'],
+    confirm_requested: ['pending'],
   }
   return next[from]?.includes(to) ?? false
 }

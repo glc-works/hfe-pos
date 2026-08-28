@@ -9,6 +9,7 @@ import {
   CafeCheckoutAttemptCoordinator,
   type CheckoutAttemptRecord,
   type CheckoutAttemptStore,
+  type PostedDeleteExpectation,
 } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { resumeDurablePostedCleanup } from '../hooks/cafeSettlementOutcome'
 import { canonicalCleanupEvidence } from '../services/financial/CheckoutCleanupEvidence'
@@ -48,7 +49,7 @@ class MemoryAttemptStore implements CheckoutAttemptStore {
     this.records.delete(checkoutKey)
   }
 
-  async compareAndDeletePosted(checkoutKey: string, expected: import('../services/financial/CafeCheckoutAttemptCoordinator').PostedDeleteExpectation) {
+  async compareAndDeletePosted(checkoutKey: string, expected: PostedDeleteExpectation) {
     const record = this.records.get(checkoutKey)
     if (!record || record.status !== 'posted' || record.bookId !== expected.bookId ||
       record.scopeFingerprint !== expected.scopeFingerprint || record.idempotencyKey !== expected.idempotencyKey ||
@@ -323,7 +324,6 @@ describe('cafe checkout attempt coordination', () => {
     })
 
     const reloaded = new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(governedStore)
-    const financialMutation = vi.fn()
     const resumed = await resumeDurablePostedCleanup(
       () => reloaded.findPostedForAcknowledgement('BOOK-1', scope),
       async (restored) => {
@@ -332,7 +332,6 @@ describe('cafe checkout attempt coordination', () => {
       },
     )
     expect(resumed).toBe(true)
-    expect(financialMutation).not.toHaveBeenCalled()
     expect(await store.get('BOOK-1:ORDER-RESTORED')).toBeNull()
   })
 
