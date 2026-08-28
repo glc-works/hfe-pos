@@ -18,6 +18,13 @@ export function exactMinor(value: string, field: string): ExactMinorString {
   return value
 }
 
+export function deriveGovernedCheckoutPhaseKey(
+  rootKey: string,
+  phase: 'quote' | 'accept' | 'confirm'
+): string {
+  return `${rootKey}:${phase}`
+}
+
 export async function prepareGovernedRetailQuote(
   client: HfeClient,
   payload: GovernedRetailCheckoutPayload,
