@@ -70,35 +70,6 @@ export function ExecutiveInsightsTab({
     setTimeout(() => setZReportGenerated(false), 2500)
   }
 
-  const renderPostingBadge = () => {
-    switch (postingStatus) {
-      case 'posted':
-        return (
-          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px] font-mono">
-            {t.hub.businessTruthPostedBadge}
-          </Badge>
-        )
-      case 'pending':
-        return (
-          <Badge variant="outline" className="bg-amber-500/10 text-amber-300 border-amber-500/30 text-[10px] font-mono">
-            ⏳ {t.hub.businessTruthPendingBadge}
-          </Badge>
-        )
-      case 'failed':
-        return (
-          <Badge variant="outline" className="bg-rose-500/10 text-rose-400 border-rose-500/30 text-[10px] font-mono">
-            ❌ {t.hub.businessTruthFailedBadge}
-          </Badge>
-        )
-      case 'demo':
-      default:
-        return (
-          <Badge variant="outline" className="bg-purple-500/10 text-purple-300 border-purple-500/30 text-[10px] font-mono">
-            🧪 {t.hub.businessTruthDemoBadge}
-          </Badge>
-        )
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -137,7 +108,6 @@ export function ExecutiveInsightsTab({
               {t.hub.businessTruthTitle}
             </h4>
           </div>
-          {renderPostingBadge()}
           <TruthChannelBadge channel={postingStatus === 'posted' ? 'live-core' : postingStatus === 'pending' ? 'pending-sync' : 'demo'} />
         </div>
 

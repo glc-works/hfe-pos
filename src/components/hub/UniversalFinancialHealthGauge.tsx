@@ -77,8 +77,8 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs font-mono bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            {isCoreConnected ? 'Siklus: Real-time Hfe CORE' : 'Siklus: Standar Industri F&B'}
+          <Badge variant="outline" className="text-[11px] font-mono bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+            {isCoreConnected ? 'Siklus: Real-time Hfe CORE' : 'Sample Snapshot: 2026-08-25 (Simulasi)'}
           </Badge>
         </div>
       </div>
