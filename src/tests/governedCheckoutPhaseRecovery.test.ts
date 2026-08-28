@@ -52,6 +52,12 @@ class MemoryAttemptStore implements CheckoutAttemptStore<GovernedRetailCheckoutP
   async remove(): Promise<void> {
     this.record = null
   }
+
+  async findPosted(bookId: string, scopeFingerprint: string) {
+    return this.record?.bookId === bookId && this.record.scopeFingerprint === scopeFingerprint && this.record.status === 'posted'
+      ? [structuredClone(this.record)]
+      : []
+  }
 }
 
 async function durability(

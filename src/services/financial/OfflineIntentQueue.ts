@@ -131,6 +131,29 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
     }
   }
 
+  async findPosted(bookId: string, scopeFingerprint: string): Promise<CheckoutAttemptRecord<TPayload>[]> {
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readonly')
+      const request = tx.objectStore(CHECKOUT_ATTEMPTS_STORE).getAll()
+      const attempts = await new Promise<CheckoutAttemptRecord<TPayload>[]>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || [])
+        request.onerror = () => reject(request.error)
+      })
+      return attempts.filter((attempt) => (
+        attempt.bookId === bookId && attempt.scopeFingerprint === scopeFingerprint && attempt.status === 'posted'
+      ))
+    } catch (error) {
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed to discover durable posted checkout acknowledgement: ${message}`)
+      }
+      return [...OfflineIntentQueue.sharedInMemoryCheckoutAttempts.values()].filter((attempt) => (
+        attempt.bookId === bookId && attempt.scopeFingerprint === scopeFingerprint && attempt.status === 'posted'
+      )) as CheckoutAttemptRecord<TPayload>[]
+    }
+  }
+
   async enqueueIntent(
     payload: SubmitRetailTransactionPayload,
     bookId: string

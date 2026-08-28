@@ -36,6 +36,7 @@ export interface CheckoutAttemptStore<TPayload extends PersistedRetailCheckoutPa
   createIfAbsent(record: CheckoutAttemptRecord<TPayload>): Promise<CheckoutAttemptRecord<TPayload>>
   put(record: CheckoutAttemptRecord<TPayload>): Promise<void>
   remove(checkoutKey: string): Promise<void>
+  findPosted(bookId: string, scopeFingerprint: string): Promise<CheckoutAttemptRecord<TPayload>[]>
 }
 
 export interface CheckoutAttemptScope {
@@ -84,6 +85,22 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
       throw new Error('Only a durably posted checkout attempt can be acknowledged.')
     }
     await this.store.remove(checkoutKey)
+  }
+
+  async findPostedForAcknowledgement(
+    bookId: string,
+    scope: CheckoutAttemptScope,
+  ): Promise<CheckoutAttemptRecord<TPayload> | null> {
+    const scopeFingerprint = await checkoutScopeFingerprint(scope)
+    const attempts = await this.store.findPosted(bookId, scopeFingerprint)
+    if (attempts.length > 1) {
+      throw new Error('Multiple durable posted checkout attempts require explicit operator resolution.')
+    }
+    const attempt = attempts[0]
+    if (!attempt) return null
+    assertAttemptIdentity(attempt, bookId, attempt.payloadFingerprint, scopeFingerprint)
+    if (!attempt.response) throw new Error('Durable posted checkout attempt is missing its exact response evidence.')
+    return attempt
   }
 
   /** Persist the one logical attempt before its first quote request. */

@@ -54,11 +54,23 @@ export function activeQuotePaymentMethod(
 export async function acknowledgeConfirmedPosted<T>(
   response: T,
   acknowledge: () => Promise<void>,
+  afterPosted: () => void | Promise<void> = () => {},
 ): Promise<{ kind: 'acknowledged'; response: T } | { kind: 'posted_unacknowledged'; response: T; error: unknown }> {
   try {
+    await afterPosted()
     await acknowledge()
     return { kind: 'acknowledged', response }
   } catch (error) {
     return { kind: 'posted_unacknowledged', response, error }
   }
+}
+
+export async function resumeDurablePostedCleanup<T>(
+  findPosted: () => Promise<T | null>,
+  settlePosted: (attempt: T) => Promise<void>,
+): Promise<boolean> {
+  const attempt = await findPosted()
+  if (!attempt) return false
+  await settlePosted(attempt)
+  return true
 }

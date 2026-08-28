@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Int64String, PosSaleQuoteView } from '@hfe/sdk'
-import type { SubmitRetailTransactionPayload, SubmitRetailTransactionResponse } from '../services/financial/HfePosFinancialPort'
+import type {
+  GovernedRetailCheckoutPayload,
+  SubmitRetailTransactionPayload,
+  SubmitRetailTransactionResponse,
+} from '../services/financial/HfePosFinancialPort'
 import {
   CafeCheckoutAttemptCoordinator,
   type CheckoutAttemptRecord,
   type CheckoutAttemptStore,
 } from '../services/financial/CafeCheckoutAttemptCoordinator'
+import { resumeDurablePostedCleanup } from '../hooks/cafeSettlementOutcome'
 
 const payload: SubmitRetailTransactionPayload = {
   contact_id: '',
@@ -40,6 +45,12 @@ class MemoryAttemptStore implements CheckoutAttemptStore {
 
   async remove(checkoutKey: string) {
     this.records.delete(checkoutKey)
+  }
+
+  async findPosted(bookId: string, scopeFingerprint: string) {
+    return [...this.records.values()].filter((record) => (
+      record.bookId === bookId && record.scopeFingerprint === scopeFingerprint && record.status === 'posted'
+    ))
   }
 }
 
@@ -253,6 +264,38 @@ describe('cafe checkout attempt coordination', () => {
 
     await coordinator.acknowledgePosted('BOOK-1:ORDER-1')
     expect(await store.get('BOOK-1:ORDER-1')).toBeNull()
+  })
+
+  it('discovers and acknowledges a scoped posted attempt after reload without payload reconstruction or repost', async () => {
+    const store = new MemoryAttemptStore()
+    const scope = {
+      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
+      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
+    }
+    const governedPayload = {
+      contact_id: '', policy: 'pay-first' as const, payment_method: 'cash' as const,
+      outlet_id: 'OUTLET-1', terminal_id: 'TERM-1', currency: 'IDR',
+      items: [{ product_id: 'COFFEE-1', quantity: 1 }], cashier_id: 'CASHIER-1',
+    }
+    const governedStore = store as unknown as CheckoutAttemptStore<GovernedRetailCheckoutPayload>
+    const first = new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(governedStore, () => '11111111-1111-4111-8111-111111111112')
+    await first.execute({
+      checkoutKey: 'BOOK-1:ORDER-RESTORED', bookId: 'BOOK-1', payload: governedPayload, scope,
+      post: async (request) => posted(request.idempotency_key!),
+    })
+
+    const reloaded = new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(governedStore)
+    const financialMutation = vi.fn()
+    const resumed = await resumeDurablePostedCleanup(
+      () => reloaded.findPostedForAcknowledgement('BOOK-1', scope),
+      async (restored) => {
+        expect(restored).toMatchObject({ checkoutKey: 'BOOK-1:ORDER-RESTORED', status: 'posted' })
+        await reloaded.acknowledgePosted(restored.checkoutKey)
+      },
+    )
+    expect(resumed).toBe(true)
+    expect(financialMutation).not.toHaveBeenCalled()
+    expect(await store.get('BOOK-1:ORDER-RESTORED')).toBeNull()
   })
 
   it('blocks a concurrent double click before a second CORE mutation starts', async () => {

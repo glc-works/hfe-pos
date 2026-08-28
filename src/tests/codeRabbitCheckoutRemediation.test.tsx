@@ -83,6 +83,19 @@ describe('CodeRabbit checkout remediation', () => {
     expect(repost).not.toHaveBeenCalled()
   })
 
+  it.each(['live activation', 'posting projection', 'paid-state UI', 'cart cleanup', 'amount display', 'alert'])(
+    'ends the financial failure boundary before %s throws',
+    async () => {
+      const response = { status: 'posted' as const, tx_id: 'ORDER-1', posting_id: 'POSTING-1', grand_total: '30800' }
+      const acknowledge = vi.fn()
+      const result = await acknowledgeConfirmedPosted(response, acknowledge, () => {
+        throw new Error('post-confirmation projection failed')
+      })
+      expect(result).toEqual({ kind: 'posted_unacknowledged', response, error: expect.any(Error) })
+      expect(acknowledge).not.toHaveBeenCalled()
+    },
+  )
+
   it('renders the mobile cash input at a zoom-safe 16px font size', () => {
     const html = renderToStaticMarkup(
       <LanguageProvider><MerchantConfigProvider><PosCashTenderForm

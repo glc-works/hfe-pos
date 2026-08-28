@@ -1,6 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { CartItem, OrderFulfillmentMode, OrderTicket, PosPayMethod, TableStatus } from '../types/pos'
-import type { GovernedRetailCheckoutPayload, HfePosFinancialPort, QrisPaymentResponse, ReviewedPosQuote } from '../services/financial'
+import type {
+  GovernedRetailCheckoutPayload,
+  HfePosFinancialPort,
+  QrisPaymentResponse,
+  ReviewedPosQuote,
+  SubmitRetailTransactionResponse,
+} from '../services/financial'
 import { CafeCheckoutAttemptCoordinator } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 import { isConnectedFirstPartyRuntime, requiredRuntimeUuid, resolveGovernedQuoteContext } from '../config/firstPartyRuntime'
@@ -12,6 +18,7 @@ import {
   activeQuotePaymentMethod,
   classifyCheckoutFailure,
   formatPostedCheckoutAmount,
+  resumeDurablePostedCleanup,
   settleQuoteRetirement,
   shouldAcceptQuoteResponse,
 } from './cafeSettlementOutcome'
@@ -252,6 +259,61 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     }
   }
 
+  const settleConfirmedPosted = async (
+    checkoutKey: string,
+    response: SubmitRetailTransactionResponse,
+    intendedPaymentMethod: PosPayMethod,
+  ) => {
+    setFinancialStatus('posted')
+    setPendingQrisPayment(null)
+    setFinancialNotice('posted')
+    setFinancialFailureCode(null)
+    if (response.posting_id) setCheckoutPhase({ kind: 'posted', postingId: response.posting_id })
+
+    const acknowledgement = await acknowledgeConfirmedPosted(
+      response,
+      () => coordinator.current.acknowledgePosted(checkoutKey),
+      () => {
+        if (response.readback_validation && response.posting_id) {
+          activateLiveCore(response.readback_validation, response.posting_id)
+        }
+        setPostingTruthHref(response.posting_id
+          ? companyBookPostingHref(options.organizationId, options.companyBookId, response.posting_id, response.tx_id)
+          : null)
+        quoteCheckoutKey.current = null
+        quoteIdempotencyKey.current = null
+        reviewedIntentFingerprint.current = null
+        setAuthoritativeQuote(null)
+        options.commitPaidState()
+        options.clearCart()
+        const displayedAmount = formatPostedCheckoutAmount(
+          response.grand_total,
+          authoritativeQuote?.currency || resolveGovernedQuoteContext().currency,
+          'id',
+          () => typeof response.grand_total === 'number'
+            ? options.formatPrice(response.grand_total)
+            : response.grand_total,
+        )
+        alert(`🎉 Pembayaran ${options.selectedTable?.name || (options.fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${displayedAmount} LUNAS via ${intendedPaymentMethod.toUpperCase()}!`)
+      },
+    )
+    if (acknowledgement.kind === 'acknowledged') {
+      postedAcknowledgementKey.current = null
+      return
+    }
+    postedAcknowledgementKey.current = checkoutKey
+    setFinancialStatus('posted')
+    setFinancialNotice('posted_unacknowledged')
+    setFinancialFailureCode(null)
+    const detail = acknowledgement.error instanceof Error
+      ? acknowledgement.error.message
+      : String(acknowledgement.error)
+    void appendDeadLetterEntry({
+      kind: 'operator_action_required', detail, bookId: options.companyBookId,
+      checkoutKey, idempotencyKey: response.idempotency_key, postingId: response.posting_id,
+    }).catch(() => {})
+  }
+
   const executeCheckout = async (resumeExisting: boolean, intendedPaymentMethod: PosPayMethod = options.paymentMethod) => {
     const {
       selectedTable, items, orders, fulfillmentMode, cashierId,
@@ -347,18 +409,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       }
       if (result.kind === 'operator_action_required') {
         if (result.attempt.status === 'posted' && result.attempt.response) {
-          const acknowledgement = await acknowledgeConfirmedPosted(
-            result.attempt.response,
-            () => coordinator.current.acknowledgePosted(checkoutKey),
-          )
-          setFinancialStatus('posted')
-          setFinancialFailureCode(null)
-          setFinancialNotice(acknowledgement.kind === 'acknowledged' ? 'posted' : 'posted_unacknowledged')
-          if (result.attempt.response.posting_id) {
-            setCheckoutPhase({ kind: 'posted', postingId: result.attempt.response.posting_id })
-          }
-          postedAcknowledgementKey.current = acknowledgement.kind === 'acknowledged' ? null : checkoutKey
-          return
+          return settleConfirmedPosted(checkoutKey, result.attempt.response, intendedPaymentMethod)
         }
         setPendingQrisPayment(result.attempt.response?.qris_payment || null)
         setFinancialStatus('pending')
@@ -393,59 +444,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
         return
       }
 
-      setFinancialStatus('posted')
-      setPendingQrisPayment(null)
-      setFinancialNotice('posted')
-      setFinancialFailureCode(null)
-      if (result.response.posting_id) setCheckoutPhase({ kind: 'posted', postingId: result.response.posting_id })
-
-      // #35: the ONLY sanctioned live-core activation — feed the transport's own
-      // fail-closed read-back proof into the Data Truth Boundary. Any gate throw
-      // falls into the catch below and surfaces as a loud financial failure.
-      if (result.response.readback_validation && result.response.posting_id) {
-        activateLiveCore(result.response.readback_validation, result.response.posting_id)
-      }
-
-      setPostingTruthHref(result.response.posting_id
-        ? companyBookPostingHref(organizationId, companyBookId, result.response.posting_id, result.response.tx_id)
-        : null)
-      // Successful acknowledgement owns a separate cleanup path. Clearing the
-      // cart must not trigger pre-accept retirement against a posted attempt.
-      quoteCheckoutKey.current = null
-      quoteIdempotencyKey.current = null
-      reviewedIntentFingerprint.current = null
-      setAuthoritativeQuote(null)
-      commitPaidState()
-      clearCart()
-      const acknowledgement = await acknowledgeConfirmedPosted(
-        result.response,
-        () => coordinator.current.acknowledgePosted(checkoutKey),
-      )
-      if (acknowledgement.kind === 'posted_unacknowledged') {
-        postedAcknowledgementKey.current = checkoutKey
-        const detail = acknowledgement.error instanceof Error
-          ? acknowledgement.error.message
-          : String(acknowledgement.error)
-        setFinancialStatus('posted')
-        setFinancialNotice('posted_unacknowledged')
-        setFinancialFailureCode(null)
-        void appendDeadLetterEntry({
-          kind: 'operator_action_required', detail, bookId: companyBookId,
-          checkoutKey, idempotencyKey: result.response.idempotency_key,
-          postingId: result.response.posting_id,
-        }).catch(() => {})
-        return
-      }
-      postedAcknowledgementKey.current = null
-      const displayedAmount = formatPostedCheckoutAmount(
-        result.response.grand_total,
-        authoritativeQuote?.currency || resolveGovernedQuoteContext().currency,
-        'id',
-        () => typeof result.response.grand_total === 'number'
-          ? formatPrice(result.response.grand_total)
-          : result.response.grand_total,
-      )
-      alert(`🎉 Pembayaran ${selectedTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${displayedAmount} LUNAS via ${intendedPaymentMethod.toUpperCase()}!`)
+      return settleConfirmedPosted(checkoutKey, result.response, intendedPaymentMethod)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       setFinancialStatus('error')
@@ -456,21 +455,27 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     }
   }
 
-  const retryPostedAcknowledgement = async () => {
-    const checkoutKey = postedAcknowledgementKey.current
-    if (!checkoutKey) return
-    const acknowledgement = await acknowledgeConfirmedPosted(
-      checkoutKey,
-      () => coordinator.current.acknowledgePosted(checkoutKey),
-    )
-    setFinancialStatus('posted')
-    setFinancialFailureCode(null)
-    if (acknowledgement.kind === 'acknowledged') {
-      postedAcknowledgementKey.current = null
-      setFinancialNotice('posted')
-    } else {
+  const resumeCheckout = async () => {
+    try {
+      const resumedPosted = await resumeDurablePostedCleanup(
+        () => coordinator.current.findPostedForAcknowledgement(options.companyBookId, {
+          organizationId: options.organizationId,
+          authorityContext: options.authorityContext,
+          cashierId: options.cashierId,
+          actorPrincipalId: options.cashierId,
+        }),
+        async (restored) => {
+          await settleConfirmedPosted(restored.checkoutKey, restored.response!, options.paymentMethod)
+        },
+      )
+      if (resumedPosted) return
+    } catch (error) {
+      setFinancialStatus('posted')
       setFinancialNotice('posted_unacknowledged')
+      setFinancialFailureCode(null)
+      return
     }
+    return executeCheckout(true)
   }
 
   return {
@@ -486,8 +491,6 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     invalidateQuote,
     dismissPendingQrisPayment: () => setPendingQrisPayment(null),
     handleCheckout: (intendedPaymentMethod?: PosPayMethod) => executeCheckout(false, intendedPaymentMethod),
-    resumeCheckout: () => postedAcknowledgementKey.current
-      ? retryPostedAcknowledgement()
-      : executeCheckout(true),
+    resumeCheckout,
   }
 }

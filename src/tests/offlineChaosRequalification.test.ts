@@ -22,6 +22,11 @@ function fakeStore(): CheckoutAttemptStore & { history: CheckoutAttemptRecord[] 
     },
     async put(r) { map.set(r.checkoutKey, { ...r }); history.push({ ...r }) },
     async remove(k) { map.delete(k) },
+    async findPosted(bookId, scopeFingerprint) {
+      return [...map.values()].filter((record) => (
+        record.bookId === bookId && record.scopeFingerprint === scopeFingerprint && record.status === 'posted'
+      ))
+    },
   }
 }
 
