@@ -13,6 +13,7 @@ import {
   activeQuotePaymentMethod,
   formatPostedCheckoutAmount,
   settleQuoteRetirement,
+  resumeDurablePostedCleanup,
   shouldAcceptQuoteResponse,
 } from '../hooks/useCafeSettlement'
 
@@ -95,6 +96,15 @@ describe('CodeRabbit checkout remediation', () => {
       expect(acknowledge).not.toHaveBeenCalled()
     },
   )
+
+  it('keeps discovery failure outside posted handling and performs no cleanup or mutation', async () => {
+    const settlePosted = vi.fn()
+    await expect(resumeDurablePostedCleanup(
+      async () => { throw new Error('scope hash failed') },
+      settlePosted,
+    )).rejects.toThrow(/scope hash failed/i)
+    expect(settlePosted).not.toHaveBeenCalled()
+  })
 
   it('renders the mobile cash input at a zoom-safe 16px font size', () => {
     const html = renderToStaticMarkup(

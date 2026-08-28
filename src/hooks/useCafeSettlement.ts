@@ -470,9 +470,12 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       )
       if (resumedPosted) return
     } catch (error) {
-      setFinancialStatus('posted')
-      setFinancialNotice('posted_unacknowledged')
-      setFinancialFailureCode(null)
+      const message = error instanceof Error ? error.message : String(error)
+      setFinancialStatus('error')
+      setFinancialNotice('failed')
+      setFinancialFailureCode(classifyCheckoutFailure(message))
+      setCheckoutPhase({ kind: 'failed', message })
+      void appendDeadLetterEntry({ kind: 'operator_action_required', detail: message, bookId: options.companyBookId }).catch(() => {})
       return
     }
     return executeCheckout(true)

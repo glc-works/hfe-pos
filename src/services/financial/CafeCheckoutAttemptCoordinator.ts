@@ -84,6 +84,7 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
     if (!attempt || attempt.status !== 'posted') {
       throw new Error('Only a durably posted checkout attempt can be acknowledged.')
     }
+    assertDurablePostedEvidence(attempt)
     await this.store.remove(checkoutKey)
   }
 
@@ -98,8 +99,10 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
     }
     const attempt = attempts[0]
     if (!attempt) return null
-    assertAttemptIdentity(attempt, bookId, attempt.payloadFingerprint, scopeFingerprint)
-    if (!attempt.response) throw new Error('Durable posted checkout attempt is missing its exact response evidence.')
+    if (attempt.bookId !== bookId || attempt.scopeFingerprint !== scopeFingerprint) {
+      throw new Error('Durable posted checkout attempt organization or authority scope changed. Fail-closed.')
+    }
+    assertDurablePostedEvidence(attempt)
     return attempt
   }
 
@@ -287,6 +290,29 @@ function assertAttemptIdentity<TPayload extends PersistedRetailCheckoutPayload>(
   }
   if (existing.scopeFingerprint !== scopeFingerprint) {
     throw new Error('Checkout organization or authority scope changed while an unresolved financial attempt exists. Manager resolution is required.')
+  }
+}
+
+function assertDurablePostedEvidence<TPayload extends PersistedRetailCheckoutPayload>(
+  attempt: CheckoutAttemptRecord<TPayload>,
+): asserts attempt is CheckoutAttemptRecord<TPayload> & { response: SubmitRetailTransactionResponse } {
+  const response = attempt.response
+  if (attempt.status !== 'posted' || !response || response.status !== 'posted') {
+    throw new Error('Durable posted response evidence is missing or has a non-posted status.')
+  }
+  if (response.idempotency_key !== attempt.idempotencyKey) {
+    throw new Error('Durable posted response evidence has an idempotency identity mismatch.')
+  }
+  if (!response.tx_id.trim()) {
+    throw new Error('Durable posted response evidence is missing its exact transaction identity.')
+  }
+  if (response.posting_id && response.ledger_journal_id && response.posting_id !== response.ledger_journal_id) {
+    throw new Error('Durable posted response posting identity mismatch.')
+  }
+  if (response.readback_validation && (
+    !response.readback_validation.isValid || !response.readback_validation.isApplied || response.readback_validation.isMismatch
+  )) {
+    throw new Error('Durable posted response read-back evidence is not exact and applied.')
   }
 }
 

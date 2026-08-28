@@ -115,10 +115,7 @@ describe('cafe checkout attempt coordination', () => {
   it('rejects authority drift before execute can invoke a financial mutation', async () => {
     const store = new MemoryAttemptStore()
     const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000098')
-    const scope = {
-      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
-      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
-    }
+    const scope = { organizationId: 'ORG-1', authorityContext: 'AUTH-1', cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1' }
     await coordinator.prepare('BOOK-1:ORDER-EXEC-SCOPE', 'BOOK-1', payload, scope)
     const post = vi.fn()
 
@@ -268,10 +265,7 @@ describe('cafe checkout attempt coordination', () => {
 
   it('discovers and acknowledges a scoped posted attempt after reload without payload reconstruction or repost', async () => {
     const store = new MemoryAttemptStore()
-    const scope = {
-      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
-      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
-    }
+    const scope = { organizationId: 'ORG-1', authorityContext: 'AUTH-1', cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1' }
     const governedPayload = {
       contact_id: '', policy: 'pay-first' as const, payment_method: 'cash' as const,
       outlet_id: 'OUTLET-1', terminal_id: 'TERM-1', currency: 'IDR',
@@ -296,6 +290,49 @@ describe('cafe checkout attempt coordination', () => {
     expect(resumed).toBe(true)
     expect(financialMutation).not.toHaveBeenCalled()
     expect(await store.get('BOOK-1:ORDER-RESTORED')).toBeNull()
+  })
+
+  it.each([
+    ['response status', { status: 'pending' }],
+    ['idempotency identity', { idempotency_key: 'DIFFERENT-ATTEMPT' }],
+    ['posting identity', { posting_id: 'POSTING-2', ledger_journal_id: 'POSTING-1' }],
+  ])('rejects corrupt durable posted %s evidence without deleting it', async (_label, responsePatch) => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store)
+    const scope = {
+      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
+      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
+    }
+    const scopeFingerprint = await (async () => {
+      await coordinator.prepare('BOOK-1:CORRUPT', 'BOOK-1', payload, scope)
+      return (await store.get('BOOK-1:CORRUPT'))!.scopeFingerprint!
+    })()
+    const record = (await store.get('BOOK-1:CORRUPT'))!
+    record.status = 'posted'
+    record.response = { ...posted(record.idempotencyKey), ...responsePatch } as SubmitRetailTransactionResponse
+    await store.put(record)
+
+    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/durable posted.*evidence|posting identity/i)
+    await expect(coordinator.acknowledgePosted(record.checkoutKey)).rejects.toThrow(/durable posted.*evidence|posting identity/i)
+    expect(await store.findPosted('BOOK-1', scopeFingerprint)).toHaveLength(1)
+  })
+
+  it('fails closed on ambiguous or failed durable posted discovery', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store)
+    const scope = {
+      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
+      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
+    }
+    await coordinator.prepare('BOOK-1:AMBIGUOUS-1', 'BOOK-1', payload, scope)
+    const first = (await store.get('BOOK-1:AMBIGUOUS-1'))!
+    first.status = 'posted'; first.response = posted(first.idempotencyKey)
+    await store.put(first)
+    await store.put({ ...first, checkoutKey: 'BOOK-1:AMBIGUOUS-2' })
+    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/multiple durable posted/i)
+
+    store.findPosted = async () => { throw new Error('durable read failed') }
+    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/durable read failed/i)
   })
 
   it('blocks a concurrent double click before a second CORE mutation starts', async () => {
