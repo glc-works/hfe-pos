@@ -27,9 +27,9 @@ describe('CodeRabbit checkout remediation', () => {
     expect(formatPostedCheckoutAmount('not-money', 'IDR', 'id', () => 'fallback')).toBe('fallback')
   })
 
-  it('settles a failed quote retirement so a later quote is not poisoned', async () => {
+  it('keeps a failed quote retirement observable so a later quote cannot bypass it', async () => {
     const onFailure = vi.fn()
-    await expect(settleQuoteRetirement(Promise.reject(new Error('retirement failed')), onFailure)).resolves.toBeUndefined()
+    await expect(settleQuoteRetirement(Promise.reject(new Error('retirement failed')), onFailure)).rejects.toThrow('retirement failed')
     expect(onFailure).toHaveBeenCalledWith(expect.objectContaining({ message: 'retirement failed' }))
   })
 

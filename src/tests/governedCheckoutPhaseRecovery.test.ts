@@ -25,6 +25,10 @@ const payload = {
 } satisfies GovernedRetailCheckoutPayload
 
 const checkoutKey = 'BOOK-1:ORDER-1'
+const attemptScope = {
+  organizationId: 'ORG-1', authorityContext: 'AUTH-1',
+  cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
+}
 
 class MemoryAttemptStore implements CheckoutAttemptStore<GovernedRetailCheckoutPayload> {
   record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload> | null = null
@@ -39,6 +43,12 @@ class MemoryAttemptStore implements CheckoutAttemptStore<GovernedRetailCheckoutP
     this.phases.push(record.status)
   }
 
+  async createIfAbsent(record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload>) {
+    if (this.record) return structuredClone(this.record)
+    await this.put(record)
+    return structuredClone(record)
+  }
+
   async remove(): Promise<void> {
     this.record = null
   }
@@ -50,7 +60,7 @@ async function durability(
 ) {
   const store = new MemoryAttemptStore()
   const coordinator = new CafeCheckoutAttemptCoordinator(store, () => 'attempt-101')
-  await coordinator.prepare(checkoutKey, 'BOOK-1', attemptPayload)
+  await coordinator.prepare(checkoutKey, 'BOOK-1', attemptPayload, attemptScope)
   const port = coordinator.durability(checkoutKey)
   const target = initial.phase
   const phaseOrder = [
@@ -154,13 +164,14 @@ describe('governed checkout durable phase recovery', () => {
     expect((await durable.read()).phase).toBe('qris_intent_requested')
 
     const reloaded = new CafeCheckoutAttemptCoordinator(durable.store, () => 'must-not-mint')
-    const restoredAttempt = await reloaded.prepare(checkoutKey, 'BOOK-1', payload)
+    const restoredAttempt = await reloaded.prepare(checkoutKey, 'BOOK-1', payload, attemptScope)
     const restoredContext = makeContext(reloaded.durability(checkoutKey))
     const restoredReviewed = await adapter.prepareGovernedRetailQuote(restoredAttempt.payload, restoredContext)
     const result = await reloaded.execute({
       checkoutKey,
       bookId: 'BOOK-1',
       payload,
+      scope: attemptScope,
       post: (identified) => adapter.postGovernedRetailOrder(identified, restoredContext, restoredReviewed),
     })
 
@@ -192,13 +203,14 @@ describe('governed checkout durable phase recovery', () => {
     await durable.port.transition('qris_intent_ready', { qrisIntent: qrisReceipt })
 
     const reloaded = new CafeCheckoutAttemptCoordinator(durable.store, () => 'must-not-mint')
-    const restoredAttempt = await reloaded.prepare(checkoutKey, 'BOOK-1', payload)
+    const restoredAttempt = await reloaded.prepare(checkoutKey, 'BOOK-1', payload, attemptScope)
     const restoredContext = makeContext(reloaded.durability(checkoutKey))
     const restoredReviewed = await adapter.prepareGovernedRetailQuote(restoredAttempt.payload, restoredContext)
     const result = await reloaded.execute({
       checkoutKey,
       bookId: 'BOOK-1',
       payload,
+      scope: attemptScope,
       post: (identified) => adapter.postGovernedRetailOrder(identified, restoredContext, restoredReviewed),
     })
 
@@ -351,6 +363,7 @@ describe('governed checkout durable phase recovery', () => {
       checkoutKey,
       bookId: 'BOOK-1',
       payload: cashPayload,
+      scope: attemptScope,
       post: (identified) => adapter.postGovernedRetailOrder(identified, context, reviewed(context, 'cash')),
     })
     expect(first.kind).toBe('pending')
@@ -362,6 +375,7 @@ describe('governed checkout durable phase recovery', () => {
       checkoutKey,
       bookId: 'BOOK-1',
       payload: cashPayload,
+      scope: attemptScope,
       post: async () => { throw new Error('must not restart cash acceptance') },
       reconcile: (identified) => adapter.reconcileGovernedRetailOrder(identified, restoredContext),
       resumeExisting: true,

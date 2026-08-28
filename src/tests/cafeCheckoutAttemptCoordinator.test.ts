@@ -31,8 +31,31 @@ class MemoryAttemptStore implements CheckoutAttemptStore {
     this.records.set(record.checkoutKey, structuredClone(record))
   }
 
+  async createIfAbsent(record: CheckoutAttemptRecord) {
+    const existing = this.records.get(record.checkoutKey)
+    if (existing) return structuredClone(existing)
+    this.records.set(record.checkoutKey, structuredClone(record))
+    return structuredClone(record)
+  }
+
   async remove(checkoutKey: string) {
     this.records.delete(checkoutKey)
+  }
+}
+
+class RacingAttemptStore extends MemoryAttemptStore {
+  private reads = 0
+  private releaseReads!: () => void
+  private readonly bothRead = new Promise<void>((resolve) => { this.releaseReads = resolve })
+
+  override async get(checkoutKey: string) {
+    this.reads += 1
+    if (this.reads <= 2) {
+      if (this.reads === 2) this.releaseReads()
+      await this.bothRead
+      return null
+    }
+    return super.get(checkoutKey)
   }
 }
 
@@ -48,6 +71,83 @@ function posted(idempotencyKey: string): SubmitRetailTransactionResponse {
 }
 
 describe('cafe checkout attempt coordination', () => {
+  it('requires explicit persisted scope for a governed checkout attempt', async () => {
+    const governedPayload = {
+      contact_id: '', policy: 'pay-first', payment_method: 'cash', outlet_id: 'OUTLET-1', terminal_id: 'TERM-1',
+      currency: 'IDR', items: [{ product_id: 'COFFEE-1', quantity: 1 }], cashier_id: 'CASHIER-1',
+    } as unknown as SubmitRetailTransactionPayload
+    await expect(new CafeCheckoutAttemptCoordinator(new MemoryAttemptStore()).prepare(
+      'BOOK-1:ORDER-UNSCOPED', 'BOOK-1', governedPayload,
+    )).rejects.toThrow(/organization, authority, cashier, and actor scope is required/i)
+  })
+
+  it('binds a governed attempt to organization and authority without persisting raw authority context', async () => {
+    const store = new MemoryAttemptStore()
+    const first = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000099')
+    const firstScope = {
+      organizationId: 'ORG-1', authorityContext: 'AUTH-CONTEXT-SECRET-LIKE-ID',
+      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
+    }
+    await first.prepare('BOOK-1:ORDER-SCOPE', 'BOOK-1', payload, firstScope)
+
+    const persisted = await store.get('BOOK-1:ORDER-SCOPE')
+    expect(persisted?.scopeFingerprint).toMatch(/^[a-f0-9]{64}$/)
+    expect(JSON.stringify(persisted)).not.toContain(firstScope.authorityContext)
+
+    const reloaded = new CafeCheckoutAttemptCoordinator(store, () => 'must-not-mint')
+    await expect(reloaded.prepare('BOOK-1:ORDER-SCOPE', 'BOOK-1', payload, {
+      ...firstScope, authorityContext: 'AUTH-DRIFTED',
+    })).rejects.toThrow(/organization or authority scope changed/i)
+    expect((await store.get('BOOK-1:ORDER-SCOPE'))?.idempotencyKey).toBe('00000000-0000-4000-8000-000000000099')
+  })
+
+  it('rejects authority drift before execute can invoke a financial mutation', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000098')
+    const scope = {
+      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
+      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
+    }
+    await coordinator.prepare('BOOK-1:ORDER-EXEC-SCOPE', 'BOOK-1', payload, scope)
+    const post = vi.fn()
+
+    await expect(coordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-EXEC-SCOPE', bookId: 'BOOK-1', payload,
+      scope: { ...scope, organizationId: 'ORG-DRIFTED' }, post,
+    })).rejects.toThrow(/organization or authority scope changed/i)
+    expect(post).not.toHaveBeenCalled()
+    expect((await store.get('BOOK-1:ORDER-EXEC-SCOPE'))?.status).toBe('prepared')
+  })
+
+  it('atomically returns one root attempt across two coordinator instances', async () => {
+    const store = new RacingAttemptStore()
+    const first = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000201')
+    const second = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000202')
+
+    const [a, b] = await Promise.all([
+      first.prepare('BOOK-1:ORDER-TABS', 'BOOK-1', payload),
+      second.prepare('BOOK-1:ORDER-TABS', 'BOOK-1', payload),
+    ])
+
+    expect(a.idempotencyKey).toBe(b.idempotencyKey)
+    expect((await store.get('BOOK-1:ORDER-TABS'))?.idempotencyKey).toBe(a.idempotencyKey)
+  })
+
+  it('keeps a failed retirement observable and allows the same attempt to be retired on retry', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000203')
+    await coordinator.prepare('BOOK-1:ORDER-RETIRE', 'BOOK-1', payload)
+    const remove = vi.spyOn(store, 'remove')
+      .mockRejectedValueOnce(new Error('disk removal failed'))
+      .mockImplementation(async (key) => { store.records.delete(key) })
+
+    await expect(coordinator.retirePrepared('BOOK-1:ORDER-RETIRE')).rejects.toThrow(/disk removal failed/i)
+    expect(await store.get('BOOK-1:ORDER-RETIRE')).not.toBeNull()
+    await expect(coordinator.retirePrepared('BOOK-1:ORDER-RETIRE')).resolves.toBeUndefined()
+    expect(await store.get('BOOK-1:ORDER-RETIRE')).toBeNull()
+    expect(remove).toHaveBeenCalledTimes(2)
+  })
+
   it('writes durable pre-quote lineage and lets its first reviewed acceptance mutate once', async () => {
     const store = new MemoryAttemptStore()
     const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000101')

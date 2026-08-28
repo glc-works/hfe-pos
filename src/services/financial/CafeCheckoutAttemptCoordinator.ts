@@ -17,6 +17,7 @@ export interface CheckoutAttemptRecord<TPayload extends PersistedRetailCheckoutP
   bookId: string
   idempotencyKey: string
   payloadFingerprint: string
+  scopeFingerprint?: string
   payload: TPayload
   status: CheckoutAttemptStatus
   createdAt: string
@@ -31,8 +32,16 @@ export interface CheckoutAttemptRecord<TPayload extends PersistedRetailCheckoutP
 
 export interface CheckoutAttemptStore<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> {
   get(checkoutKey: string): Promise<CheckoutAttemptRecord<TPayload> | null>
+  createIfAbsent(record: CheckoutAttemptRecord<TPayload>): Promise<CheckoutAttemptRecord<TPayload>>
   put(record: CheckoutAttemptRecord<TPayload>): Promise<void>
   remove(checkoutKey: string): Promise<void>
+}
+
+export interface CheckoutAttemptScope {
+  organizationId: string
+  authorityContext: string
+  cashierId: string
+  actorPrincipalId: string
 }
 
 export type CheckoutAttemptResult<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> =
@@ -46,6 +55,7 @@ interface ExecuteCheckoutAttempt<TPayload extends PersistedRetailCheckoutPayload
   checkoutKey: string
   bookId: string
   payload: TPayload
+  scope?: CheckoutAttemptScope
   post: (
     payload: TPayload,
     attempt: CheckoutAttemptRecord<TPayload>,
@@ -74,13 +84,18 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
   }
 
   /** Persist the one logical attempt before its first quote request. */
-  async prepare(checkoutKey: string, bookId: string, payload: TPayload): Promise<CheckoutAttemptRecord<TPayload>> {
+  async prepare(
+    checkoutKey: string,
+    bookId: string,
+    payload: TPayload,
+    scope?: CheckoutAttemptScope,
+  ): Promise<CheckoutAttemptRecord<TPayload>> {
+    requireGovernedScope(payload, scope)
     const payloadFingerprint = await generatePayloadChecksum({ ...payload, idempotency_key: undefined })
+    const scopeFingerprint = scope ? await checkoutScopeFingerprint(scope) : undefined
     const existing = await this.store.get(checkoutKey)
     if (existing) {
-      if (existing.payloadFingerprint !== payloadFingerprint) {
-        throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
-      }
+      assertAttemptIdentity(existing, bookId, payloadFingerprint, scopeFingerprint)
       return existing
     }
     const now = new Date().toISOString()
@@ -90,13 +105,15 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
       bookId,
       idempotencyKey,
       payloadFingerprint,
+      scopeFingerprint,
       payload: { ...payload, idempotency_key: idempotencyKey } as TPayload,
       status: 'prepared',
       createdAt: now,
       updatedAt: now,
     }
-    await this.store.put(attempt)
-    return attempt
+    const winner = await this.store.createIfAbsent(attempt)
+    assertAttemptIdentity(winner, bookId, payloadFingerprint, scopeFingerprint)
+    return winner
   }
 
   async retirePrepared(checkoutKey: string): Promise<void> {
@@ -132,18 +149,18 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
     }
   }
 
-  async execute({ checkoutKey, bookId, payload, post, reconcile, resumeExisting = false }: ExecuteCheckoutAttempt<TPayload>): Promise<CheckoutAttemptResult<TPayload>> {
+  async execute({ checkoutKey, bookId, payload, scope, post, reconcile, resumeExisting = false }: ExecuteCheckoutAttempt<TPayload>): Promise<CheckoutAttemptResult<TPayload>> {
     if (this.inFlight.has(checkoutKey)) return { kind: 'already_in_progress' }
     this.inFlight.add(checkoutKey)
 
     try {
+      requireGovernedScope(payload, scope)
       const payloadWithoutIdentity = { ...payload, idempotency_key: undefined }
       const payloadFingerprint = await generatePayloadChecksum(payloadWithoutIdentity)
+      const scopeFingerprint = scope ? await checkoutScopeFingerprint(scope) : undefined
       const existing = await this.store.get(checkoutKey)
       if (existing) {
-        if (existing.payloadFingerprint !== payloadFingerprint) {
-          throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
-        }
+        assertAttemptIdentity(existing, bookId, payloadFingerprint, scopeFingerprint)
         if (existing.status === 'posted' && existing.response) {
           return { kind: 'posted', response: existing.response }
         }
@@ -163,18 +180,20 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
           bookId,
           idempotencyKey,
           payloadFingerprint,
+          scopeFingerprint,
           payload: identifiedPayload,
           status: 'prepared',
           createdAt: now,
           updatedAt: now,
         }
       })()
-      if (!existing) await this.store.put(attempt)
+      const durableAttempt = existing ?? await this.store.createIfAbsent(attempt)
+      if (!existing) assertAttemptIdentity(durableAttempt, bookId, payloadFingerprint, scopeFingerprint)
 
-      if (!recoverExisting && !('outlet_id' in attempt.payload)) {
-        attempt.status = 'outcome_unknown'
-        attempt.updatedAt = new Date().toISOString()
-        await this.store.put(attempt)
+      if (!recoverExisting && !('outlet_id' in durableAttempt.payload)) {
+        durableAttempt.status = 'outcome_unknown'
+        durableAttempt.updatedAt = new Date().toISOString()
+        await this.store.put(durableAttempt)
       }
 
       try {
@@ -182,9 +201,9 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
         // acceptance mutation was sent. Only an unresolved post-accept record
         // may use the read-only recovery path.
         const response = recoverExisting
-          ? await reconcile!(attempt.payload, attempt)
-          : await post(attempt.payload, attempt)
-        const current = await this.store.get(checkoutKey) ?? attempt
+          ? await reconcile!(durableAttempt.payload, durableAttempt)
+          : await post(durableAttempt.payload, durableAttempt)
+        const current = await this.store.get(checkoutKey) ?? durableAttempt
         if (response.status !== 'posted') {
           current.status = 'pending'
           current.response = response
@@ -199,7 +218,7 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
         await this.store.put(current)
         return { kind: 'posted', response }
       } catch (error) {
-        const current = await this.store.get(checkoutKey) ?? attempt
+        const current = await this.store.get(checkoutKey) ?? durableAttempt
         if (current.status === 'prepared') current.status = 'outcome_unknown'
         current.lastError = error instanceof Error ? error.message : String(error)
         current.updatedAt = new Date().toISOString()
@@ -209,6 +228,39 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
     } finally {
       this.inFlight.delete(checkoutKey)
     }
+  }
+}
+
+async function checkoutScopeFingerprint(scope: CheckoutAttemptScope): Promise<string> {
+  if (!scope.organizationId.trim() || !scope.authorityContext.trim() || !scope.cashierId.trim() || !scope.actorPrincipalId.trim()) {
+    throw new Error('Governed checkout organization, authority, cashier, and actor scope is required.')
+  }
+  return generatePayloadChecksum(scope)
+}
+
+function requireGovernedScope<TPayload extends PersistedRetailCheckoutPayload>(
+  payload: TPayload,
+  scope?: CheckoutAttemptScope,
+): void {
+  if ('outlet_id' in payload && !scope) {
+    throw new Error('Governed checkout organization, authority, cashier, and actor scope is required.')
+  }
+}
+
+function assertAttemptIdentity<TPayload extends PersistedRetailCheckoutPayload>(
+  existing: CheckoutAttemptRecord<TPayload>,
+  bookId: string,
+  payloadFingerprint: string,
+  scopeFingerprint?: string,
+): void {
+  if (existing.bookId !== bookId) {
+    throw new Error('Checkout Company Book changed while an unresolved financial attempt exists. Manager resolution is required.')
+  }
+  if (existing.payloadFingerprint !== payloadFingerprint) {
+    throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
+  }
+  if (scopeFingerprint !== undefined && existing.scopeFingerprint !== scopeFingerprint) {
+    throw new Error('Checkout organization or authority scope changed while an unresolved financial attempt exists. Manager resolution is required.')
   }
 }
 

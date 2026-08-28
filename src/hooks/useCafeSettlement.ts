@@ -54,6 +54,7 @@ export async function settleQuoteRetirement(
     await retirement
   } catch (error) {
     onFailure(error)
+    throw error
   }
 }
 
@@ -158,18 +159,26 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   ))
   const activateLiveCore = useLiveCoreActivation()
 
+  const beginQuoteRetirement = (checkoutKey: string): Promise<void> => {
+    let tracked: Promise<void>
+    tracked = settleQuoteRetirement(coordinator.current.retirePrepared(checkoutKey), (error) => {
+      setCheckoutPhase({ kind: 'failed', message: error instanceof Error ? error.message : String(error) })
+    }).then(() => {
+      if (quoteRetirementInFlight.current === tracked) quoteRetirementInFlight.current = null
+      if (quoteCheckoutKey.current === checkoutKey) {
+        quoteCheckoutKey.current = null
+        quoteIdempotencyKey.current = null
+      }
+    })
+    quoteRetirementInFlight.current = tracked
+    void tracked.catch(() => {})
+    return tracked
+  }
+
   const invalidateQuote = () => {
-    if (quoteCheckoutKey.current) {
-      const retirement = coordinator.current.retirePrepared(quoteCheckoutKey.current)
-      const tracked = settleQuoteRetirement(retirement, (error) => {
-        setCheckoutPhase({ kind: 'failed', message: error instanceof Error ? error.message : String(error) })
-      }).finally(() => {
-        if (quoteRetirementInFlight.current === tracked) quoteRetirementInFlight.current = null
-      })
-      quoteRetirementInFlight.current = tracked
+    if (quoteCheckoutKey.current && !quoteRetirementInFlight.current) {
+      void beginQuoteRetirement(quoteCheckoutKey.current)
     }
-    quoteCheckoutKey.current = null
-    quoteIdempotencyKey.current = null
     setAuthoritativeQuote(null)
     setCheckoutPhase({ kind: 'editing' })
   }
@@ -210,10 +219,21 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     quoteRequestInFlight.current = true
     setCheckoutPhase({ kind: 'quoting' })
     try {
-      await quoteRetirementInFlight.current
-      quoteRetirementInFlight.current = null
+      if (quoteRetirementInFlight.current) {
+        try {
+          await quoteRetirementInFlight.current
+        } catch {
+          if (!quoteCheckoutKey.current) throw new Error('Failed quote retirement remains unresolved.')
+          await beginQuoteRetirement(quoteCheckoutKey.current)
+        }
+      }
       if (financialPort.prepareGovernedRetailQuote) {
-        const attempt = await coordinator.current.prepare(checkoutKey, companyBookId, payload)
+        const attempt = await coordinator.current.prepare(checkoutKey, companyBookId, payload, {
+          organizationId: options.organizationId,
+          authorityContext,
+          cashierId,
+          actorPrincipalId: cashierId,
+        })
         quoteCheckoutKey.current = checkoutKey
         quoteIdempotencyKey.current = attempt.idempotencyKey
         const quote = await financialPort.prepareGovernedRetailQuote(attempt.payload, {
@@ -286,6 +306,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
         checkoutKey,
         bookId: companyBookId,
         payload,
+        scope: { organizationId, authorityContext, cashierId, actorPrincipalId: cashierId },
         post: (identifiedPayload, attempt) => financialPort.postGovernedRetailOrder(
           identifiedPayload as GovernedRetailCheckoutPayload,
           {

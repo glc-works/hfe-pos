@@ -15,6 +15,11 @@ function fakeStore(): CheckoutAttemptStore & { history: CheckoutAttemptRecord[] 
   return {
     history,
     async get(k) { return map.get(k) ?? null },
+    async createIfAbsent(r) {
+      const existing = map.get(r.checkoutKey)
+      if (existing) return existing
+      map.set(r.checkoutKey, { ...r }); history.push({ ...r }); return r
+    },
     async put(r) { map.set(r.checkoutKey, { ...r }); history.push({ ...r }) },
     async remove(k) { map.delete(k) },
   }

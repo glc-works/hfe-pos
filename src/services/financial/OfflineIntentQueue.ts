@@ -79,6 +79,35 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
     }
   }
 
+  async createIfAbsent(record: CheckoutAttemptRecord<TPayload>): Promise<CheckoutAttemptRecord<TPayload>> {
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')
+      tx.objectStore(CHECKOUT_ATTEMPTS_STORE).add(record)
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve()
+        tx.onabort = () => reject(tx.error)
+        tx.onerror = () => reject(tx.error)
+      })
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.set(record.checkoutKey, record)
+      return record
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'ConstraintError') {
+        const winner = await this.get(record.checkoutKey)
+        if (winner) return winner
+        throw new Error('Atomic checkout identity creation conflicted without a durable winner.')
+      }
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed to atomically persist checkout identity to physical storage: ${message}`)
+      }
+      const existing = OfflineIntentQueue.sharedInMemoryCheckoutAttempts.get(record.checkoutKey)
+      if (existing) return existing
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.set(record.checkoutKey, record)
+      return record
+    }
+  }
+
   async remove(checkoutKey: string): Promise<void> {
     try {
       const db = await this.openDB()

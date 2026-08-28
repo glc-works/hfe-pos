@@ -15,7 +15,7 @@ describe('Offline Stack Re-Qualification & Idempotent Reconnect Gating (Issue #6
   })
 
   it('persists and retrieves checkout attempt records across store instances', async () => {
-    const rootKey = '01a035df-b618-7612-aef2-6e332bfcdec5'
+    const rootKey = 'ROOT-TEST-PERSISTED-IDENTITY'
     const record: CheckoutAttemptRecord<SubmitRetailTransactionPayload> = {
       checkoutKey: 'TABLE-04-123456',
       idempotencyKey: rootKey,
@@ -49,6 +49,25 @@ describe('Offline Stack Re-Qualification & Idempotent Reconnect Gating (Issue #6
     expect(retrieved?.status).toBe('prepared')
   })
 
+  it('atomically creates one checkout root across two offline-store instances', async () => {
+    const checkoutKey = `TABLE-CONCURRENT-${crypto.randomUUID()}`
+    const candidate = (idempotencyKey: string): CheckoutAttemptRecord<SubmitRetailTransactionPayload> => ({
+      checkoutKey, idempotencyKey, bookId: 'BOOK-CAFE-HQ-88', payloadFingerprint: 'fp-concurrent',
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), status: 'prepared',
+      payload: { ...({} as SubmitRetailTransactionPayload), idempotency_key: idempotencyKey },
+    })
+    const first = new OfflineIntentQueue<SubmitRetailTransactionPayload>()
+    const second = new OfflineIntentQueue<SubmitRetailTransactionPayload>()
+
+    const [a, b] = await Promise.all([
+      first.createIfAbsent(candidate('ROOT-A')),
+      second.createIfAbsent(candidate('ROOT-B')),
+    ])
+
+    expect(a.idempotencyKey).toBe(b.idempotencyKey)
+    expect((await first.get(checkoutKey))?.idempotencyKey).toBe(a.idempotencyKey)
+  })
+
   it('strictly derives deterministic phase keys from the exact root idempotency key', () => {
     const rootKey = '550e8400-e29b-41d4-a716-446655440000'
 
@@ -62,7 +81,7 @@ describe('Offline Stack Re-Qualification & Idempotent Reconnect Gating (Issue #6
   })
 
   it('guarantees that retry on reconnect reuses the same root idempotency key without mutation drift', async () => {
-    const rootKey = '01a035df-b618-7612-aef2-6e332bfcdec5'
+    const rootKey = 'ROOT-TEST-RECONNECT-IDENTITY'
     const record: CheckoutAttemptRecord<SubmitRetailTransactionPayload> = {
       checkoutKey: 'TABLE-04-RETRY',
       idempotencyKey: rootKey,
