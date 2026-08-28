@@ -82,11 +82,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, ExpTranslations> = {
       startTrial: 'Daftar Toko Gratis ➔'
     },
     hero: {
-      badge: '⚡ CLOUDFLARE EDGE SPEED • 100% OFFLINE RESILIENT',
-      titlePart1: 'Satu Sistem Cerdas untuk',
-      titleHighlight: 'Semua Urusan Bisnis',
-      titlePart2: 'Anda.',
-      subtitle: 'Jalankan kasir kilat <16ms, terima pesanan QR meja, bangun loyalitas member, dan pembukuan otomatis. Rapi, elegan, dan tanpa selisih kas.',
+      badge: '⚡ A SYSTEM THAT GROWS WITH YOU • SATU SISTEM UNTUK SETIAP TAHAP BISNISMU',
+      titlePart1: 'Satu Sistem untuk',
+      titleHighlight: 'Setiap Tahap',
+      titlePart2: 'Bisnis Anda.',
+      subtitle: 'Dirancang untuk setiap tahap bisnis Anda—dari gerai pertama hingga jaringan enterprise. Kasir kilat <16ms, struk offline, pesanan QR meja, dan pembukuan otomatis Hfe CORE di setiap langkah perjalanan usaha Anda.',
       ctaPrimary: '🚀 Daftarkan Usaha Anda Gratis ➔',
       ctaSecondary: '📱 Coba Demo Kasir Langsung',
       subBadge1: '✓ Tanpa Biaya Tersembunyi',
@@ -200,11 +200,11 @@ export const TRANSLATIONS: Record<SupportedLanguage, ExpTranslations> = {
       startTrial: 'Start Free Trial ➔'
     },
     hero: {
-      badge: '⚡ CLOUDFLARE EDGE SPEED • 100% OFFLINE RESILIENT',
-      titlePart1: 'One Intelligent System for',
-      titleHighlight: 'Your Entire Business',
-      titlePart2: 'Operations.',
-      subtitle: 'Run sub-16ms POS registers, accept QR table orders, build customer loyalty passes, and get automated double-entry accounting without friction.',
+      badge: '⚡ A SYSTEM THAT GROWS WITH YOU • ONE SYSTEM FOR EVERY STAGE OF YOUR BUSINESS',
+      titlePart1: 'One Unified System for',
+      titleHighlight: 'Every Stage',
+      titlePart2: 'of Your Business.',
+      subtitle: 'Designed for every stage of business—from your first store to enterprise networks. Instant touch POS (<16ms), offline receipts, table QR orders, and automated Hfe CORE accounting.',
       ctaPrimary: '🚀 Start Free Merchant Trial ➔',
       ctaSecondary: '📱 Launch Live Cashier Demo',
       subBadge1: '✓ Zero Hidden Fees',
