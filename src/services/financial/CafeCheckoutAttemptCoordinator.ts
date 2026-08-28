@@ -259,7 +259,7 @@ function assertAttemptIdentity<TPayload extends PersistedRetailCheckoutPayload>(
   if (existing.payloadFingerprint !== payloadFingerprint) {
     throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
   }
-  if (scopeFingerprint !== undefined && existing.scopeFingerprint !== scopeFingerprint) {
+  if (existing.scopeFingerprint !== scopeFingerprint) {
     throw new Error('Checkout organization or authority scope changed while an unresolved financial attempt exists. Manager resolution is required.')
   }
 }

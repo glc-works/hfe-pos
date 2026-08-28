@@ -34,8 +34,20 @@ export function formatExactMinorCurrency(
   if (!/^(0|[1-9][0-9]*)$/.test(value)) {
     throw new Error('Minor-unit value must be a canonical non-negative integer string.')
   }
+  const fractionDigits: Readonly<Record<string, number>> = {
+    IDR: 0, USD: 2, SGD: 2, MYR: 2, JPY: 0, EUR: 2,
+  }
+  const normalizedCurrency = currency.toUpperCase()
+  const digits = fractionDigits[normalizedCurrency]
+  if (digits === undefined) throw new Error(`Unsupported currency for exact minor-unit formatting: ${currency}.`)
   const locale = language === 'en' ? 'en-US' : 'id-ID'
-  return `${currency}\u00a0${BigInt(value).toLocaleString(locale)}`
+  const amount = BigInt(value)
+  if (digits === 0) return `${normalizedCurrency}\u00a0${amount.toLocaleString(locale)}`
+  const scale = 10n ** BigInt(digits)
+  const major = amount / scale
+  const fraction = (amount % scale).toString().padStart(digits, '0')
+  const decimalSeparator = language === 'en' ? '.' : ','
+  return `${normalizedCurrency}\u00a0${major.toLocaleString(locale)}${decimalSeparator}${fraction}`
 }
 
 /**

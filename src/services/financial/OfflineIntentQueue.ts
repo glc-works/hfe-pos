@@ -22,6 +22,10 @@ const STORE_NAME = 'financial_intents'
 const CHECKOUT_ATTEMPTS_STORE = 'checkout_attempts'
 import { generateUUIDv4 } from './HfePostingReadbackValidator'
 
+export function isIndexedDbConstraintError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'name' in error && error.name === 'ConstraintError'
+}
+
 export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> implements CheckoutAttemptStore<TPayload> {
   private static sharedInMemoryQueue: Map<string, QueuedFinancialIntent> = new Map()
   private static sharedInMemoryCheckoutAttempts: Map<string, CheckoutAttemptRecord<any>> = new Map()
@@ -92,7 +96,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
       OfflineIntentQueue.sharedInMemoryCheckoutAttempts.set(record.checkoutKey, record)
       return record
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'ConstraintError') {
+      if (isIndexedDbConstraintError(error)) {
         const winner = await this.get(record.checkoutKey)
         if (winner) return winner
         throw new Error('Atomic checkout identity creation conflicted without a durable winner.')

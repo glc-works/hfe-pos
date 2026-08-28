@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
+import { isIndexedDbConstraintError, OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 import {
   deriveGovernedCheckoutPhaseKey,
 } from '../services/financial/GovernedPosCheckout'
@@ -12,6 +12,13 @@ describe('Offline Stack Re-Qualification & Idempotent Reconnect Gating (Issue #6
 
   beforeEach(() => {
     queue = new OfflineIntentQueue<SubmitRetailTransactionPayload>()
+  })
+
+  it('recognizes structural ConstraintError values across browser realms', () => {
+    expect(isIndexedDbConstraintError({ name: 'ConstraintError' })).toBe(true)
+    expect(isIndexedDbConstraintError(Object.assign(new Error('duplicate'), { name: 'ConstraintError' }))).toBe(true)
+    expect(isIndexedDbConstraintError({ name: 'QuotaExceededError' })).toBe(false)
+    expect(isIndexedDbConstraintError(null)).toBe(false)
   })
 
   it('persists and retrieves checkout attempt records across store instances', async () => {

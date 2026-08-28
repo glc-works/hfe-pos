@@ -21,6 +21,9 @@ const quote: ReviewedPosQuote = {
 describe('CodeRabbit checkout remediation', () => {
   it('formats exact minor-unit strings with their currency without Number coercion', () => {
     expect(formatExactMinorCurrency('9007199254740993', 'IDR', 'id')).toBe('IDR\u00a09.007.199.254.740.993')
+    expect(formatExactMinorCurrency('9007199254740993', 'USD', 'en')).toBe('USD\u00a090,071,992,547,409.93')
+    expect(formatExactMinorCurrency('12345', 'USD', 'id')).toBe('USD\u00a0123,45')
+    expect(() => formatExactMinorCurrency('100', 'BTC', 'en')).toThrow(/unsupported currency/i)
   })
 
   it('keeps a posted sale posted when its display amount is malformed', () => {

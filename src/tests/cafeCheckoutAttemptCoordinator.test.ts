@@ -119,6 +119,18 @@ describe('cafe checkout attempt coordination', () => {
     expect((await store.get('BOOK-1:ORDER-EXEC-SCOPE'))?.status).toBe('prepared')
   })
 
+  it('rejects a missing current scope when the durable record is scoped', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000097')
+    await coordinator.prepare('BOOK-1:ORDER-SYMMETRIC-SCOPE', 'BOOK-1', payload, {
+      organizationId: 'ORG-1', authorityContext: 'AUTH-1', cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
+    })
+
+    await expect(new CafeCheckoutAttemptCoordinator(store).prepare(
+      'BOOK-1:ORDER-SYMMETRIC-SCOPE', 'BOOK-1', payload,
+    )).rejects.toThrow(/organization or authority scope changed/i)
+  })
+
   it('atomically returns one root attempt across two coordinator instances', async () => {
     const store = new RacingAttemptStore()
     const first = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000201')
