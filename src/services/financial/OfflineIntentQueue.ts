@@ -3,7 +3,8 @@
 
 import { PersistedRetailCheckoutPayload, SubmitRetailTransactionPayload } from './HfePosFinancialPort'
 import { generatePayloadChecksum } from '../../utils/cryptoHasher'
-import type { CheckoutAttemptRecord, CheckoutAttemptStore } from './CafeCheckoutAttemptCoordinator'
+import type { CheckoutAttemptRecord, CheckoutAttemptStore, PostedDeleteExpectation } from './CafeCheckoutAttemptCoordinator'
+import { canonicalCleanupEvidence } from './CheckoutCleanupEvidence'
 
 export interface QueuedFinancialIntent {
   idempotencyKey: string
@@ -21,6 +22,10 @@ const DB_VERSION = 2
 const STORE_NAME = 'financial_intents'
 const CHECKOUT_ATTEMPTS_STORE = 'checkout_attempts'
 import { generateUUIDv4 } from './HfePostingReadbackValidator'
+
+export function isIndexedDbConstraintError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'name' in error && error.name === 'ConstraintError'
+}
 
 export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> implements CheckoutAttemptStore<TPayload> {
   private static sharedInMemoryQueue: Map<string, QueuedFinancialIntent> = new Map()
@@ -79,6 +84,35 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
     }
   }
 
+  async createIfAbsent(record: CheckoutAttemptRecord<TPayload>): Promise<CheckoutAttemptRecord<TPayload>> {
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')
+      tx.objectStore(CHECKOUT_ATTEMPTS_STORE).add(record)
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve()
+        tx.onabort = () => reject(tx.error)
+        tx.onerror = () => reject(tx.error)
+      })
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.set(record.checkoutKey, record)
+      return record
+    } catch (error) {
+      if (isIndexedDbConstraintError(error)) {
+        const winner = await this.get(record.checkoutKey)
+        if (winner) return winner
+        throw new Error('Atomic checkout identity creation conflicted without a durable winner.')
+      }
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed to atomically persist checkout identity to physical storage: ${message}`)
+      }
+      const existing = OfflineIntentQueue.sharedInMemoryCheckoutAttempts.get(record.checkoutKey)
+      if (existing) return existing
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.set(record.checkoutKey, record)
+      return record
+    }
+  }
+
   async remove(checkoutKey: string): Promise<void> {
     try {
       const db = await this.openDB()
@@ -95,6 +129,72 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         throw new Error(`Failed to remove completed checkout identity: ${message}`)
       }
       OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
+    }
+  }
+
+  async compareAndDeletePosted(checkoutKey: string, expected: PostedDeleteExpectation): Promise<boolean> {
+    const matches = (record?: CheckoutAttemptRecord<TPayload>): boolean => Boolean(record &&
+      record.status === 'posted' && record.bookId === expected.bookId &&
+      record.scopeFingerprint === expected.scopeFingerprint && record.idempotencyKey === expected.idempotencyKey &&
+      canonicalCleanupEvidence(record) === expected.canonicalEvidence)
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')
+      const store = tx.objectStore(CHECKOUT_ATTEMPTS_STORE)
+      const request = store.get(checkoutKey)
+      const deleted = await new Promise<boolean>((resolve, reject) => {
+        let matched = false
+        let settled = false
+        const resolveOnce = (value: boolean) => { if (!settled) { settled = true; resolve(value) } }
+        const rejectOnce = (error: unknown) => { if (!settled) { settled = true; reject(error) } }
+        request.onsuccess = () => {
+          try {
+            matched = matches(request.result)
+            if (matched) store.delete(checkoutKey)
+          } catch (error) {
+            try { tx.abort() } catch { /* transaction already aborting */ }
+            rejectOnce(error)
+          }
+        }
+        request.onerror = () => rejectOnce(request.error)
+        tx.oncomplete = () => resolveOnce(matched)
+        tx.onerror = () => rejectOnce(tx.error)
+        tx.onabort = () => rejectOnce(tx.error || new Error('Atomic posted acknowledgement transaction aborted.'))
+      })
+      if (deleted) OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
+      return deleted
+    } catch (error) {
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed atomic posted acknowledgement cleanup: ${message}`)
+      }
+      const record = OfflineIntentQueue.sharedInMemoryCheckoutAttempts.get(checkoutKey) as CheckoutAttemptRecord<TPayload> | undefined
+      if (!matches(record)) return false
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
+      return true
+    }
+  }
+
+  async findPosted(bookId: string, scopeFingerprint: string): Promise<CheckoutAttemptRecord<TPayload>[]> {
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readonly')
+      const request = tx.objectStore(CHECKOUT_ATTEMPTS_STORE).getAll()
+      const attempts = await new Promise<CheckoutAttemptRecord<TPayload>[]>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result || [])
+        request.onerror = () => reject(request.error)
+      })
+      return attempts.filter((attempt) => (
+        attempt.bookId === bookId && attempt.scopeFingerprint === scopeFingerprint && attempt.status === 'posted'
+      ))
+    } catch (error) {
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed to discover durable posted checkout acknowledgement: ${message}`)
+      }
+      return [...OfflineIntentQueue.sharedInMemoryCheckoutAttempts.values()].filter((attempt) => (
+        attempt.bookId === bookId && attempt.scopeFingerprint === scopeFingerprint && attempt.status === 'posted'
+      )) as CheckoutAttemptRecord<TPayload>[]
     }
   }
 

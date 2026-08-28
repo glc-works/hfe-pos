@@ -29,8 +29,12 @@ export class PosCashierDriver {
       await cashBtn.click()
     }
 
-    // Confirm Settlement
-    const settleConfirmBtn = this.page.getByRole('button', { name: /Bayar Sekarang|Selesaikan|Konfirmasi|Lunas/i }).last()
+    const reviewBtn = this.page.getByRole('button', { name: /Tinjau Quote CORE|Review CORE Quote/i }).last()
+    await expect(reviewBtn).toBeVisible()
+    await reviewBtn.click()
+
+    // Confirm only after the authoritative quote is visibly reviewed.
+    const settleConfirmBtn = this.page.getByRole('button', { name: /Terima Quote Tertinjau|Accept Reviewed Quote/i }).last()
     await expect(settleConfirmBtn).toBeVisible()
     await settleConfirmBtn.click()
   }

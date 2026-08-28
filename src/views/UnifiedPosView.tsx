@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { ShoppingBag, ArrowRight } from 'lucide-react'
 import { TableStatus, MenuItem, OrderTicket, StaffSurfaceMode, CartItem, PosPayMethod, ViewportModeType, PropertyZoneId, OrderFulfillmentMode, ParkedOperationTab } from '../types/pos'
 import { PROPERTY_ZONES } from '../data/mockData'
@@ -21,6 +21,7 @@ import { useMerchantConfig } from '../context/MerchantConfigContext'
 import { smartSearchFilter } from '../utils/searchThesaurus'
 import type { HfePosFinancialPort } from '../services/financial'
 import { useCafeSettlement } from '../hooks/useCafeSettlement'
+import { formatExactMinorCurrency } from '../utils/localeNumberFormat'
 
 export interface UnifiedPosViewProps {
   activeStaffSurface: StaffSurfaceMode; tablesGrid: TableStatus[]; selectedPOSTable: TableStatus | null
@@ -41,7 +42,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
-  const { t, formatPrice } = useTranslation()
+  const { t, formatPrice, language } = useTranslation()
   const { workflowToggles, pb1TaxMode, takeawaySurcharge } = useMerchantConfig()
   const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
@@ -137,7 +138,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
 
   const {
     financialStatus, financialNotice, financialFailureCode, postingTruthHref,
-    pendingQrisPayment, canResumeFinancialAttempt, authoritativeQuote,
+    pendingQrisPayment, canResumeFinancialAttempt, authoritativeQuote, checkoutPhase,
     dismissPendingQrisPayment, handleCheckout: handleCheckoutAction, resumeCheckout,
   } = useCafeSettlement({
     financialPort, organizationId, companyBookId, authorityContext, cashierId,
@@ -146,6 +147,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     commitPaidState: handlePOSCheckoutTable,
     clearCart: () => { setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false) },
   })
+
 
   const handleCloseAllModals = () => {
     setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false); setShowRoomChargeModal(false)
@@ -158,8 +160,8 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     onCloseModals: handleCloseAllModals,
     onFocusCatalog: () => setPosModeTab('catalog'),
     onToggleFloorPlan: () => { if (enableTableFloorPlan) setPosModeTab((p) => (p === 'tables' ? 'catalog' : 'tables')) },
-    onQuickPayCash: () => { setPosPayMethod('cash'); handleCheckoutAction() },
-    onQuickPayQris: () => { setPosPayMethod('qris'); handleCheckoutAction() },
+    onQuickPayCash: () => { setPosPayMethod('cash'); handleCheckoutAction('cash') },
+    onQuickPayQris: () => { setPosPayMethod('qris'); handleCheckoutAction('qris') },
     onSplitBill: () => setShowTableOpsModal(true),
     onPrintReceipt: () => { if (activeTableCartItems.length > 0 || (selectedPOSTable && selectedPOSTable.totalBill > 0)) handleCheckoutAction() }
   })
@@ -340,6 +342,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               packagingFee={packagingFee}
               fulfillmentMode={fulfillmentMode}
               authoritativeQuote={authoritativeQuote}
+              checkoutPhase={checkoutPhase}
               setPosPayMethod={setPosPayMethod}
               setPosCashGiven={setPosCashGiven}
               setFulfillmentMode={setFulfillmentMode}
@@ -371,7 +374,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
                 </div>
                 <div className="flex flex-col text-left leading-tight min-w-0">
                   <span className="font-black text-sm font-mono whitespace-nowrap text-slate-950">
-                    {formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))}
+                  {authoritativeQuote
+                    ? formatExactMinorCurrency(authoritativeQuote.amountDueMinor, authoritativeQuote.currency, language)
+                    : formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))}
                   </span>
                   {selectedPOSTable && (
                     <span className="text-[10px] text-slate-900/80 font-bold font-mono truncate max-w-[150px]">
@@ -446,6 +451,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         show={showMobileCartDrawer} cartItems={activeTableCartItems} selectedPOSTable={selectedPOSTable}
         posPayMethod={posPayMethod} posCashGiven={posCashGiven} subtotal={subtotal} pb1Tax={pb1Tax} grandTotal={grandTotal}
         packagingFee={packagingFee} fulfillmentMode={fulfillmentMode} authoritativeQuote={authoritativeQuote} onClose={() => setShowMobileCartDrawer(false)}
+        checkoutPhase={checkoutPhase}
         setPosPayMethod={setPosPayMethod} setPosCashGiven={setPosCashGiven} setFulfillmentMode={setFulfillmentMode}
         onUpdateQty={handleUpdateQty} onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
         onCheckout={handleCheckoutAction} onOpenSplitPayment={() => setShowTableOpsModal(true)}

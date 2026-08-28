@@ -58,7 +58,7 @@ describe('Unified Wave Upgrade: Hfe Core SDK, Offline Intent & 6-Tier Architectu
       expect(tx.gl_entries_posted?.length).toBeGreaterThan(0)
 
       // Step 4: Close Cashier Shift & Reconcile
-      const reportedCash = 500000 + tx.grand_total
+      const reportedCash = 500000 + (typeof tx.grand_total === 'number' ? tx.grand_total : Number(tx.grand_total))
       const shiftClose = await mockPort.closeCashierShift(shift.shift_id, reportedCash)
       expect(shiftClose.status).toBe('closed')
       expect(shiftClose.cash_variance).toBe(0)

@@ -97,6 +97,10 @@ export interface TranslationDictionary {
     changeReturn: string
     splitBill: string
     processPayment: string
+    reviewCoreQuote: string
+    acceptReviewedCoreQuote: string
+    awaitingCoreQuote: string
+    localPriceEstimate: string
     openMobileCart: string
     mobileCartTitle: string
     changeTablePill: string

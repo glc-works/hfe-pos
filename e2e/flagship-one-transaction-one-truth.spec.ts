@@ -40,6 +40,7 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
     })
 
     if (url.endsWith('/pos/sale-quotes')) {
+      const requested = request.postDataJSON() as { lines: Array<{ item_id: string; quantity: string; modifier_ids: string[] }> }
       await route.fulfill({ status: 201, json: {
         quote_id: 'QUOTE-FLAGSHIP-001',
         revision: '1',
@@ -55,12 +56,14 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
         tip_total_minor: '0',
         rounding_total_minor: '0',
         expires_at: '2099-01-01T00:00:00.000Z',
-        lines: [],
+        lines: requested.lines.map((line, ordinal) => ({
+          ...line, ordinal, discount_allocated_minor: '0',
+        })),
         tender_eligibility: [{ tender_type: 'cash', eligible: true }, { tender_type: 'qris', eligible: true }],
       } })
     } else if (url.endsWith('/order/accepted-orders')) {
       await route.fulfill({ status: 201, json: {
-        acceptance_idempotency_key: `${orderId}:accept`,
+        acceptance_idempotency_key: request.headers()['idempotency-key'],
         accepted_at: '2026-08-25T00:00:00.000Z',
         order_id: orderId,
         quote: {
@@ -116,8 +119,8 @@ async function installPostingFixture(page: Page, mode: PostingFixtureMode): Prom
         stable_effect_key: 'e'.repeat(64),
         functional_currency: 'IDR',
         lines: [
-          { account_id: '1101', debit_minor: '86000', credit_minor: '0' },
-          { account_id: '4101', debit_minor: '0', credit_minor: '86000' },
+          { account_code: '1101', debit_minor: '86000', credit_minor: '0' },
+          { account_code: '4101', debit_minor: '0', credit_minor: '86000' },
         ],
       } })
     } else {
@@ -218,15 +221,12 @@ test.describe('Flagship café: one transaction, one durable CORE truth', () => {
     await driver.verifySettlementSuccess(cashScenario.tableNumber)
 
     const urls = observed.map(({ url }) => url)
-    expect(urls.filter((url) => url.endsWith('/confirm-cash'))).toHaveLength(2)
+    expect(urls.filter((url) => url.endsWith('/confirm-cash'))).toHaveLength(1)
     expect(urls).toEqual([
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/sale-quotes`,
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/order/accepted-orders`,
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/tenders/${flagshipTenderId}/confirm-cash`,
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/postings/${flagshipPostingId}`,
-      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/sale-quotes`,
-      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/order/accepted-orders`,
-      `http://localhost:8080/v1/company-books/${demoAccess.bookId}/pos/tenders/${flagshipTenderId}/confirm-cash`,
       `http://localhost:8080/v1/company-books/${demoAccess.bookId}/postings/${flagshipPostingId}`,
     ])
   })
