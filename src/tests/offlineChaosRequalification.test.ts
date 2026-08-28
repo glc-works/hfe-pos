@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { CafeCheckoutAttemptCoordinator, type CheckoutAttemptRecord, type CheckoutAttemptStore } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
 import type { SubmitRetailTransactionPayload } from '../services/financial/HfePosFinancialPort'
+import { canonicalCleanupEvidence } from '../services/financial/CheckoutCleanupEvidence'
 import {
   appendDeadLetterEntry,
   listDeadLetterEntries,
@@ -26,7 +27,7 @@ function fakeStore(): CheckoutAttemptStore & { history: CheckoutAttemptRecord[] 
       const record = map.get(k)
       if (!record || record.status !== 'posted' || record.bookId !== expected.bookId ||
         record.scopeFingerprint !== expected.scopeFingerprint || record.idempotencyKey !== expected.idempotencyKey ||
-        record.cleanupEvidenceFingerprint !== expected.cleanupEvidenceFingerprint) return false
+        canonicalCleanupEvidence(record) !== expected.canonicalEvidence) return false
       map.delete(k); return true
     },
     async findPosted(bookId, scopeFingerprint) {

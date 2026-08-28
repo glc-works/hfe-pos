@@ -6,6 +6,7 @@ import {
   type CheckoutAttemptStore,
   type PostedDeleteExpectation,
 } from '../services/financial/CafeCheckoutAttemptCoordinator'
+import { canonicalCleanupEvidence } from '../services/financial/CheckoutCleanupEvidence'
 
 const scope = { organizationId: 'ORG-1', authorityContext: 'AUTH-1', cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1' }
 const payload: GovernedRetailCheckoutPayload = {
@@ -30,7 +31,7 @@ class Store implements CheckoutAttemptStore<GovernedRetailCheckoutPayload> {
     const record = this.record
     if (!record || record.status !== 'posted' || record.bookId !== expected.bookId ||
       record.scopeFingerprint !== expected.scopeFingerprint || record.idempotencyKey !== expected.idempotencyKey ||
-      record.cleanupEvidenceFingerprint !== expected.cleanupEvidenceFingerprint) return false
+      canonicalCleanupEvidence(record) !== expected.canonicalEvidence) return false
     this.record = null
     return true
   }
@@ -82,6 +83,14 @@ describe('governed posted acknowledgement cleanup', () => {
     expect(store.record).not.toBeNull()
   })
 
+  it('cannot downgrade governed evidence by removing outlet_id', async () => {
+    const { store, coordinator } = await postedAttempt()
+    delete (store.record!.payload as Partial<GovernedRetailCheckoutPayload>).outlet_id
+    expect(store.record?.recordKind).toBe('governed')
+    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/fingerprint|governed/i)
+    expect(store.record).not.toBeNull()
+  })
+
   it('fails closed on ambiguous or failed durable discovery', async () => {
     const { store, coordinator } = await postedAttempt()
     store.findPosted = async () => [structuredClone(store.record!), structuredClone(store.record!)]
@@ -93,12 +102,14 @@ describe('governed posted acknowledgement cleanup', () => {
   it('atomically retains a replacement written by another tab before delete', async () => {
     const store = new Store()
     const { coordinator } = await postedAttempt(store)
-    store.compareAndDeletePosted = async () => {
-      store.record = { ...store.record!, idempotencyKey: 'replacement-attempt', cleanupEvidenceFingerprint: 'replacement' }
-      return false
+    const atomicCompareAndDelete = store.compareAndDeletePosted.bind(store)
+    store.compareAndDeletePosted = async (key, expected) => {
+      store.record = structuredClone(store.record!)
+      store.record.response!.tx_id = 'ORDER-REPLACEMENT'
+      return atomicCompareAndDelete(key, expected)
     }
     await expect(coordinator.acknowledgePosted('BOOK-1:ORDER-1', 'BOOK-1', scope)).rejects.toThrow(/changed before atomic cleanup/i)
-    expect(store.record?.idempotencyKey).toBe('replacement-attempt')
+    expect(store.record?.response?.tx_id).toBe('ORDER-REPLACEMENT')
   })
 
   it('atomically deletes one valid fully-bound governed record without financial network', async () => {

@@ -11,6 +11,7 @@ import {
   type CheckoutAttemptStore,
 } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { resumeDurablePostedCleanup } from '../hooks/cafeSettlementOutcome'
+import { canonicalCleanupEvidence } from '../services/financial/CheckoutCleanupEvidence'
 
 const payload: SubmitRetailTransactionPayload = {
   contact_id: '',
@@ -51,7 +52,7 @@ class MemoryAttemptStore implements CheckoutAttemptStore {
     const record = this.records.get(checkoutKey)
     if (!record || record.status !== 'posted' || record.bookId !== expected.bookId ||
       record.scopeFingerprint !== expected.scopeFingerprint || record.idempotencyKey !== expected.idempotencyKey ||
-      record.cleanupEvidenceFingerprint !== expected.cleanupEvidenceFingerprint) return false
+      canonicalCleanupEvidence(record) !== expected.canonicalEvidence) return false
     this.records.delete(checkoutKey)
     return true
   }
@@ -274,6 +275,31 @@ describe('cafe checkout attempt coordination', () => {
 
     await coordinator.acknowledgePosted('BOOK-1:ORDER-1')
     expect(await store.get('BOOK-1:ORDER-1')).toBeNull()
+  })
+
+  it('atomically cleans up a valid legacy posted record without a historical fingerprint', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => 'legacy-attempt-1')
+    await coordinator.execute({ checkoutKey: 'LEGACY-1', bookId: 'BOOK-1', payload, post: async (request) => posted(request.idempotency_key!) })
+    const legacy = (await store.get('LEGACY-1'))!
+    delete legacy.cleanupEvidenceFingerprint
+    delete legacy.recordKind
+    delete legacy.schemaVersion
+    await store.put(legacy)
+    await coordinator.acknowledgePosted('LEGACY-1')
+    expect(await store.get('LEGACY-1')).toBeNull()
+  })
+
+  it('retains a corrupt legacy no-fingerprint record', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => 'legacy-attempt-2')
+    await coordinator.execute({ checkoutKey: 'LEGACY-2', bookId: 'BOOK-1', payload, post: async (request) => posted(request.idempotency_key!) })
+    const legacy = (await store.get('LEGACY-2'))!
+    delete legacy.cleanupEvidenceFingerprint
+    legacy.response!.idempotency_key = 'CORRUPT'
+    await store.put(legacy)
+    await expect(coordinator.acknowledgePosted('LEGACY-2')).rejects.toThrow(/idempotency identity mismatch/i)
+    expect(await store.get('LEGACY-2')).not.toBeNull()
   })
 
   it('discovers and acknowledges a scoped posted attempt after reload without payload reconstruction or repost', async () => {

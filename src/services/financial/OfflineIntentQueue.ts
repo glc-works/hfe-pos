@@ -4,6 +4,7 @@
 import { PersistedRetailCheckoutPayload, SubmitRetailTransactionPayload } from './HfePosFinancialPort'
 import { generatePayloadChecksum } from '../../utils/cryptoHasher'
 import type { CheckoutAttemptRecord, CheckoutAttemptStore, PostedDeleteExpectation } from './CafeCheckoutAttemptCoordinator'
+import { canonicalCleanupEvidence } from './CheckoutCleanupEvidence'
 
 export interface QueuedFinancialIntent {
   idempotencyKey: string
@@ -135,7 +136,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
     const matches = (record?: CheckoutAttemptRecord<TPayload>): boolean => Boolean(record &&
       record.status === 'posted' && record.bookId === expected.bookId &&
       record.scopeFingerprint === expected.scopeFingerprint && record.idempotencyKey === expected.idempotencyKey &&
-      record.cleanupEvidenceFingerprint === expected.cleanupEvidenceFingerprint)
+      canonicalCleanupEvidence(record) === expected.canonicalEvidence)
     try {
       const db = await this.openDB()
       const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')

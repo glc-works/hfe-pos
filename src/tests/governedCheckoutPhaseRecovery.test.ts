@@ -9,6 +9,7 @@ import {
 import { governedIntentFingerprint } from '../services/financial/GovernedPosCheckout'
 import type { GovernedCheckoutDurability, GovernedCheckoutEvidence } from '../services/financial/GovernedCheckoutDurability'
 import type { GovernedRetailCheckoutPayload, RetailPostingContext, ReviewedPosQuote } from '../services/financial/HfePosFinancialPort'
+import { canonicalCleanupEvidence } from '../services/financial/CheckoutCleanupEvidence'
 
 function response(status: number, body: unknown): Response {
   return {
@@ -56,7 +57,7 @@ class MemoryAttemptStore implements CheckoutAttemptStore<GovernedRetailCheckoutP
   async compareAndDeletePosted(_checkoutKey: string, expected: import('../services/financial/CafeCheckoutAttemptCoordinator').PostedDeleteExpectation) {
     if (!this.record || this.record.status !== 'posted' || this.record.bookId !== expected.bookId ||
       this.record.scopeFingerprint !== expected.scopeFingerprint || this.record.idempotencyKey !== expected.idempotencyKey ||
-      this.record.cleanupEvidenceFingerprint !== expected.cleanupEvidenceFingerprint) return false
+      canonicalCleanupEvidence(this.record) !== expected.canonicalEvidence) return false
     this.record = null
     return true
   }
