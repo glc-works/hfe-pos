@@ -11,12 +11,6 @@ import type {
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
 import {
-  postGovernedPosCheckout,
-  prepareGovernedRetailQuote,
-  acceptGovernedRetailQuote,
-  reconcileGovernedTenderOutcome,
-} from './GovernedPosCheckout'
-import {
   HfePostingReadbackValidator,
   generateUUIDv4,
   assertCanonicalCashOrderPayload,
@@ -55,7 +49,6 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     const baseUrl = options?.baseUrl || 'http://localhost:8080'
     this.defaultBookId = options?.defaultBookId || ''
     this.timeoutMs = options?.timeoutMs || 10000
-
     this.client = new HfeClient({
       baseUrl,
       token: options?.token,
@@ -80,7 +73,6 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
   ): Promise<T> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs)
-
     try {
       return await this.client.request<T>(method, path, options)
     } catch (err: unknown) {
@@ -171,7 +163,6 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
   ): Promise<SubmitRetailTransactionResponse> {
     const targetBook = this.resolveTargetBook(context.companyBookId)
     assertCanonicalCashOrderPayload(payload, context, 'posting')
-
     const authorityHeaders = {
       'X-CBook-Authority-Context': context.authorityContext,
     }
@@ -268,13 +259,16 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
 
   async postGovernedRetailOrder(
     payload: GovernedRetailCheckoutPayload,
-    context: RetailPostingContext
+    context: RetailPostingContext,
+    reviewedQuote: ReviewedPosQuote,
   ): Promise<SubmitRetailTransactionResponse> {
+    const { postGovernedPosCheckout } = await import('./GovernedPosCheckout')
     return postGovernedPosCheckout(
       this.client,
       payload,
       context,
       this.resolveTargetBook(context.companyBookId),
+      reviewedQuote,
     )
   }
 
@@ -283,6 +277,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     context: RetailPostingContext,
     bookId?: string,
   ): Promise<ReviewedPosQuote> {
+    const { prepareGovernedRetailQuote } = await import('./GovernedPosCheckout')
     return prepareGovernedRetailQuote(
       this.client,
       payload,
@@ -298,6 +293,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     bookId?: string,
     providerIntentReference?: string,
   ): Promise<GovernedAcceptedTenderEvidence> {
+    const { acceptGovernedRetailQuote } = await import('./GovernedPosCheckout')
     return acceptGovernedRetailQuote(
       this.client,
       payload,
@@ -399,12 +395,10 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     payload: GovernedRetailCheckoutPayload,
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse> {
-    if (payload.payment_method === 'qris') {
-      throw new Error(
-        'Authoritative QRIS outcome read contract is unavailable; reconciliation stopped without network mutation.'
-      )
-    }
-    return this.postGovernedRetailOrder(payload, context)
+    const { recoverGovernedPosCheckout } = await import('./GovernedPosRecovery')
+    return recoverGovernedPosCheckout(
+      this.client, payload, context, this.resolveTargetBook(context.companyBookId),
+    )
   }
 
   async reconcileGovernedTenderOutcome(
@@ -412,6 +406,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     context: RetailPostingContext,
     bookId?: string,
   ): Promise<SubmitRetailTransactionResponse> {
+    const { reconcileGovernedTenderOutcome } = await import('./GovernedPosRecovery')
     return reconcileGovernedTenderOutcome(
       this.client,
       query,

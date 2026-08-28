@@ -3,6 +3,7 @@
 
 import { MenuItem } from '../../types/pos'
 import type { ReadbackValidationResult } from './HfePostingReadbackValidator'
+import type { GovernedCheckoutDurability } from './GovernedCheckoutDurability'
 
 export type AccountingTopologyMode = 'dimensional' | 'multi_book' | 'sub_account'
 
@@ -111,7 +112,8 @@ export interface SubmitRetailTransactionResponse {
   tx_id: string
   status: 'posted' | 'buffered_offline' | 'pending'
   created_at: string
-  grand_total: number
+  /** Legacy orders use a number; governed completion retains CORE's canonical minor-unit string. */
+  grand_total: number | ExactMinorString
   idempotency_key: string
   ledger_journal_id?: string
   /** Canonical Posting identity proven by independent CORE read-back. */
@@ -126,9 +128,13 @@ export interface SubmitRetailTransactionResponse {
 
 export interface RetailPostingContext {
   companyBookId: string
+  /** Local tenant/organization scope; CORE's current quote contract has no body field for it. */
+  organizationId?: string
   authorityContext: string
   sessionId: string
   financialDate: string
+  /** Durable phase evidence for the governed quote/intent/accept/confirm lifecycle. */
+  governedAttempt?: GovernedCheckoutDurability
   handover: {
     actorPrincipalId: string
     evidenceReference: string
@@ -162,6 +168,8 @@ export interface ReviewedPosQuote {
   }>
   expiresAt: string
   tenderEligibility: Array<{ tenderType: GovernedTenderType; eligible: boolean; reasonCode?: string }>
+  /** Local canonical intent/scope snapshot that must still equal the acceptance request. */
+  intentFingerprint: string
   source: 'hfe-core'
 }
 
@@ -304,7 +312,8 @@ export interface HfePosFinancialPort {
   /** Execute a CORE-priced checkout without accepting caller-owned money or GL facts. */
   postGovernedRetailOrder(
     payload: GovernedRetailCheckoutPayload,
-    context: RetailPostingContext
+    context: RetailPostingContext,
+    reviewedQuote: ReviewedPosQuote,
   ): Promise<SubmitRetailTransactionResponse>
 
   /** Prepare and project a frozen CORE sales quote for cashier review. */

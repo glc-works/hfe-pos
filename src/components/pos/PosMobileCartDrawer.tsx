@@ -6,6 +6,7 @@ import { useTranslation } from '../../context/LanguageContext'
 import { IconButton } from '@/ui'
 
 import type { ReviewedPosQuote } from '../../services/financial'
+import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 
 export interface PosMobileCartDrawerProps {
   show: boolean
@@ -19,6 +20,7 @@ export interface PosMobileCartDrawerProps {
   packagingFee?: number
   fulfillmentMode?: OrderFulfillmentMode
   authoritativeQuote?: ReviewedPosQuote | null
+  checkoutPhase?: GovernedCheckoutPhase
   onClose: () => void
   setPosPayMethod: (method: PosPayMethod) => void
   setPosCashGiven: (val: string) => void
@@ -43,6 +45,7 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
   packagingFee = 0,
   fulfillmentMode = 'dine_in',
   authoritativeQuote,
+  checkoutPhase,
   onClose,
   setPosPayMethod,
   setPosCashGiven,
@@ -130,6 +133,7 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
             packagingFee={packagingFee}
             fulfillmentMode={fulfillmentMode}
             authoritativeQuote={authoritativeQuote}
+            checkoutPhase={checkoutPhase}
             setPosPayMethod={setPosPayMethod}
             setPosCashGiven={setPosCashGiven}
             setFulfillmentMode={setFulfillmentMode}

@@ -173,7 +173,8 @@ export class MockHfeAdapter implements HfePosFinancialPort {
 
   async postGovernedRetailOrder(
     payload: GovernedRetailCheckoutPayload,
-    _context: RetailPostingContext
+    _context: RetailPostingContext,
+    _reviewedQuote: ReviewedPosQuote,
   ): Promise<SubmitRetailTransactionResponse> {
     return Promise.resolve({
       tx_id: `ORDER-SIM-${Date.now()}`,
@@ -217,6 +218,7 @@ export class MockHfeAdapter implements HfePosFinancialPort {
         { tenderType: 'cash', eligible: true },
         { tenderType: 'qris', eligible: true },
       ],
+      intentFingerprint: `sim:${payload.idempotency_key || ''}`,
       source: 'hfe-core',
     })
   }
@@ -265,7 +267,7 @@ export class MockHfeAdapter implements HfePosFinancialPort {
     payload: GovernedRetailCheckoutPayload,
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse> {
-    return this.postGovernedRetailOrder(payload, context)
+    return Promise.reject(new Error('Simulated governed recovery requires accepted tender evidence.'))
   }
 
   async settleUniversalMultiTender(

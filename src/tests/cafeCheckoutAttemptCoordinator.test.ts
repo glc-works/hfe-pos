@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { Int64String, PosSaleQuoteView } from '@hfe/sdk'
 import type { SubmitRetailTransactionPayload, SubmitRetailTransactionResponse } from '../services/financial/HfePosFinancialPort'
 import {
   CafeCheckoutAttemptCoordinator,
@@ -47,6 +48,56 @@ function posted(idempotencyKey: string): SubmitRetailTransactionResponse {
 }
 
 describe('cafe checkout attempt coordination', () => {
+  it('writes durable pre-quote lineage and lets its first reviewed acceptance mutate once', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000101')
+    const prepared = await coordinator.prepare('BOOK-1:ORDER-1', 'BOOK-1', payload)
+    const post = vi.fn(async (request: SubmitRetailTransactionPayload) => posted(request.idempotency_key!))
+
+    const result = await coordinator.execute({
+      checkoutKey: 'BOOK-1:ORDER-1', bookId: 'BOOK-1', payload: prepared.payload, post,
+    })
+
+    expect(prepared).toMatchObject({ status: 'prepared', idempotencyKey: '00000000-0000-4000-8000-000000000101' })
+    expect(result.kind).toBe('posted')
+    expect(post).toHaveBeenCalledOnce()
+    expect(post.mock.calls[0][0].idempotency_key).toBe(prepared.idempotencyKey)
+  })
+
+  it('mints one stable idempotency key before the first quote', async () => {
+    const store = new MemoryAttemptStore()
+    const createKey = vi.fn(() => '00000000-0000-4000-8000-000000000102')
+    const prepared = await new CafeCheckoutAttemptCoordinator(store, createKey)
+      .prepare('BOOK-1:ORDER-2', 'BOOK-1', payload)
+
+    expect(createKey).toHaveBeenCalledOnce()
+    expect(prepared.payload.idempotency_key).toBe(prepared.idempotencyKey)
+  })
+
+  it('persists governed phase evidence and rejects phase skipping', async () => {
+    const store = new MemoryAttemptStore()
+    const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '00000000-0000-4000-8000-000000000103')
+    await coordinator.prepare('BOOK-1:ORDER-PHASE', 'BOOK-1', payload)
+    const durable = coordinator.durability('BOOK-1:ORDER-PHASE')
+
+    await durable.transition('quote_requested')
+    await durable.transition('quote_ready', { quote: {
+      quote_id: 'QUOTE-1', revision: '1' as Int64String, digest_sha256: 'd'.repeat(64), currency: 'IDR',
+      subtotal_minor: '25000', amount_due_minor: '25000', discount_total_minor: '0', tax_total_minor: '0',
+      service_charge_total_minor: '0', tip_total_minor: '0', rounding_total_minor: '0', preset_id: 'PRESET-1',
+      preset_version: '1' as Int64String, expires_at: '2026-08-28T10:15:00Z', lines: [], tender_eligibility: [],
+    } satisfies PosSaleQuoteView })
+    await durable.transition('qris_intent_requested')
+    await durable.transition('qris_intent_ready', {
+      qrisIntent: { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: '2026-08-28T10:15:00Z' },
+    })
+
+    expect(await store.get('BOOK-1:ORDER-PHASE')).toMatchObject({
+      status: 'qris_intent_ready', quote: { quote_id: 'QUOTE-1' }, qrisIntent: { payment_id: 'QRIS-1' },
+    })
+    await expect(durable.transition('posted')).rejects.toThrow(/invalid governed checkout phase transition/i)
+  })
+
   it('persists one stable idempotency identity through durable success until the UI acknowledges it', async () => {
     const store = new MemoryAttemptStore()
     const coordinator = new CafeCheckoutAttemptCoordinator(store, () => '11111111-1111-4111-8111-111111111111')

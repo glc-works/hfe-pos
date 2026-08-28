@@ -7,6 +7,7 @@ export interface ExpectedPostingContext {
   sourceCapability?: string
   sourceObjectId?: string
   stableEffectKey?: string
+  expectedCurrency?: string
   expectedAmountMinor?: number
 }
 
@@ -23,6 +24,7 @@ export interface RawCorePosting {
   source_capability?: string
   source_object_id?: string
   stable_effect_key?: string
+  functional_currency?: string
   finality: 'applied' | 'pending' | 'rejected' | 'voided' | string
   posted_at?: string
   lines?: ReadbackJournalLine[]
@@ -46,105 +48,75 @@ export class HfePostingReadbackValidator {
     expected: ExpectedPostingContext,
     actualPosting: RawCorePosting
   ): ReadbackValidationResult {
-    // 1. Verify Posting ID Match
+    const journalLinesCount = actualPosting?.lines?.length || 0
+    const invalid = (mismatchReason: string, isMismatch = true): ReadbackValidationResult => ({
+      isValid: false,
+      finality: actualPosting?.finality || 'unknown',
+      isApplied: false,
+      isMismatch,
+      mismatchReason,
+      journalLinesCount,
+    })
+
     if (!actualPosting || !actualPosting.id || actualPosting.id !== expected.postingId) {
-      return {
-        isValid: false,
-        finality: actualPosting?.finality || 'unknown',
-        isApplied: false,
-        isMismatch: true,
-        mismatchReason: `Posting ID mismatch: expected ${expected.postingId}, got ${actualPosting?.id || 'null'}`,
-        journalLinesCount: actualPosting?.lines?.length || 0,
-      }
+      return invalid(`Posting ID mismatch: expected ${expected.postingId}, got ${actualPosting?.id || 'null'}`)
     }
 
-    // 2. Verify Finality is Exactly 'applied'
     const finality = actualPosting.finality?.toLowerCase()
     if (finality !== 'applied') {
-      return {
-        isValid: false,
-        finality: actualPosting.finality,
-        isApplied: false,
-        isMismatch: false,
-        mismatchReason: `Posting is not finalized. Current finality: ${actualPosting.finality}`,
-        journalLinesCount: actualPosting?.lines?.length || 0,
-      }
+      return invalid(`Posting is not finalized. Current finality: ${actualPosting.finality}`, false)
     }
 
-    // 3. Verify exact tenant / Company Book lineage.
     if (!actualPosting.book_id || actualPosting.book_id !== expected.expectedBookId) {
-      return {
-        isValid: false,
-        finality: actualPosting.finality,
-        isApplied: false,
-        isMismatch: true,
-        mismatchReason: `Company Book mismatch: expected ${expected.expectedBookId}, got ${actualPosting.book_id || 'missing'}`,
-        journalLinesCount: actualPosting.lines?.length || 0,
-      }
+      return invalid(`Company Book mismatch: expected ${expected.expectedBookId}, got ${actualPosting.book_id || 'missing'}`)
     }
 
-    // 4. Verify Source Capability Lineage if specified
-    if (
-      expected.sourceCapability &&
-      actualPosting.source_capability !== expected.sourceCapability
-    ) {
-      return {
-        isValid: false,
-        finality: actualPosting.finality,
-        isApplied: false,
-        isMismatch: true,
-        mismatchReason: `Source capability mismatch: expected ${expected.sourceCapability}, got ${actualPosting.source_capability || 'missing'}`,
-        journalLinesCount: actualPosting?.lines?.length || 0,
-      }
+    if (expected.sourceCapability && actualPosting.source_capability !== expected.sourceCapability) {
+      return invalid(`Source capability mismatch: expected ${expected.sourceCapability}, got ${actualPosting.source_capability || 'missing'}`)
     }
 
-    // 5. Verify Source Object ID Lineage if specified
-    if (
-      expected.sourceObjectId &&
-      actualPosting.source_object_id !== expected.sourceObjectId
-    ) {
-      return {
-        isValid: false,
-        finality: actualPosting.finality,
-        isApplied: false,
-        isMismatch: true,
-        mismatchReason: `Source object ID mismatch: expected ${expected.sourceObjectId}, got ${actualPosting.source_object_id || 'missing'}`,
-        journalLinesCount: actualPosting?.lines?.length || 0,
-      }
+    if (expected.sourceObjectId && actualPosting.source_object_id !== expected.sourceObjectId) {
+      return invalid(`Source object ID mismatch: expected ${expected.sourceObjectId}, got ${actualPosting.source_object_id || 'missing'}`)
     }
 
-    // 6. Verify Stable Effect Key if specified
-    if (
-      expected.stableEffectKey &&
-      actualPosting.stable_effect_key !== expected.stableEffectKey
-    ) {
-      return {
-        isValid: false,
-        finality: actualPosting.finality,
-        isApplied: false,
-        isMismatch: true,
-        mismatchReason: `Stable effect key mismatch: expected ${expected.stableEffectKey}, got ${actualPosting.stable_effect_key || 'missing'}`,
-        journalLinesCount: actualPosting?.lines?.length || 0,
-      }
+    if (expected.stableEffectKey && actualPosting.stable_effect_key !== expected.stableEffectKey) {
+      return invalid(`Stable effect key mismatch: expected ${expected.stableEffectKey}, got ${actualPosting.stable_effect_key || 'missing'}`)
     }
 
-    // 7. Verify Line Balance if journal lines are present
-    if (actualPosting.lines && actualPosting.lines.length > 0) {
-      let totalDebit = 0
-      let totalCredit = 0
+    if (expected.expectedCurrency && actualPosting.functional_currency !== expected.expectedCurrency) {
+      return invalid(`Functional currency mismatch: expected ${expected.expectedCurrency}, got ${actualPosting.functional_currency || 'missing'}`)
+    }
+
+    if (expected.expectedCurrency && !journalLinesCount) {
+      return invalid('Posting journal evidence requires positive balanced lines.')
+    }
+    if (actualPosting.lines?.length) {
+      let totalDebit = 0n
+      let totalCredit = 0n
       for (const line of actualPosting.lines) {
-        totalDebit += Number(line.debit_minor || 0)
-        totalCredit += Number(line.credit_minor || 0)
+        const parseMinor = (value: number | string): bigint => {
+          const text = String(value)
+          if (!/^(0|[1-9][0-9]*)$/.test(text) || (typeof value === 'number' && !Number.isSafeInteger(value))) {
+            throw new Error('non-canonical minor-unit value')
+          }
+          return BigInt(text)
+        }
+        let debit: bigint
+        let credit: bigint
+        try {
+          debit = parseMinor(line.debit_minor)
+          credit = parseMinor(line.credit_minor)
+        } catch {
+          return invalid('Posting journal lines contain a non-canonical minor-unit value.')
+        }
+        if (debit === 0n && credit === 0n) {
+          return invalid('Posting journal lines must contain a positive debit or credit value.')
+        }
+        totalDebit += debit
+        totalCredit += credit
       }
       if (totalDebit !== totalCredit) {
-        return {
-          isValid: false,
-          finality: actualPosting.finality,
-          isApplied: false,
-          isMismatch: true,
-          mismatchReason: `Double-entry unbalanced in read-back: debit=${totalDebit} != credit=${totalCredit}`,
-          journalLinesCount: actualPosting.lines.length,
-        }
+        return invalid(`Double-entry unbalanced in read-back: debit=${totalDebit} != credit=${totalCredit}`)
       }
     }
 
@@ -153,7 +125,7 @@ export class HfePostingReadbackValidator {
       finality: 'applied',
       isApplied: true,
       isMismatch: false,
-      journalLinesCount: actualPosting?.lines?.length || 0,
+      journalLinesCount,
     }
   }
 }

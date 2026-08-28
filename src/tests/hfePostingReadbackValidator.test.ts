@@ -117,6 +117,46 @@ describe('L2-POS-91: HfePostingReadbackValidator & Cash Order Payload Invariants
     expect(result.mismatchReason).toContain('Double-entry unbalanced')
   })
 
+  it('uses exact integer arithmetic for values beyond JavaScript safe integers', () => {
+    const result = HfePostingReadbackValidator.validate(validContext, {
+      ...validPosting,
+      lines: [
+        { account_code: '1101', debit_minor: '9007199254740993', credit_minor: '0' },
+        { account_code: '4101', debit_minor: '0', credit_minor: '9007199254740992' },
+      ],
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.mismatchReason).toContain('Double-entry unbalanced')
+  })
+
+  it('requires the exact Posting functional currency', () => {
+    const result = HfePostingReadbackValidator.validate(
+      { ...validContext, expectedCurrency: 'IDR' } as ExpectedPostingContext,
+      { ...validPosting, functional_currency: 'USD' } as RawCorePosting,
+    )
+
+    expect(result.isValid).toBe(false)
+    expect(result.mismatchReason).toContain('Functional currency mismatch')
+  })
+
+  it('rejects empty or non-positive Posting journal evidence', () => {
+    const result = HfePostingReadbackValidator.validate({
+      ...validContext,
+      expectedCurrency: 'IDR',
+    } as ExpectedPostingContext, {
+      ...validPosting,
+      functional_currency: 'IDR',
+      lines: [
+        { account_code: '1101', debit_minor: '0', credit_minor: '0' },
+        { account_code: '4101', debit_minor: '0', credit_minor: '0' },
+      ],
+    } as RawCorePosting)
+
+    expect(result.isValid).toBe(false)
+    expect(result.mismatchReason).toContain('positive')
+  })
+
   it('generates valid UUID v4 string', () => {
     const uuid = generateUUIDv4()
     expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)

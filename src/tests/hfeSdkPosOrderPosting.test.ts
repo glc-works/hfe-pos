@@ -19,6 +19,7 @@ const payload: SubmitRetailTransactionPayload = {
 
 const context = {
   companyBookId: 'BOOK-CAFE-HQ-88',
+  organizationId: 'ORG-CAFE-HQ-88',
   authorityContext: 'AUTHCTX-DEMO-BARISTA-01',
   sessionId: 'SESSION-OUT-04',
   financialDate: '2026-08-24',
@@ -51,6 +52,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       terminal_id: 'TERMINAL-04',
       currency: 'IDR',
       items: [{ product_id: 'MN-001', quantity: 2, modifier_ids: ['MOD-EXTRA-SHOT'] }],
+      cashier_id: 'USR-DEMO-BARISTA-01',
       idempotency_key: 'flagship-governed-cash-001',
     } satisfies GovernedRetailCheckoutPayload
     const fetchMock = vi.fn()
@@ -61,10 +63,15 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
         preset_id: 'PRESET-CAFE-ID',
         preset_version: '3',
         currency: 'IDR',
+        subtotal_minor: '60000',
         amount_due_minor: '61600',
         discount_total_minor: '4000',
+        tax_total_minor: '5600',
+        service_charge_total_minor: '0',
+        tip_total_minor: '0',
+        rounding_total_minor: '0',
         expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-        lines: [],
+        lines: [{ item_id: 'MN-001', quantity: '2', modifier_ids: ['MOD-EXTRA-SHOT'], discount_allocated_minor: '0' }],
         tender_eligibility: [
           { eligible: true, tender_type: 'cash' },
           { eligible: false, reason_code: 'provider_route_required', tender_type: 'qris' },
@@ -100,17 +107,23 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
         source_capability: 'pos_tender_sale',
         source_object_id: 'TENDER-001',
         stable_effect_key: 'b'.repeat(64),
+        functional_currency: 'IDR',
+        lines: [
+          { account_code: '1101', debit_minor: '61600', credit_minor: '0' },
+          { account_code: '4101', debit_minor: '0', credit_minor: '61600' },
+        ],
       }))
     vi.stubGlobal('fetch', fetchMock)
 
     const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
-    const result = await adapter.postGovernedRetailOrder(governedPayload, context)
+    const reviewed = await adapter.prepareGovernedRetailQuote(governedPayload, context)
+    const result = await adapter.postGovernedRetailOrder(governedPayload, context, reviewed)
 
     expect(result).toMatchObject({
       status: 'posted',
       tx_id: 'ORDER-001',
       posting_id: 'POSTING-001',
-      grand_total: 61_600,
+      grand_total: '61600',
     })
     const calls = fetchMock.mock.calls.map(([url, init]) => ({
       url: String(url),
@@ -152,6 +165,7 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       terminal_id: 'TERMINAL-04',
       currency: 'IDR',
       items: [{ product_id: 'MN-001', quantity: 1 }],
+      cashier_id: 'USR-DEMO-BARISTA-01',
       idempotency_key: 'flagship-disabled-cash-001',
     } satisfies GovernedRetailCheckoutPayload
     const fetchMock = vi.fn().mockResolvedValueOnce(response(201, {
@@ -164,13 +178,16 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
       amount_due_minor: '28000',
       discount_total_minor: '0',
       expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-      lines: [],
-      tender_eligibility: [{ eligible: false, reason_code: 'terminal_cash_mapping_inactive', tender_type: 'cash' }],
+      lines: [{ item_id: 'MN-001', quantity: '1', modifier_ids: [], discount_allocated_minor: '0' }],
+      tender_eligibility: [
+        { eligible: false, reason_code: 'terminal_cash_mapping_inactive', tender_type: 'cash' },
+        { eligible: false, reason_code: 'provider_route_required', tender_type: 'qris' },
+      ],
     }))
     vi.stubGlobal('fetch', fetchMock)
 
     const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
-    await expect(adapter.postGovernedRetailOrder(governedPayload, context)).rejects.toThrow(/cash.*not eligible/i)
+    await expect(adapter.prepareGovernedRetailQuote(governedPayload, context)).rejects.toThrow(/cash.*not eligible/i)
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 

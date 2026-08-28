@@ -3,9 +3,14 @@ import type {
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
 } from './HfePosFinancialPort'
+import type {
+  GovernedCheckoutDurability,
+  GovernedCheckoutEvidence,
+  GovernedCheckoutPhase,
+} from './GovernedCheckoutDurability'
 import { generatePayloadChecksum } from '../../utils/cryptoHasher'
 
-export type CheckoutAttemptStatus = 'prepared' | 'outcome_unknown' | 'pending' | 'posted'
+export type CheckoutAttemptStatus = GovernedCheckoutPhase
 
 export interface CheckoutAttemptRecord<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> {
   checkoutKey: string
@@ -18,6 +23,10 @@ export interface CheckoutAttemptRecord<TPayload extends PersistedRetailCheckoutP
   updatedAt: string
   lastError?: string
   response?: SubmitRetailTransactionResponse
+  quote?: GovernedCheckoutEvidence['quote']
+  qrisIntent?: GovernedCheckoutEvidence['qrisIntent']
+  acceptedOrder?: GovernedCheckoutEvidence['acceptedOrder']
+  cashConfirm?: GovernedCheckoutEvidence['cashConfirm']
 }
 
 export interface CheckoutAttemptStore<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> {
@@ -64,6 +73,65 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
     await this.store.remove(checkoutKey)
   }
 
+  /** Persist the one logical attempt before its first quote request. */
+  async prepare(checkoutKey: string, bookId: string, payload: TPayload): Promise<CheckoutAttemptRecord<TPayload>> {
+    const payloadFingerprint = await generatePayloadChecksum({ ...payload, idempotency_key: undefined })
+    const existing = await this.store.get(checkoutKey)
+    if (existing) {
+      if (existing.payloadFingerprint !== payloadFingerprint) {
+        throw new Error('Checkout payload changed while an unresolved financial attempt exists. Manager resolution is required.')
+      }
+      return existing
+    }
+    const now = new Date().toISOString()
+    const idempotencyKey = payload.idempotency_key || this.createIdempotencyKey()
+    const attempt: CheckoutAttemptRecord<TPayload> = {
+      checkoutKey,
+      bookId,
+      idempotencyKey,
+      payloadFingerprint,
+      payload: { ...payload, idempotency_key: idempotencyKey } as TPayload,
+      status: 'prepared',
+      createdAt: now,
+      updatedAt: now,
+    }
+    await this.store.put(attempt)
+    return attempt
+  }
+
+  async retirePrepared(checkoutKey: string): Promise<void> {
+    const attempt = await this.store.get(checkoutKey)
+    if (!attempt || !['prepared', 'quote_requested', 'quote_ready'].includes(attempt.status)) {
+      throw new Error('Only a pre-accept checkout attempt may be retired.')
+    }
+    await this.store.remove(checkoutKey)
+  }
+
+  durability(checkoutKey: string): GovernedCheckoutDurability {
+    return {
+      load: async () => {
+        const attempt = await this.store.get(checkoutKey)
+        if (!attempt) throw new Error('Durable checkout attempt is missing.')
+        return {
+          phase: attempt.status,
+          quote: attempt.quote,
+          qrisIntent: attempt.qrisIntent,
+          acceptedOrder: attempt.acceptedOrder,
+          cashConfirm: attempt.cashConfirm,
+        }
+      },
+      transition: async (phase, evidence = {}) => {
+        const attempt = await this.store.get(checkoutKey)
+        if (!attempt) throw new Error('Durable checkout attempt is missing.')
+        if (!canAdvanceGovernedPhase(attempt.status, phase)) {
+          throw new Error(`Invalid governed checkout phase transition: ${attempt.status} -> ${phase}.`)
+        }
+        Object.assign(attempt, evidence, { status: phase, updatedAt: new Date().toISOString() })
+        await this.store.put(attempt)
+      },
+    }
+  }
+
   async execute({ checkoutKey, bookId, payload, post, reconcile, resumeExisting = false }: ExecuteCheckoutAttempt<TPayload>): Promise<CheckoutAttemptResult<TPayload>> {
     if (this.inFlight.has(checkoutKey)) return { kind: 'already_in_progress' }
     this.inFlight.add(checkoutKey)
@@ -79,14 +147,16 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
         if (existing.status === 'posted' && existing.response) {
           return { kind: 'posted', response: existing.response }
         }
-        if (!resumeExisting || !reconcile) {
+        const directPhases: CheckoutAttemptStatus[] = ['prepared', 'quote_requested', 'quote_ready', 'qris_intent_requested', 'qris_intent_ready']
+        if (!directPhases.includes(existing.status) && (!resumeExisting || !reconcile)) {
           return { kind: 'operator_action_required', attempt: existing }
         }
       }
 
+      const recoverExisting = existing?.status !== undefined && ['accept_requested', 'accepted', 'confirm_requested', 'pending', 'outcome_unknown'].includes(existing.status)
       const now = new Date().toISOString()
       const attempt: CheckoutAttemptRecord<TPayload> = existing ?? (() => {
-        const idempotencyKey = this.createIdempotencyKey()
+        const idempotencyKey = payload.idempotency_key || this.createIdempotencyKey()
         const identifiedPayload = { ...payload, idempotency_key: idempotencyKey } as TPayload
         return {
           checkoutKey,
@@ -101,35 +171,59 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
       })()
       if (!existing) await this.store.put(attempt)
 
-      attempt.status = 'outcome_unknown'
-      attempt.updatedAt = new Date().toISOString()
-      await this.store.put(attempt)
+      if (!recoverExisting && !('outlet_id' in attempt.payload)) {
+        attempt.status = 'outcome_unknown'
+        attempt.updatedAt = new Date().toISOString()
+        await this.store.put(attempt)
+      }
 
       try {
-        const response = existing
+        // A prepared record is durable pre-quote lineage, not evidence that an
+        // acceptance mutation was sent. Only an unresolved post-accept record
+        // may use the read-only recovery path.
+        const response = recoverExisting
           ? await reconcile!(attempt.payload, attempt)
           : await post(attempt.payload, attempt)
+        const current = await this.store.get(checkoutKey) ?? attempt
         if (response.status !== 'posted') {
-          attempt.status = 'pending'
-          attempt.response = response
-          attempt.updatedAt = new Date().toISOString()
-          await this.store.put(attempt)
+          current.status = 'pending'
+          current.response = response
+          current.updatedAt = new Date().toISOString()
+          await this.store.put(current)
           return { kind: 'pending', response }
         }
 
-        attempt.status = 'posted'
-        attempt.response = response
-        attempt.updatedAt = new Date().toISOString()
-        await this.store.put(attempt)
+        current.status = 'posted'
+        current.response = response
+        current.updatedAt = new Date().toISOString()
+        await this.store.put(current)
         return { kind: 'posted', response }
       } catch (error) {
-        attempt.lastError = error instanceof Error ? error.message : String(error)
-        attempt.updatedAt = new Date().toISOString()
-        await this.store.put(attempt)
-        return { kind: 'outcome_unknown', message: attempt.lastError }
+        const current = await this.store.get(checkoutKey) ?? attempt
+        if (current.status === 'prepared') current.status = 'outcome_unknown'
+        current.lastError = error instanceof Error ? error.message : String(error)
+        current.updatedAt = new Date().toISOString()
+        await this.store.put(current)
+        return { kind: 'outcome_unknown', message: current.lastError }
       }
     } finally {
       this.inFlight.delete(checkoutKey)
     }
   }
+}
+
+function canAdvanceGovernedPhase(from: CheckoutAttemptStatus, to: CheckoutAttemptStatus): boolean {
+  if (from === to) return true
+  const next: Partial<Record<CheckoutAttemptStatus, CheckoutAttemptStatus[]>> = {
+    prepared: ['quote_requested'],
+    quote_requested: ['quote_ready'],
+    quote_ready: ['qris_intent_requested', 'accept_requested'],
+    qris_intent_requested: ['qris_intent_ready'],
+    qris_intent_ready: ['accept_requested'],
+    accept_requested: ['accepted'],
+    accepted: ['confirm_requested', 'pending', 'posted'],
+    confirm_requested: ['pending', 'posted'],
+    pending: ['posted'],
+  }
+  return next[from]?.includes(to) ?? false
 }

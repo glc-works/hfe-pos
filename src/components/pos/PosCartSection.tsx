@@ -1,25 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { lazy, Suspense, useState } from 'react'
 import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
-import { useMerchantConfig } from '../../context/MerchantConfigContext'
-import {
-  getCountryCashPresets,
-  ACCEPTED_TENDER_CURRENCIES,
-  convertCurrency,
-  getCurrencySymbol
-} from '../../utils/countryCashDenominations'
-import {
-  formatMoneyInputDisplay,
-  parseMoneyInput,
-  formatLocaleNumber
-} from '../../utils/localeNumberFormat'
-import { PosCardTenderForm } from './PosCardTenderForm'
 import { SegmentedControl, Button } from '@/ui'
 import { GLYPHS } from '../../tokens/designTokens'
 
 import type { ReviewedPosQuote } from '../../services/financial'
-
+import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
+import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
+const PosCardTenderForm = lazy(() => import('./PosCardTenderForm').then(({ PosCardTenderForm }) => ({ default: PosCardTenderForm })))
+const PosCashTenderForm = lazy(() => import('./PosCashTenderForm').then(({ PosCashTenderForm }) => ({ default: PosCashTenderForm })))
 export interface PosCartSectionProps {
   cartItems: CartItem[]
   selectedPOSTable: TableStatus | null
@@ -33,6 +23,7 @@ export interface PosCartSectionProps {
   hideHeader?: boolean
   cardMetadata?: CardTenderMetadata
   authoritativeQuote?: ReviewedPosQuote | null
+  checkoutPhase?: GovernedCheckoutPhase
   setPosPayMethod: (method: PosPayMethod) => void
   setPosCashGiven: (val: string) => void
   setFulfillmentMode?: (mode: OrderFulfillmentMode) => void
@@ -56,6 +47,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   fulfillmentMode = 'dine_in',
   hideHeader = false,
   authoritativeQuote,
+  checkoutPhase,
   setPosPayMethod,
   setPosCashGiven,
   setFulfillmentMode,
@@ -65,38 +57,19 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   onOpenSplitPayment,
   onSwitchToCatalog
 }) => {
-  const { t, formatPrice, language } = useTranslation()
-  const { merchantTheme } = useMerchantConfig()
-  const baseCurrency = (merchantTheme as any)?.currency || 'IDR'
-  const [tenderCurrency, setTenderCurrency] = useState<string>(baseCurrency)
+  const { t, formatPrice } = useTranslation()
 
-  useEffect(() => {
-    setTenderCurrency(baseCurrency)
-  }, [baseCurrency])
+  const formatExactMinor = (value: string) => BigInt(value).toLocaleString('id-ID')
+  const reviewReady = checkoutPhase?.kind === 'review'
+  const connectedRuntime = isConnectedFirstPartyRuntime()
+  const awaitingCoreQuote = connectedRuntime && !authoritativeQuote
+  const isTenderEligible = (tenderType: 'cash' | 'qris') => !authoritativeQuote || (
+    authoritativeQuote.tenderEligibility.filter((entry) => entry.tenderType === tenderType).length === 1 &&
+    authoritativeQuote.tenderEligibility.some((entry) => entry.tenderType === tenderType && entry.eligible)
+  )
+  const isCardEligible = !connectedRuntime && !authoritativeQuote
+  const unavailableTenderClass = 'opacity-40 cursor-not-allowed'
 
-  const effectiveGrandTotal = authoritativeQuote
-    ? Number(authoritativeQuote.amountDueMinor)
-    : grandTotal
-  const effectiveSubtotal = authoritativeQuote
-    ? Number(authoritativeQuote.subtotalMinor)
-    : subtotal
-  const effectiveTax = authoritativeQuote
-    ? Number(authoritativeQuote.taxTotalMinor)
-    : pb1Tax
-
-  const isCardEligible = authoritativeQuote
-    ? authoritativeQuote.tenderEligibility?.some((t) => (t.tenderType as string) === 'card' && t.eligible) ?? false
-    : true
-
-  const tenderGrandTotal = convertCurrency(effectiveGrandTotal, baseCurrency, tenderCurrency)
-  const currencySymbol = getCurrencySymbol(tenderCurrency)
-  const cashPresets = getCountryCashPresets(tenderGrandTotal, tenderCurrency, language)
-  const cashGivenNum = parseFloat(posCashGiven) || 0
-  const changeAmount = Math.max(0, cashGivenNum - tenderGrandTotal)
-  const isForeignTender = tenderCurrency !== baseCurrency
-  const baseCurrencyChange = isForeignTender ? convertCurrency(changeAmount, tenderCurrency, baseCurrency) : 0
-
-  // Internal Card Metadata state
   const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>(
     posPayMethod === 'debit' ? 'debit' : 'cc'
   )
@@ -108,10 +81,8 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
 
   const handleCardPrefixChange = (val: string) => setCardPrefix(val.replace(/\D/g, '').slice(0, 8))
   const handleCardLast4Change = (val: string) => setCardLast4(val.replace(/\D/g, '').slice(0, 4))
-
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
-      {/* 3-MODE FULFILLMENT SELECTOR: DINE-IN | TAKEAWAY | DELIVERY */}
       <SegmentedControl
         options={[
           { value: 'dine_in', label: t.cart.dineInModeLabel, icon: GLYPHS.DINE_IN },
@@ -124,7 +95,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         className="mb-1.5 shrink-0"
       />
 
-      {/* HEADER KERANJANG (PINNED TOP, HIDDEN WHEN IN MOBILE DRAWER) */}
       {!hideHeader && (
         <div className="shrink-0 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -151,7 +121,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         </div>
       )}
 
-      {/* DAFTAR ITEM KERANJANG (INTERNAL SCROLL OWNER) */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 my-1.5 flex flex-col gap-2">
         {cartItems.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center py-6 text-center text-slate-400 dark:text-slate-500 text-xs gap-2.5">
@@ -221,13 +190,18 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         )}
       </div>
 
-      {/* RINGKASAN SUB-TOTAL & METODE BAYAR (PINNED BOTTOM) */}
       <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 pt-2 flex flex-col gap-2">
-        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-          <span>{t.cart.subtotal}</span>
-          <span className="font-mono text-slate-800 dark:text-slate-200 whitespace-nowrap shrink-0">{formatPrice(effectiveSubtotal)}</span>
-        </div>
-        {packagingFee > 0 && (
+        {awaitingCoreQuote ? (
+          <p data-testid="awaiting-core-quote" className="rounded-xl border border-amber-300 bg-amber-50 p-2 text-xs font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+            {t.cart.awaitingCoreQuote}
+          </p>
+        ) : <div data-testid={!authoritativeQuote ? 'local-price-estimate' : undefined}>
+          {!authoritativeQuote && <p className="mb-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">{t.cart.localPriceEstimate}</p>}
+          <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>{t.cart.subtotal}</span>
+            <span className="font-mono text-slate-800 dark:text-slate-200 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.subtotalMinor) : formatPrice(subtotal)}</span>
+          </div>
+        {!authoritativeQuote && packagingFee > 0 && (
           <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
             <span>{t.cart.packagingFeeLabel}</span>
             <span className="font-mono whitespace-nowrap shrink-0">+{formatPrice(packagingFee)}</span>
@@ -235,26 +209,33 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         )}
         <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>{t.cart.pb1Tax}</span>
-          <span className="font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">{formatPrice(effectiveTax)}</span>
+          <span className="font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.taxTotalMinor) : formatPrice(pb1Tax)}</span>
         </div>
         <div className="flex justify-between text-base font-extrabold text-slate-900 dark:text-white border-t border-slate-200 dark:border-slate-800 pt-2">
           <span>{t.cart.totalBill}</span>
-          <span data-testid="authoritative-amount-due" className="font-mono text-emerald-700 dark:text-emerald-400 whitespace-nowrap shrink-0">{formatPrice(effectiveGrandTotal)}</span>
+          <span data-testid="authoritative-amount-due" className="font-mono text-emerald-700 dark:text-emerald-400 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.amountDueMinor) : formatPrice(grandTotal)}</span>
         </div>
+        </div>}
+        {authoritativeQuote && (
+          <p data-testid="reviewed-core-quote" className="text-[10px] text-slate-500 font-mono truncate" title={authoritativeQuote.digestSha256}>
+            CORE {authoritativeQuote.quoteId} r{authoritativeQuote.revision} · {authoritativeQuote.source} · {authoritativeQuote.digestSha256.slice(0, 12)}
+          </p>
+        )}
 
-        {/* METODE BAYAR (3 METODE UTAMA: CASH / QRIS / KARTU - STRICT SINGLE LINE) */}
         <div className="grid grid-cols-3 gap-1.5 pt-1">
           <button
             type="button"
-            onClick={() => setPosPayMethod('cash')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${posPayMethod === 'cash' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            disabled={!isTenderEligible('cash')}
+            onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
+            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${!isTenderEligible('cash') ? unavailableTenderClass : posPayMethod === 'cash' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <Banknote className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCash}</span>
           </button>
           <button
             type="button"
-            onClick={() => setPosPayMethod('qris')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${posPayMethod === 'qris' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+            disabled={!isTenderEligible('qris')}
+            onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
+            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${!isTenderEligible('qris') ? unavailableTenderClass : posPayMethod === 'qris' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
           >
             <QrCode className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payQris}</span>
           </button>
@@ -274,8 +255,8 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           </button>
         </div>
 
-        {/* CARD SETTLEMENT METADATA BOX (CC / DEBIT) FOR ACCOUNTING AUDIT */}
-        {(posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
+        {isCardEligible && (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
+          <Suspense fallback={<div className="min-h-[180px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
           <div className="flex flex-col gap-2.5 bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5">
               <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 font-mono flex items-center gap-1">
@@ -299,167 +280,15 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               setApprovalCode={setApprovalCode}
             />
           </div>
+          </Suspense>
         )}
 
-        {/* BAR TOMBOL UANG CEPAT (Jika Cash) */}
-        {posPayMethod === 'cash' && (
-          <div className="flex flex-col gap-2 bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
-            {/* TENDER CURRENCY SELECTOR (KISS MULTI-CURRENCY) */}
-            <div className="flex items-center justify-between pb-1 border-b border-slate-200 dark:border-slate-900">
-              <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.cart.tenderCurrencyLabel}</span>
-              <div className="flex items-center gap-1">
-                {ACCEPTED_TENDER_CURRENCIES.slice(0, 3).map((curr) => {
-                  const isCurActive = tenderCurrency === curr.code
-                  return (
-                    <button
-                      key={curr.code}
-                      type="button"
-                      onClick={() => {
-                        setTenderCurrency(curr.code)
-                        const converted = convertCurrency(grandTotal, baseCurrency, curr.code)
-                        setPosCashGiven(converted.toString())
-                      }}
-                      className={`px-1.5 py-0.5 rounded-lg text-[9px] font-mono font-bold border transition-all flex items-center gap-1 ${isCurActive ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                    >
-                      <span>{curr.flag}</span>
-                      <span>{curr.code}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
-              <span>{t.cart.cashGivenPrompt} {isForeignTender && `(${currencySymbol}${tenderGrandTotal})`}</span>
-              {cashGivenNum === tenderGrandTotal && tenderGrandTotal > 0 && (
-                <span className="text-emerald-600 dark:text-emerald-400 font-mono flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/30">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> {t.cart.exactCashPaid}
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-5 gap-1">
-              <button
-                type="button"
-                onClick={() => setPosCashGiven(tenderGrandTotal.toString())}
-                className={`py-1.5 px-0.5 font-mono text-[9px] sm:text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${cashGivenNum === tenderGrandTotal && tenderGrandTotal > 0 ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-              >
-                {t.cart.exactCash}
-              </button>
-              {cashPresets.map((preset) => (
-                <button
-                  key={preset.value}
-                  type="button"
-                  onClick={() => setPosCashGiven(preset.value.toString())}
-                  className={`py-1.5 px-0.5 font-mono text-[10px] font-bold rounded-xl border transition-all whitespace-nowrap text-center ${cashGivenNum === preset.value ? 'bg-indigo-600 text-white border-indigo-500 font-extrabold shadow-md' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-
-            {/* INPUT NOMINAL UANG TUNAI MANUAL & SPEED KEYS */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 shadow-inner">
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0">{currencySymbol}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={formatMoneyInputDisplay(posCashGiven, language)}
-                  onChange={(e) => {
-                    const raw = parseMoneyInput(e.target.value, language)
-                    setPosCashGiven(raw)
-                  }}
-                  placeholder="0"
-                  className="bg-transparent w-full text-xs font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none"
-                />
-                {posCashGiven && posCashGiven !== '0' && (
-                  <button
-                    type="button"
-                    onClick={() => setPosCashGiven('')}
-                    className="text-[10px] text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 font-mono font-bold px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer"
-                    title="Hapus"
-                  >
-                    ⌫
-                  </button>
-                )}
-              </div>
-
-              {/* SPEED MULTIPLIER BUTTONS (000, 00, +10k, +50k) */}
-              <div className="grid grid-cols-4 gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const current = posCashGiven || '0'
-                    setPosCashGiven(current === '0' ? '1000' : `${current}000`)
-                  }}
-                  className="py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-indigo-700 dark:text-indigo-300 border border-slate-200 dark:border-indigo-500/20 hover:border-indigo-500/40 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
-                  title="Tambah 000 (Ribuan)"
-                >
-                  +000
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const current = posCashGiven || '0'
-                    setPosCashGiven(current === '0' ? '100' : `${current}00`)
-                  }}
-                  className="py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
-                  title="Tambah 00 (Ratusan)"
-                >
-                  +00
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const val = parseFloat(posCashGiven) || 0
-                    const increment = tenderCurrency === 'IDR' ? 10000 : 10
-                    setPosCashGiven((val + increment).toString())
-                  }}
-                  className="py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-amber-700 dark:text-amber-300 border border-slate-200 dark:border-amber-500/20 hover:border-amber-500/40 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
-                >
-                  +{tenderCurrency === 'IDR' ? '10rb' : `${currencySymbol}10`}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const val = parseFloat(posCashGiven) || 0
-                    const increment = tenderCurrency === 'IDR' ? 50000 : 50
-                    setPosCashGiven((val + increment).toString())
-                  }}
-                  className="py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-amber-700 dark:text-amber-300 border border-slate-200 dark:border-amber-500/20 hover:border-amber-500/40 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 shadow-sm"
-                >
-                  +{tenderCurrency === 'IDR' ? '50rb' : `${currencySymbol}50`}
-                </button>
-              </div>
-            </div>
-
-            {/* KEMBALIAN PELANGGAN */}
-            <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800/80 pt-1.5 text-xs font-bold">
-              <span className="text-slate-500 dark:text-slate-400">{t.cart.changeReturn}</span>
-              <div className="flex items-baseline gap-1.5 text-right">
-                <span
-                  className={`font-mono text-sm tabular-nums ${
-                    cashGivenNum >= tenderGrandTotal && tenderGrandTotal > 0
-                      ? 'text-amber-800 dark:text-amber-400 font-black'
-                      : 'text-slate-500 dark:text-slate-400'
-                  }`}
-                >
-                  {isForeignTender
-                    ? `${currencySymbol}${formatLocaleNumber(changeAmount, language, 2, 2)}`
-                    : formatPrice(changeAmount)}
-                </span>
-                {isForeignTender && changeAmount > 0 && (
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono tabular-nums">
-                    (Rp {formatLocaleNumber(baseCurrencyChange, language, 0, 0)})
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+        {posPayMethod === 'cash' && !awaitingCoreQuote && (
+          <Suspense fallback={<div className="min-h-[180px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
+            <PosCashTenderForm authoritativeQuote={authoritativeQuote} posCashGiven={posCashGiven} setPosCashGiven={setPosCashGiven} grandTotal={grandTotal} />
+          </Suspense>
         )}
 
-        {/* TOMBOL AKSI UTAMA: SPLIT BILL & CHECKOUT PROCESS */}
         <div className="flex items-center gap-2 pt-1">
           {onOpenSplitPayment && (
             <Button
@@ -483,7 +312,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             icon={<CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />}
             className="rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm"
           >
-            {t.cart.processPayment}
+            {reviewReady ? t.cart.acceptReviewedCoreQuote : t.cart.reviewCoreQuote}
           </Button>
         </div>
       </div>
