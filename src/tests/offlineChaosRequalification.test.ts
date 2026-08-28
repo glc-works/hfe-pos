@@ -22,6 +22,13 @@ function fakeStore(): CheckoutAttemptStore & { history: CheckoutAttemptRecord[] 
     },
     async put(r) { map.set(r.checkoutKey, { ...r }); history.push({ ...r }) },
     async remove(k) { map.delete(k) },
+    async compareAndDeletePosted(k, expected) {
+      const record = map.get(k)
+      if (!record || record.status !== 'posted' || record.bookId !== expected.bookId ||
+        record.scopeFingerprint !== expected.scopeFingerprint || record.idempotencyKey !== expected.idempotencyKey ||
+        record.cleanupEvidenceFingerprint !== expected.cleanupEvidenceFingerprint) return false
+      map.delete(k); return true
+    },
     async findPosted(bookId, scopeFingerprint) {
       return [...map.values()].filter((record) => (
         record.bookId === bookId && record.scopeFingerprint === scopeFingerprint && record.status === 'posted'
@@ -116,7 +123,7 @@ describe('Fase 2 #61 — offline chaos requalification (adversarial)', () => {
 
     const p1 = coord.execute({
       checkoutKey: 'k3', bookId: 'b1', payload: basePayload,
-      post: async () => { await gate; return postedResponse('x') },
+      post: async (request) => { await gate; return postedResponse(request.idempotency_key!) },
     })
     const p2 = await coord.execute({
       checkoutKey: 'k3', bookId: 'b1', payload: basePayload,

@@ -1,4 +1,5 @@
 import type {
+  GovernedRetailCheckoutPayload,
   PersistedRetailCheckoutPayload,
   SubmitRetailTransactionPayload,
   SubmitRetailTransactionResponse,
@@ -29,6 +30,14 @@ export interface CheckoutAttemptRecord<TPayload extends PersistedRetailCheckoutP
   qrisIntent?: GovernedCheckoutEvidence['qrisIntent']
   acceptedOrder?: GovernedCheckoutEvidence['acceptedOrder']
   cashConfirm?: GovernedCheckoutEvidence['cashConfirm']
+  cleanupEvidenceFingerprint?: string
+}
+
+export interface PostedDeleteExpectation {
+  bookId: string
+  scopeFingerprint?: string
+  idempotencyKey: string
+  cleanupEvidenceFingerprint: string
 }
 
 export interface CheckoutAttemptStore<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> {
@@ -36,6 +45,7 @@ export interface CheckoutAttemptStore<TPayload extends PersistedRetailCheckoutPa
   createIfAbsent(record: CheckoutAttemptRecord<TPayload>): Promise<CheckoutAttemptRecord<TPayload>>
   put(record: CheckoutAttemptRecord<TPayload>): Promise<void>
   remove(checkoutKey: string): Promise<void>
+  compareAndDeletePosted(checkoutKey: string, expected: PostedDeleteExpectation): Promise<boolean>
   findPosted(bookId: string, scopeFingerprint: string): Promise<CheckoutAttemptRecord<TPayload>[]>
 }
 
@@ -79,13 +89,24 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
     private readonly createIdempotencyKey: () => string = () => crypto.randomUUID(),
   ) {}
 
-  async acknowledgePosted(checkoutKey: string): Promise<void> {
+  async acknowledgePosted(checkoutKey: string, bookId?: string, scope?: CheckoutAttemptScope): Promise<void> {
     const attempt = await this.store.get(checkoutKey)
     if (!attempt || attempt.status !== 'posted') {
       throw new Error('Only a durably posted checkout attempt can be acknowledged.')
     }
-    assertDurablePostedEvidence(attempt)
-    await this.store.remove(checkoutKey)
+    const governed = 'outlet_id' in attempt.payload
+    if (governed && (!bookId || !scope)) {
+      throw new Error('Governed posted acknowledgement requires exact book and scope binding.')
+    }
+    const scopeFingerprint = scope ? await checkoutScopeFingerprint(scope) : undefined
+    if (bookId && attempt.bookId !== bookId) throw new Error('Posted acknowledgement book binding mismatch.')
+    if (scope && attempt.scopeFingerprint !== scopeFingerprint) throw new Error('Posted acknowledgement scope binding mismatch.')
+    const cleanupEvidenceFingerprint = await assertDurablePostedEvidence(attempt)
+    const deleted = await this.store.compareAndDeletePosted(checkoutKey, {
+      bookId: attempt.bookId, scopeFingerprint: attempt.scopeFingerprint,
+      idempotencyKey: attempt.idempotencyKey, cleanupEvidenceFingerprint,
+    })
+    if (!deleted) throw new Error('Durable posted acknowledgement changed before atomic cleanup; record retained.')
   }
 
   async findPostedForAcknowledgement(
@@ -102,7 +123,7 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
     if (attempt.bookId !== bookId || attempt.scopeFingerprint !== scopeFingerprint) {
       throw new Error('Durable posted checkout attempt organization or authority scope changed. Fail-closed.')
     }
-    assertDurablePostedEvidence(attempt)
+    await assertDurablePostedEvidence(attempt)
     return attempt
   }
 
@@ -236,6 +257,7 @@ export class CafeCheckoutAttemptCoordinator<TPayload extends PersistedRetailChec
 
         current.status = 'posted'
         current.response = response
+        current.cleanupEvidenceFingerprint = await assertDurablePostedEvidence(current, true)
         current.updatedAt = new Date().toISOString()
         await this.store.put(current)
         return { kind: 'posted', response }
@@ -293,9 +315,10 @@ function assertAttemptIdentity<TPayload extends PersistedRetailCheckoutPayload>(
   }
 }
 
-function assertDurablePostedEvidence<TPayload extends PersistedRetailCheckoutPayload>(
+async function assertDurablePostedEvidence<TPayload extends PersistedRetailCheckoutPayload>(
   attempt: CheckoutAttemptRecord<TPayload>,
-): asserts attempt is CheckoutAttemptRecord<TPayload> & { response: SubmitRetailTransactionResponse } {
+  allowUnpersistedFingerprint = false,
+): Promise<string> {
   const response = attempt.response
   if (attempt.status !== 'posted' || !response || response.status !== 'posted') {
     throw new Error('Durable posted response evidence is missing or has a non-posted status.')
@@ -314,6 +337,36 @@ function assertDurablePostedEvidence<TPayload extends PersistedRetailCheckoutPay
   )) {
     throw new Error('Durable posted response read-back evidence is not exact and applied.')
   }
+  const governed = 'outlet_id' in attempt.payload
+  if (governed) {
+    const governedPayload = attempt.payload as GovernedRetailCheckoutPayload
+    if (!attempt.acceptedOrder || response.tx_id !== attempt.acceptedOrder.order_id) {
+      throw new Error('Governed durable posted response transaction identity does not match the accepted order.')
+    }
+    if (!response.posting_id || !response.ledger_journal_id || response.posting_id !== response.ledger_journal_id) {
+      throw new Error('Governed durable posted response requires one exact canonical posting identity.')
+    }
+    if (!response.readback_validation) {
+      throw new Error('Governed durable posted response requires exact applied read-back validation evidence.')
+    }
+    if (attempt.acceptedOrder.quote.currency !== governedPayload.currency) {
+      throw new Error('Governed durable posted response currency does not match the accepted order and checkout intent.')
+    }
+  }
+  const fingerprint = await generatePayloadChecksum({
+    bookId: attempt.bookId,
+    scopeFingerprint: attempt.scopeFingerprint,
+    idempotencyKey: attempt.idempotencyKey,
+    response,
+    acceptedOrder: attempt.acceptedOrder,
+  })
+  if (governed && !allowUnpersistedFingerprint && !attempt.cleanupEvidenceFingerprint) {
+    throw new Error('Governed durable posted response is missing its cleanup evidence fingerprint.')
+  }
+  if (attempt.cleanupEvidenceFingerprint && attempt.cleanupEvidenceFingerprint !== fingerprint) {
+    throw new Error('Durable posted cleanup evidence fingerprint mismatch.')
+  }
+  return fingerprint
 }
 
 function canAdvanceGovernedPhase(from: CheckoutAttemptStatus, to: CheckoutAttemptStatus): boolean {

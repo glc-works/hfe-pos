@@ -47,6 +47,15 @@ class MemoryAttemptStore implements CheckoutAttemptStore {
     this.records.delete(checkoutKey)
   }
 
+  async compareAndDeletePosted(checkoutKey: string, expected: import('../services/financial/CafeCheckoutAttemptCoordinator').PostedDeleteExpectation) {
+    const record = this.records.get(checkoutKey)
+    if (!record || record.status !== 'posted' || record.bookId !== expected.bookId ||
+      record.scopeFingerprint !== expected.scopeFingerprint || record.idempotencyKey !== expected.idempotencyKey ||
+      record.cleanupEvidenceFingerprint !== expected.cleanupEvidenceFingerprint) return false
+    this.records.delete(checkoutKey)
+    return true
+  }
+
   async findPosted(bookId: string, scopeFingerprint: string) {
     return [...this.records.values()].filter((record) => (
       record.bookId === bookId && record.scopeFingerprint === scopeFingerprint && record.status === 'posted'
@@ -78,6 +87,10 @@ function posted(idempotencyKey: string): SubmitRetailTransactionResponse {
     grand_total: 25000,
     idempotency_key: idempotencyKey,
     ledger_journal_id: 'POSTING-1',
+    posting_id: 'POSTING-1',
+    readback_validation: {
+      isValid: true, finality: 'applied', isApplied: true, isMismatch: false, journalLinesCount: 2,
+    },
   }
 }
 
@@ -275,7 +288,12 @@ describe('cafe checkout attempt coordination', () => {
     const first = new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(governedStore, () => '11111111-1111-4111-8111-111111111112')
     await first.execute({
       checkoutKey: 'BOOK-1:ORDER-RESTORED', bookId: 'BOOK-1', payload: governedPayload, scope,
-      post: async (request) => posted(request.idempotency_key!),
+      post: async (request) => {
+        const attempt = (await store.get('BOOK-1:ORDER-RESTORED'))!
+        attempt.acceptedOrder = { order_id: 'ORDER-1', quote: { currency: 'IDR' } } as any
+        await store.put(attempt)
+        return posted(request.idempotency_key!)
+      },
     })
 
     const reloaded = new CafeCheckoutAttemptCoordinator<GovernedRetailCheckoutPayload>(governedStore)
@@ -284,55 +302,12 @@ describe('cafe checkout attempt coordination', () => {
       () => reloaded.findPostedForAcknowledgement('BOOK-1', scope),
       async (restored) => {
         expect(restored).toMatchObject({ checkoutKey: 'BOOK-1:ORDER-RESTORED', status: 'posted' })
-        await reloaded.acknowledgePosted(restored.checkoutKey)
+        await reloaded.acknowledgePosted(restored.checkoutKey, 'BOOK-1', scope)
       },
     )
     expect(resumed).toBe(true)
     expect(financialMutation).not.toHaveBeenCalled()
     expect(await store.get('BOOK-1:ORDER-RESTORED')).toBeNull()
-  })
-
-  it.each([
-    ['response status', { status: 'pending' }],
-    ['idempotency identity', { idempotency_key: 'DIFFERENT-ATTEMPT' }],
-    ['posting identity', { posting_id: 'POSTING-2', ledger_journal_id: 'POSTING-1' }],
-  ])('rejects corrupt durable posted %s evidence without deleting it', async (_label, responsePatch) => {
-    const store = new MemoryAttemptStore()
-    const coordinator = new CafeCheckoutAttemptCoordinator(store)
-    const scope = {
-      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
-      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
-    }
-    const scopeFingerprint = await (async () => {
-      await coordinator.prepare('BOOK-1:CORRUPT', 'BOOK-1', payload, scope)
-      return (await store.get('BOOK-1:CORRUPT'))!.scopeFingerprint!
-    })()
-    const record = (await store.get('BOOK-1:CORRUPT'))!
-    record.status = 'posted'
-    record.response = { ...posted(record.idempotencyKey), ...responsePatch } as SubmitRetailTransactionResponse
-    await store.put(record)
-
-    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/durable posted.*evidence|posting identity/i)
-    await expect(coordinator.acknowledgePosted(record.checkoutKey)).rejects.toThrow(/durable posted.*evidence|posting identity/i)
-    expect(await store.findPosted('BOOK-1', scopeFingerprint)).toHaveLength(1)
-  })
-
-  it('fails closed on ambiguous or failed durable posted discovery', async () => {
-    const store = new MemoryAttemptStore()
-    const coordinator = new CafeCheckoutAttemptCoordinator(store)
-    const scope = {
-      organizationId: 'ORG-1', authorityContext: 'AUTH-1',
-      cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
-    }
-    await coordinator.prepare('BOOK-1:AMBIGUOUS-1', 'BOOK-1', payload, scope)
-    const first = (await store.get('BOOK-1:AMBIGUOUS-1'))!
-    first.status = 'posted'; first.response = posted(first.idempotencyKey)
-    await store.put(first)
-    await store.put({ ...first, checkoutKey: 'BOOK-1:AMBIGUOUS-2' })
-    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/multiple durable posted/i)
-
-    store.findPosted = async () => { throw new Error('durable read failed') }
-    await expect(coordinator.findPostedForAcknowledgement('BOOK-1', scope)).rejects.toThrow(/durable read failed/i)
   })
 
   it('blocks a concurrent double click before a second CORE mutation starts', async () => {

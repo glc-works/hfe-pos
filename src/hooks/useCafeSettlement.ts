@@ -272,7 +272,9 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
 
     const acknowledgement = await acknowledgeConfirmedPosted(
       response,
-      () => coordinator.current.acknowledgePosted(checkoutKey),
+      () => coordinator.current.acknowledgePosted(checkoutKey, options.companyBookId, {
+        organizationId: options.organizationId, authorityContext: options.authorityContext, cashierId: options.cashierId, actorPrincipalId: options.cashierId,
+      }),
       () => {
         if (response.readback_validation && response.posting_id) {
           activateLiveCore(response.readback_validation, response.posting_id)
@@ -480,7 +482,6 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
     }
     return executeCheckout(true)
   }
-
   return {
     financialStatus,
     financialNotice,

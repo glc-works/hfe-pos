@@ -3,7 +3,7 @@
 
 import { PersistedRetailCheckoutPayload, SubmitRetailTransactionPayload } from './HfePosFinancialPort'
 import { generatePayloadChecksum } from '../../utils/cryptoHasher'
-import type { CheckoutAttemptRecord, CheckoutAttemptStore } from './CafeCheckoutAttemptCoordinator'
+import type { CheckoutAttemptRecord, CheckoutAttemptStore, PostedDeleteExpectation } from './CafeCheckoutAttemptCoordinator'
 
 export interface QueuedFinancialIntent {
   idempotencyKey: string
@@ -128,6 +128,46 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         throw new Error(`Failed to remove completed checkout identity: ${message}`)
       }
       OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
+    }
+  }
+
+  async compareAndDeletePosted(checkoutKey: string, expected: PostedDeleteExpectation): Promise<boolean> {
+    const matches = (record?: CheckoutAttemptRecord<TPayload>): boolean => Boolean(record &&
+      record.status === 'posted' && record.bookId === expected.bookId &&
+      record.scopeFingerprint === expected.scopeFingerprint && record.idempotencyKey === expected.idempotencyKey &&
+      record.cleanupEvidenceFingerprint === expected.cleanupEvidenceFingerprint)
+    try {
+      const db = await this.openDB()
+      const tx = db.transaction(CHECKOUT_ATTEMPTS_STORE, 'readwrite')
+      const store = tx.objectStore(CHECKOUT_ATTEMPTS_STORE)
+      const request = store.get(checkoutKey)
+      const deleted = await new Promise<boolean>((resolve, reject) => {
+        request.onsuccess = () => {
+          if (!matches(request.result)) {
+            resolve(false)
+            return
+          }
+          store.delete(checkoutKey)
+          resolve(true)
+        }
+        request.onerror = () => reject(request.error)
+        tx.onerror = () => reject(tx.error)
+      })
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve()
+        tx.onabort = () => reject(tx.error)
+      })
+      if (deleted) OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
+      return deleted
+    } catch (error) {
+      if (typeof indexedDB !== 'undefined') {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new Error(`Failed atomic posted acknowledgement cleanup: ${message}`)
+      }
+      const record = OfflineIntentQueue.sharedInMemoryCheckoutAttempts.get(checkoutKey) as CheckoutAttemptRecord<TPayload> | undefined
+      if (!matches(record)) return false
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
+      return true
     }
   }
 

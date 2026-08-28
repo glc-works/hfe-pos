@@ -53,6 +53,14 @@ class MemoryAttemptStore implements CheckoutAttemptStore<GovernedRetailCheckoutP
     this.record = null
   }
 
+  async compareAndDeletePosted(_checkoutKey: string, expected: import('../services/financial/CafeCheckoutAttemptCoordinator').PostedDeleteExpectation) {
+    if (!this.record || this.record.status !== 'posted' || this.record.bookId !== expected.bookId ||
+      this.record.scopeFingerprint !== expected.scopeFingerprint || this.record.idempotencyKey !== expected.idempotencyKey ||
+      this.record.cleanupEvidenceFingerprint !== expected.cleanupEvidenceFingerprint) return false
+    this.record = null
+    return true
+  }
+
   async findPosted(bookId: string, scopeFingerprint: string) {
     return this.record?.bookId === bookId && this.record.scopeFingerprint === scopeFingerprint && this.record.status === 'posted'
       ? [structuredClone(this.record)]
