@@ -398,6 +398,31 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* ⚡ ONE TRANSACTION. ONE TRUTH. FLOW SECTION */}
       <OneTransactionOneTruthSection />
 
+      {/* 🚀 MERCHANT ONBOARDING CTA BANNER (pos.hfeit.com) */}
+      <section className="px-4 sm:px-8 py-6">
+        <div className="max-w-4xl mx-auto p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 text-center space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
+            <span>{t.landing.merchantCtaBadge}</span>
+          </div>
+          <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+            {t.landing.merchantCtaTitle}
+          </h4>
+          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+            {t.landing.merchantCtaDesc}
+          </p>
+          <div className="pt-1">
+            <a
+              href="https://pos.hfeit.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-95"
+            >
+              <span>{t.landing.merchantCtaButton}</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER & ADDRESS */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-8 py-6 text-center text-xs text-slate-500 flex flex-col gap-2">
         <p className="font-bold text-slate-800 dark:text-slate-300">{hfeCompanyProfile.brandName} • {hfeCompanyProfile.ptLegalName}</p>
