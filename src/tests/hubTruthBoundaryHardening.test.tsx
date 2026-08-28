@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { afterAll, beforeAll, describe, it, expect, vi } from 'vitest'
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { DataTruthProvider } from '../context/DataTruthContext'
@@ -32,6 +32,7 @@ const AUTHORITATIVE_FINANCIAL_HEALTH: FinancialHealthSnapshot = {
 }
 const EXPECTED_BOOK = 'BOOK-NCG-HOLDING'
 const TRUSTED_SOURCE = 'GET /v1/company-books/BOOK-NCG-HOLDING/reports/financial-health'
+const TEST_NOW = new Date('2026-08-28T12:00:00Z')
 
 function renderWithProviders(ui: React.ReactElement): string {
   return renderToString(
@@ -48,6 +49,15 @@ function renderWithProviders(ui: React.ReactElement): string {
 }
 
 describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
+  beforeAll(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(TEST_NOW)
+  })
+
+  afterAll(() => {
+    vi.useRealTimers()
+  })
+
   it('renders Executive Insights with TruthChannelBadge and tabular figures (#44)', () => {
     const html = renderWithProviders(<ExecutiveInsightsTab />)
     expect(html).toContain('Realtime Business Truth')
@@ -86,10 +96,38 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     )
     expect(html).toContain('LIVE • Terverifikasi CORE')
     expect(html).toContain('77')
+    expect(html).toContain('Perlu Perhatian')
+    expect(html).toContain('from-amber-500')
     expect(html).toContain('2026-08-28T06:00:00Z')
     expect(html).toContain('Stok Ritel &amp; Merchandise')
     expect(html).toContain('disabled=""')
     expect(html).not.toContain('Sample Snapshot: 2026-08-25')
+  })
+
+  it('renders a critical authoritative cash runway without a safe label (#87)', () => {
+    const html = renderWithProviders(
+      <UniversalFinancialHealthGauge
+        isCoreConnected
+        expectedBookId={EXPECTED_BOOK}
+        trustedSource={TRUSTED_SOURCE}
+        authoritativeSnapshot={{
+          metrics: {
+            ...AUTHORITATIVE_FINANCIAL_HEALTH,
+            cashRunwayDays: 12,
+            cashRunwayStatus: 'critical',
+          },
+          bookId: EXPECTED_BOOK,
+          periodStart: '2026-08-01',
+          periodEnd: '2026-08-28',
+          asOf: '2026-08-28T06:00:00Z',
+          source: TRUSTED_SOURCE,
+        }}
+      />
+    )
+    expect(html).toContain('LIVE • Terverifikasi CORE')
+    expect(html).toContain('Kritis')
+    expect(html).toContain('from-rose-600')
+    expect(html).not.toContain('Sehat')
   })
 
   it('renders an authoritative tax-reserve deficit without a fully funded claim (#87)', () => {
@@ -124,6 +162,8 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
   it.each([
     ['foreign book', { bookId: 'BOOK-FOREIGN' }],
     ['stale receipt', { asOf: '2026-08-20T06:00:00Z' }],
+    ['future receipt', { asOf: '2026-08-29T06:00:00Z' }],
+    ['malformed date', { asOf: 'not-a-date' }],
     ['inverted period', { periodStart: '2026-08-29', periodEnd: '2026-08-28' }],
     ['untrusted source', { source: 'GET /untrusted/report' }],
   ])('keeps %s authoritative receipt in demo mode (#87)', (_case, override) => {
@@ -151,6 +191,19 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     ['partial metrics', { cashRunwayDays: 77 }],
     ['non-finite metrics', { ...AUTHORITATIVE_FINANCIAL_HEALTH, quickRatio: Number.NaN }],
     ['contradictory reserve status', { ...AUTHORITATIVE_FINANCIAL_HEALTH, taxReserveFundStatus: 'deficit' }],
+    ['negative tax reserve', { ...AUTHORITATIVE_FINANCIAL_HEALTH, taxReserveFundMinor: -1 }],
+    ['negative tax obligation', { ...AUTHORITATIVE_FINANCIAL_HEALTH, taxObligationMinor: -1 }],
+    ['negative cash runway', { ...AUTHORITATIVE_FINANCIAL_HEALTH, cashRunwayDays: -1 }],
+    ['negative quick ratio', { ...AUTHORITATIVE_FINANCIAL_HEALTH, quickRatio: -1 }],
+    ['negative inventory days', { ...AUTHORITATIVE_FINANCIAL_HEALTH, inventoryTurnoverDays: -1 }],
+    ['negative asset valuation', { ...AUTHORITATIVE_FINANCIAL_HEALTH, assetValuationMinor: -1 }],
+    ['negative daily burn', { ...AUTHORITATIVE_FINANCIAL_HEALTH, dailyBurnRateMinor: -1 }],
+    ['negative liquid cash', { ...AUTHORITATIVE_FINANCIAL_HEALTH, liquidCashMinor: -1 }],
+    ['velocity below range', { ...AUTHORITATIVE_FINANCIAL_HEALTH, assetTurnoverVelocityScore: -1 }],
+    ['velocity above range', { ...AUTHORITATIVE_FINANCIAL_HEALTH, assetTurnoverVelocityScore: 101 }],
+    ['invalid cash status', { ...AUTHORITATIVE_FINANCIAL_HEALTH, cashRunwayStatus: 'unknown' }],
+    ['invalid tax status', { ...AUTHORITATIVE_FINANCIAL_HEALTH, taxReserveFundStatus: 'unknown' }],
+    ['invalid asset category', { ...AUTHORITATIVE_FINANCIAL_HEALTH, assetCategory: 'unknown' }],
   ])('keeps %s in demo mode (#87)', (_case, metrics) => {
     const html = renderWithProviders(
       <UniversalFinancialHealthGauge
@@ -168,6 +221,56 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
       />
     )
     expect(html).toContain('Data Demo')
+  })
+
+  it('renders signed authoritative margins without inventing accounting validity or negative CSS widths (#87)', () => {
+    const html = renderWithProviders(
+      <UniversalFinancialHealthGauge
+        isCoreConnected
+        expectedBookId={EXPECTED_BOOK}
+        trustedSource={TRUSTED_SOURCE}
+        authoritativeSnapshot={{
+          metrics: {
+            ...AUTHORITATIVE_FINANCIAL_HEALTH,
+            grossMarginPercent: -12.5,
+            operatingMarginPercent: -18.2,
+            netMarginPercent: 4.3,
+          },
+          bookId: EXPECTED_BOOK,
+          periodStart: '2026-08-01',
+          periodEnd: '2026-08-28',
+          asOf: '2026-08-28T06:00:00Z',
+          source: TRUSTED_SOURCE,
+        }}
+      />
+    )
+    expect(html).toContain('LIVE • Terverifikasi CORE')
+    expect(html).toContain('Gross:')
+    expect(html).toContain('-12.5')
+    expect(html).toContain('4.3')
+    expect(html).not.toMatch(/width:-/)
+  })
+
+  it.each([
+    ['missing expected book', { expectedBookId: undefined, trustedSource: TRUSTED_SOURCE }],
+    ['missing trusted source', { expectedBookId: EXPECTED_BOOK, trustedSource: undefined }],
+  ])('requires the %s trust anchor before showing live CORE data (#87)', (_case, anchors) => {
+    const html = renderWithProviders(
+      <UniversalFinancialHealthGauge
+        isCoreConnected
+        {...anchors}
+        authoritativeSnapshot={{
+          metrics: AUTHORITATIVE_FINANCIAL_HEALTH,
+          bookId: EXPECTED_BOOK,
+          periodStart: '2026-08-01',
+          periodEnd: '2026-08-28',
+          asOf: '2026-08-28T06:00:00Z',
+          source: TRUSTED_SOURCE,
+        }}
+      />
+    )
+    expect(html).toContain('Data Demo')
+    expect(html).not.toContain('LIVE • Terverifikasi CORE')
   })
 
   it('renders Multi-Entity Holding Tab with simulation indicator in demo mode (#86)', () => {

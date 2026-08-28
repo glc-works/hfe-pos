@@ -72,6 +72,18 @@ function isValidAuthoritativeReceipt(
   if (periodStart > periodEnd || asOf < periodEnd || asOf > Date.now() || Date.now() - asOf > maxAgeMs) return false
   const metrics = receipt.metrics as Partial<FinancialHealthSnapshot> | undefined
   if (!metrics || !FINANCIAL_METRIC_KEYS.every((key) => Number.isFinite(metrics[key]))) return false
+  if (
+    metrics.cashRunwayDays! < 0
+    || metrics.quickRatio! < 0
+    || metrics.inventoryTurnoverDays! < 0
+    || metrics.taxReserveFundMinor! < 0
+    || metrics.taxObligationMinor! < 0
+    || metrics.assetValuationMinor! < 0
+    || metrics.dailyBurnRateMinor! < 0
+    || metrics.liquidCashMinor! < 0
+    || metrics.assetTurnoverVelocityScore! < 0
+    || metrics.assetTurnoverVelocityScore! > 100
+  ) return false
   if (!['healthy', 'warning', 'critical'].includes(String(metrics.cashRunwayStatus))) return false
   if (!ASSET_CATEGORIES.some(({ id }) => id === metrics.assetCategory)) return false
   const sufficient = metrics.taxReserveFundMinor! >= metrics.taxObligationMinor!
@@ -102,6 +114,27 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
     : 100
   const taxReserveIsSufficient = snapshot.taxReserveFundStatus === 'sufficient' && taxCoveragePercent >= 100
   const taxShortfallMinor = Math.max(0, snapshot.taxObligationMinor - snapshot.taxReserveFundMinor)
+  const clampPercentage = (value: number) => Math.min(100, Math.max(0, value))
+  const netMarginBarPercent = clampPercentage(snapshot.netMarginPercent)
+  const operatingMarginBarPercent = clampPercentage(snapshot.operatingMarginPercent - Math.max(0, snapshot.netMarginPercent))
+  const cogsBarPercent = clampPercentage(100 - snapshot.grossMarginPercent)
+  const runwayStatusPresentation = {
+    healthy: {
+      label: 'Sehat',
+      badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+      barClass: 'bg-gradient-to-r from-emerald-500 to-teal-400',
+    },
+    warning: {
+      label: 'Perlu Perhatian',
+      badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
+      barClass: 'bg-gradient-to-r from-amber-500 to-orange-400',
+    },
+    critical: {
+      label: 'Kritis',
+      badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30',
+      barClass: 'bg-gradient-to-r from-rose-600 to-red-400',
+    },
+  }[snapshot.cashRunwayStatus]
 
   return (
     <div className="space-y-6 text-slate-800 dark:text-slate-100 font-sans">
@@ -144,8 +177,8 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
               <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                 <Landmark className="w-4 h-4" /> Ketahanan Kas (Runway)
               </span>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px]">
-                Aman &gt;90 Hari
+              <Badge variant="outline" className={`${runwayStatusPresentation.badgeClass} text-[9px]`}>
+                {runwayStatusPresentation.label}
               </Badge>
             </div>
 
@@ -158,7 +191,7 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+                className={`${runwayStatusPresentation.barClass} h-full rounded-full transition-all duration-500`}
                 style={{ width: `${Math.min(100, (snapshot.cashRunwayDays / 180) * 100)}%` }}
               />
             </div>
@@ -201,9 +234,9 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
             {/* SEGMENTED PROFIT STACK */}
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden flex">
-              <div className="bg-emerald-500 h-full" style={{ width: `${snapshot.netMarginPercent}%` }} title="Net Margin" />
-              <div className="bg-blue-400 h-full" style={{ width: `${snapshot.operatingMarginPercent - snapshot.netMarginPercent}%` }} title="Operating OpEx" />
-              <div className="bg-amber-400 h-full" style={{ width: `${100 - snapshot.grossMarginPercent}%` }} title="COGS/HPP" />
+              <div className="bg-emerald-500 h-full" style={{ width: `${netMarginBarPercent}%` }} title="Net Margin" />
+              <div className="bg-blue-400 h-full" style={{ width: `${operatingMarginBarPercent}%` }} title="Operating OpEx" />
+              <div className="bg-amber-400 h-full" style={{ width: `${cogsBarPercent}%` }} title="COGS/HPP" />
             </div>
           </div>
 
