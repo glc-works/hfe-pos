@@ -34,13 +34,13 @@ export function useTableState(options: UseTableStateOptions) {
   const [tablesGrid, setTablesGrid] = useState<TableStatus[]>(initialTables)
 
   const [selectedTable, setSelectedTable] = useState<string>(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    return urlParams.get('table') || 'OUT-04'
+    const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+    return urlParams.get('table') || ''
   })
 
   const [scannedSeat, setScannedSeat] = useState<string>(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    return urlParams.get('seat') || 'Seat 1'
+    const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+    return urlParams.get('seat') || ''
   })
 
   const [selectedPOSTable, setSelectedPOSTable] = useState<TableStatus | null>(() => {

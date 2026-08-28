@@ -129,21 +129,37 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                 <ChevronRight className="w-3.5 h-3.5 opacity-50 shrink-0" style={{ color: textColor }} />
               </div>
 
-              {/* TABLE & SEAT STATUS SUBTITLE PILL */}
-              <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold mt-0.5" style={{ color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex }}>
-                <LockIcon className="w-2.5 h-2.5 shrink-0" />
-                <span className="truncate">{selectedTable} • {scannedSeat}</span>
-                <span 
-                  className="text-[9px] font-sans font-bold px-1.5 py-0.2 rounded shrink-0 border"
-                  style={{ 
-                    backgroundColor: `${activeTheme.primaryAccentHex}15`, 
-                    color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex,
-                    borderColor: `${activeTheme.primaryAccentHex}30`
-                  }}
-                >
-                  Bill & Info
-                </span>
-              </div>
+              {/* TABLE & SEAT STATUS SUBTITLE PILL OR ONLINE ORDER BADGE */}
+              {selectedTable ? (
+                <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold mt-0.5" style={{ color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex }}>
+                  <LockIcon className="w-2.5 h-2.5 shrink-0" />
+                  <span className="truncate">{selectedTable} • {scannedSeat || 'Seat 1'}</span>
+                  <span 
+                    className="text-[9px] font-sans font-bold px-1.5 py-0.2 rounded shrink-0 border"
+                    style={{ 
+                      backgroundColor: `${activeTheme.primaryAccentHex}15`, 
+                      color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex,
+                      borderColor: `${activeTheme.primaryAccentHex}30`
+                    }}
+                  >
+                    Bill & Info
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-[10px] font-medium mt-0.5" style={{ color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex }}>
+                  <span className="font-bold">🛵 Pesan Online</span>
+                  <span 
+                    className="text-[9px] font-sans font-bold px-1.5 py-0.2 rounded shrink-0 border"
+                    style={{ 
+                      backgroundColor: `${activeTheme.primaryAccentHex}15`, 
+                      color: isLight && (activeTheme.primaryAccentHex === '#d97706' || activeTheme.primaryAccentHex === '#f59e0b') ? '#b45309' : activeTheme.primaryAccentHex,
+                      borderColor: `${activeTheme.primaryAccentHex}30`
+                    }}
+                  >
+                    Ambil & Antar
+                  </span>
+                </div>
+              )}
             </div>
           </button>
 

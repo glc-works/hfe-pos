@@ -319,10 +319,13 @@ export interface TranslationDictionary {
     heroTag: string
     heroTitle: string
     heroSubtitle: string
+    orderOnlineCta: string
     reserveTable: string
     reserveTableCta: string
     menuAndQr: string
     scanQrOrder: string
+    onlineOrderHeaderBadge: string
+    sittingAtTablePrompt: string
     facilitiesTitle: string
     featuredMenuTitle: string
     viewAllCatalog: string

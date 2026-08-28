@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { HfeCompanyProfile, MenuItem, ViewportModeType } from '../../types/pos'
 import {
   Coffee, Building, CalendarCheck, QrCode, Sparkles, ChevronRight,
-  Smartphone, Ticket, Copy, Check, Calendar, Music, MapPin, MessageCircle, Tag, CreditCard, Search
+  Smartphone, Ticket, Copy, Check, Calendar, Music, MapPin, MessageCircle, Tag, CreditCard, Search, ShoppingBag
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
@@ -155,18 +155,18 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <button
             type="button"
             onClick={onOpenReservationModal}
-            className="hidden sm:flex theme-customer-btn-primary text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl shadow items-center gap-1.5 whitespace-nowrap cursor-pointer"
+            className="hidden sm:flex bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 items-center gap-1.5 whitespace-nowrap cursor-pointer"
           >
-            <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
+            <CalendarCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span>{t.landing.reserveTable}</span>
           </button>
           <button
             type="button"
             onClick={onSwitchToCustomerApp}
-            className="bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+            className="theme-customer-btn-primary text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
           >
-            <QrCode className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span>{isMobile ? 'Menu' : t.landing.scanQrOrder}</span>
+            <ShoppingBag className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+            <span>{isMobile ? 'Pesan' : t.landing.scanQrOrder}</span>
           </button>
         </div>
       </header>
@@ -200,25 +200,25 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </div>
           )}
 
-          {/* ACTION BUTTONS */}
+          {/* DUAL ACTION BUTTONS (PESAN ONLINE & RESERVASI MEJA) */}
           <div className={`pt-2 flex ${isMobile ? 'flex-col gap-2.5 w-full' : 'flex-row items-center gap-3'}`}>
             <button
               type="button"
-              onClick={onOpenReservationModal}
+              onClick={onSwitchToCustomerApp}
               className={`theme-customer-btn-primary text-xs font-bold px-5 py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transform hover:scale-[1.02] transition-all text-center ${
                 isMobile ? 'w-full' : ''
               }`}
             >
-              <CalendarCheck className="w-4 h-4 shrink-0" /> {storefrontConfig.ctaReserveText || t.landing.reserveTableCta}
+              <ShoppingBag className="w-4 h-4 text-slate-950 shrink-0" /> {storefrontConfig.ctaOrderText || t.landing.orderOnlineCta}
             </button>
             <button
               type="button"
-              onClick={onSwitchToCustomerApp}
+              onClick={onOpenReservationModal}
               className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 text-center transition-all ${
                 isMobile ? 'w-full' : ''
               }`}
             >
-              <Smartphone className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" /> {storefrontConfig.ctaOrderText || t.landing.menuAndQr}
+              <CalendarCheck className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" /> {storefrontConfig.ctaReserveText || t.landing.reserveTableCta}
             </button>
           </div>
         </div>
