@@ -128,11 +128,11 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
   const [showActiveOpenBillDrawer, setShowActiveOpenBillDrawer] = useState<boolean>(false)
   const [showOpenTabSettlementModal, setShowOpenTabSettlementModal] = useState<boolean>(false)
 
-  // Current Table Status & Running Orders
-  const currentTableData = tablesGrid.find(t => t.name === selectedTable)
-  const relevantTableOrders = previousOrders.filter(o => o.table === selectedTable && o.status !== 'cancelled')
+  // Current Table Status & Running Orders (Only for valid in-store tables)
+  const currentTableData = selectedTable ? tablesGrid.find(t => t.name === selectedTable) : null
+  const relevantTableOrders = selectedTable ? previousOrders.filter(o => o.table === selectedTable && o.status !== 'cancelled') : []
   
-  const hasActiveOpenBill = relevantTableOrders.length > 0 || (currentTableData?.totalBill || 0) > 0
+  const hasActiveOpenBill = Boolean(selectedTable) && (relevantTableOrders.length > 0 || (currentTableData?.totalBill || 0) > 0)
   const runningTableSubtotal = relevantTableOrders.reduce((sum, ord) => {
     return sum + ord.items.reduce((s, i) => s + (i.price * i.quantity), 0)
   }, currentTableData?.totalBill || 0)
