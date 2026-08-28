@@ -336,6 +336,10 @@ export interface TranslationDictionary {
     oneTruthStep4Desc: string
     oneTruthStep5Title: string
     oneTruthStep5Desc: string
+    merchantCtaBadge: string
+    merchantCtaTitle: string
+    merchantCtaDesc: string
+    merchantCtaButton: string
   }
   truth: {
     liveLabel: string

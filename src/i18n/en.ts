@@ -336,6 +336,10 @@ export const enTranslations: TranslationDictionary = {
     oneTruthStep4Desc: 'Double-entry debit/credit journals, PB1 10% tax, and BOM COGS posted automatically.',
     oneTruthStep5Title: '5. HQ Consolidation',
     oneTruthStep5Desc: 'Owners and executive management monitor real-time net cash flow across outlets.',
+    merchantCtaBadge: '✨ Launch Storefront & POS for Your Business',
+    merchantCtaTitle: 'Want a public storefront & integrated POS system like this?',
+    merchantCtaDesc: 'Manage QR orders, table POS, QRIS payments, and automated Hfe CORE ledger in one unified system.',
+    merchantCtaButton: 'Register New Merchant on POS.Hfeit ➔',
   },
   truth: {
     liveLabel: 'LIVE • Verified Core',

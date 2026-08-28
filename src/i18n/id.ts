@@ -336,6 +336,10 @@ export const idTranslations: TranslationDictionary = {
     oneTruthStep4Desc: 'Jurnal debit/kredit double-entry, PB1 10%, dan HPP otomatis terposting.',
     oneTruthStep5Title: '5. Konsolidasi HQ',
     oneTruthStep5Desc: 'Owner dan manajemen memantau arus kas bersih jaringan secara instan.',
+    merchantCtaBadge: '✨ Buka Etalase & Sistem Kasir untuk Bisnismu',
+    merchantCtaTitle: 'Ingin punya website etalase publik dan POS terintegrasi seperti ini?',
+    merchantCtaDesc: 'Kelola pesanan QR, kasir meja, pembayaran QRIS, hingga pembukuan otomatis Hfe CORE dalam satu sistem.',
+    merchantCtaButton: 'Daftar Merchant Baru di POS.Hfeit ➔',
   },
   truth: {
     liveLabel: 'LIVE • Terverifikasi CORE',
