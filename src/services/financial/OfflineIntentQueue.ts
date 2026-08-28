@@ -23,8 +23,8 @@ const CHECKOUT_ATTEMPTS_STORE = 'checkout_attempts'
 import { generateUUIDv4 } from './HfePostingReadbackValidator'
 
 export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload = SubmitRetailTransactionPayload> implements CheckoutAttemptStore<TPayload> {
-  private inMemoryQueue: Map<string, QueuedFinancialIntent> = new Map()
-  private inMemoryCheckoutAttempts: Map<string, CheckoutAttemptRecord<TPayload>> = new Map()
+  private static sharedInMemoryQueue: Map<string, QueuedFinancialIntent> = new Map()
+  private static sharedInMemoryCheckoutAttempts: Map<string, CheckoutAttemptRecord<any>> = new Map()
 
   private openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
@@ -56,7 +56,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         request.onerror = () => reject(request.error)
       })
     } catch {
-      return this.inMemoryCheckoutAttempts.get(checkoutKey) || null
+      return OfflineIntentQueue.sharedInMemoryCheckoutAttempts.get(checkoutKey) || null
     }
   }
 
@@ -69,13 +69,13 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         tx.oncomplete = () => resolve()
         tx.onerror = () => reject(tx.error)
       })
-      this.inMemoryCheckoutAttempts.set(record.checkoutKey, record)
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.set(record.checkoutKey, record)
     } catch (error) {
       if (typeof indexedDB !== 'undefined') {
         const message = error instanceof Error ? error.message : String(error)
         throw new Error(`Failed to persist checkout identity to physical storage: ${message}`)
       }
-      this.inMemoryCheckoutAttempts.set(record.checkoutKey, record)
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.set(record.checkoutKey, record)
     }
   }
 
@@ -88,13 +88,13 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         tx.oncomplete = () => resolve()
         tx.onerror = () => reject(tx.error)
       })
-      this.inMemoryCheckoutAttempts.delete(checkoutKey)
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
     } catch (error) {
       if (typeof indexedDB !== 'undefined') {
         const message = error instanceof Error ? error.message : String(error)
         throw new Error(`Failed to remove completed checkout identity: ${message}`)
       }
-      this.inMemoryCheckoutAttempts.delete(checkoutKey)
+      OfflineIntentQueue.sharedInMemoryCheckoutAttempts.delete(checkoutKey)
     }
   }
 
@@ -135,7 +135,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
       })
 
       // Only add to inMemoryQueue once physical disk write succeeds
-      this.inMemoryQueue.set(idempotencyKey, intent)
+      OfflineIntentQueue.sharedInMemoryQueue.set(idempotencyKey, intent)
     } catch (err) {
       if (typeof indexedDB !== 'undefined') {
         const msg = err instanceof Error ? err.message : String(err)
@@ -143,7 +143,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         throw new Error(`Failed to persist financial intent to physical storage: ${msg}`)
       } else {
         // Non-browser / Node.js test environment fallback
-        this.inMemoryQueue.set(idempotencyKey, intent)
+        OfflineIntentQueue.sharedInMemoryQueue.set(idempotencyKey, intent)
       }
     }
 
@@ -167,7 +167,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         request.onerror = () => reject(request.error)
       })
     } catch {
-      const memoryResults = Array.from(this.inMemoryQueue.values())
+      const memoryResults = Array.from(OfflineIntentQueue.sharedInMemoryQueue.values())
         .filter((i) => i.status === 'pending_sync' || i.status === 'failed')
         .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       return Promise.resolve(memoryResults)
@@ -186,7 +186,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
         request.onerror = () => reject(request.error)
       })
     } catch {
-      return Promise.resolve(this.inMemoryQueue.get(idempotencyKey) || null)
+      return Promise.resolve(OfflineIntentQueue.sharedInMemoryQueue.get(idempotencyKey) || null)
     }
   }
 
@@ -195,7 +195,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
     if (existing) {
       existing.status = 'syncing'
       existing.retryCount += 1
-      this.inMemoryQueue.set(idempotencyKey, existing)
+      OfflineIntentQueue.sharedInMemoryQueue.set(idempotencyKey, existing)
 
       try {
         const db = await this.openDB()
@@ -211,7 +211,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
     if (existing) {
       existing.status = 'failed'
       existing.lastError = errorMessage
-      this.inMemoryQueue.set(idempotencyKey, existing)
+      OfflineIntentQueue.sharedInMemoryQueue.set(idempotencyKey, existing)
 
       try {
         const db = await this.openDB()
@@ -223,7 +223,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
   }
 
   async removeIntent(idempotencyKey: string): Promise<void> {
-    this.inMemoryQueue.delete(idempotencyKey)
+    OfflineIntentQueue.sharedInMemoryQueue.delete(idempotencyKey)
 
     try {
       const db = await this.openDB()
@@ -239,7 +239,7 @@ export class OfflineIntentQueue<TPayload extends PersistedRetailCheckoutPayload 
   }
 
   async clearQueue(): Promise<void> {
-    this.inMemoryQueue.clear()
+    OfflineIntentQueue.sharedInMemoryQueue.clear()
 
     try {
       const db = await this.openDB()
