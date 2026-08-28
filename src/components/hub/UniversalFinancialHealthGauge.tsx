@@ -57,6 +57,23 @@ const FINANCIAL_METRIC_KEYS: (keyof FinancialHealthSnapshot)[] = [
   'assetTurnoverVelocityScore', 'dailyBurnRateMinor', 'liquidCashMinor',
 ]
 
+function parseCanonicalReceiptDate(value: string, dateOnly: boolean): number | undefined {
+  const pattern = dateOnly
+    ? /^(\d{4})-(\d{2})-(\d{2})$/
+    : /^(\d{4})-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
+  const match = pattern.exec(value)
+  if (!match) return undefined
+
+  const canonicalDay = `${match[1]}-${match[2]}-${match[3]}`
+  const midnight = Date.parse(`${canonicalDay}T00:00:00Z`)
+  if (!Number.isFinite(midnight) || new Date(midnight).toISOString().slice(0, 10) !== canonicalDay) {
+    return undefined
+  }
+
+  const parsed = Date.parse(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
 function isValidAuthoritativeReceipt(
   receipt: UniversalFinancialHealthGaugeProps['authoritativeSnapshot'],
   expectedBookId: string | undefined,
@@ -64,11 +81,12 @@ function isValidAuthoritativeReceipt(
   maxAgeMs: number,
 ): boolean {
   if (!receipt || !expectedBookId || !trustedSource) return false
+  if (!Number.isFinite(maxAgeMs) || maxAgeMs < 0) return false
   if (receipt.bookId !== expectedBookId || receipt.source !== trustedSource) return false
-  const periodStart = Date.parse(receipt.periodStart)
-  const periodEnd = Date.parse(receipt.periodEnd)
-  const asOf = Date.parse(receipt.asOf)
-  if (![periodStart, periodEnd, asOf].every(Number.isFinite)) return false
+  const periodStart = parseCanonicalReceiptDate(receipt.periodStart, true)
+  const periodEnd = parseCanonicalReceiptDate(receipt.periodEnd, true)
+  const asOf = parseCanonicalReceiptDate(receipt.asOf, false)
+  if (periodStart === undefined || periodEnd === undefined || asOf === undefined) return false
   if (periodStart > periodEnd || asOf < periodEnd || asOf > Date.now() || Date.now() - asOf > maxAgeMs) return false
   const metrics = receipt.metrics as Partial<FinancialHealthSnapshot> | undefined
   if (!metrics || !FINANCIAL_METRIC_KEYS.every((key) => Number.isFinite(metrics[key]))) return false

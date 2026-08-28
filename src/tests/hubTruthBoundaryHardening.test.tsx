@@ -164,6 +164,8 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     ['stale receipt', { asOf: '2026-08-20T06:00:00Z' }],
     ['future receipt', { asOf: '2026-08-29T06:00:00Z' }],
     ['malformed date', { asOf: 'not-a-date' }],
+    ['calendar-invalid period date', { periodStart: '2026-02-30' }],
+    ['calendar-invalid as-of date', { asOf: '2026-02-30T06:00:00Z' }],
     ['inverted period', { periodStart: '2026-08-29', periodEnd: '2026-08-28' }],
     ['untrusted source', { source: 'GET /untrusted/report' }],
   ])('keeps %s authoritative receipt in demo mode (#87)', (_case, override) => {
@@ -185,6 +187,31 @@ describe('Merchant Hub Truth Boundary Hardening (Issues #44, #85-#88)', () => {
     )
     expect(html).toContain('Data Demo')
     expect(html).toContain('Sample Snapshot: 2026-08-25')
+  })
+
+  it.each([
+    ['negative', -1],
+    ['not-a-number', Number.NaN],
+    ['infinite', Number.POSITIVE_INFINITY],
+  ])('rejects a %s receipt age limit (#87)', (_case, maxReceiptAgeMs) => {
+    const html = renderWithProviders(
+      <UniversalFinancialHealthGauge
+        isCoreConnected
+        expectedBookId={EXPECTED_BOOK}
+        trustedSource={TRUSTED_SOURCE}
+        maxReceiptAgeMs={maxReceiptAgeMs}
+        authoritativeSnapshot={{
+          metrics: AUTHORITATIVE_FINANCIAL_HEALTH,
+          bookId: EXPECTED_BOOK,
+          periodStart: '2026-08-01',
+          periodEnd: '2026-08-28',
+          asOf: '2026-08-28T06:00:00Z',
+          source: TRUSTED_SOURCE,
+        }}
+      />
+    )
+    expect(html).toContain('Data Demo')
+    expect(html).not.toContain('LIVE • Terverifikasi CORE')
   })
 
   it.each([
