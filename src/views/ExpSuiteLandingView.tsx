@@ -66,19 +66,19 @@ export const ExpSuiteLandingView: React.FC = () => {
         <div className="text-center space-y-4 pt-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-amber-300 shadow-xs text-xs font-mono font-bold text-amber-800">
             <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-            <span>CLOUDFLARE EDGE SPEED • 100% OFFLINE RESILIENT</span>
+            <span>A SYSTEM THAT GROWS WITH YOU</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-950 tracking-tight max-w-3xl mx-auto leading-tight">
-            Satu Sistem Cerdas untuk{' '}
+            Satu Sistem untuk{' '}
             <span className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
-              Semua Urusan Bisnis
+              Setiap Tahap
             </span>{' '}
-            Anda.
+            Bisnis Anda.
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-normal">
-            Jalankan kasir cepat, terima pesanan QR meja, bangun loyalitas member, dan pembukuan otomatis tanpa pusing.
+            Dirancang untuk setiap tahap bisnis Anda—dari gerai pertama hingga jaringan enterprise. Kasir kilat &lt;16ms, struk offline, pesanan QR meja, dan pembukuan otomatis Hfe CORE.
           </p>
         </div>
 

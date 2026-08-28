@@ -30,8 +30,10 @@ describe('L2-POS-88: Flagship EXP.Hfeit Cloudflare Light & 5-Product Quintet Tes
     const en = TRANSLATIONS.en
 
     // Hero
-    expect(id.hero.titleHighlight).toBe('Semua Urusan Bisnis')
-    expect(en.hero.titleHighlight).toBe('Your Entire Business')
+    expect(id.hero.badge).toContain('A SYSTEM THAT GROWS WITH YOU')
+    expect(en.hero.badge).toContain('A SYSTEM THAT GROWS WITH YOU')
+    expect(id.hero.titleHighlight).toBe('Setiap Tahap')
+    expect(en.hero.titleHighlight).toBe('Every Stage')
     expect(id.hero.ctaPrimary).toContain('Daftarkan Usaha')
     expect(en.hero.ctaPrimary).toContain('Start Free Merchant')
 
