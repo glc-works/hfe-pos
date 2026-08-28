@@ -37,20 +37,35 @@ const ASSET_CATEGORIES: { id: AssetValuationCategory; label: string; glyph: stri
 export interface UniversalFinancialHealthGaugeProps {
   customSnapshot?: Partial<FinancialHealthSnapshot>
   isCoreConnected?: boolean
+  authoritativeSnapshot?: {
+    metrics: FinancialHealthSnapshot
+    bookId: string
+    periodStart: string
+    periodEnd: string
+    asOf: string
+    source: string
+  }
 }
 
 export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGaugeProps> = ({
   customSnapshot,
-  isCoreConnected: propIsCoreConnected
+  isCoreConnected: propIsCoreConnected,
+  authoritativeSnapshot
 }) => {
   const { channel } = useDataTruth()
-  const isCoreConnected = propIsCoreConnected ?? (channel === 'live-core')
+  const hasReportReceipt = Boolean(
+    authoritativeSnapshot?.bookId.trim()
+      && authoritativeSnapshot.periodStart.trim()
+      && authoritativeSnapshot.periodEnd.trim()
+      && authoritativeSnapshot.asOf.trim()
+      && authoritativeSnapshot.source.trim()
+  )
+  const isCoreConnected = (propIsCoreConnected ?? (channel === 'live-core')) && hasReportReceipt
   const [selectedAssetCat, setSelectedAssetCat] = useState<AssetValuationCategory>('fnb_raw_ingredients')
 
-  const snapshot: FinancialHealthSnapshot = {
-    ...DEFAULT_SNAPSHOT,
-    ...customSnapshot
-  }
+  const snapshot: FinancialHealthSnapshot = isCoreConnected && authoritativeSnapshot
+    ? authoritativeSnapshot.metrics
+    : { ...DEFAULT_SNAPSHOT, ...customSnapshot }
 
   const activeCategoryConfig = ASSET_CATEGORIES.find(c => c.id === selectedAssetCat) || ASSET_CATEGORIES[0]
 
@@ -78,7 +93,9 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-[11px] font-mono bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            {isCoreConnected ? 'Siklus: Real-time Hfe CORE' : 'Sample Snapshot: 2026-08-25 (Simulasi)'}
+            {isCoreConnected && authoritativeSnapshot
+              ? `CORE • as of ${authoritativeSnapshot.asOf}`
+              : 'Sample Snapshot: 2026-08-25 (Simulasi)'}
           </Badge>
         </div>
       </div>
