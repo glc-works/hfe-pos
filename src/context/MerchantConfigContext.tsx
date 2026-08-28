@@ -8,9 +8,10 @@ import { INITIAL_PARTNER_CONTACTS } from '../data/mockContacts'
 import { DEFAULT_STOREFRONT_CUSTOMIZATION } from '../data/defaultStorefrontCustomization'
 import { normalizeSurfaceHost } from '../utils/surfaceHost'
 import { resolveInitialPb1TaxMode } from '../config/firstPartyRuntime'
+import { ThemeModeType, resolveThemeForMode, applyThemeToDocument } from './merchantThemeUtils'
 
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
-export type ThemeModeType = 'light' | 'dark' | 'system'
+export type { ThemeModeType }
 
 export interface MerchantConfigContextType {
   // 1. BILLING & FINANCIAL POLICY
@@ -133,59 +134,23 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
 
   // Synchronize .light and .dark classes on documentElement and body dynamically
   React.useEffect(() => {
-    const applyTheme = (mode: ThemeModeType) => {
-      let isDark = mode === 'dark'
-      if (mode === 'system') {
-        isDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      }
-
-      const root = document.documentElement
-      const body = document.body
-      if (isDark) {
-        root.classList.add('dark')
-        root.classList.remove('light')
-        body?.classList.add('dark')
-        body?.classList.remove('light')
-      } else {
-        root.classList.add('light')
-        root.classList.remove('dark')
-        body?.classList.add('light')
-        body?.classList.remove('dark')
-      }
-    }
-
-    applyTheme(themeMode)
+    applyThemeToDocument(themeMode)
 
     if (themeMode === 'system' && typeof window !== 'undefined' && window.matchMedia) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      const handler = () => applyTheme('system')
+      const handler = () => applyThemeToDocument('system')
       mediaQuery.addEventListener('change', handler)
       return () => mediaQuery.removeEventListener('change', handler)
     }
   }, [themeMode])
 
-  const setThemeMode = (mode: ThemeModeType) => {
-    setThemeModeState(mode)
-    try {
-      localStorage.setItem('hfe_theme_mode', mode)
-    } catch {}
-  }
+  // 3. Customer & Merchant Themes with Mode Auto-Alignment
 
-  const toggleThemeMode = () => {
-    setThemeModeState(prev => {
-      const next: ThemeModeType = prev === 'light' ? 'dark' : 'light'
-      try {
-        localStorage.setItem('hfe_theme_mode', next)
-      } catch {}
-      return next
-    })
-  }
-
-  // 3. Customer & Merchant Themes
   const [customerTheme, setCustomerThemeState] = useState<CafeThemeConfig>(() => {
     try {
       const stored = localStorage.getItem('hfe_customer_theme')
-      return stored ? JSON.parse(stored) : BUILTIN_THEMES[0]
+      const mode = (localStorage.getItem('hfe_theme_mode') as ThemeModeType) || 'light'
+      return resolveThemeForMode(mode, stored, false)
     } catch {
       return BUILTIN_THEMES[0]
     }
@@ -194,11 +159,45 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [merchantTheme, setMerchantThemeState] = useState<CafeThemeConfig>(() => {
     try {
       const stored = localStorage.getItem('hfe_merchant_theme')
-      return stored ? JSON.parse(stored) : (BUILTIN_THEMES[4] || BUILTIN_THEMES[0])
+      const mode = (localStorage.getItem('hfe_theme_mode') as ThemeModeType) || 'light'
+      return resolveThemeForMode(mode, stored, true)
     } catch {
       return BUILTIN_THEMES[4] || BUILTIN_THEMES[0]
     }
   })
+
+  const setThemeMode = (mode: ThemeModeType) => {
+    setThemeModeState(mode)
+    const isDark = mode === 'dark'
+    setCustomerThemeState(prev => {
+      if (isDark && prev.mode === 'dark') return prev
+      if (!isDark && prev.mode === 'light') return prev
+      const nextTheme = isDark ? (BUILTIN_THEMES[4] || BUILTIN_THEMES[0]) : BUILTIN_THEMES[0]
+      try { localStorage.setItem('hfe_customer_theme', JSON.stringify(nextTheme)) } catch {}
+      return nextTheme
+    })
+    try {
+      localStorage.setItem('hfe_theme_mode', mode)
+    } catch {}
+  }
+
+  const toggleThemeMode = () => {
+    setThemeModeState(prev => {
+      const next: ThemeModeType = prev === 'light' ? 'dark' : 'light'
+      const isDark = next === 'dark'
+      setCustomerThemeState(curr => {
+        if (isDark && curr.mode === 'dark') return curr
+        if (!isDark && curr.mode === 'light') return curr
+        const nextTheme = isDark ? (BUILTIN_THEMES[4] || BUILTIN_THEMES[0]) : BUILTIN_THEMES[0]
+        try { localStorage.setItem('hfe_customer_theme', JSON.stringify(nextTheme)) } catch {}
+        return nextTheme
+      })
+      try {
+        localStorage.setItem('hfe_theme_mode', next)
+      } catch {}
+      return next
+    })
+  }
 
   // 3. Saved Custom Templates Vault
   const [savedThemes, setSavedThemes] = useState<CafeThemeConfig[]>(() => {
