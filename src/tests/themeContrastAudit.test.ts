@@ -47,5 +47,29 @@ describe('Theme Contrast & Parity Audit Suite (POS-ENG-STD-001 & GLC-FNB-AUDIT-0
     expect(content).toContain('dark:border-slate-800')
     expect(content).toContain('dark:bg-slate-950')
   })
+
+  it('should verify that .no-scrollbar and .scrollbar-none CSS rules exist in src/index.css', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const indexCssFile = path.resolve(__dirname, '../index.css')
+    const cssContent = fs.readFileSync(indexCssFile, 'utf-8')
+
+    expect(cssContent).toContain('.no-scrollbar')
+    expect(cssContent).toContain('.scrollbar-none')
+    expect(cssContent).toContain('scrollbar-width: none')
+    expect(cssContent).toContain('display: none')
+  })
+
+  it('should enforce theme-aware styling for customer search bar in CustomerCatalogView.tsx', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const catalogFile = path.resolve(__dirname, '../components/customer/CustomerCatalogView.tsx')
+    const content = fs.readFileSync(catalogFile, 'utf-8')
+
+    // Search bar must not hardcode dark:bg-slate-900 on customer QR canvas
+    expect(content).not.toContain('bg-white dark:bg-slate-900')
+    expect(content).toContain('backgroundColor:')
+    expect(content).toContain('isLight')
+  })
 })
 

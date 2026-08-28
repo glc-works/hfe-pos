@@ -133,21 +133,28 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
       {/* 1. INSTANT SEARCH BAR FOR LARGE MENUS */}
       <div className="pt-0.5 pb-1">
         <div
-          className="relative flex items-center rounded-xl border px-3.5 py-2.5 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/50 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+          className="relative flex items-center rounded-xl border px-3.5 py-2.5 shadow-sm transition-all focus-within:ring-2 focus-within:ring-emerald-500/50"
+          style={{
+            backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.06)',
+            borderColor: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)',
+            color: textColor
+          }}
         >
-          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0 mr-2.5" />
+          <Search className="w-4 h-4 shrink-0 mr-2.5" style={{ color: secondaryTextColor }} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari kopi, pastry, makanan, minuman..."
-            className="w-full bg-transparent text-xs sm:text-sm font-medium outline-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="w-full bg-transparent text-xs sm:text-sm font-medium outline-none"
+            style={{ color: textColor }}
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 transition-all shrink-0 ml-1"
+              className="p-1 rounded-full hover:opacity-75 transition-all shrink-0 ml-1"
+              style={{ color: secondaryTextColor }}
             >
               <X className="w-3.5 h-3.5" />
             </button>
