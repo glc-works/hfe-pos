@@ -8,12 +8,18 @@ import {
 } from '../services/financial/CafeCheckoutAttemptCoordinator'
 import { canonicalCleanupEvidence, checkoutAttemptKind } from '../services/financial/CheckoutCleanupEvidence'
 import { OfflineIntentQueue } from '../services/financial/OfflineIntentQueue'
+import { buildGovernedCafeCheckoutPayload } from '../hooks/useCafeSettlement'
 
 const scope = { organizationId: 'ORG-1', authorityContext: 'AUTH-1', cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1' }
-const payload: GovernedRetailCheckoutPayload = {
-  contact_id: '', policy: 'pay-first', payment_method: 'cash', outlet_id: 'OUTLET-1', terminal_id: 'TERM-1',
-  currency: 'IDR', items: [{ product_id: 'COFFEE-1', quantity: 1 }], cashier_id: 'CASHIER-1',
-}
+const payload = buildGovernedCafeCheckoutPayload({
+  tableId: undefined,
+  contactId: '',
+  policy: 'pay-first',
+  paymentMethod: 'cash',
+  cashierId: 'CASHIER-1',
+  quoteContext: { outletId: 'OUTLET-1', terminalId: 'TERM-1', currency: 'IDR' },
+  items: [{ id: 'COFFEE-1', quantity: 1 }],
+})
 
 class Store implements CheckoutAttemptStore<GovernedRetailCheckoutPayload> {
   record: CheckoutAttemptRecord<GovernedRetailCheckoutPayload> | null = null
@@ -48,7 +54,7 @@ function response(idempotencyKey: string): SubmitRetailTransactionResponse {
 
 async function postedAttempt(store = new Store()) {
   const coordinator = new CafeCheckoutAttemptCoordinator(store, () => 'attempt-cleanup-1')
-  await coordinator.execute({
+  const result = await coordinator.execute({
     checkoutKey: 'BOOK-1:ORDER-1', bookId: 'BOOK-1', payload, scope,
     post: async (request) => {
       const attempt = (await store.get('BOOK-1:ORDER-1'))!
@@ -57,7 +63,7 @@ async function postedAttempt(store = new Store()) {
       return response(request.idempotency_key!)
     },
   })
-  return { store, coordinator }
+  return { store, coordinator, result }
 }
 
 describe('governed posted acknowledgement cleanup', () => {
@@ -97,12 +103,33 @@ describe('governed posted acknowledgement cleanup', () => {
     const base = { bookId: 'B', idempotencyKey: 'I', payload: {}, response: null, acceptedOrder: null }
     expect(() => checkoutAttemptKind({ ...base, schemaVersion: 1 })).toThrow(/missing.*record kind/i)
     expect(checkoutAttemptKind({ ...base, scopeFingerprint: 'scoped' })).toBe('governed')
-    expect(canonicalCleanupEvidence({ ...base, payload: { value: '__undefined__' } }))
-      .not.toBe(canonicalCleanupEvidence({ ...base, payload: { value: null } }))
+    const encodedUndefined = canonicalCleanupEvidence({ ...base, payload: { value: undefined } })
+    expect(encodedUndefined).not.toBe(canonicalCleanupEvidence({ ...base, payload: {} }))
+    expect(encodedUndefined).not.toBe(canonicalCleanupEvidence({ ...base, payload: { value: '__undefined__' } }))
+    expect(encodedUndefined).not.toBe(canonicalCleanupEvidence({ ...base, payload: { value: null } }))
     expect(canonicalCleanupEvidence({ ...base, payload: { b: 2, a: 1 } }))
       .toBe(canonicalCleanupEvidence({ ...base, payload: { a: 1, b: 2 } }))
-    expect(() => canonicalCleanupEvidence({ ...base, payload: { value: undefined } })).toThrow(/undefined/i)
     expect(() => canonicalCleanupEvidence({ ...base, payload: { value: Number.NaN } })).toThrow(/non-finite/i)
+    expect(() => canonicalCleanupEvidence({ ...base, payload: { value: () => undefined } })).toThrow(/unsupported/i)
+    expect(() => canonicalCleanupEvidence({ ...base, payload: { value: Symbol('x') } })).toThrow(/unsupported/i)
+    expect(() => canonicalCleanupEvidence({ ...base, payload: { value: 1n } })).toThrow(/unsupported/i)
+    expect(() => canonicalCleanupEvidence({ ...base, payload: Object.create({ inherited: true }) })).toThrow(/unsupported/i)
+  })
+
+  it('posts and atomically acknowledges the actual no-table governed payload', async () => {
+    const { store, coordinator, result } = await postedAttempt()
+
+    expect(result.kind).toBe('posted')
+    expect(Object.prototype.hasOwnProperty.call(store.record!.payload, 'table_id')).toBe(true)
+    expect(store.record!.payload.table_id).toBeUndefined()
+    expect(store.record).toMatchObject({
+      status: 'posted',
+      response: response(store.record!.idempotencyKey),
+      cleanupEvidenceFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/),
+    })
+
+    await coordinator.acknowledgePosted('BOOK-1:ORDER-1', 'BOOK-1', scope)
+    expect(store.record).toBeNull()
   })
 
   it('aborts and rejects a malformed IndexedDB match without hanging or deleting', async () => {

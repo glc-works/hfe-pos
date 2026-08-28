@@ -46,7 +46,7 @@ function canonical(value: unknown): string {
     if (!Number.isFinite(value)) throw new Error('Cleanup evidence contains a non-finite number.')
     return Object.is(value, -0) ? 'D-0;' : `D${value};`
   }
-  if (value === undefined) throw new Error('Cleanup evidence contains undefined.')
+  if (value === undefined) return 'U;'
   if (Array.isArray(value)) return `A${value.length}:${value.map(canonical).join('')}`
   if (typeof value !== 'object' || (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) {
     throw new Error('Cleanup evidence contains an unsupported value.')
