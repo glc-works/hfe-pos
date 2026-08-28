@@ -209,6 +209,38 @@ describe('governed checkout durable phase recovery', () => {
     expect(await durable.read()).toMatchObject({ phase: 'pending', qrisIntent: qrisReceipt, acceptedOrder: { order_id: 'ORDER-1' } })
   })
 
+  it('rejects an expired restored QRIS intent before acceptance', async () => {
+    const expiredIntent = {
+      payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png',
+      expires_at: new Date(Date.now() - 60_000).toISOString(),
+    }
+    const durable = await durability({
+      phase: 'qris_intent_ready', quote: quoteEvidence(), qrisIntent: expiredIntent,
+    })
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' }).postGovernedRetailOrder(
+      payload, makeContext(durable.port), reviewed(makeContext(durable.port), 'qris'),
+    )).rejects.toThrow(/QRIS.*expired/i)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects a newly generated expired QRIS intent before acceptance', async () => {
+    const durable = await durability({ phase: 'quote_ready', quote: quoteEvidence() })
+    const fetchMock = vi.fn().mockResolvedValueOnce(response(200, {
+      payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png',
+      expires_at: new Date(Date.now() - 60_000).toISOString(),
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' }).postGovernedRetailOrder(
+      payload, makeContext(durable.port), reviewed(makeContext(durable.port), 'qris'),
+    )).rejects.toThrow(/QRIS.*expired/i)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect((await durable.read()).phase).toBe('qris_intent_requested')
+  })
+
   it('recovers a response-lost acceptance through GET and checks the durable QRIS provider reference', async () => {
     const durable = await durability({ phase: 'quote_ready', quote: quoteEvidence() })
     const context = makeContext(durable.port)
@@ -227,9 +259,25 @@ describe('governed checkout durable phase recovery', () => {
     expect((await durable.read()).phase).toBe('accept_requested')
     const result = await adapter.reconcileGovernedRetailOrder(payload, context)
 
-    expect(result).toMatchObject({ status: 'pending', qris_payment: { payment_id: 'QRIS-1', tender_id: 'TENDER-QRIS-1' } })
+    expect(result).toMatchObject({ status: 'pending', idempotency_key: 'attempt-101', qris_payment: { payment_id: 'QRIS-1', tender_id: 'TENDER-QRIS-1' } })
     expect(fetchMock.mock.calls[2][0]).toContain('/accepted-orders/by-idempotency/attempt-101%3Aaccept')
     expect(fetchMock).toHaveBeenCalledTimes(4)
+  })
+
+  it('preserves the accepted-order lookup failure as the recovery error cause', async () => {
+    const durable = await durability({
+      phase: 'accept_requested', quote: quoteEvidence(),
+      qrisIntent: { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: new Date(Date.now() + 60_000).toISOString() },
+    })
+    const lookupFailure = new Error('CORE unavailable')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(lookupFailure))
+
+    const failure = await new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+      .reconcileGovernedRetailOrder(payload, makeContext(durable.port))
+      .catch((error: unknown) => error)
+
+    expect(failure).toBeInstanceOf(Error)
+    expect((failure as Error & { cause?: unknown }).cause).toBe(lookupFailure)
   })
 
   it.each([

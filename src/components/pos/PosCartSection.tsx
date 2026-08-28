@@ -8,6 +8,7 @@ import { GLYPHS } from '../../tokens/designTokens'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
+import { formatExactMinorCurrency } from '../../utils/localeNumberFormat'
 const PosCardTenderForm = lazy(() => import('./PosCardTenderForm').then(({ PosCardTenderForm }) => ({ default: PosCardTenderForm })))
 const PosCashTenderForm = lazy(() => import('./PosCashTenderForm').then(({ PosCashTenderForm }) => ({ default: PosCashTenderForm })))
 export interface PosCartSectionProps {
@@ -57,9 +58,9 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   onOpenSplitPayment,
   onSwitchToCatalog
 }) => {
-  const { t, formatPrice } = useTranslation()
+  const { t, formatPrice, language } = useTranslation()
 
-  const formatExactMinor = (value: string) => BigInt(value).toLocaleString('id-ID')
+  const formatExactMinor = (value: string) => formatExactMinorCurrency(value, authoritativeQuote!.currency, language)
   const reviewReady = checkoutPhase?.kind === 'review'
   const connectedRuntime = isConnectedFirstPartyRuntime()
   const awaitingCoreQuote = connectedRuntime && !authoritativeQuote
@@ -224,6 +225,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
 
         <div className="grid grid-cols-3 gap-1.5 pt-1">
           <button
+            data-testid="tender-cash"
             type="button"
             disabled={!isTenderEligible('cash')}
             onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
@@ -232,6 +234,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             <Banknote className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCash}</span>
           </button>
           <button
+            data-testid="tender-qris"
             type="button"
             disabled={!isTenderEligible('qris')}
             onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
@@ -240,6 +243,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             <QrCode className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payQris}</span>
           </button>
           <button
+            data-testid="tender-card"
             type="button"
             disabled={!isCardEligible}
             onClick={() => isCardEligible && setPosPayMethod('card')}
@@ -307,7 +311,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             variant="emerald"
             size="md"
             fullWidth
-            onClick={onCheckout}
+            onClick={() => onCheckout()}
             disabled={cartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)}
             icon={<CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />}
             className="rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm"

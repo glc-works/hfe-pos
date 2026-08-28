@@ -3,8 +3,20 @@ import { CheckCircle2 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { ACCEPTED_TENDER_CURRENCIES, convertCurrency, getCountryCashPresets, getCurrencySymbol } from '../../utils/countryCashDenominations'
-import { formatLocaleNumber, formatMoneyInputDisplay, parseMoneyInput } from '../../utils/localeNumberFormat'
+import { formatExactMinorCurrency, formatLocaleNumber, formatMoneyInputDisplay, parseMoneyInput } from '../../utils/localeNumberFormat'
 import type { ReviewedPosQuote } from '../../services/financial'
+
+export function cashValueAfterCurrencySelection(
+  authoritativeQuote: ReviewedPosQuote | null | undefined,
+  currentCashGiven: string,
+  grandTotal: number,
+  baseCurrency: string,
+  selectedCurrency: string,
+): string {
+  return authoritativeQuote
+    ? currentCashGiven
+    : convertCurrency(grandTotal, baseCurrency, selectedCurrency).toString()
+}
 
 export function PosCashTenderForm({ authoritativeQuote, posCashGiven, setPosCashGiven, grandTotal }: {
   authoritativeQuote?: ReviewedPosQuote | null
@@ -41,7 +53,7 @@ export function PosCashTenderForm({ authoritativeQuote, posCashGiven, setPosCash
               onClick={() => {
                 if (authoritativeQuote && curr.code !== authoritativeQuote.currency) return
                 setTenderCurrency(curr.code)
-                setPosCashGiven(convertCurrency(authoritativeQuote ? 0 : grandTotal, baseCurrency, curr.code).toString())
+                setPosCashGiven(cashValueAfterCurrencySelection(authoritativeQuote, posCashGiven, grandTotal, baseCurrency, curr.code))
               }}
               className={`px-1.5 py-0.5 rounded-lg text-[9px] font-mono font-bold border transition-all flex items-center gap-1 ${active ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-sm' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <span>{curr.flag}</span><span>{curr.code}</span>
@@ -77,7 +89,7 @@ export function PosCashTenderForm({ authoritativeQuote, posCashGiven, setPosCash
           <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0">{currencySymbol}</span>
           <input type="text" inputMode="numeric" value={formatMoneyInputDisplay(posCashGiven, language)}
             onChange={(event) => setPosCashGiven(parseMoneyInput(event.target.value, language))} placeholder="0"
-            className="bg-transparent w-full text-xs font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none" />
+            className="bg-transparent w-full text-base font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none" />
           {posCashGiven && posCashGiven !== '0' && (
             <button type="button" onClick={() => setPosCashGiven('')} title="Hapus"
               className="text-[10px] text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 font-mono font-bold px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer">⌫</button>
@@ -104,7 +116,7 @@ export function PosCashTenderForm({ authoritativeQuote, posCashGiven, setPosCash
         <span className="text-slate-500 dark:text-slate-400">{t.cart.changeReturn}</span>
         <div className="flex items-baseline gap-1.5 text-right">
           <span className={`font-mono text-sm tabular-nums ${(authoritativeQuote ? reviewedCashGiven >= BigInt(authoritativeQuote.amountDueMinor) : cashGivenNum >= tenderGrandTotal && tenderGrandTotal > 0) ? 'text-amber-800 dark:text-amber-400 font-black' : 'text-slate-500 dark:text-slate-400'}`}>
-            {authoritativeQuote ? BigInt(reviewedChange).toLocaleString('id-ID') : isForeignTender ? `${currencySymbol}${formatLocaleNumber(changeAmount, language, 2, 2)}` : formatPrice(changeAmount)}
+            {authoritativeQuote ? formatExactMinorCurrency(reviewedChange.toString(), authoritativeQuote.currency, language) : isForeignTender ? `${currencySymbol}${formatLocaleNumber(changeAmount, language, 2, 2)}` : formatPrice(changeAmount)}
           </span>
           {isForeignTender && changeAmount > 0 && <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono tabular-nums">(Rp {formatLocaleNumber(baseCurrencyChange, language, 0, 0)})</span>}
         </div>

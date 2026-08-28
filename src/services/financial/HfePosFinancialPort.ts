@@ -184,6 +184,7 @@ export interface GovernedAcceptedTenderEvidence {
 }
 
 export interface GovernedTenderOutcomeQuery {
+  idempotencyKey?: string
   orderId: string
   tenderId: string
   acceptedTenderEffectKey: string

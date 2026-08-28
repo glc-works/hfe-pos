@@ -21,6 +21,7 @@ import { useMerchantConfig } from '../context/MerchantConfigContext'
 import { smartSearchFilter } from '../utils/searchThesaurus'
 import type { HfePosFinancialPort } from '../services/financial'
 import { useCafeSettlement } from '../hooks/useCafeSettlement'
+import { formatExactMinorCurrency } from '../utils/localeNumberFormat'
 
 export interface UnifiedPosViewProps {
   activeStaffSurface: StaffSurfaceMode; tablesGrid: TableStatus[]; selectedPOSTable: TableStatus | null
@@ -41,7 +42,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
-  const { t, formatPrice } = useTranslation()
+  const { t, formatPrice, language } = useTranslation()
   const { workflowToggles, pb1TaxMode, takeawaySurcharge } = useMerchantConfig()
   const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
@@ -373,7 +374,9 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
                 </div>
                 <div className="flex flex-col text-left leading-tight min-w-0">
                   <span className="font-black text-sm font-mono whitespace-nowrap text-slate-950">
-                  {authoritativeQuote ? BigInt(authoritativeQuote.amountDueMinor).toLocaleString('id-ID') : formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))}
+                  {authoritativeQuote
+                    ? formatExactMinorCurrency(authoritativeQuote.amountDueMinor, authoritativeQuote.currency, language)
+                    : formatPrice(grandTotal > 0 ? grandTotal : (selectedPOSTable?.totalBill || 0))}
                   </span>
                   {selectedPOSTable && (
                     <span className="text-[10px] text-slate-900/80 font-bold font-mono truncate max-w-[150px]">

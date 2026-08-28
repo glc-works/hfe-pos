@@ -41,6 +41,7 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
   beforeEach(() => vi.restoreAllMocks())
 
   it('returns the CORE QR receipt and freezes its provider reference without confirming payment', async () => {
+    const qrisExpiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString()
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(201, {
         quote_id: 'QUOTE-QRIS-001', revision: '3', digest_sha256: 'd'.repeat(64),
@@ -51,7 +52,7 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
         tender_eligibility: [{ eligible: false, tender_type: 'cash' }, { eligible: true, tender_type: 'qris' }],
       }))
       .mockResolvedValueOnce(response(200, {
-        expires_at: '2026-08-24T10:15:00.000Z', payment_id: 'QRIS-INTENT-001',
+        expires_at: qrisExpiresAt, payment_id: 'QRIS-INTENT-001',
         qr_image_url: 'https://example.test/qris/QRIS-INTENT-001.png', qris_string: '000201010212',
       }))
       .mockResolvedValueOnce(response(201, {
@@ -78,7 +79,7 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
         payment_id: 'QRIS-INTENT-001', tender_id: 'TENDER-QRIS-001',
         qris_string: '000201010212',
         qr_image_url: 'https://example.test/qris/QRIS-INTENT-001.png',
-        expires_at: '2026-08-24T10:15:00.000Z',
+        expires_at: qrisExpiresAt,
       },
     })
     const calls = fetchMock.mock.calls.map(([, request]) => JSON.parse(String((request as RequestInit).body)))
@@ -90,7 +91,7 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
   it('rejects QRIS acceptance when the receipt echoes a different provider intent', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(200, {
-        expires_at: '2026-08-24T10:15:00.000Z', payment_id: 'QRIS-INTENT-001',
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), payment_id: 'QRIS-INTENT-001',
         qr_image_url: 'https://example.test/qris/QRIS-INTENT-001.png', qris_string: '000201010212',
       }))
       .mockResolvedValueOnce(response(201, {
@@ -211,8 +212,8 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
         stable_effect_key: effectKey,
         functional_currency: 'IDR',
         lines: [
-          { account_id: '1104', debit_minor: '30800', credit_minor: '0' },
-          { account_id: '4101', debit_minor: '0', credit_minor: '30800' },
+          { account_code: '1104', debit_minor: '30800', credit_minor: '0' },
+          { account_code: '4101', debit_minor: '0', credit_minor: '30800' },
         ],
       }))
     vi.stubGlobal('fetch', fetchMock)
@@ -255,8 +256,8 @@ describe('HfeSdkAdapter governed QRIS lifecycle', () => {
         source_capability: 'pos_tender_sale', source_object_id: 'TENDER-QRIS-001',
         stable_effect_key: effectKey, functional_currency: 'IDR',
         lines: [
-          { account_id: '1104', debit_minor: '30800', credit_minor: '0' },
-          { account_id: '4101', debit_minor: '0', credit_minor: '30800' },
+          { account_code: '1104', debit_minor: '30800', credit_minor: '0' },
+          { account_code: '4101', debit_minor: '0', credit_minor: '30800' },
         ],
       }))
     vi.stubGlobal('fetch', fetchMock)

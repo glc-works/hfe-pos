@@ -157,6 +157,17 @@ describe('L2-POS-91: HfePostingReadbackValidator & Cash Order Payload Invariants
     expect(result.mismatchReason).toContain('positive')
   })
 
+  it('rejects Posting evidence with no journal lines when currency is expected', () => {
+    const { lines: _lines, ...withoutLines } = validPosting
+    const result = HfePostingReadbackValidator.validate(
+      { ...validContext, expectedCurrency: 'IDR' },
+      { ...withoutLines, functional_currency: 'IDR' },
+    )
+
+    expect(result.isValid).toBe(false)
+    expect(result.mismatchReason).toContain('positive balanced lines')
+  })
+
   it('generates valid UUID v4 string', () => {
     const uuid = generateUUIDv4()
     expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)

@@ -38,8 +38,10 @@ export async function recoverGovernedPosCheckout(
       accepted = (await client.operations.getAcceptedPosOrderByIdempotencyKey({
         path: { book: targetBook, idempotency_key: acceptKey },
       })).body
-    } catch {
-      throw new Error('Accepted-order recovery lookup is unavailable; outcome recovery stopped without acceptance replay.')
+    } catch (error) {
+      const failure = new Error('Accepted-order recovery lookup is unavailable; outcome recovery stopped without acceptance replay.') as Error & { cause?: unknown }
+      failure.cause = error
+      throw failure
     }
   }
   const quote = accepted.quote
@@ -85,6 +87,7 @@ export async function recoverGovernedPosCheckout(
     return completeGovernedCashTender(client, payload, context, targetBook, evidence)
   }
   const result = await reconcileGovernedTenderOutcome(client, {
+    idempotencyKey: payload.idempotency_key,
     orderId: evidence.orderId, tenderId: evidence.tenderId,
     acceptedTenderEffectKey: evidence.acceptanceEffectKey,
     amountMinor: evidence.amountMinor, currency: evidence.quote.currency,
@@ -114,7 +117,7 @@ export async function reconcileGovernedTenderOutcome(
   if (body.outcome === 'pending') {
     return {
       tx_id: query.orderId, status: 'pending', created_at: new Date().toISOString(),
-      grand_total: exactMinor(query.amountMinor, 'outcome.amount_minor'), idempotency_key: query.tenderId,
+      grand_total: exactMinor(query.amountMinor, 'outcome.amount_minor'), idempotency_key: query.idempotencyKey || query.tenderId,
     }
   }
   if (body.outcome === 'failed') throw new Error('Governed tender outcome reported failed by provider.')
@@ -132,7 +135,7 @@ export async function reconcileGovernedTenderOutcome(
     if (!validation.isValid) throw new Error(`Durable tender outcome read-back mismatch: ${validation.mismatchReason || 'lineage mismatch'}`)
     return {
       tx_id: query.orderId, status: 'posted', created_at: new Date().toISOString(),
-      grand_total: exactMinor(query.amountMinor, 'outcome.amount_minor'), idempotency_key: query.tenderId,
+      grand_total: exactMinor(query.amountMinor, 'outcome.amount_minor'), idempotency_key: query.idempotencyKey || query.tenderId,
       ledger_journal_id: body.posting_id, posting_id: body.posting_id, readback_validation: validation,
     }
   }

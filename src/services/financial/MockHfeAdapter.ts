@@ -174,13 +174,13 @@ export class MockHfeAdapter implements HfePosFinancialPort {
   async postGovernedRetailOrder(
     payload: GovernedRetailCheckoutPayload,
     _context: RetailPostingContext,
-    _reviewedQuote: ReviewedPosQuote,
+    reviewedQuote: ReviewedPosQuote,
   ): Promise<SubmitRetailTransactionResponse> {
     return Promise.resolve({
       tx_id: `ORDER-SIM-${Date.now()}`,
       status: 'posted',
       created_at: new Date().toISOString(),
-      grand_total: 0,
+      grand_total: reviewedQuote.amountDueMinor,
       idempotency_key: payload.idempotency_key || `IDEMP-SIM-${Date.now()}`,
       isSimulated: true,
     })
@@ -432,7 +432,7 @@ export class MockHfeAdapter implements HfePosFinancialPort {
       status: 'posted',
       created_at: new Date().toISOString(),
       grand_total: Number(query.amountMinor),
-      idempotency_key: query.tenderId,
+      idempotency_key: query.idempotencyKey || query.tenderId,
       ledger_journal_id: postingId,
       posting_id: postingId,
       readback_validation: {

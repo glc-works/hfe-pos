@@ -273,7 +273,7 @@ describe('governed POS quote review & acceptance', () => {
 
     await expect(new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
       .acceptGovernedRetailQuote(governedPayload, reviewed, context))
-      .rejects.toThrow(/mismatch/i)
+      .rejects.toThrow(/accepted tender evidence mismatch/i)
   })
 
   it('rejects an acceptance receipt that does not echo the exact acceptance key', async () => {

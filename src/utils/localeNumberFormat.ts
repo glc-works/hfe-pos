@@ -25,6 +25,19 @@ export function formatLocaleNumber(
   }).format(num)
 }
 
+/** Formats an exact non-negative minor-unit string without Number coercion. */
+export function formatExactMinorCurrency(
+  value: string,
+  currency: string,
+  language: string = 'id',
+): string {
+  if (!/^(0|[1-9][0-9]*)$/.test(value)) {
+    throw new Error('Minor-unit value must be a canonical non-negative integer string.')
+  }
+  const locale = language === 'en' ? 'en-US' : 'id-ID'
+  return `${currency}\u00a0${BigInt(value).toLocaleString(locale)}`
+}
+
 /**
  * Formats a raw numeric string for live display inside an input field.
  * Adds thousand delimiters based on UI language.

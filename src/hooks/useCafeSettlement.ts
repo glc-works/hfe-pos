@@ -7,6 +7,7 @@ import { isConnectedFirstPartyRuntime, requiredRuntimeUuid, resolveGovernedQuote
 import { companyBookPostingHref } from '../config/companyBookPostingLink'
 import { useLiveCoreActivation } from '../context/DataTruthContext'
 import { appendDeadLetterEntry } from '../services/financial/deadLetterLedger'
+import { formatExactMinorCurrency } from '../utils/localeNumberFormat'
 
 export type CafeFinancialStatus = 'idle' | 'pending' | 'error' | 'posted'
 export type CafeFinancialNotice = 'submitting' | 'in_progress' | 'pending_core' | 'posted_unacknowledged' | 'outcome_unknown' | 'posted' | 'failed' | null
@@ -29,6 +30,31 @@ export function classifyCheckoutFailure(message?: string): CheckoutFailureCode {
   if (/\(409\)|conflict/.test(normalized)) return 'conflict'
   if (/mismatch|required|invalid|must be|unsupported|does not yet support/.test(normalized)) return 'validation'
   return 'unknown'
+}
+
+export function formatPostedCheckoutAmount(
+  value: number | string,
+  currency: string,
+  language: string,
+  fallback: () => string,
+): string {
+  if (typeof value === 'number') return Number.isFinite(value) ? fallback() : String(value)
+  try {
+    return formatExactMinorCurrency(value, currency, language)
+  } catch {
+    return fallback()
+  }
+}
+
+export async function settleQuoteRetirement(
+  retirement: Promise<void>,
+  onFailure: (error: unknown) => void,
+): Promise<void> {
+  try {
+    await retirement
+  } catch (error) {
+    onFailure(error)
+  }
 }
 
 interface UseCafeSettlementOptions {
@@ -135,10 +161,12 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
   const invalidateQuote = () => {
     if (quoteCheckoutKey.current) {
       const retirement = coordinator.current.retirePrepared(quoteCheckoutKey.current)
-      quoteRetirementInFlight.current = retirement
-      void retirement.catch((error) => {
+      const tracked = settleQuoteRetirement(retirement, (error) => {
         setCheckoutPhase({ kind: 'failed', message: error instanceof Error ? error.message : String(error) })
+      }).finally(() => {
+        if (quoteRetirementInFlight.current === tracked) quoteRetirementInFlight.current = null
       })
+      quoteRetirementInFlight.current = tracked
     }
     quoteCheckoutKey.current = null
     quoteIdempotencyKey.current = null
@@ -357,9 +385,14 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       commitPaidState()
       clearCart()
       await coordinator.current.acknowledgePosted(checkoutKey)
-      const displayedAmount = typeof result.response.grand_total === 'string'
-        ? BigInt(result.response.grand_total).toLocaleString('id-ID')
-        : formatPrice(result.response.grand_total)
+      const displayedAmount = formatPostedCheckoutAmount(
+        result.response.grand_total,
+        authoritativeQuote?.currency || resolveGovernedQuoteContext().currency,
+        'id',
+        () => typeof result.response.grand_total === 'number'
+          ? formatPrice(result.response.grand_total)
+          : result.response.grand_total,
+      )
       alert(`🎉 Pembayaran ${selectedTable?.name || (fulfillmentMode === 'takeaway' ? 'Takeaway' : 'Walk-In')} Sebesar ${displayedAmount} LUNAS via ${intendedPaymentMethod.toUpperCase()}!`)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

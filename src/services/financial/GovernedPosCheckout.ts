@@ -53,10 +53,11 @@ export function requirePositiveRevision(value: unknown, field: string): string {
   return text
 }
 
-function requireFutureTimestamp(value: string): void {
+function requireFutureTimestamp(value: string, field: string): void {
+  requireTimestamp(value, field)
   const expiresAt = Date.parse(value)
-  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
-    throw new Error('CORE quote has an invalid or expired expires_at value.')
+  if (expiresAt <= Date.now()) {
+    throw new Error(`CORE ${field} has an invalid or expired value.`)
   }
 }
 
@@ -155,7 +156,7 @@ export async function prepareGovernedRetailQuote(
   if (body.currency !== payload.currency) {
     throw new Error(`CORE quote returned currency '${body.currency}' which differs from requested '${payload.currency}'.`)
   }
-  requireFutureTimestamp(body.expires_at)
+  requireFutureTimestamp(body.expires_at, 'quote expires_at')
 
   requireText(body.quote_id, 'quote_id')
   requirePositiveRevision(body.revision, 'revision')
@@ -311,7 +312,7 @@ function validateReviewedAcceptance(
   if (!payload.idempotency_key) {
     throw new Error('idempotency_key is required for governed POS posting and retry stability.')
   }
-  requireFutureTimestamp(reviewed.expiresAt)
+  requireFutureTimestamp(reviewed.expiresAt, 'reviewed quote expires_at')
   if (reviewed.currency !== payload.currency) {
     throw new Error(`Reviewed quote currency mismatch: ${reviewed.currency} vs ${payload.currency}.`)
   }
@@ -355,6 +356,7 @@ export async function postGovernedPosCheckout(
   if (durability) assertDurableReviewedQuote(stored, reviewed)
   const authorityHeaders = { 'X-CBook-Authority-Context': context.authorityContext }
   let qrisIntent = stored?.qrisIntent
+  let generatedQrisIntent = false
   if (payload.payment_method === 'qris' && !qrisIntent) {
     await durability?.transition('qris_intent_requested')
     qrisIntent = (await client.operations.generatePosQris({
@@ -362,11 +364,14 @@ export async function postGovernedPosCheckout(
         headers: { ...authorityHeaders, 'Idempotency-Key': deriveGovernedCheckoutPhaseKey(payload.idempotency_key!, 'qris-intent') },
         body: { amount_idr: reviewed.amountDueMinor as Int64String, transaction_id: reviewed.quoteId },
       })).body
-    requireText(qrisIntent.payment_id, 'QRIS payment_id')
-    requireText(qrisIntent.qris_string, 'QRIS qris_string')
-    requireText(qrisIntent.qr_image_url, 'QRIS qr_image_url')
-    requireTimestamp(qrisIntent.expires_at, 'QRIS expires_at')
-    await durability?.transition('qris_intent_ready', { qrisIntent })
+    generatedQrisIntent = true
+  }
+  if (payload.payment_method === 'qris') {
+    requireText(qrisIntent?.payment_id, 'QRIS payment_id')
+    requireText(qrisIntent?.qris_string, 'QRIS qris_string')
+    requireText(qrisIntent?.qr_image_url, 'QRIS qr_image_url')
+    requireFutureTimestamp(qrisIntent!.expires_at, 'QRIS expires_at')
+    if (generatedQrisIntent) await durability?.transition('qris_intent_ready', { qrisIntent })
   }
   const evidence = await acceptGovernedRetailQuote(
     client, payload, reviewed, context, targetBook, qrisIntent?.payment_id,
