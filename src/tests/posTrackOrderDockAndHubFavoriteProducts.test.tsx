@@ -1,10 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import React from 'react'
 import { renderToString } from 'react-dom/server'
-import { PosTrackOrderDock } from '../components/pos/PosTrackOrderDock'
+import { PosFavoritesBar } from '../components/pos/PosFavoritesBar'
 import { FavoriteProductsLeaderboard } from '../components/hub/FavoriteProductsLeaderboard'
 import { LanguageProvider } from '../context/LanguageContext'
-import { OrderTicket } from '../types/pos'
+import { OrderTicket, MenuItem } from '../types/pos'
+
+const mockFavorites: MenuItem[] = [
+  { id: 'MENU-1', name: 'Espresso Aren Latte', price: 28000, category: 'Coffee', hfeCategoryCode: 'FNB', image: '☕', description: '' },
+  { id: 'MENU-2', name: 'Croissant Butter Paris', price: 25000, category: 'Pastry', hfeCategoryCode: 'FNB', image: '🥐', description: '' }
+]
 
 const mockOrders: OrderTicket[] = [
   {
@@ -37,36 +42,23 @@ const mockOrders: OrderTicket[] = [
   }
 ]
 
-describe('L2-POS-103: Live Track Order Dock & Hub Favorite Products', () => {
-  it('renders PosTrackOrderDock with active kitchen and barista orders count', () => {
+describe('L2-POS-103: In-Place PosFavoritesBar Tab Switcher & Hub Favorite Products', () => {
+  it('renders PosFavoritesBar with Speed Keys tab and Lacak Dapur badge', () => {
     const html = renderToString(
       <LanguageProvider>
-        <PosTrackOrderDock orders={mockOrders} />
+        <PosFavoritesBar
+          pinnedFavorites={mockFavorites}
+          isImageUrl={() => false}
+          onAddToCart={() => {}}
+          orders={mockOrders}
+        />
       </LanguageProvider>
     )
 
-    expect(html).toContain('Lacak Pesanan Dapur (Track Order)')
-    expect(html).toContain('Aktif')
-    expect(html).toContain('2')
-    expect(html).toContain('Sinkron KDS Dapur &amp; Barista')
-  })
-
-  it('returns null for PosTrackOrderDock when all orders are served or empty', () => {
-    const servedOrders: OrderTicket[] = [
-      {
-        ...mockOrders[0],
-        id: 'ORD-103',
-        status: 'served'
-      }
-    ]
-
-    const html = renderToString(
-      <LanguageProvider>
-        <PosTrackOrderDock orders={servedOrders} />
-      </LanguageProvider>
-    )
-
-    expect(html).toBe('')
+    expect(html).toContain('Speed Keys')
+    expect(html).toContain('Lacak Dapur')
+    expect(html).toContain('Espresso Aren Latte')
+    expect(html).toContain('Croissant Butter Paris')
   })
 
   it('renders FavoriteProductsLeaderboard in HUB with top 5 rankings and sales volume', () => {

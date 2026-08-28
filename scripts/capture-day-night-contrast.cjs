@@ -32,55 +32,20 @@ const demoAccess = require('../fixtures/demo/access.json');
     await page.waitForTimeout(1000);
   }
 
-  // 2. Expand Track Order Dock on POS
-  try {
-    const trackBtn = page.getByRole('button', { name: /Lacak Pesanan Dapur/i });
-    if (await trackBtn.count() > 0) {
-      await trackBtn.first().click();
-      await page.waitForTimeout(500);
-    }
-  } catch (e) {
-    console.log('Track dock button toggle skipped');
-  }
-
+  // 2. Capture POS with Speed Keys
   const posScreenshotPath = path.join(brainDir, 'pos_track_order_dock_verified.png');
   await page.screenshot({ path: posScreenshotPath });
-  console.log(`✓ POS Track Order Dock captured: ${posScreenshotPath}`);
+  console.log(`✓ POS Speed Keys / Workstation captured: ${posScreenshotPath}`);
 
-  // 3. Navigate to Merchant Hub & Unlock PIN
-  await page.goto(`http://localhost:${port}/?app=cafe&surface=merchant-hub`);
-  await page.waitForTimeout(1000);
-
-  const pinInput = page.locator('input[type="password"]');
-  if (await pinInput.isVisible()) {
-    await pinInput.fill('8888');
-    await page.getByRole('button', { name: /Buka Akses Hub/i }).click();
-    await page.waitForTimeout(1000);
+  // 3. Switch to Lacak Dapur Tab in PosFavoritesBar
+  const trackBtn = page.getByRole('button', { name: /Lacak Dapur/i });
+  if (await trackBtn.count() > 0) {
+    await trackBtn.first().click();
+    await page.waitForTimeout(500);
+    const posTrackScreenshotPath = path.join(brainDir, 'pos_in_place_track_orders_verified.png');
+    await page.screenshot({ path: posTrackScreenshotPath });
+    console.log(`✓ POS In-Place Track Orders tab captured: ${posTrackScreenshotPath}`);
   }
-
-  // Click on Executive Insights Tab
-  const insightsTab = page.locator('button:has-text("Executive Insights")').first();
-  if (await insightsTab.count() > 0) {
-    await insightsTab.click();
-    await page.waitForTimeout(1000);
-  }
-
-  // Scroll to Favorite Products Leaderboard
-  const leaderboard = page.locator('text=Menu Terlaris (Favorite Products)').first();
-  if (await leaderboard.count() > 0) {
-    await leaderboard.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(600);
-  } else {
-    await page.evaluate(() => {
-      const scrollable = document.querySelector('.overflow-y-auto') || document.querySelector('main');
-      if (scrollable) scrollable.scrollTop = 650;
-    });
-    await page.waitForTimeout(600);
-  }
-
-  const hubScreenshotPath = path.join(brainDir, 'hub_favorite_products_verified.png');
-  await page.screenshot({ path: hubScreenshotPath });
-  console.log(`✓ HUB Favorite Products captured: ${hubScreenshotPath}`);
 
   await context.close();
   await browser.close();

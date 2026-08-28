@@ -13,7 +13,6 @@ import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsClust
 import { FinancialStatusBanner } from '../components/pos/FinancialStatusBanner'
 import { GovernedQrisPendingModal } from '../components/pos/GovernedQrisPendingModal'
 import { ActiveOperationsTrayDock } from '../components/pos/ActiveOperationsTrayDock'
-import { PosTrackOrderDock } from '../components/pos/PosTrackOrderDock'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useOperationsTray } from '../hooks/useOperationsTray'
 import { useTranslation } from '../context/LanguageContext'
@@ -309,8 +308,14 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
                 pinnedFavorites={pinnedFavorites}
                 isImageUrl={isImageUrl}
                 isMobile={isMobile}
+                orders={orders}
                 onAddToCart={handleAddToCart}
                 onEditPinnedMenu={() => setShowEditPinnedModal(true)}
+                onUpdateOrderStatus={handleMoveStatus}
+                onSelectOrderTable={(tName) => {
+                  const matched = tablesGrid.find(t => t.name === tName)
+                  if (matched) setSelectedPOSTable(matched)
+                }}
               />
             </div>
           )}
@@ -422,16 +427,6 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
           )}
         </div>
       )}
-
-      {/* 2.5 LIVE TRACK ORDER AMBIENT DOCK (BAKEHOUSE BENCHMARK PATTERN) */}
-      <PosTrackOrderDock
-        orders={orders}
-        onUpdateOrderStatus={handleMoveStatus}
-        onSelectOrderTable={(tName) => {
-          const matched = tablesGrid.find(t => t.name === tName)
-          if (matched) setSelectedPOSTable(matched)
-        }}
-      />
 
       {/* 3. ACTIVE OPERATIONS TRAY (CLICKUP TASK TRAY PATTERN) */}
       <ActiveOperationsTrayDock
