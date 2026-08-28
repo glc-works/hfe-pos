@@ -4,6 +4,17 @@
 
 Read `ARCHITECTURE.md` first as the highest technical contract, `docs/active/standards/HFE-OMBOK-STD-001.md` for Operations Management & Agent Rigor, then `DEVELOPMENT.md` for delivery process authority. `CLAUDE.md` and this file are contributor entry points only.
 
+## Product Canon and plan authority
+
+`hfe-pos` is canonical for active POS implementation work, not for shared
+product meaning, Identity, financial truth, deployment authority, or selection
+of the shipping Experience implementation. Start plan work at
+`docs/active/plans/README`, then verify the current Product Canon and the
+plan's live issue, claim, file fence, and implementation evidence. A filename
+under `docs/active/plans/` is not authority, completion, adoption, or deployment
+proof. Preserve historical plan bodies and treat stale names or claims as
+provenance until an accepted current record says otherwise.
+
 ## Canonical local demo entry
 
 `fixtures/demo/access.json` is the single source of truth for the committed

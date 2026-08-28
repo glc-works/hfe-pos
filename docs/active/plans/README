@@ -1,0 +1,63 @@
+# POS plan authority and provenance
+
+This directory contains POS implementation coordination, research, and
+historical plan provenance. Its `active` path is an organizational location;
+it does not make every plan current, accepted, executable, complete, or
+canonical product truth.
+
+## Start here
+
+1. Read the current Product Canon in
+   [`glc-works/hfeit-product`](https://github.com/glc-works/hfeit-product) at
+   merged revision `a3a702f5a0c878a784c05c24afdccc365db0f496`.
+2. Check the plan's current GitHub issue, delivery status, sole-writer claim,
+   exact file fence, dependencies, and latest implementation evidence.
+3. Follow `DEVELOPMENT.md`, `ARCHITECTURE.md`, and the repository coordination
+   rules before treating a plan as executable.
+
+Product PR
+[`glc-works/hfeit-product#60`](https://github.com/glc-works/hfeit-product/pull/60)
+at exact head `fd25b91a52dc544e4e027bb579d988eeb515ca82`
+proposes the broader Canon convergence and legacy-plan disposition record. It
+is review evidence only while open and does not become current authority until
+merged.
+
+## Authority boundary
+
+- Product Canon owns shared product meaning, capability boundaries, and
+  accepted product decisions.
+- Hfe CORE owns governed business and financial truth. A POS plan cannot
+  authorize local price, tax, settlement, semantic-account, Posting, or other
+  shadow financial truth.
+- Identity owns first-party sign-in and federation for the Hfeit Console
+  family. Identity is not customer-configurable IAM. Historical references to
+  “ToGrow Account” as product authority are provenance; `account-togrow`,
+  `account.togrow.id`, issuer, keys, database, cookie, and origin remain
+  implementation/runtime provenance unless a separately accepted migration
+  says otherwise.
+- Product issue
+  [`glc-works/hfeit-product#68`](https://github.com/glc-works/hfeit-product/issues/68)
+  owns Experience shipping selection. Repository name, contributor origin, or
+  old “canonical” wording does not preselect `hfe-pos`.
+- Deployment, provider, DNS, IAM, runtime, release, and workflow mutation each
+  require their own current authority and evidence. A plan or successful local
+  test grants none of them.
+
+## How to use these records
+
+Use a plan as current execution coordination only when all of the following are
+true:
+
+- its owning issue and required Product decision are current;
+- the repository dispatcher permits the work and no other claim overlaps;
+- the exact base revision, dependency state, and file fence have been
+  refreshed;
+- the plan's assertions still match current code and contracts.
+
+Otherwise preserve the plan as research or implementation provenance. Do not
+rewrite historical bodies to make them look current. Add a current pointer or
+classification at the entry boundary or through the owning issue.
+
+Routes, UI, schemas, generated clients, tests, or green CI are evidence only.
+They do not by themselves prove implementation, consumer adoption, production
+deployment, or authority.
