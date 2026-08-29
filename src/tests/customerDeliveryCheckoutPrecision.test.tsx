@@ -52,7 +52,7 @@ describe('L2-POS-102: Luxury Online Delivery Checkout & Precision Address Archit
       />
     )
 
-    expect(html).toContain('Pesan Antar (Online Delivery)')
+    expect(html).toContain('Pesan Antar')
     expect(html).toContain('3.5')
     expect(html).toContain('Menara Mandiri, Jl. Jend. Sudirman Kav. 54-55')
     expect(html).toContain('Lantai 18, Ruang 1802')
@@ -92,8 +92,8 @@ describe('L2-POS-102: Luxury Online Delivery Checkout & Precision Address Archit
     // Verify zero raw radio buttons in DOM
     expect(html).not.toContain('type="radio"')
     expect(html).toContain('Metode Pembayaran')
-    expect(html).toContain('QRIS Instan (Lunas di Depan)')
-    expect(html).toContain('BCA, Mandiri, GoPay, OVO')
+    expect(html).toContain('QRIS &amp; E-Wallet')
+    expect(html).toContain('Semua Bank &amp; Dompet Digital')
     expect(html).toContain('Ubah')
   })
 
@@ -135,7 +135,7 @@ describe('L2-POS-102: Luxury Online Delivery Checkout & Precision Address Archit
 
     expect(html).toContain('Pesan Antar')
     expect(html).toContain('Ongkos Kirim')
-    expect(html).toContain('Biaya Kemasan Delivery (Thermal Bag)')
+    expect(html).toContain('Biaya Kemasan Thermal')
     expect(html).toContain('Pesan Antar Sekarang')
   })
 })

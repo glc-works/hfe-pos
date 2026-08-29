@@ -44,7 +44,7 @@ export const CustomerDeliveryAddressCard: React.FC<CustomerDeliveryAddressCardPr
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-black text-foreground flex items-center gap-1.5 truncate">
-                <span>Pesan Antar (Online Delivery)</span>
+                <span>Pesan Antar</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-full font-bold">
                   {address.distanceKm} km
                 </span>

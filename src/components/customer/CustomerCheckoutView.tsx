@@ -282,11 +282,11 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
           {isDelivery && (
             <>
               <div className="flex justify-between" style={{ color: secondaryTextColor }}>
-                <span>Ongkos Kirim ({deliveryAddress.distanceKm} km):</span>
+                <span>Ongkos Kirim • {deliveryAddress.distanceKm} km:</span>
                 <span className="font-mono text-foreground font-bold">+{formatPrice(effectiveDeliveryFee)}</span>
               </div>
               <div className="flex justify-between" style={{ color: secondaryTextColor }}>
-                <span>Biaya Kemasan Delivery (Thermal Bag):</span>
+                <span>Biaya Kemasan Thermal:</span>
                 <span className="font-mono text-foreground font-bold">+{formatPrice(effectivePackagingFee)}</span>
               </div>
             </>
@@ -294,7 +294,7 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
 
           {taxPB1Mode === 1 && (
             <div className="flex justify-between font-medium text-amber-500">
-              <span>Pajak Restoran PB1 (10% Exclude):</span>
+              <span>Pajak Restoran PB1 10%:</span>
               <span>+{formatPrice(calculatedPB1Tax)}</span>
             </div>
           )}

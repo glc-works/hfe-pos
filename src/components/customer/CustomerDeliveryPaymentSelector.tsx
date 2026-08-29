@@ -26,8 +26,8 @@ export const CustomerDeliveryPaymentSelector: React.FC<CustomerDeliveryPaymentSe
   }[] = [
     {
       id: 'qris_instant',
-      title: 'QRIS Instan (Lunas di Depan)',
-      subtitle: 'BCA, Mandiri, GoPay, OVO, ShopeePay, DANA & seluruh bank nasional',
+      title: 'QRIS & E-Wallet',
+      subtitle: 'Semua Bank & Dompet Digital',
       badge: 'Aktif • Bebas Biaya',
       isAvailable: true,
       icon: <QrCode className="w-5 h-5 text-emerald-500" />
@@ -35,7 +35,7 @@ export const CustomerDeliveryPaymentSelector: React.FC<CustomerDeliveryPaymentSe
     {
       id: 'card_online',
       title: 'Kartu Debit / Kredit Online',
-      subtitle: 'Visa, Mastercard, JCB, GPN 3D Secure',
+      subtitle: 'Visa, Mastercard, JCB, GPN',
       badge: 'Segera Hadir',
       isAvailable: false,
       icon: <CreditCard className="w-5 h-5 text-indigo-400" />
@@ -43,15 +43,15 @@ export const CustomerDeliveryPaymentSelector: React.FC<CustomerDeliveryPaymentSe
     {
       id: 'bank_va',
       title: 'Virtual Account Bank',
-      subtitle: 'BCA, Mandiri, BRI, BNI, Permata VA',
+      subtitle: 'BCA, Mandiri, BRI, BNI & Lainnya',
       badge: 'Segera Hadir',
       isAvailable: false,
       icon: <Landmark className="w-5 h-5 text-amber-400" />
     },
     {
       id: 'cod_cash',
-      title: 'Bayar Tunai ke Kurir (COD)',
-      subtitle: 'Bayar uang pas saat kurir tiba di lokasi',
+      title: 'Bayar Tunai ke Kurir',
+      subtitle: 'Bayar uang pas saat pesanan tiba',
       badge: 'Segera Hadir',
       isAvailable: false,
       icon: <Banknote className="w-5 h-5 text-slate-400" />
