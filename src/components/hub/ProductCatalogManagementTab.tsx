@@ -5,22 +5,9 @@ import {
   Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, X,
   ChefHat, Layers, Tag, Percent, ArrowRight, ChevronRight
 } from 'lucide-react'
+import { ProductFormModal, ProductFormData } from './ProductFormModal'
 
-interface ProductCatalogItem {
-  id: string
-  sku: string
-  name: string
-  category: 'coffee' | 'non_coffee' | 'food' | 'merchandise' | 'service'
-  categoryLabel: string
-  price: number
-  cogs: number
-  marginPercent: number
-  stockType: 'recipe_bom' | 'unit_inventory' | 'non_stock_service'
-  isActive: boolean
-  recipeIngredients?: { name: string; amount: string; cost: number }[]
-  kdsStation?: string
-  taxApplicable?: boolean
-}
+export interface ProductCatalogItem extends ProductFormData {}
 
 const INITIAL_PRODUCTS: ProductCatalogItem[] = [
   {
@@ -100,7 +87,8 @@ export const ProductCatalogManagementTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedProductForDetail, setSelectedProductForDetail] = useState<ProductCatalogItem | null>(null)
-  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<ProductCatalogItem | null>(null)
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
 
   // Filter products
   const filteredProducts = products.filter((item) => {
@@ -111,8 +99,18 @@ export const ProductCatalogManagementTab: React.FC = () => {
     return matchesSearch && matchesCategory
   })
 
+  const handleSaveProduct = (saved: ProductFormData) => {
+    if (editingProduct) {
+      setProducts(products.map((p) => (p.id === saved.id ? (saved as ProductCatalogItem) : p)))
+    } else {
+      setProducts([saved as ProductCatalogItem, ...products])
+    }
+    setEditingProduct(null)
+    setSelectedProductForDetail(null)
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-sans">
       {/* 3-DEVICE RESPONSIVE CONTROL TOOLBAR */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
@@ -133,16 +131,19 @@ export const ProductCatalogManagementTab: React.FC = () => {
               className="flex-1 sm:flex-none px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[38px]"
             >
               <option value="all">Semua Kategori</option>
-              <option value="coffee">Kopi &amp; Manual Brew</option>
-              <option value="merchandise">Merchandise Retail</option>
-              <option value="service">Layanan Jasa</option>
+              <option value="coffee">☕ Minuman Kopi</option>
+              <option value="merchandise">👕 Merchandise Retail</option>
+              <option value="service">🛠️ Layanan Jasa</option>
             </select>
           </div>
         </div>
 
         {/* Top-Right CTA on Tablet/Desktop */}
         <Button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            setEditingProduct(null)
+            setIsFormModalOpen(true)
+          }}
           className="hidden sm:flex text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold items-center gap-1.5 min-h-[38px] shadow-xs cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -190,7 +191,10 @@ export const ProductCatalogManagementTab: React.FC = () => {
 
         {/* Mobile Sticky Add Button */}
         <Button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            setEditingProduct(null)
+            setIsFormModalOpen(true)
+          }}
           className="w-full text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-1.5 min-h-[42px] shadow-xs cursor-pointer mt-4"
         >
           <Plus className="w-4 h-4" />
@@ -374,7 +378,10 @@ export const ProductCatalogManagementTab: React.FC = () => {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  onClick={() => setSelectedProductForDetail(null)}
+                  onClick={() => {
+                    setEditingProduct(selectedProductForDetail)
+                    setIsFormModalOpen(true)
+                  }}
                   className="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
                 >
                   <Edit3 className="w-3.5 h-3.5 mr-1" /> Ubah Data &amp; Resep
@@ -384,6 +391,17 @@ export const ProductCatalogManagementTab: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* UNIVERSAL REUSABLE PRODUCT FORM MODAL */}
+      <ProductFormModal
+        isOpen={isFormModalOpen}
+        onClose={() => {
+          setIsFormModalOpen(false)
+          setEditingProduct(null)
+        }}
+        onSave={handleSaveProduct}
+        initialData={editingProduct}
+      />
     </div>
   )
 }

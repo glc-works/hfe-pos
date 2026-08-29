@@ -129,10 +129,7 @@ export function MerchantHomeHubView({
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => {
-                  setActiveTab(tab.key)
-                  setIsMobileDirectory(false)
-                }}
+                onClick={() => setActiveTab(tab.key)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all select-none cursor-pointer min-h-[36px] ${
                   isActive
                     ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
@@ -166,82 +163,8 @@ export function MerchantHomeHubView({
           </button>
         </div>
       </div>
-
-      {/* MOBILE LAYER 2: TOP DRILLDOWN BAR (< md) */}
-      <div className="md:hidden shrink-0 border-b border-border bg-card/80 backdrop-blur-xs px-3 py-2 flex items-center justify-between gap-2">
-        {isMobileDirectory ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-foreground">📂 Direktori Menu Hub</span>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsMobileDirectory(true)}
-            className="flex items-center gap-1.5 text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-xl cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Semua Menu Hub</span>
-          </button>
-        )}
-
-        <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-          {!isMobileDirectory && (
-            <span>{activeTabObj.glyph} {activeTabObj.label}</span>
-          )}
-        </div>
-      </div>
-
-      {/* MOBILE FULL-VIEW DIRECTORY CANVAS (< md) */}
-      {isMobileDirectory ? (
-        <div className="md:hidden flex-1 min-h-0 overflow-y-auto p-4 space-y-4 pb-24">
-          <div className="p-3.5 bg-gradient-to-r from-amber-500/10 to-purple-500/10 border border-amber-500/20 rounded-2xl space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-foreground">👑 Kopi Nusantara Backoffice</span>
-              <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
-                Live Truth
-              </span>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Pilih ruang kendali finansial, katalog, promo, atau pengaturan toko di bawah.
-            </p>
-          </div>
-
-          {['Finansial & Kas', 'Katalog & Promosi', 'Toko & Multi-Cabang'].map((groupName) => (
-            <div key={groupName} className="space-y-1.5">
-              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
-                {groupName}
-              </h4>
-              <div className="bg-card rounded-2xl border border-border divide-y divide-border/60 overflow-hidden shadow-xs">
-                {tabs
-                  .filter((t) => t.group === groupName)
-                  .map((t) => (
-                    <div
-                      key={t.key}
-                      onClick={() => {
-                        setActiveTab(t.key)
-                        setIsMobileDirectory(false)
-                      }}
-                      className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-muted/40 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-sm shrink-0">
-                          {t.glyph}
-                        </div>
-                        <div>
-                          <h5 className="text-xs font-bold text-foreground">{t.label}</h5>
-                          <p className="text-[11px] text-muted-foreground">{t.desc}</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                    </div>
-                  ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        /* ACTIVE CONTENT CANVAS (Single Scroll Owner) */
-        <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y p-3 sm:p-6 pb-24">
+      {/* ACTIVE CONTENT CANVAS (Single Scroll Owner) */}
+      <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y p-3 sm:p-6 pb-24">
           <div className="max-w-6xl mx-auto">
             <Suspense fallback={
               <div className="flex items-center justify-center py-20 text-xs text-muted-foreground gap-2">
@@ -262,7 +185,6 @@ export function MerchantHomeHubView({
             </Suspense>
           </div>
         </main>
-      )}
 
       {/* Cafe Go-Live Readiness Modal */}
       <CafeGoLiveReadinessModal
