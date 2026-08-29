@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { Button, Badge, TextInput } from '../../ui'
 import { 
   ShoppingBag, Plus, Search, Filter, Edit3, Trash2, 
-  Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, X,
-  ChefHat, Layers, Tag, Percent, ArrowRight, ChevronRight
+  Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, ArrowLeft,
+  ChefHat, Layers, Tag, Percent, ArrowRight, ChevronRight, X
 } from 'lucide-react'
 import { ProductFormModal, ProductFormData } from './ProductFormModal'
 
@@ -26,6 +26,11 @@ const INITIAL_PRODUCTS: ProductCatalogItem[] = [
       { name: 'Susu Fresh Milk / Oat', amount: '150 ML', cost: 3500 },
       { name: 'Sirup Gula Aren Organik', amount: '20 ML', cost: 1200 }
     ],
+    channelPricing: {
+      deliveryGoFood: 35000,
+      deliveryGrabFood: 35000,
+      qrSelfOrder: 28000
+    },
     kdsStation: 'Barista Station',
     taxApplicable: true
   },
@@ -45,6 +50,11 @@ const INITIAL_PRODUCTS: ProductCatalogItem[] = [
       { name: 'Es Batu Kristal RO', amount: '120 Gram', cost: 1000 },
       { name: 'Paper Filter V60', amount: '1 Pcs', cost: 2000 }
     ],
+    channelPricing: {
+      deliveryGoFood: 42000,
+      deliveryGrabFood: 42000,
+      qrSelfOrder: 35000
+    },
     kdsStation: 'Manual Brew Bar',
     taxApplicable: true
   },
@@ -59,24 +69,25 @@ const INITIAL_PRODUCTS: ProductCatalogItem[] = [
     marginPercent: 56,
     stockType: 'unit_inventory',
     isActive: true,
-    recipeIngredients: [],
-    kdsStation: 'Kasir Retail Shelf',
-    taxApplicable: true
+    customizationType: 'matrix_retail',
+    matrixVariants: [
+      { sku: 'MER-TSHIRT-BLK-S', name: 'Hitam - S', price: 149000, stock: 12 },
+      { sku: 'MER-TSHIRT-BLK-M', name: 'Hitam - M', price: 149000, stock: 24 }
+    ],
+    kdsStation: 'Retail Station',
+    taxApplicable: false
   },
   {
     id: 'prod-04',
     sku: 'SRV-ROAST-01',
     name: 'Jasa Custom Roasting Beans (1kg)',
     category: 'service',
-    categoryLabel: 'Layanan Jasa',
+    categoryLabel: 'Jasa Roastery',
     price: 45000,
-    cogs: 5000,
-    marginPercent: 89,
+    cogs: 8000,
+    marginPercent: 82,
     stockType: 'non_stock_service',
     isActive: true,
-    recipeIngredients: [
-      { name: 'Gas Roaster & Tenaga Ahli', amount: '1 Batch', cost: 5000 }
-    ],
     kdsStation: 'Roastery Lab',
     taxApplicable: true
   }
@@ -86,227 +97,127 @@ export const ProductCatalogManagementTab: React.FC = () => {
   const [products, setProducts] = useState<ProductCatalogItem[]>(INITIAL_PRODUCTS)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [selectedProductForDetail, setSelectedProductForDetail] = useState<ProductCatalogItem | null>(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<ProductCatalogItem | null>(null)
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [selectedProductForDetail, setSelectedProductForDetail] = useState<ProductCatalogItem | null>(null)
 
-  // Filter products
   const filteredProducts = products.filter((item) => {
-    const matchesSearch = 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.sku.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory
     return matchesSearch && matchesCategory
   })
 
-  const handleSaveProduct = (saved: ProductFormData) => {
+  const handleSaveProduct = (formData: ProductFormData) => {
     if (editingProduct) {
-      setProducts(products.map((p) => (p.id === saved.id ? (saved as ProductCatalogItem) : p)))
+      setProducts((prev) => prev.map((p) => (p.id === formData.id ? { ...formData } : p)))
     } else {
-      setProducts([saved as ProductCatalogItem, ...products])
+      setProducts((prev) => [{ ...formData, id: `prod-${Date.now()}` }, ...prev])
     }
+    setIsFormOpen(false)
     setEditingProduct(null)
-    setSelectedProductForDetail(null)
   }
 
-  return (
-    <div className="space-y-4 font-sans">
-      {/* 3-DEVICE RESPONSIVE CONTROL TOOLBAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <TextInput
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari produk / SKU / jasa..."
-              className="w-full h-10 pl-9 pr-3 bg-card border-border rounded-xl text-xs"
-            />
+  const handleDeleteProduct = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    if (confirm('Apakah Anda yakin ingin menghapus produk ini dari katalog?')) {
+      setProducts((prev) => prev.filter((p) => p.id !== id))
+      if (selectedProductForDetail?.id === id) setSelectedProductForDetail(null)
+    }
+  }
+
+  // 1. FULL VIEW: FORM EDITOR (CREATE OR EDIT)
+  if (isFormOpen) {
+    return (
+      <ProductFormModal
+        isOpen={true}
+        onClose={() => {
+          setIsFormOpen(false)
+          setEditingProduct(null)
+        }}
+        onSave={handleSaveProduct}
+        initialData={editingProduct}
+      />
+    )
+  }
+
+  // 2. FULL VIEW: DETAILED VIEW WITH BREADCRUMBS
+  if (selectedProductForDetail) {
+    return (
+      <div className="w-full h-full flex flex-col bg-background font-sans animate-fadeIn">
+        {/* Breadcrumbs Header */}
+        <div className="h-14 px-4 sm:px-6 border-b border-border flex items-center justify-between bg-card shrink-0">
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedProductForDetail(null)}
+              className="h-9 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Kembali ke Katalog</span>
+            </Button>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="hover:text-foreground cursor-pointer" onClick={() => setSelectedProductForDetail(null)}>
+                Katalog Produk
+              </span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="font-bold text-foreground truncate max-w-[200px] sm:max-w-none">
+                {selectedProductForDetail.name}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full sm:w-auto h-10 px-3 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setEditingProduct(selectedProductForDetail)
+                setSelectedProductForDetail(null)
+                setIsFormOpen(true)
+              }}
+              className="h-9 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5"
             >
-              <option value="all">Semua Kategori</option>
-              <option value="coffee">☕ Minuman Kopi</option>
-              <option value="merchandise">👕 Merchandise Retail</option>
-              <option value="service">🛠️ Layanan Jasa</option>
-            </select>
+              <Edit3 className="w-3.5 h-3.5" /> Ubah Produk
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={() => handleDeleteProduct(selectedProductForDetail.id!)}
+              className="h-9 px-3 rounded-xl text-xs font-semibold"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Hapus
+            </Button>
           </div>
         </div>
 
-        {/* Top-Right CTA on Tablet/Desktop (Standard 40px / h-10) */}
-        <Button
-          variant="amber"
-          size="sm"
-          onClick={() => {
-            setEditingProduct(null)
-            setIsFormModalOpen(true)
-          }}
-          className="hidden sm:flex h-10 px-4 rounded-xl text-xs"
-        >
-          <Plus className="w-3.5 h-3.5 mr-1" />
-          <span>Tambah Produk / Jasa</span>
-        </Button>
-      </div>
-
-      {/* MOBILE ONLY (< md): RESPONSIVE SUMMARY CARDS */}
-      <div className="md:hidden space-y-2.5">
-        {filteredProducts.map((prod) => (
-          <div
-            key={prod.id}
-            onClick={() => setSelectedProductForDetail(prod)}
-            className="p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-amber-500/40 active:scale-[0.99] transition-all cursor-pointer space-y-2"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">☕</span>
-                  <h4 className="text-xs font-bold text-foreground truncate">{prod.name}</h4>
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {prod.sku} • {prod.categoryLabel}
-                </p>
-              </div>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] shrink-0 font-mono font-bold h-6 px-2">
-                Margin {prod.marginPercent}%
-              </Badge>
-            </div>
-
-            <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
-              <div>
-                <span className="text-[10px] text-muted-foreground block">Harga Jual:</span>
-                <span className="font-mono font-bold text-foreground text-xs">Rp {prod.price.toLocaleString('id-ID')}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-amber-500 font-semibold">
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
-                  🟢 Aktif Jual
-                </span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Mobile Sticky Add Button (Prominent 48px / h-12) */}
-        <Button
-          variant="amber"
-          size="lg"
-          fullWidth
-          onClick={() => {
-            setEditingProduct(null)
-            setIsFormModalOpen(true)
-          }}
-          className="mt-4 h-12 rounded-xl text-xs font-bold"
-        >
-          <Plus className="w-4 h-4 mr-1.5" />
-          <span>Tambah Produk / Jasa Baru</span>
-        </Button>
-      </div>
-
-      {/* DESKTOP / TABLET (>= md): COMPREHENSIVE FINANCIAL DATA TABLE */}
-      <div className="hidden md:block bg-card rounded-2xl border border-border shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold">
-                <th className="py-3 px-4">Produk / Layanan</th>
-                <th className="py-3 px-4">Kategori &amp; SKU</th>
-                <th className="py-3 px-4 font-mono">Harga Jual</th>
-                <th className="py-3 px-4 font-mono">HPP (Modal)</th>
-                <th className="py-3 px-4 font-mono">Margin %</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {filteredProducts.map((prod) => (
-                <tr 
-                  key={prod.id} 
-                  onClick={() => setSelectedProductForDetail(prod)}
-                  className="hover:bg-muted/30 transition-colors cursor-pointer"
-                >
-                  <td className="py-3 px-4 font-bold text-foreground flex items-center gap-2">
-                    <span className="text-sm">☕</span>
-                    <span>{prod.name}</span>
-                  </td>
-                  <td className="py-3 px-4 text-muted-foreground">
-                    <div>{prod.categoryLabel}</div>
-                    <div className="text-[11px] font-mono text-muted-foreground/80">{prod.sku}</div>
-                  </td>
-                  <td className="py-3 px-4 font-mono font-bold text-foreground">
-                    Rp {prod.price.toLocaleString('id-ID')}
-                  </td>
-                  <td className="py-3 px-4 font-mono text-muted-foreground">
-                    Rp {prod.cogs.toLocaleString('id-ID')}
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] font-mono font-bold h-6 px-2">
-                      {prod.marginPercent}%
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
-                      🟢 Aktif
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSelectedProductForDetail(prod)
-                      }}
-                      className="h-8 px-3 rounded-lg text-xs"
-                    >
-                      Detail &amp; Resep ➔
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* DETAIL DRAWER / MODAL (RESEP & ACTIONS BELONG HERE) */}
-      {selectedProductForDetail && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn">
-          <div className="w-full max-w-xl bg-card rounded-t-3xl sm:rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[85dvh] flex flex-col">
-            {/* Header (Height: 56px) */}
-            <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-sm shrink-0">
-                  ☕
-                </div>
+        {/* Detail Content Canvas (Dual-Pane) */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+          {/* Left Details (8 Kolom) */}
+          <div className="md:col-span-8 space-y-4">
+            <div className="p-4 bg-card rounded-2xl border border-border space-y-3">
+              <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">{selectedProductForDetail.name}</h3>
-                  <p className="text-[11px] text-muted-foreground leading-tight">
+                  <span className="text-xs font-mono font-bold text-amber-500">
                     {selectedProductForDetail.sku} • {selectedProductForDetail.categoryLabel}
-                  </p>
+                  </span>
+                  <h2 className="text-lg font-bold text-foreground mt-0.5">
+                    {selectedProductForDetail.name}
+                  </h2>
                 </div>
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-xs font-bold">
+                  Aktif Dijual
+                </Badge>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setSelectedProductForDetail(null)}
-                className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-xl text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
 
-            {/* Scrollable Content */}
-            <div className="p-4 space-y-4 overflow-y-auto flex-1 text-xs">
               {/* Financial Metrics */}
-              <div className="grid grid-cols-3 gap-2 p-3 bg-muted/40 rounded-xl border border-border">
+              <div className="grid grid-cols-3 gap-2.5 p-3.5 bg-muted/40 rounded-xl border border-border">
                 <div>
-                  <span className="text-[11px] text-muted-foreground block">Harga Jual:</span>
+                  <span className="text-[11px] text-muted-foreground block">Harga Toko:</span>
                   <span className="font-mono font-bold text-sm text-foreground">
                     Rp {selectedProductForDetail.price.toLocaleString('id-ID')}
                   </span>
@@ -324,34 +235,38 @@ export const ProductCatalogManagementTab: React.FC = () => {
                   </span>
                 </div>
               </div>
+            </div>
 
-              {/* Multi-Channel Pricing Breakdown */}
-              <div className="p-3 bg-muted/30 border border-border rounded-xl space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-foreground">🛵 Saluran Penjualan &amp; Harga:</span>
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] font-bold">
-                    Omnichannel
-                  </Badge>
+            {/* Multi-Channel Pricing Breakdown */}
+            <div className="p-4 bg-card rounded-2xl border border-border space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-foreground">🛵 Saluran Penjualan &amp; Harga:</span>
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] font-bold">
+                  Omnichannel
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 pt-1 text-xs">
+                <div className="p-3 bg-muted/30 rounded-xl border border-border/80 flex items-center justify-between">
+                  <span className="text-muted-foreground">🏬 Toko / Kasir:</span>
+                  <span className="font-mono font-bold text-foreground">
+                    Rp {selectedProductForDetail.price.toLocaleString('id-ID')}
+                  </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                  <div className="p-2 bg-background rounded-lg border border-border/80 flex items-center justify-between">
-                    <span className="text-muted-foreground">🏬 Toko Fisik:</span>
-                    <span className="font-mono font-bold text-foreground">Rp {selectedProductForDetail.price.toLocaleString('id-ID')}</span>
-                  </div>
-                  <div className="p-2 bg-background rounded-lg border border-border/80 flex items-center justify-between">
-                    <span className="text-muted-foreground">🛵 GoFood/Grab:</span>
-                    <span className="font-mono font-bold text-emerald-400">
-                      Rp {(selectedProductForDetail.channelPricing?.deliveryGoFood || Math.ceil((selectedProductForDetail.price * 1.25) / 1000) * 1000).toLocaleString('id-ID')}
-                    </span>
-                  </div>
+                <div className="p-3 bg-muted/30 rounded-xl border border-border/80 flex items-center justify-between">
+                  <span className="text-muted-foreground">🛵 GoFood &amp; Grab:</span>
+                  <span className="font-mono font-bold text-emerald-400">
+                    Rp {(selectedProductForDetail.channelPricing?.deliveryGoFood || Math.ceil((selectedProductForDetail.price * 1.25) / 1000) * 1000).toLocaleString('id-ID')}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              {/* Recipe & Ingredients (BOM) */}
-              <div className="space-y-2">
+            {/* Recipe Ingredients BOM */}
+            {selectedProductForDetail.recipeIngredients && selectedProductForDetail.recipeIngredients.length > 0 && (
+              <div className="p-4 bg-card rounded-2xl border border-border space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-foreground flex items-center gap-1.5 text-xs">
-                    <ChefHat className="w-3.5 h-3.5 text-amber-500" />
+                    <ChefHat className="w-4 h-4 text-amber-500" />
                     <span>🧪 Resep &amp; Komposisi Bahan Baku (BOM)</span>
                   </h4>
                   <span className="text-[11px] text-muted-foreground font-mono">
@@ -359,79 +274,162 @@ export const ProductCatalogManagementTab: React.FC = () => {
                   </span>
                 </div>
 
-                {selectedProductForDetail.recipeIngredients && selectedProductForDetail.recipeIngredients.length > 0 ? (
-                  <div className="rounded-xl border border-border divide-y divide-border/60 overflow-hidden bg-background">
-                    {selectedProductForDetail.recipeIngredients.map((ing, idx) => (
-                      <div key={idx} className="p-2.5 flex items-center justify-between">
-                        <div>
-                          <span className="font-semibold text-foreground text-xs">{ing.name}</span>
-                          <span className="text-[11px] text-muted-foreground block">Takaran: {ing.amount}</span>
-                        </div>
-                        <span className="font-mono text-muted-foreground text-xs">
-                          Rp {ing.cost.toLocaleString('id-ID')}
-                        </span>
+                <div className="rounded-xl border border-border divide-y divide-border/60 overflow-hidden bg-background">
+                  {selectedProductForDetail.recipeIngredients.map((ing, idx) => (
+                    <div key={idx} className="p-3 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-semibold text-foreground">{ing.name}</span>
+                        <span className="text-[11px] text-muted-foreground block">Takaran: {ing.amount}</span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground p-3 bg-muted/30 rounded-xl text-xs">
-                    Produk retail / jasa ini tidak menggunakan resep bahan baku peracikan.
-                  </p>
-                )}
-              </div>
-
-              {/* Operational Routing */}
-              <div className="p-3 bg-muted/20 border border-border rounded-xl space-y-1.5">
-                <h4 className="font-bold text-foreground text-xs">🎛️ Routing &amp; Kebijakan Toko:</h4>
-                <div className="flex items-center justify-between text-muted-foreground text-xs">
-                  <span>Stasiun Cetak KDS:</span>
-                  <span className="font-semibold text-foreground">{selectedProductForDetail.kdsStation}</span>
-                </div>
-                <div className="flex items-center justify-between text-muted-foreground text-xs">
-                  <span>Pajak Restoran PB1 (10%):</span>
-                  <span className="text-emerald-400 font-semibold">✅ Dikenakan Pajak</span>
+                      <span className="font-mono text-muted-foreground font-bold">
+                        Rp {ing.cost.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Action Buttons in Detail View (Standard 40px / h-10 Buttons) */}
-            <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between gap-2 shrink-0">
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => setSelectedProductForDetail(null)}
-                className="h-10 px-3.5 rounded-xl text-xs font-semibold"
-              >
-                <Trash2 className="w-3.5 h-3.5 mr-1" /> Nonaktifkan
-              </Button>
-              <div className="flex gap-2">
-                <Button
-                  variant="amber"
-                  size="sm"
-                  onClick={() => {
-                    setEditingProduct(selectedProductForDetail)
-                    setIsFormModalOpen(true)
-                  }}
-                  className="h-10 px-4 rounded-xl text-xs font-bold"
-                >
-                  <Edit3 className="w-3.5 h-3.5 mr-1" /> Ubah Data &amp; Resep
-                </Button>
+          {/* Right Summary (4 Kolom) */}
+          <div className="md:col-span-4 space-y-4">
+            <div className="p-4 bg-card rounded-2xl border border-border space-y-3">
+              <span className="text-xs font-bold text-foreground block">⚙️ Operasional &amp; Pajak</span>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between py-1.5 border-b border-border/60">
+                  <span className="text-muted-foreground">Stasiun Dapur:</span>
+                  <span className="font-bold text-foreground">{selectedProductForDetail.kdsStation || 'Barista'}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/60">
+                  <span className="text-muted-foreground">Pajak PB1:</span>
+                  <span className="font-bold text-emerald-400">{selectedProductForDetail.taxApplicable ? 'Ya (10%)' : 'Bebas Pajak'}</span>
+                </div>
+                <div className="flex justify-between py-1.5">
+                  <span className="text-muted-foreground">Tipe Stok:</span>
+                  <span className="font-bold text-amber-500 capitalize">{selectedProductForDetail.stockType.replace('_', ' ')}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )
+  }
 
-      {/* UNIVERSAL REUSABLE PRODUCT FORM MODAL */}
-      <ProductFormModal
-        isOpen={isFormModalOpen}
-        onClose={() => {
-          setIsFormModalOpen(false)
-          setEditingProduct(null)
-        }}
-        onSave={handleSaveProduct}
-        initialData={editingProduct}
-      />
+  // 3. MASTER VIEW: PRODUCT CATALOG TABLE & TOOLBAR
+  return (
+    <div className="w-full h-full flex flex-col bg-background font-sans">
+      {/* Action Toolbar */}
+      <div className="p-4 border-b border-border bg-card/60 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-72">
+            <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
+            <TextInput
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari menu, SKU, atau kategori..."
+              className="w-full h-10 pl-9 pr-3 bg-background border-border rounded-xl text-xs"
+            />
+          </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="h-10 px-3 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none"
+          >
+            <option value="all">Semua Kategori</option>
+            <option value="coffee">☕ Minuman Kopi</option>
+            <option value="non_coffee">🍵 Non-Kopi</option>
+            <option value="food">🥐 Makanan</option>
+            <option value="merchandise">👕 Merchandise</option>
+            <option value="service">🛠️ Layanan Jasa</option>
+          </select>
+        </div>
+
+        <Button
+          type="button"
+          variant="amber"
+          size="sm"
+          onClick={() => {
+            setEditingProduct(null)
+            setIsFormOpen(true)
+          }}
+          className="w-full sm:w-auto h-10 px-4 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Tambah Produk &amp; Varian Baru</span>
+        </Button>
+      </div>
+
+      {/* Catalog Table */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-4">
+        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+          <div className="divide-y divide-border/60">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                onClick={() => setSelectedProductForDetail(product)}
+                className="p-3.5 sm:p-4 flex items-center justify-between hover:bg-muted/40 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-sm shrink-0">
+                    ☕
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs sm:text-sm font-bold text-foreground truncate group-hover:text-amber-500 transition-colors">
+                        {product.name}
+                      </h4>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
+                        {product.sku}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                      {product.categoryLabel} • HPP: Rp {product.cogs.toLocaleString('id-ID')} • Margin: {product.marginPercent}%
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="text-right">
+                    <span className="text-xs sm:text-sm font-mono font-bold text-foreground block">
+                      Rp {product.price.toLocaleString('id-ID')}
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400">
+                      Ojol: Rp {(product.channelPricing?.deliveryGoFood || Math.ceil((product.price * 1.25) / 1000) * 1000).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditingProduct(product)
+                        setIsFormOpen(true)
+                      }}
+                      className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg text-muted-foreground hover:text-foreground"
+                      title="Ubah Produk"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => handleDeleteProduct(product.id!, e)}
+                      className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg text-muted-foreground hover:text-rose-400"
+                      title="Hapus Produk"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
