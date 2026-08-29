@@ -14,6 +14,7 @@ import { useWarehouse } from '../hooks/useWarehouse'
 import { GoodsReceivingModal } from '../components/warehouse/GoodsReceivingModal'
 import { StockTransferModal } from '../components/warehouse/StockTransferModal'
 import { WasteAdjustmentModal } from '../components/warehouse/WasteAdjustmentModal'
+import { VendorDirectoryTab, PurchaseOrderRecord } from '../components/warehouse/VendorDirectoryTab'
 
 export interface WarehouseManagementViewProps {
   bookId?: string
@@ -46,7 +47,8 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
 
   const [searchTerm, setSearchTerm] = useState('')
   const [barcodeInput, setBarcodeInput] = useState('')
-  const [activeTab, setActiveTab] = useState<'inventory' | 'transfers' | 'receiving' | 'waste'>('inventory')
+  const [activeTab, setActiveTab] = useState<'inventory' | 'transfers' | 'receiving' | 'waste' | 'vendors'>('inventory')
+  const [prefillPo, setPrefillPo] = useState<PurchaseOrderRecord | undefined>(undefined)
 
   const filteredItems = stockItems.filter(
     (item) =>
@@ -208,6 +210,14 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
             }`}
           >
             Jurnal Waste ({wasteAdjustments.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('vendors')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all ${
+              activeTab === 'vendors' ? 'border-amber-600 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            🏢 Pemasok & PO Vendor
           </button>
         </div>
 
@@ -428,16 +438,33 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
             </table>
           </div>
         )}
+
+        {/* Tab 5: Vendor Directory & PO Management */}
+        {activeTab === 'vendors' && (
+          <div className="p-4">
+            <VendorDirectoryTab
+              onOpenReceivingModal={(po) => {
+                setPrefillPo(po)
+                setIsReceivingModalOpen(true)
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Modals */}
       <GoodsReceivingModal
         isOpen={isReceivingModalOpen}
-        onClose={() => setIsReceivingModalOpen(false)}
+        onClose={() => {
+          setIsReceivingModalOpen(false)
+          setPrefillPo(undefined)
+        }}
         onReceive={handleReceiveGoods}
         stockItems={allStockItems}
         warehouses={warehouses}
         currentWarehouseId={activeWarehouseId}
+        prefillPoNumber={prefillPo?.poNumber}
+        prefillVendorName={prefillPo?.vendorName}
       />
 
       <StockTransferModal
