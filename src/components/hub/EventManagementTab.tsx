@@ -18,7 +18,6 @@ import {
   SlidersHorizontal,
   Check
 } from 'lucide-react'
-import { Button, Badge, Card, TextInput } from '@/ui'
 
 export interface MerchantEvent {
   id: string
@@ -86,7 +85,6 @@ export const EventManagementTab: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [activeCheckinEvent, setActiveCheckinEvent] = useState<MerchantEvent | null>(null)
   const [checkinSuccessMsg, setCheckinSuccessMsg] = useState<string | null>(null)
 
   // Form State
@@ -155,24 +153,24 @@ export const EventManagementTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3.5 rounded-2xl border border-border">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
+      {/* Top Action Bar (Mobile-First Responsive Stack) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-card p-3.5 rounded-2xl border border-border">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari acara / event..."
-              className="pl-8 pr-3 py-1.5 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none w-52 sm:w-64"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
             />
           </div>
 
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="text-xs bg-background border border-border text-foreground rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer"
+            className="w-full sm:w-auto text-xs bg-background border border-border text-foreground rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer min-h-[40px]"
           >
             <option value="all">Semua Jenis Acara</option>
             <option value="live_music">Live Music & Akustik</option>
@@ -187,7 +185,7 @@ export const EventManagementTab: React.FC = () => {
             setFormTitle('Live Acoustic Weekend')
             setIsModalOpen(true)
           }}
-          className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+          className="w-full sm:w-auto px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer min-h-[42px] shrink-0"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>+ Jadwalkan Event Baru</span>
@@ -288,9 +286,9 @@ export const EventManagementTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleSimulateCheckin(ev.id)}
-                className="flex-1 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px] rounded-xl flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs cursor-pointer min-h-[38px]"
               >
-                <Camera className="w-3 h-3" />
+                <Camera className="w-3.5 h-3.5" />
                 <span>Scan Tiket Gate-in</span>
               </button>
             </div>
@@ -301,7 +299,7 @@ export const EventManagementTab: React.FC = () => {
       {/* Modal Schedule Event */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card w-full max-w-md p-6 rounded-2xl border border-border shadow-2xl space-y-4">
+          <div className="bg-card w-full max-w-md p-5 sm:p-6 rounded-2xl border border-border shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-purple-400" />
@@ -325,17 +323,17 @@ export const EventManagementTab: React.FC = () => {
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="Contoh: Nobar Liga Champions"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-muted-foreground font-semibold mb-1">Kategori</label>
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   >
                     <option value="live_music">Live Music</option>
                     <option value="nobar_sport">Nobar Olahraga</option>
@@ -350,7 +348,7 @@ export const EventManagementTab: React.FC = () => {
                     required
                     value={formCapacity}
                     onChange={(e) => setFormCapacity(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   />
                 </div>
               </div>
@@ -373,7 +371,7 @@ export const EventManagementTab: React.FC = () => {
                         type="number"
                         value={formPrice}
                         onChange={(e) => setFormPrice(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                        className="w-full px-3 py-1.5 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                       />
                     </div>
                     <div>
@@ -383,7 +381,7 @@ export const EventManagementTab: React.FC = () => {
                         value={formFdc}
                         onChange={(e) => setFormFdc(e.target.value)}
                         placeholder="Contoh: Free 1 Mocktail"
-                        className="w-full px-3 py-1.5 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                        className="w-full px-3 py-1.5 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                       />
                     </div>
                   </div>
@@ -394,13 +392,13 @@ export const EventManagementTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-muted"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-muted"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl shadow-xs"
+                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl shadow-xs"
                 >
                   Jadwalkan Event
                 </button>

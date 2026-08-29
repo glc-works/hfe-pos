@@ -17,7 +17,6 @@ import {
   Check,
   X
 } from 'lucide-react'
-import { Button, Badge, Card, TextInput } from '@/ui'
 
 export interface ProductCatalogItem {
   id: string
@@ -170,24 +169,24 @@ export const ProductCatalogManagementTab: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3.5 rounded-2xl border border-border">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
+      {/* Top Action Bar (Mobile-First Responsive Stack) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-card p-3.5 rounded-2xl border border-border">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari produk / SKU / jasa..."
-              className="pl-8 pr-3 py-1.5 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none w-52 sm:w-64"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
             />
           </div>
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs bg-background border border-border text-foreground rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer"
+            className="w-full sm:w-auto text-xs bg-background border border-border text-foreground rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer min-h-[40px]"
           >
             {categories.map((c) => (
               <option key={c} value={c}>
@@ -200,15 +199,96 @@ export const ProductCatalogManagementTab: React.FC = () => {
         <button
           type="button"
           onClick={handleOpenAddModal}
-          className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+          className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer min-h-[42px] shrink-0"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>+ Tambah Produk / Jasa</span>
         </button>
       </div>
 
-      {/* Product List Table */}
-      <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-xs">
+      {/* Mobile Card List (< md) */}
+      <div className="grid grid-cols-1 gap-2.5 md:hidden">
+        {filteredProducts.map((p) => {
+          const marginPct = p.price > 0 ? Math.round(((p.price - p.unitCost) / p.price) * 100) : 0
+          return (
+            <div key={p.id} className="p-3.5 bg-card rounded-2xl border border-border space-y-2.5 shadow-xs">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                    {p.type === 'service' ? (
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                    ) : (
+                      <Coffee className="w-4 h-4 text-amber-500" />
+                    )}
+                    <span>{p.name}</span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-mono">
+                    {p.sku} • {p.category}
+                  </span>
+                </div>
+
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono ${
+                    marginPct >= 60
+                      ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                      : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                  }`}
+                >
+                  Margin: {marginPct}%
+                </span>
+              </div>
+
+              {p.bomRecipe && (
+                <div className="text-[10px] text-amber-500 font-mono flex items-center gap-1">
+                  <Layers className="w-3 h-3" /> Resep: {p.bomRecipe.map((b) => `${b.qty}${b.unit} ${b.ingredientName.split(' ')[0]}`).join(', ')}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1 border-t border-border/60 text-xs">
+                <div>
+                  <span className="text-[10px] text-muted-foreground block">Harga Jual / HPP:</span>
+                  <span className="font-bold font-mono text-foreground">{formatIdr(p.price)}</span>
+                  <span className="text-[10px] text-muted-foreground font-mono ml-1">({formatIdr(p.unitCost)})</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleAvailability(p.id)}
+                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold cursor-pointer transition-all min-h-[32px] ${
+                      p.isAvailable
+                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                    }`}
+                  >
+                    {p.isAvailable ? '🟢 Aktif' : '🔴 Kosong (86)'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingProduct(p)
+                      setFormName(p.name)
+                      setFormSku(p.sku)
+                      setFormCategory(p.category)
+                      setFormPrice(p.price.toString())
+                      setFormUnitCost(p.unitCost.toString())
+                      setIsModalOpen(true)
+                    }}
+                    className="p-1.5 text-muted-foreground hover:text-foreground bg-muted rounded-lg"
+                    title="Edit"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop Product Table (>= md) */}
+      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -311,7 +391,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
       {/* Modal Add / Edit Product */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card w-full max-w-md p-6 rounded-2xl border border-border shadow-2xl space-y-4">
+          <div className="bg-card w-full max-w-md p-5 sm:p-6 rounded-2xl border border-border shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Tag className="w-4 h-4 text-amber-500" />
@@ -335,11 +415,11 @@ export const ProductCatalogManagementTab: React.FC = () => {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Contoh: Caramel Macchiato"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-muted-foreground font-semibold mb-1">SKU / Barcode</label>
                   <input
@@ -347,7 +427,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                     required
                     value={formSku}
                     onChange={(e) => setFormSku(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   />
                 </div>
                 <div>
@@ -355,7 +435,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   >
                     <option value="Minuman Kopi">Minuman Kopi</option>
                     <option value="Manual Brew">Manual Brew</option>
@@ -365,7 +445,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-muted-foreground font-semibold mb-1">Harga Jual (IDR)</label>
                   <input
@@ -373,7 +453,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                     required
                     value={formPrice}
                     onChange={(e) => setFormPrice(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   />
                 </div>
                 <div>
@@ -383,7 +463,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                     required
                     value={formUnitCost}
                     onChange={(e) => setFormUnitCost(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   />
                 </div>
               </div>
@@ -392,13 +472,13 @@ export const ProductCatalogManagementTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-muted"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-muted"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-xs"
+                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-xs"
                 >
                   Simpan Produk
                 </button>

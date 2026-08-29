@@ -132,24 +132,24 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3.5 rounded-2xl border border-border">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
+      {/* Top Action Bar (Mobile-First Responsive Stack) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-card p-3.5 rounded-2xl border border-border">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari kode kupon / nama promo..."
-              className="pl-8 pr-3 py-1.5 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none w-52 sm:w-64"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="text-xs bg-background border border-border text-foreground rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer"
+            className="w-full sm:w-auto text-xs bg-background border border-border text-foreground rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer min-h-[40px]"
           >
             <option value="all">Semua Tipe Promo</option>
             <option value="voucher_code">Kode Voucher</option>
@@ -165,7 +165,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
             setFormName('Promo Diskon Khusus Pelanggan')
             setIsModalOpen(true)
           }}
-          className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
+          className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer min-h-[42px] shrink-0"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>+ Buat Promo Baru</span>
@@ -177,7 +177,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
         {filteredPromos.map((p) => (
           <div
             key={p.id}
-            className={`p-4 rounded-2xl border transition-all ${
+            className={`p-4 rounded-2xl border transition-all space-y-2.5 ${
               p.isActive
                 ? 'bg-card border-border shadow-xs'
                 : 'bg-muted/20 border-border/50 opacity-75'
@@ -211,7 +211,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => togglePromoStatus(p.id)}
-                className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                className={`px-2.5 py-1 rounded-xl text-[10px] font-bold cursor-pointer transition-all min-h-[30px] ${
                   p.isActive
                     ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
                     : 'bg-muted text-muted-foreground'
@@ -221,11 +221,11 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
               </button>
             </div>
 
-            <div className="py-2.5 space-y-1.5">
-              <h4 className="text-xs font-bold text-foreground leading-snug">{p.name}</h4>
-              <div className="flex items-center justify-between text-xs pt-1">
+            <div className="space-y-1.5 text-xs">
+              <h4 className="font-bold text-foreground leading-snug">{p.name}</h4>
+              <div className="flex items-center justify-between pt-1">
                 <span className="text-muted-foreground">Besar Diskon:</span>
-                <span className="font-bold text-emerald-500 font-mono">
+                <span className="font-bold text-emerald-500 font-mono text-sm">
                   {p.discountType === 'percentage'
                     ? `${p.discountValue}% OFF`
                     : `-${formatIdr(p.discountValue)}`}
@@ -237,7 +237,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
                   <span className="font-mono text-foreground">{formatIdr(p.minSpend)}</span>
                 </div>
               )}
-              <div className="flex items-center justify-between text-[11px] pt-1">
+              <div className="flex items-center justify-between text-[11px] pt-1 border-t border-border/40">
                 <span className="text-muted-foreground">Klaim Penggunaan:</span>
                 <span className="font-mono font-bold text-foreground">
                   {p.usageCount} {p.usageLimit ? `/ ${p.usageLimit}` : 'kali'}
@@ -246,7 +246,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
             </div>
 
             <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground">
-              <span>Berlaku s/d: {p.validUntil}</span>
+              <span>Berlaku: {p.validUntil}</span>
               <div className="flex gap-1">
                 {p.channels.map((c) => (
                   <span key={c} className="px-1.5 py-0.5 rounded bg-muted font-mono uppercase text-[9px]">
@@ -262,7 +262,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
       {/* Modal Create Promo */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card w-full max-w-md p-6 rounded-2xl border border-border shadow-2xl space-y-4">
+          <div className="bg-card w-full max-w-md p-5 sm:p-6 rounded-2xl border border-border shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Ticket className="w-4 h-4 text-amber-500" />
@@ -286,7 +286,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
                   value={formCode}
                   onChange={(e) => setFormCode(e.target.value.toUpperCase())}
                   placeholder="Contoh: MERDEKA50"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-bold tracking-wider focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono font-bold tracking-wider focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                 />
               </div>
 
@@ -298,17 +298,17 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Contoh: Diskon Kemerdekaan Rp 15.000"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-muted-foreground font-semibold mb-1">Tipe Diskon</label>
                   <select
                     value={formDiscountType}
                     onChange={(e) => setFormDiscountType(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   >
                     <option value="fixed_nominal">Potongan Nominal (Rp)</option>
                     <option value="percentage">Potongan Persen (%)</option>
@@ -321,7 +321,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
                     required
                     value={formDiscountVal}
                     onChange={(e) => setFormDiscountVal(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                   />
                 </div>
               </div>
@@ -333,7 +333,7 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
                   required
                   value={formMinSpend}
                   onChange={(e) => setFormMinSpend(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
                 />
               </div>
 
@@ -341,13 +341,13 @@ export const PromotionsAndDiscountsTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-muted"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-muted"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-xs"
+                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-xs"
                 >
                   Aktifkan Promo
                 </button>
