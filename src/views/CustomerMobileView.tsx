@@ -9,7 +9,9 @@ import {
   PB1TaxMode,
   HfeCompanyProfile,
   CafeThemeConfig,
-  TableStatus
+  TableStatus,
+  OrderFulfillmentMode,
+  DeliveryAddressInfo
 } from '../types/pos'
 import { CustomerHeader } from '../components/customer/CustomerHeader'
 import { CustomerCatalogView } from '../components/customer/CustomerCatalogView'
@@ -66,6 +68,11 @@ export interface CustomerMobileViewProps {
   onJoinMembership?: (phone: string) => void
   onResetGuestSession?: () => void
   onSwitchToPos?: () => void
+  fulfillmentMode?: OrderFulfillmentMode
+  deliveryAddress?: DeliveryAddressInfo
+  onChangeDeliveryAddress?: (updated: Partial<DeliveryAddressInfo>) => void
+  deliveryFee?: number
+  packagingFee?: number
 }
 
 export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
@@ -115,7 +122,12 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
   onSwitchToLandingPage,
   onJoinMembership,
   onResetGuestSession,
-  onSwitchToPos
+  onSwitchToPos,
+  fulfillmentMode,
+  deliveryAddress,
+  onChangeDeliveryAddress,
+  deliveryFee,
+  packagingFee
 }) => {
   const categoryRefsMap = useRef<Record<string, HTMLDivElement | null>>({})
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -358,33 +370,18 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
           {qrStepView === 'checkout' && (
             <div className="flex-1 flex flex-col animate-slideInRight">
               <CustomerCheckoutView
-                selectedTable={selectedTable}
-                scannedSeat={scannedSeat}
-                cart={cart}
-                hfeCompanyProfile={hfeCompanyProfile}
-                hasPaidOrder={hasActiveOpenBill || relevantTableOrders.length > 0}
-                activeTheme={activeTheme}
-                promoCodeInput={promoCodeInput}
-                setPromoCodeInput={setPromoCodeInput}
-                appliedPromo={appliedPromo}
-                redeemedVoucher={redeemedVoucher}
-                serviceFeeRate={serviceFeeRate}
-                calculatedServiceFee={calculatedServiceFee}
-                taxPB1Mode={taxPB1Mode}
-                calculatedPB1Tax={calculatedPB1Tax}
-                selectedTipAmount={selectedTipAmount}
-                setSelectedTipAmount={setSelectedTipAmount}
-                paymentPolicy={paymentPolicy}
-                setPaymentPolicy={setPaymentPolicy}
-                rawSubtotal={rawSubtotal}
-                grandTotalBill={grandTotalBill}
-                isCustomerSessionActive={isCustomerSessionActive}
-                onJoinMembership={onJoinMembership}
-                onResetGuestSession={onResetGuestSession}
-                setQrStepView={setQrStepView}
-                handleUpdateQty={handleUpdateQty}
-                handleApplyPromo={handleApplyPromo}
-                handleSubmitOrder={handleSubmitOrder}
+                selectedTable={selectedTable} scannedSeat={scannedSeat} cart={cart} hfeCompanyProfile={hfeCompanyProfile}
+                hasPaidOrder={hasActiveOpenBill || relevantTableOrders.length > 0} activeTheme={activeTheme}
+                promoCodeInput={promoCodeInput} setPromoCodeInput={setPromoCodeInput} appliedPromo={appliedPromo}
+                redeemedVoucher={redeemedVoucher} serviceFeeRate={serviceFeeRate} calculatedServiceFee={calculatedServiceFee}
+                taxPB1Mode={taxPB1Mode} calculatedPB1Tax={calculatedPB1Tax} selectedTipAmount={selectedTipAmount}
+                setSelectedTipAmount={setSelectedTipAmount} paymentPolicy={paymentPolicy} setPaymentPolicy={setPaymentPolicy}
+                rawSubtotal={rawSubtotal} grandTotalBill={grandTotalBill} isCustomerSessionActive={isCustomerSessionActive}
+                onJoinMembership={onJoinMembership} onResetGuestSession={onResetGuestSession} setQrStepView={setQrStepView}
+                handleUpdateQty={handleUpdateQty} handleApplyPromo={handleApplyPromo} handleSubmitOrder={handleSubmitOrder}
+                fulfillmentMode={fulfillmentMode || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('fulfillment') as OrderFulfillmentMode) || 'dine_in'}
+                deliveryAddress={deliveryAddress} onChangeDeliveryAddress={onChangeDeliveryAddress}
+                deliveryFee={deliveryFee} packagingFee={packagingFee}
               />
             </div>
           )}
