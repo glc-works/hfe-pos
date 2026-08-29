@@ -294,9 +294,12 @@ export const VendorDirectoryTab: React.FC<VendorDirectoryTabProps> = ({ onOpenRe
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card text-foreground border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Plus className="w-4 h-4 text-amber-500" /> Buat Purchase Order (PO) Baru
-              </h4>
+              <div className="flex items-center gap-2">
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-mono text-[10px] font-bold">
+                  FORM-LOG-02
+                </span>
+                <h4 className="text-sm font-bold text-foreground">Purchase Order (PO) Baru</h4>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowNewPoModal(false)}

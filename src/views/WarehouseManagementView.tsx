@@ -133,7 +133,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
             className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <PackagePlus className="w-4 h-4" />
-            <span>[FORM-LOG-01] Terima Barang</span>
+            <span>Terima Barang</span>
           </button>
           <button
             type="button"
@@ -141,7 +141,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
             className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <ArrowLeftRight className="w-4 h-4" />
-            <span>[FORM-LOG-03] Transfer Cabang</span>
+            <span>Transfer Cabang</span>
           </button>
           <button
             type="button"
@@ -149,7 +149,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
             className="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <Trash2 className="w-4 h-4" />
-            <span>[FORM-LOG-04] Catat Waste</span>
+            <span>Catat Waste</span>
           </button>
         </div>
 

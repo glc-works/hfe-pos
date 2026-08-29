@@ -75,7 +75,12 @@ export const GoodsReceivingModal: React.FC<GoodsReceivingModalProps> = ({
               <PackagePlus className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-bold text-foreground text-base">Penerimaan Barang (Goods Receipt / GRN)</h3>
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-mono text-[10px] font-bold">
+                  FORM-LOG-01
+                </span>
+                <h3 className="font-bold text-foreground text-sm">Penerimaan Barang (GRN)</h3>
+              </div>
               <p className="text-xs text-muted-foreground">Verifikasi fisik surat jalan, tanggal kedaluwarsa & update stok</p>
             </div>
           </div>

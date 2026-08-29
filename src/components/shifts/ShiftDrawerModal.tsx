@@ -173,62 +173,74 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
           </div>
         </div>
 
-        {/* TAB NAVIGATION WITH FORM CODES */}
-        <div className="grid grid-cols-3 bg-muted p-1 rounded-xl border border-border text-[11px] font-bold">
+        {/* TAB NAVIGATION */}
+        <div className="grid grid-cols-3 bg-muted p-1 rounded-xl border border-border text-xs font-semibold">
           <button
             type="button"
             onClick={() => setActiveTab('float')}
-            className={`py-1.5 rounded-lg transition-all ${
+            className={`py-1.5 rounded-lg transition-all cursor-pointer ${
               activeTab === 'float' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            [FORM-OPS-01] Float
+            Float Shift
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('cash_out')}
-            className={`py-1.5 rounded-lg transition-all ${
+            className={`py-1.5 rounded-lg transition-all cursor-pointer ${
               activeTab === 'cash_out' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            [FORM-OPS-02] Kas Kecil
+            Kas Kecil ({cashOutList.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('reconcile')}
-            className={`py-1.5 rounded-lg transition-all ${
+            className={`py-1.5 rounded-lg transition-all cursor-pointer ${
               activeTab === 'reconcile' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            [FORM-OPS-03] Z-Report
+            Z-Report Kasir
           </button>
         </div>
 
         {/* TAB 1: FLOAT AWAL */}
         {activeTab === 'float' && (
           <div className="flex flex-col gap-3">
-            <label className="text-xs font-bold text-amber-500 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4" /> Kas Modal Awal Shift (Opening Float)
-            </label>
+            <div className="flex items-center gap-1.5">
+              <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-mono text-[10px] font-bold">
+                FORM-OPS-01
+              </span>
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-amber-500" /> Modal Awal Shift (Opening Float)
+              </label>
+            </div>
             <div className="bg-background border border-border p-3.5 rounded-2xl flex flex-col gap-2">
               <span className="text-xs text-muted-foreground">Nominal Float Kasir:</span>
               <input
                 type="number"
+                min={0}
+                step={50000}
                 value={currentFloat}
                 onChange={(e) => setCurrentFloat(Number(e.target.value))}
-                className="bg-muted border border-border rounded-xl px-3 py-2 text-foreground font-mono font-bold text-base focus:border-amber-500 focus:outline-none"
+                className="bg-muted border border-border rounded-xl px-3 py-2 text-sm font-mono font-bold text-foreground focus:border-amber-500 focus:outline-none"
               />
-              <p className="text-[11px] text-muted-foreground">Standar modal kasir Hfe POS: Rp 500.000 (Pecahan 10k, 20k, 50k)</p>
+              <span className="text-[10px] text-muted-foreground">Saldo kas fisik di laci saat kasir memulai shift kerja.</span>
             </div>
           </div>
         )}
 
-        {/* TAB 2: CASH OUT */}
+        {/* TAB 2: CASH OUT / KAS KECIL */}
         {activeTab === 'cash_out' && (
           <div className="flex flex-col gap-3">
-            <label className="text-xs font-bold text-rose-500 flex items-center gap-1.5">
-              <ArrowUpRight className="w-4 h-4" /> Form Cash Out Kasir (Mid-Shift Expense)
-            </label>
+            <div className="flex items-center gap-1.5">
+              <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20 font-mono text-[10px] font-bold">
+                FORM-OPS-02
+              </span>
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <ArrowUpRight className="w-4 h-4 text-rose-500" /> Pengeluaran Kas Kecil (Paid-Out)
+              </label>
+            </div>
             <div className="bg-background border border-border p-3 rounded-2xl flex flex-col gap-2">
               <div className="grid grid-cols-2 gap-2">
                 <input
@@ -274,6 +286,14 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
         {/* TAB 3: REKONSILIASI PENUTUPAN */}
         {activeTab === 'reconcile' && (
           <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-mono text-[10px] font-bold">
+                FORM-OPS-03
+              </span>
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Calculator className="w-4 h-4 text-amber-500" /> Rekonsiliasi Kasir & Z-Report Penutupan
+              </label>
+            </div>
             {/* Shift Summary Box */}
             <div className="bg-background border border-border rounded-2xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div>
@@ -319,35 +339,10 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
                         <div key={d.val} className="flex items-center justify-between p-1.5 bg-muted/40 rounded-xl border border-border/80 text-xs">
                           <span className={`font-mono font-bold text-[11px] ${d.color}`}>{d.label}</span>
                           <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateCount(d.val, -1)}
-                              className="w-6 h-6 rounded-lg bg-background border border-border text-foreground hover:bg-muted flex items-center justify-center font-bold"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min={0}
-                              value={qty || ''}
-                              placeholder="0"
-                              onChange={(e) => setCounts(prev => ({ ...prev, [d.val]: Math.max(0, Number(e.target.value)) }))}
-                              className="w-10 text-center font-mono font-bold text-xs bg-background border border-border rounded-lg py-0.5"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateCount(d.val, 1)}
-                              className="w-6 h-6 rounded-lg bg-background border border-border text-foreground hover:bg-muted flex items-center justify-center font-bold"
-                            >
-                              +
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateCount(d.val, 5)}
-                              className="text-[9px] px-1 py-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-bold"
-                            >
-                              +5
-                            </button>
+                            <button type="button" onClick={() => handleUpdateCount(d.val, -1)} className="w-6 h-6 rounded-lg bg-background border border-border text-foreground hover:bg-muted flex items-center justify-center font-bold">-</button>
+                            <input type="number" min={0} value={qty || ''} placeholder="0" onChange={(e) => setCounts(prev => ({ ...prev, [d.val]: Math.max(0, Number(e.target.value)) }))} className="w-10 text-center font-mono font-bold text-xs bg-background border border-border rounded-lg py-0.5" />
+                            <button type="button" onClick={() => handleUpdateCount(d.val, 1)} className="w-6 h-6 rounded-lg bg-background border border-border text-foreground hover:bg-muted flex items-center justify-center font-bold">+</button>
+                            <button type="button" onClick={() => handleUpdateCount(d.val, 5)} className="text-[9px] px-1 py-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-bold">+5</button>
                           </div>
                         </div>
                       )
