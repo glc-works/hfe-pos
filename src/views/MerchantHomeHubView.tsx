@@ -140,85 +140,20 @@ export function MerchantHomeHubView({
 
   return (
     <div className="h-full min-h-0 flex flex-col bg-background text-foreground overflow-hidden">
-      {/* Top Fixed Header Strip */}
-      <header className="shrink-0 z-20 border-b border-border bg-card/80 backdrop-blur px-4 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {onBackToPos && (
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={onBackToPos}
-              className="text-xs font-semibold shrink-0"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Kembali ke Kasir
-            </Button>
-          )}
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-primary" /> {config.storeName || 'Kopi Nusantara'} — Merchant Hub
-              </h2>
-              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-[10px]">
-                👑 Owner Mode
-              </Badge>
-            </div>
-            <p className="text-[11px] text-muted-foreground hidden sm:block">
-              Ruang kendali terpadu bisnis, katalog produk, promosi, arus kas, domain, dan kepatuhan pajak daerah
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => setShowGoLiveModal(true)}
-            className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950/40"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Kesiapan Buka Toko</span>
-          </Button>
-
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => setIsPinAuthenticated(false)}
-            className="text-xs font-mono"
-            title="Kunci Sesi Hub"
-          >
-            <KeyRound className="w-3.5 h-3.5 mr-1 text-muted-foreground" /> Kunci Sesi
-          </Button>
-        </div>
-      </header>
-
-      {/* Attention Center Top Alert Bar */}
-      <div className="shrink-0 bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs flex items-center justify-between gap-2 overflow-x-auto">
-        <div className="flex items-center gap-2 text-amber-300 font-semibold shrink-0">
-          <Bell className="w-3.5 h-3.5 text-amber-400" />
-          <span className="text-[11px] uppercase tracking-wider">🚨 Attention Center:</span>
-        </div>
-        <div className="flex items-center gap-4 text-[11px] text-muted-foreground overflow-x-auto">
-          {attentionAlerts.map((alt) => (
-            <div key={alt.id} className="flex items-center gap-1.5 shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-              <span className="text-foreground/90">{alt.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Navigation Tabs Bar */}
-      <div className="shrink-0 border-b border-border bg-muted/30 px-4 pt-2 overflow-x-auto">
-        <div className="flex gap-2 min-w-max pb-2">
+      {/* LAYER 2: CONTEXTUAL SUB-NAV STRIP */}
+      <div className="shrink-0 border-b border-border bg-card/60 backdrop-blur-xs px-3 sm:px-4 py-2 flex items-center justify-between gap-3 overflow-x-auto">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-0.5 min-w-max">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.key
             return (
               <button
                 key={tab.key}
+                type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all select-none cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all select-none cursor-pointer min-h-[36px] ${
                   isActive
-                    ? 'bg-card text-primary shadow-sm border border-border font-bold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 }`}
               >
                 <span>{tab.glyph}</span>
@@ -226,6 +161,26 @@ export function MerchantHomeHubView({
               </button>
             )
           })}
+        </div>
+
+        <div className="hidden md:flex items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            onClick={() => setShowGoLiveModal(true)}
+            className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Kesiapan Toko</span>
+          </Button>
+
+          <button
+            type="button"
+            onClick={() => setIsPinAuthenticated(false)}
+            className="p-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl border border-border"
+            title="Kunci Sesi Hub"
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
