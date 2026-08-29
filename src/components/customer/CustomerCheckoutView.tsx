@@ -89,14 +89,14 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
   const isDelivery = fulfillmentMode === 'delivery'
   const isLight = activeTheme.mode === 'light'
   const textColor = activeTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
-  const secondaryTextColor = activeTheme.secondaryTextColorHex || (isLight ? '#64748b' : '#94a3b8')
-  const cardBorderColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'
-  const subCardBg = isLight ? 'rgba(0,0,0,0.025)' : 'rgba(15,23,42,0.6)'
-  const subCardBorder = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'
-  const inputBg = isLight ? '#ffffff' : 'rgba(2,6,23,0.8)'
-  const inputBorder = isLight ? '#cbd5e1' : '#334155'
-  const buttonInactiveBg = isLight ? '#ffffff' : 'rgba(15,23,42,0.8)'
-  const buttonInactiveBorder = isLight ? '#e2e8f0' : '#1e293b'
+  const secondaryTextColor = activeTheme.secondaryTextColorHex || (isLight ? '#475569' : '#cbd5e1')
+  const cardBorderColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.12)'
+  const subCardBg = isLight ? 'rgba(0,0,0,0.025)' : 'rgba(15,23,42,0.85)'
+  const subCardBorder = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.12)'
+  const inputBg = isLight ? '#ffffff' : 'rgba(2,6,23,0.9)'
+  const inputBorder = isLight ? '#cbd5e1' : '#475569'
+  const buttonInactiveBg = isLight ? '#ffffff' : '#1e293b'
+  const buttonInactiveBorder = isLight ? '#e2e8f0' : '#334155'
 
   const effectiveDeliveryFee = isDelivery ? (deliveryFee > 0 ? deliveryFee : Math.max(10000, Math.round(deliveryAddress.distanceKm * 3000))) : 0
   const effectivePackagingFee = isDelivery ? (packagingFee > 0 ? packagingFee : 3000) : packagingFee

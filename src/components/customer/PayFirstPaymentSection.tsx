@@ -88,8 +88,8 @@ export const PayFirstPaymentSection: React.FC<PayFirstPaymentSectionProps> = ({
           className="px-3 py-1.5 rounded-xl text-xs font-black transition-all whitespace-nowrap shrink-0 border"
           style={
             useLoyaltyPoints
-              ? { backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617', borderColor: activeTheme.primaryAccentHex }
-              : { backgroundColor: buttonInactiveBg, color: secondaryTextColor, borderColor: buttonInactiveBorder }
+              ? { backgroundColor: activeTheme.primaryAccentHex, color: '#ffffff', borderColor: activeTheme.primaryAccentHex }
+              : { backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }
           }
         >
           {useLoyaltyPoints ? '✓ Terpasang (-Rp 4.500)' : 'Gunakan'}
@@ -108,7 +108,7 @@ export const PayFirstPaymentSection: React.FC<PayFirstPaymentSectionProps> = ({
         />
         <button
           onClick={handleApplyPromo}
-          className="text-xs font-semibold px-4 py-2 rounded-xl border"
+          className="text-xs font-bold px-4 py-2 rounded-xl border transition-colors"
           style={{ backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }}
         >
           Gunakan
@@ -136,8 +136,8 @@ export const PayFirstPaymentSection: React.FC<PayFirstPaymentSectionProps> = ({
               className="py-2 rounded-xl text-xs font-bold border transition-all shadow-sm"
               style={
                 selectedTipAmount === tip.val
-                  ? { backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617', borderColor: activeTheme.primaryAccentHex }
-                  : { backgroundColor: buttonInactiveBg, color: secondaryTextColor, borderColor: buttonInactiveBorder }
+                  ? { backgroundColor: activeTheme.primaryAccentHex, color: '#ffffff', borderColor: activeTheme.primaryAccentHex }
+                  : { backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }
               }
             >
               {tip.label}
@@ -158,19 +158,19 @@ export const PayFirstPaymentSection: React.FC<PayFirstPaymentSectionProps> = ({
             className="py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all shadow-sm"
             style={
               paymentMethod === 'qris'
-                ? { backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617', borderColor: activeTheme.primaryAccentHex }
-                : { backgroundColor: buttonInactiveBg, color: secondaryTextColor, borderColor: buttonInactiveBorder }
+                ? { backgroundColor: activeTheme.primaryAccentHex, color: '#ffffff', borderColor: activeTheme.primaryAccentHex }
+                : { backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }
             }
           >
-            <QrCode className="w-3.5 h-3.5" /> QRIS Instant
+            <QrCode className="w-3.5 h-3.5" /> QRIS Instan
           </button>
           <button
             onClick={() => setPaymentMethod('cash')}
             className="py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all shadow-sm"
             style={
               paymentMethod === 'cash'
-                ? { backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617', borderColor: activeTheme.primaryAccentHex }
-                : { backgroundColor: buttonInactiveBg, color: secondaryTextColor, borderColor: buttonInactiveBorder }
+                ? { backgroundColor: activeTheme.primaryAccentHex, color: '#ffffff', borderColor: activeTheme.primaryAccentHex }
+                : { backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }
             }
           >
             <Banknote className="w-3.5 h-3.5" /> Tunai / Kasir
@@ -180,11 +180,11 @@ export const PayFirstPaymentSection: React.FC<PayFirstPaymentSectionProps> = ({
             className="py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all shadow-sm"
             style={
               paymentMethod === 'card'
-                ? { backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617', borderColor: activeTheme.primaryAccentHex }
-                : { backgroundColor: buttonInactiveBg, color: secondaryTextColor, borderColor: buttonInactiveBorder }
+                ? { backgroundColor: activeTheme.primaryAccentHex, color: '#ffffff', borderColor: activeTheme.primaryAccentHex }
+                : { backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }
             }
           >
-            <CreditCard className="w-3.5 h-3.5" /> Debit / Kredit
+            <CreditCard className="w-3.5 h-3.5" /> Kartu
           </button>
         </div>
       </div>

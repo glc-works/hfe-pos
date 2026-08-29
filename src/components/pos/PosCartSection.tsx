@@ -148,14 +148,14 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             {cartItems.map((item, idx) => (
               <div key={idx} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-xl p-2 flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{item.name}</h5>
+                  <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h5>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap shrink-0">{formatPrice(item.price)}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => onOpenDirectQtyModal(item, idx)}
-                    className="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono font-bold text-xs rounded-lg border border-slate-300 dark:border-slate-700 flex items-center gap-1 transition-all whitespace-nowrap shrink-0"
+                    className="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-mono font-bold text-xs rounded-lg border border-slate-300 dark:border-slate-700 flex items-center gap-1 transition-all whitespace-nowrap shrink-0"
                   >
                     <Calculator className="w-3 h-3 text-slate-500 dark:text-slate-400 shrink-0" /> {item.quantity}x
                   </button>
@@ -200,7 +200,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           {!authoritativeQuote && <p className="mb-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">{t.cart.localPriceEstimate}</p>}
           <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{t.cart.subtotal}</span>
-            <span className="font-mono text-slate-800 dark:text-slate-200 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.subtotalMinor) : formatPrice(subtotal)}</span>
+            <span className="font-mono text-slate-900 dark:text-slate-100 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.subtotalMinor) : formatPrice(subtotal)}</span>
           </div>
         {!authoritativeQuote && packagingFee > 0 && (
           <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">

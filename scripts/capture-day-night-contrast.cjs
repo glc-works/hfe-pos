@@ -6,84 +6,85 @@ const path = require('path');
   const brainDir = process.env.BRAIN_DIR || '/Users/aldi/.gemini/antigravity/brain/b1389ef7-dd0b-4095-bbea-de93e1d65656';
   const port = process.env.PORT || '3000';
 
-  console.log(`Starting visual capture for Day Mode Express Checkout & Address Modal on port ${port}...`);
+  console.log(`Starting visual capture for Day and Night Mode on port ${port}...`);
 
-  const mobileContext = await browser.newContext({
+  // 1. Mobile Day Mode Checkout
+  const mobileDayContext = await browser.newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 2,
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
   });
-  const page = await mobileContext.newPage();
-
-  // Explicitly initialize localStorage with clean Day Mode state
-  await page.addInitScript(() => {
+  const mobileDayPage = await mobileDayContext.newPage();
+  await mobileDayPage.addInitScript(() => {
     localStorage.clear();
     localStorage.setItem('hfe_theme_mode', 'light');
   });
-
-  // 1. Navigate to Customer QR / Online App in Delivery Mode (Clean Day Mode)
-  await page.goto(`http://localhost:${port}/?app=customer&fulfillment=delivery`);
-  await page.waitForTimeout(1000);
-
-  // Add 1 item to cart if empty
-  const addBtn = page.getByTitle(/Tambah/i).first();
-  if (await addBtn.isVisible()) {
-    await addBtn.click();
-    await page.waitForTimeout(500);
-
-    const confirmAddBtn = page.getByRole('button', { name: /Masukkan ke Keranjang|Tambah ke Pesanan/i }).first();
-    if (await confirmAddBtn.isVisible()) {
-      await confirmAddBtn.click();
-      await page.waitForTimeout(500);
-    }
+  await mobileDayPage.goto(`http://localhost:${port}/?app=customer&fulfillment=delivery`);
+  await mobileDayPage.waitForTimeout(800);
+  const addBtnDay = mobileDayPage.getByTitle(/Tambah/i).first();
+  if (await addBtnDay.isVisible()) {
+    await addBtnDay.click();
+    await mobileDayPage.waitForTimeout(400);
+    const confirmAdd = mobileDayPage.getByRole('button', { name: /Masukkan ke Keranjang|Tambah ke Pesanan/i }).first();
+    if (await confirmAdd.isVisible()) await confirmAdd.click();
   }
-
-  // Click the floating bottom cart dock to go to checkout
-  const cartDock = page.locator('.min-h-\\[64px\\]').first();
-  if (await cartDock.isVisible()) {
-    await cartDock.click();
-    await page.waitForTimeout(1000);
+  const cartDockDay = mobileDayPage.locator('.min-h-\\[64px\\]').first();
+  if (await cartDockDay.isVisible()) {
+    await cartDockDay.click();
+    await mobileDayPage.waitForTimeout(800);
   }
+  await mobileDayPage.screenshot({ path: path.join(brainDir, 'day_mode_express_checkout_verified.png') });
 
-  const dayModeCheckoutPath = path.join(brainDir, 'day_mode_express_checkout_verified.png');
-  await page.screenshot({ path: dayModeCheckoutPath });
-  console.log(`✓ Day Mode Express Checkout captured: ${dayModeCheckoutPath}`);
-
-  // 2. Click "Ubah" on Address Summary Card to open Dedicated Address Modal
-  const editAddressBtn = page.locator('button:has-text("Ubah")').first();
-  if (await editAddressBtn.isVisible()) {
-    await editAddressBtn.click();
-    await page.waitForTimeout(600);
-
-    const addressModalPath = path.join(brainDir, 'day_mode_detailed_address_modal_verified.png');
-    const modalContent = page.locator('div.fixed.inset-0.z-50 > div.w-full').first();
-    if (await modalContent.isVisible()) {
-      await modalContent.screenshot({ path: addressModalPath });
-    } else {
-      await page.screenshot({ path: addressModalPath });
-    }
-    console.log(`✓ Day Mode Detailed Address Modal captured: ${addressModalPath}`);
+  // 2. Mobile Night Mode Checkout
+  const mobileNightContext = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
+  });
+  const mobileNightPage = await mobileNightContext.newPage();
+  await mobileNightPage.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('hfe_theme_mode', 'dark');
+  });
+  await mobileNightPage.goto(`http://localhost:${port}/?app=customer&fulfillment=delivery`);
+  await mobileNightPage.waitForTimeout(800);
+  const addBtnNight = mobileNightPage.getByTitle(/Tambah/i).first();
+  if (await addBtnNight.isVisible()) {
+    await addBtnNight.click();
+    await mobileNightPage.waitForTimeout(400);
+    const confirmAdd = mobileNightPage.getByRole('button', { name: /Masukkan ke Keranjang|Tambah ke Pesanan/i }).first();
+    if (await confirmAdd.isVisible()) await confirmAdd.click();
   }
+  const cartDockNight = mobileNightPage.locator('.min-h-\\[64px\\]').first();
+  if (await cartDockNight.isVisible()) {
+    await cartDockNight.click();
+    await mobileNightPage.waitForTimeout(800);
+  }
+  const nightCheckoutPath = path.join(brainDir, 'night_mode_express_checkout_verified.png');
+  await mobileNightPage.screenshot({ path: nightCheckoutPath });
+  console.log(`✓ Night Mode Express Checkout captured: ${nightCheckoutPath}`);
 
-  // 3. Capture POS Workstation in Day Mode
-  const desktopContext = await browser.newContext({
+  // 3. Desktop POS Workstation Night Mode
+  const desktopNightContext = await browser.newContext({
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 2
   });
-  const desktopPage = await desktopContext.newPage();
-  await desktopPage.addInitScript(() => {
+  const desktopNightPage = await desktopNightContext.newPage();
+  await desktopNightPage.addInitScript(() => {
     localStorage.clear();
-    localStorage.setItem('hfe_theme_mode', 'light');
+    localStorage.setItem('hfe_theme_mode', 'dark');
+    localStorage.setItem('hfe_pos_auth_token', 'demo-token-12345');
+    localStorage.setItem('hfe_pos_auth_user', JSON.stringify({ employeeId: 'EMP-001', staffName: 'Budi (Kasir)', role: 'cashier', branchId: 'BRANCH-HQ-01' }));
   });
-  await desktopPage.goto(`http://localhost:${port}/?app=cafe`);
-  await desktopPage.waitForTimeout(1000);
+  await desktopNightPage.goto(`http://localhost:${port}/?app=cafe&surface=barista-pos`);
+  await desktopNightPage.waitForTimeout(1200);
+  const nightPosPath = path.join(brainDir, 'night_mode_pos_workstation_verified.png');
+  await desktopNightPage.screenshot({ path: nightPosPath });
+  console.log(`✓ Night Mode POS Workstation captured: ${nightPosPath}`);
 
-  const posDayModePath = path.join(brainDir, 'day_mode_pos_workstation_verified.png');
-  await desktopPage.screenshot({ path: posDayModePath });
-  console.log(`✓ Day Mode POS Workstation captured: ${posDayModePath}`);
-
-  await mobileContext.close();
-  await desktopContext.close();
+  await mobileDayContext.close();
+  await mobileNightContext.close();
+  await desktopNightContext.close();
   await browser.close();
-  console.log('All Day Mode visual captures completed!');
+  console.log('✨ All Day and Night Mode captures finished successfully!');
 })();

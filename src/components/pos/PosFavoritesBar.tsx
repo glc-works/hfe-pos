@@ -105,7 +105,7 @@ export const PosFavoritesBar: React.FC<PosFavoritesBarProps> = ({
               ) : (
                 <span className="text-sm sm:text-base mb-0.5 shrink-0">{item.image || '☕'}</span>
               )}
-              <span className="text-[10px] font-bold text-slate-800 dark:text-slate-200 truncate w-full group-hover:text-slate-950 dark:group-hover:text-white leading-tight">{item.name}</span>
+              <span className="text-[10px] font-bold text-slate-900 dark:text-slate-100 truncate w-full group-hover:text-slate-950 dark:group-hover:text-white leading-tight">{item.name}</span>
               <span className="text-[9px] font-mono text-emerald-700 dark:text-emerald-400 font-bold leading-tight">{formatPrice(item.price)}</span>
             </button>
           ))}

@@ -44,9 +44,9 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
 }) => {
   const hasPreviousOrders = previousOrders && previousOrders.length > 0
   const isLight = activeTheme.mode === 'light'
-  const textColor = activeTheme.textColorHex || (isLight ? '#1e293b' : '#f8fafc')
-  const secondaryTextColor = activeTheme.secondaryTextColorHex || (isLight ? '#64748b' : '#94a3b8')
-  const cardBorderColor = isLight ? '#e2e8f0' : '#1e293b'
+  const textColor = activeTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
+  const secondaryTextColor = activeTheme.secondaryTextColorHex || (isLight ? '#475569' : '#cbd5e1')
+  const cardBorderColor = isLight ? '#e2e8f0' : '#334155'
 
   // Instant reactive filter
   const filteredCatalog = useMemo(() => {
