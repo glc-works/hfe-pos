@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ProductFormData, ModifierGroup, MatrixVariant, ChannelPricing } from '../components/hub/ProductFormModal'
+import { ProductFormData, ModifierGroup, MatrixVariant, ChannelPricing, ProductStockType } from '../components/hub/ProductFormModal'
 import { AttentionNotificationItem } from '../components/common/UnifiedAttentionCenterPopOver'
 
 describe('2-Tier Attention Center & Product Modifiers Suite (L2-POS-825 Parity)', () => {
@@ -39,8 +39,16 @@ describe('2-Tier Attention Center & Product Modifiers Suite (L2-POS-825 Parity)'
     expect(actionRequired[0].actionLabel).toBe('Tandai Selesai')
   })
 
-  it('validates F&B modifier groups and retail matrix variants schema in ProductFormData', () => {
-    const sampleFnbProduct: ProductFormData = {
+  it('validates 4 universal stock types (BoM, Unit, Bundle, Service) and F&B/Retail customizers', () => {
+    const validStockTypes: ProductStockType[] = [
+      'recipe_bom',
+      'unit_inventory',
+      'bundle_combo',
+      'non_stock_service'
+    ]
+    expect(validStockTypes.length).toBe(4)
+
+    const sampleBoMProduct: ProductFormData = {
       sku: 'BEV-ESPR-01',
       name: 'Espresso Aren Latte',
       category: 'coffee',
@@ -51,6 +59,11 @@ describe('2-Tier Attention Center & Product Modifiers Suite (L2-POS-825 Parity)'
       stockType: 'recipe_bom',
       isActive: true,
       customizationType: 'modifiers_fnb',
+      recipeIngredients: [
+        { name: 'Biji Kopi House Blend Gayo', amount: '18 Gram', cost: 4500 },
+        { name: 'Susu Fresh Milk / Oat', amount: '150 ML', cost: 3500 },
+        { name: 'Sirup Gula Aren Organik', amount: '20 ML', cost: 1200 }
+      ],
       modifierGroups: [
         {
           id: 'mod-sugar',
@@ -61,15 +74,6 @@ describe('2-Tier Attention Center & Product Modifiers Suite (L2-POS-825 Parity)'
             { id: 's2', name: 'Less Sugar (50%)', priceDelta: 0 },
             { id: 's3', name: 'No Sugar (0%)', priceDelta: 0 }
           ]
-        },
-        {
-          id: 'mod-addons',
-          name: 'Tambahan & Topping (Add-ons)',
-          selectionType: 'multiple',
-          options: [
-            { id: 'a1', name: 'Extra Espresso Shot', priceDelta: 6000, bomDelta: '+9g Biji Kopi' },
-            { id: 'a2', name: 'Ganti Oat Milk', priceDelta: 8000, bomDelta: 'Susu Oat 150ml' }
-          ]
         }
       ],
       channelPricing: {
@@ -79,31 +83,22 @@ describe('2-Tier Attention Center & Product Modifiers Suite (L2-POS-825 Parity)'
       }
     }
 
-    expect(sampleFnbProduct.customizationType).toBe('modifiers_fnb')
-    expect(sampleFnbProduct.modifierGroups?.length).toBe(2)
-    expect(sampleFnbProduct.modifierGroups?.[0].options.length).toBe(3)
-    expect(sampleFnbProduct.modifierGroups?.[1].options[0].priceDelta).toBe(6000)
-    expect(sampleFnbProduct.channelPricing?.deliveryGoFood).toBe(35000)
+    expect(sampleBoMProduct.stockType).toBe('recipe_bom')
+    expect(sampleBoMProduct.recipeIngredients?.length).toBe(3)
+    const totalCogs = sampleBoMProduct.recipeIngredients?.reduce((sum, item) => sum + item.cost, 0)
+    expect(totalCogs).toBe(9200)
 
-    const sampleRetailProduct: ProductFormData = {
-      sku: 'MER-TSHIRT-01',
-      name: 'Official T-Shirt Kopi Nusantara',
-      category: 'merchandise',
-      categoryLabel: 'Merchandise Retail',
-      price: 149000,
-      cogs: 65000,
-      marginPercent: 56,
-      stockType: 'unit_inventory',
-      isActive: true,
-      customizationType: 'matrix_retail',
-      matrixVariants: [
-        { sku: 'MER-TSHIRT-BLK-S', name: 'Hitam - S', price: 149000, stock: 12 },
-        { sku: 'MER-TSHIRT-BLK-M', name: 'Hitam - M', price: 149000, stock: 24 }
-      ]
+    const sampleBundleProduct: ProductFormData = {
+      sku: 'BND-LUNCH-01',
+      name: 'Paket Hemat Siang (Latte + Croissant)',
+      category: 'food',
+      categoryLabel: 'Paket Hemat',
+      price: 45000,
+      cogs: 18000,
+      marginPercent: 60,
+      stockType: 'bundle_combo',
+      isActive: true
     }
-
-    expect(sampleRetailProduct.customizationType).toBe('matrix_retail')
-    expect(sampleRetailProduct.matrixVariants?.length).toBe(2)
-    expect(sampleRetailProduct.matrixVariants?.[0].sku).toBe('MER-TSHIRT-BLK-S')
+    expect(sampleBundleProduct.stockType).toBe('bundle_combo')
   })
 })

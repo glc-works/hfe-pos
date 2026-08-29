@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button, TextInput } from '../../ui'
-import { ChefHat, Plus, Trash2, Sparkles, Scale } from 'lucide-react'
+import { ChefHat, Plus, Trash2, Sparkles, Scale, Layers } from 'lucide-react'
 
 export interface RecipeIngredient {
   name: string
@@ -44,12 +44,12 @@ export const ProductFormRecipeBomSection: React.FC<ProductFormRecipeBomSectionPr
   const totalBomCost = ingredients.reduce((sum, item) => sum + (Number(item.cost) || 0), 0)
 
   return (
-    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-3 animate-fadeIn">
+    <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3 animate-fadeIn">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ChefHat className="w-4 h-4 text-amber-500" />
+          <Layers className="w-4 h-4 text-amber-500" />
           <h4 className="text-xs font-bold text-foreground">
-            Resep &amp; Komposisi Bahan Baku (BOM)
+            Komposisi Bahan &amp; BoM (Bill of Materials)
           </h4>
         </div>
         <span className="text-[11px] font-mono font-bold text-emerald-400">
@@ -57,23 +57,23 @@ export const ProductFormRecipeBomSection: React.FC<ProductFormRecipeBomSectionPr
         </span>
       </div>
       <p className="text-[11px] text-muted-foreground leading-tight">
-        Setiap 1 porsi menu terjual di POS/Ojol akan otomatis memotong stok bahan baku gudang ini.
+        Setiap penjualan produk/jasa ini di POS atau Ojol otomatis memotong stok bahan baku &amp; material gudang.
       </p>
 
       {/* Ingredient Items List */}
       <div className="space-y-2">
         {ingredients.map((ing, idx) => (
-          <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-background border border-border/80 text-xs">
+          <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-background border border-border/80 text-xs">
             <TextInput
               value={ing.name}
               onChange={(e) => handleChangeIngredient(idx, 'name', e.target.value)}
-              placeholder="Nama bahan (cth: Biji Kopi Gayo)"
+              placeholder="Nama bahan baku / komponen"
               className="flex-[2] h-10 px-3 bg-muted/40 border-border rounded-xl text-xs"
             />
             <TextInput
               value={ing.amount}
               onChange={(e) => handleChangeIngredient(idx, 'amount', e.target.value)}
-              placeholder="Takaran (cth: 18 Gram)"
+              placeholder="Takaran (cth: 18 Gram / 1 Pcs)"
               className="flex-1 h-10 px-3 bg-muted/40 border-border rounded-xl text-xs font-mono"
             />
             <div className="flex items-center gap-1.5 flex-1 min-w-[110px]">
@@ -91,8 +91,8 @@ export const ProductFormRecipeBomSection: React.FC<ProductFormRecipeBomSectionPr
               variant="ghost"
               size="icon"
               onClick={() => handleRemoveIngredient(idx)}
-              className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10"
-              title="Hapus Bahan"
+              className="w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer"
+              title="Hapus Komponen"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -105,10 +105,10 @@ export const ProductFormRecipeBomSection: React.FC<ProductFormRecipeBomSectionPr
         variant="outline"
         size="sm"
         onClick={handleAddIngredient}
-        className="w-full h-10 rounded-xl text-xs font-bold border-dashed border-border hover:border-amber-500/50 hover:bg-amber-500/5 text-foreground flex items-center justify-center gap-1.5"
+        className="w-full h-10 rounded-xl text-xs font-bold border-dashed border-border hover:border-amber-500/50 hover:bg-amber-500/5 text-foreground flex items-center justify-center gap-1.5 cursor-pointer"
       >
         <Plus className="w-3.5 h-3.5 text-amber-500" />
-        <span>+ Tambah Bahan Baku dari Gudang</span>
+        <span>+ Tambah Bahan Baku / Material dari Gudang</span>
       </Button>
     </div>
   )

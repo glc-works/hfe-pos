@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card, Badge, Button } from '../../ui'
-import { ChefHat, Sliders, Sparkles, CheckCircle2, TrendingUp, Landmark } from 'lucide-react'
+import { Sparkles, Landmark, Layers } from 'lucide-react'
 import { ModifierGroup, MatrixVariant } from './ProductFormModifierSection'
 
 interface ProductFormLivePreviewPaneProps {
@@ -46,23 +46,23 @@ export const ProductFormLivePreviewPane: React.FC<ProductFormLivePreviewPaneProp
         </div>
 
         {/* Live POS Card Simulation */}
-        <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-md space-y-2.5">
+        <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-md space-y-3">
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-0.5 flex-1 min-w-0">
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block">
-                {categoryLabel || 'Minuman Kopi'} • {sku || 'SKU-AUTO'}
+                {categoryLabel || 'Produk'} • {sku || 'SKU-AUTO'}
               </span>
               <h4 className="text-sm font-bold text-foreground truncate">
                 {name || 'Nama Produk / Menu'}
               </h4>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 text-sm shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 text-sm shrink-0">
               ☕
             </div>
           </div>
 
           {/* Pricing Tiers */}
-          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border/60 text-[11px]">
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/60 text-[11px]">
             <div>
               <span className="text-muted-foreground block">Toko / Kasir:</span>
               <span className="font-mono font-bold text-foreground text-xs">
@@ -100,7 +100,7 @@ export const ProductFormLivePreviewPane: React.FC<ProductFormLivePreviewPaneProp
         </div>
 
         {/* Financial Margin & Ledger Summary */}
-        <div className="p-3 rounded-xl bg-muted/40 border border-border space-y-2 text-xs">
+        <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-2 text-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-muted-foreground font-semibold">Estimasi Margin Laba:</span>
             <span className="font-mono font-bold text-emerald-400 text-xs">{calculatedMargin}%</span>
@@ -111,11 +111,11 @@ export const ProductFormLivePreviewPane: React.FC<ProductFormLivePreviewPaneProp
               Rp {Math.max(0, price - cogs).toLocaleString('id-ID')}
             </span>
           </div>
-          <div className="pt-1.5 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
+          <div className="pt-2 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1">
               <Landmark className="w-3 h-3 text-indigo-400" /> Buku Besar Hfe CORE:
             </span>
-            <span className="font-mono font-bold text-indigo-400">GL 4101 (Penjualan)</span>
+            <span className="font-mono font-bold text-indigo-400">GL 4101 (Pendapatan)</span>
           </div>
         </div>
       </div>
@@ -126,14 +126,14 @@ export const ProductFormLivePreviewPane: React.FC<ProductFormLivePreviewPaneProp
           type="button"
           variant="outline"
           onClick={onClose}
-          className="flex-1 h-10 rounded-xl text-xs"
+          className="flex-1 h-10 rounded-xl text-xs font-semibold cursor-pointer"
         >
           Batal
         </Button>
         <Button
           type="submit"
           variant="amber"
-          className="flex-1 h-10 rounded-xl text-xs font-bold shadow-sm"
+          className="flex-1 h-10 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
         >
           {isEditing ? 'Simpan Data' : 'Simpan Produk ➔'}
         </Button>

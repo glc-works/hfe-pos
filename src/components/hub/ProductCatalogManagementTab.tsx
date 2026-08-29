@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Button, Badge, TextInput } from '../../ui'
 import { 
   ShoppingBag, Plus, Search, Filter, Edit3, Trash2, 
-  Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, ArrowLeft,
+  Sparkles, CheckCircle2, AlertCircle, ArrowUpRight,
   ChefHat, Layers, Tag, Percent, ArrowRight, ChevronRight, X
 } from 'lucide-react'
 import { ProductFormModal, ProductFormData } from './ProductFormModal'
@@ -141,32 +141,24 @@ export const ProductCatalogManagementTab: React.FC = () => {
     )
   }
 
-  // 2. FULL VIEW: DETAILED VIEW WITH BREADCRUMBS
+  // 2. FULL VIEW: DETAILED VIEW WITH PURE BREADCRUMBS
   if (selectedProductForDetail) {
     return (
       <div className="w-full h-full flex flex-col bg-background font-sans animate-fadeIn">
-        {/* Breadcrumbs Header */}
+        {/* Pure Breadcrumbs Header */}
         <div className="h-14 px-4 sm:px-6 border-b border-border flex items-center justify-between bg-card shrink-0">
-          <div className="flex items-center gap-3">
-            <Button
+          <div className="flex items-center gap-2 text-xs">
+            <button
               type="button"
-              variant="outline"
-              size="sm"
               onClick={() => setSelectedProductForDetail(null)}
-              className="h-9 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              className="flex items-center gap-1.5 font-semibold text-muted-foreground hover:text-amber-500 transition-colors cursor-pointer py-1 px-2 rounded-lg hover:bg-muted"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Kembali ke Katalog</span>
-            </Button>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="hover:text-foreground cursor-pointer" onClick={() => setSelectedProductForDetail(null)}>
-                Katalog Produk
-              </span>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="font-bold text-foreground truncate max-w-[200px] sm:max-w-none">
-                {selectedProductForDetail.name}
-              </span>
-            </div>
+              <span>🛍️ Katalog Produk</span>
+            </button>
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="font-bold text-foreground truncate max-w-[200px] sm:max-w-none">
+              {selectedProductForDetail.name}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -179,7 +171,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                 setSelectedProductForDetail(null)
                 setIsFormOpen(true)
               }}
-              className="h-9 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              className="h-9 px-3.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" /> Ubah Produk
             </Button>
@@ -188,7 +180,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
               variant="danger"
               size="sm"
               onClick={() => handleDeleteProduct(selectedProductForDetail.id!)}
-              className="h-9 px-3 rounded-xl text-xs font-semibold"
+              className="h-9 px-3.5 rounded-xl text-xs font-semibold cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" /> Hapus
             </Button>
@@ -199,7 +191,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
         <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Left Details (8 Kolom) */}
           <div className="md:col-span-8 space-y-4">
-            <div className="p-4 bg-card rounded-2xl border border-border space-y-3">
+            <div className="p-4 sm:p-5 bg-card rounded-2xl border border-border space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="text-xs font-mono font-bold text-amber-500">
@@ -238,7 +230,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
             </div>
 
             {/* Multi-Channel Pricing Breakdown */}
-            <div className="p-4 bg-card rounded-2xl border border-border space-y-2">
+            <div className="p-4 sm:p-5 bg-card rounded-2xl border border-border space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-foreground">🛵 Saluran Penjualan &amp; Harga:</span>
                 <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] font-bold">
@@ -263,11 +255,11 @@ export const ProductCatalogManagementTab: React.FC = () => {
 
             {/* Recipe Ingredients BOM */}
             {selectedProductForDetail.recipeIngredients && selectedProductForDetail.recipeIngredients.length > 0 && (
-              <div className="p-4 bg-card rounded-2xl border border-border space-y-3">
+              <div className="p-4 sm:p-5 bg-card rounded-2xl border border-border space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-foreground flex items-center gap-1.5 text-xs">
-                    <ChefHat className="w-4 h-4 text-amber-500" />
-                    <span>🧪 Resep &amp; Komposisi Bahan Baku (BOM)</span>
+                    <Layers className="w-4 h-4 text-amber-500" />
+                    <span>🧪 Komposisi Bahan &amp; BoM (Bill of Materials)</span>
                   </h4>
                   <span className="text-[11px] text-muted-foreground font-mono">
                     Auto-Potong Stok Gudang
@@ -293,7 +285,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
 
           {/* Right Summary (4 Kolom) */}
           <div className="md:col-span-4 space-y-4">
-            <div className="p-4 bg-card rounded-2xl border border-border space-y-3">
+            <div className="p-4 sm:p-5 bg-card rounded-2xl border border-border space-y-3">
               <span className="text-xs font-bold text-foreground block">⚙️ Operasional &amp; Pajak</span>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between py-1.5 border-b border-border/60">
@@ -353,7 +345,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
             setEditingProduct(null)
             setIsFormOpen(true)
           }}
-          className="w-full sm:w-auto h-10 px-4 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-2"
+          className="w-full sm:w-auto h-10 px-4 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Tambah Produk &amp; Varian Baru</span>
@@ -408,7 +400,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                         setEditingProduct(product)
                         setIsFormOpen(true)
                       }}
-                      className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg text-muted-foreground hover:text-foreground"
+                      className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
                       title="Ubah Produk"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -418,7 +410,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                       variant="ghost"
                       size="icon"
                       onClick={(e) => handleDeleteProduct(product.id!, e)}
-                      className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg text-muted-foreground hover:text-rose-400"
+                      className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg text-muted-foreground hover:text-rose-400 cursor-pointer"
                       title="Hapus Produk"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
