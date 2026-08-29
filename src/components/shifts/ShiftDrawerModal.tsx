@@ -173,8 +173,8 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
           </div>
         </div>
 
-        {/* TAB NAVIGATION */}
-        <div className="grid grid-cols-3 bg-muted p-1 rounded-xl border border-border text-xs font-semibold">
+        {/* TAB NAVIGATION WITH FORM CODES */}
+        <div className="grid grid-cols-3 bg-muted p-1 rounded-xl border border-border text-[11px] font-bold">
           <button
             type="button"
             onClick={() => setActiveTab('float')}
@@ -182,7 +182,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
               activeTab === 'float' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Float Shift
+            [FORM-OPS-01] Float
           </button>
           <button
             type="button"
@@ -191,7 +191,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
               activeTab === 'cash_out' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Cash Out ({cashOutList.length})
+            [FORM-OPS-02] Kas Kecil
           </button>
           <button
             type="button"
@@ -200,7 +200,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
               activeTab === 'reconcile' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Hitung Kas Fisik
+            [FORM-OPS-03] Z-Report
           </button>
         </div>
 
@@ -415,7 +415,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
               <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
                   <Lock className="w-4 h-4" />
-                  <span>Wajib Otorisasi PIN Manajer (Selisih &gt; Rp 50.000)</span>
+                  <span>[FORM-FIN-01] Wajib Otorisasi PIN Manajer (Selisih &gt; Rp 50.000)</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input

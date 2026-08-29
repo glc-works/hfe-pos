@@ -68,26 +68,31 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val)
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen space-y-6">
+    <div className="p-4 sm:p-6 bg-background text-foreground min-h-screen space-y-6">
       {/* View Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-5 sm:p-6 rounded-2xl border border-border shadow-xs">
         <div className="flex items-center space-x-3">
-          <div className="p-3 bg-amber-600 text-white rounded-xl shadow-xs">
+          <div className="p-3 bg-amber-500 text-slate-950 rounded-2xl shadow-xs">
             <Warehouse className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">Manajemen Gudang & Stok Multi-Lokasi</h1>
-            <p className="text-xs text-slate-500">Penerimaan barang, transfer internal, dan penyesuaian waste</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-foreground">Manajemen Gudang & Stok Multi-Lokasi</h1>
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500 font-mono text-[10px] font-bold">
+                SOP-LOG-01
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">Penerimaan barang supplier, transfer antar cabang & penyesuaian waste</p>
           </div>
         </div>
 
         {/* Location Selector */}
         <div className="flex items-center space-x-2">
-          <label className="text-xs font-semibold text-slate-600 whitespace-nowrap">Pilih Gudang:</label>
+          <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Pilih Gudang:</label>
           <select
             value={activeWarehouseId}
             onChange={(e) => setActiveWarehouseId(e.target.value)}
-            className="bg-slate-100 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer"
+            className="bg-background border border-border text-foreground text-sm font-semibold rounded-xl px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer"
           >
             {warehouses.map((wh) => (
               <option key={wh.id} value={wh.id}>
@@ -100,76 +105,69 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
 
       {/* Quick Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <p className="text-xs font-semibold text-slate-500">Lokasi Aktif</p>
-          <h3 className="text-lg font-bold text-slate-800 mt-1">{activeWarehouse.name}</h3>
-          <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-            {activeWarehouse.code}
-          </span>
+        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
+          <p className="text-xs font-semibold text-muted-foreground">Lokasi Aktif</p>
+          <h3 className="text-base font-bold text-foreground mt-0.5">{activeWarehouse.name}</h3>
+          <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">{activeWarehouse.code}</span>
         </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <p className="text-xs font-semibold text-slate-500">Total Item SKU</p>
-          <h3 className="text-2xl font-black text-slate-800 mt-1">{stockItems.length} SKU</h3>
-          <p className="text-xs text-slate-400 mt-1">Terdaftar di gudang ini</p>
+        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
+          <p className="text-xs font-semibold text-muted-foreground">Total Item SKU</p>
+          <h3 className="text-xl font-black text-foreground mt-0.5">{stockItems.length} SKU</h3>
         </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <p className="text-xs font-semibold text-slate-500">Valuasi Stok</p>
-          <h3 className="text-xl font-black text-emerald-600 mt-1">{formatIdr(activeWarehouse.totalValuationIdr)}</h3>
-          <p className="text-xs text-slate-400 mt-1">Berdasarkan HPP/unit cost</p>
+        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
+          <p className="text-xs font-semibold text-muted-foreground">Valuasi Stok</p>
+          <h3 className="text-lg font-black text-emerald-500 mt-0.5">{formatIdr(activeWarehouse.totalValuationIdr)}</h3>
         </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-          <p className="text-xs font-semibold text-slate-500">Transfer Dalam Perjalanan</p>
-          <h3 className="text-2xl font-black text-blue-600 mt-1">
-            {transferRequests.filter((t) => t.status === 'in_transit').length} Mutasi
-          </h3>
-          <p className="text-xs text-slate-400 mt-1">Pending dikonfirmasi</p>
+        <div className="bg-card p-4 rounded-2xl border border-border shadow-xs">
+          <p className="text-xs font-semibold text-muted-foreground">Transfer Dalam Perjalanan</p>
+          <h3 className="text-xl font-black text-blue-500 mt-0.5">{transferRequests.filter((t) => t.status === 'in_transit').length} Mutasi</h3>
         </div>
       </div>
 
-      {/* Action Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+      {/* Action Toolbar with Form SOP Badges */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border shadow-xs">
         <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={() => setIsReceivingModalOpen(true)}
-            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl flex items-center space-x-2 transition-all shadow-xs"
+            className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <PackagePlus className="w-4 h-4" />
-            <span>Penerimaan Barang</span>
+            <span>[FORM-LOG-01] Terima Barang</span>
           </button>
           <button
+            type="button"
             onClick={() => setIsTransferModalOpen(true)}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl flex items-center space-x-2 transition-all shadow-xs"
+            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <ArrowLeftRight className="w-4 h-4" />
-            <span>Transfer Stok</span>
+            <span>[FORM-LOG-03] Transfer Cabang</span>
           </button>
           <button
+            type="button"
             onClick={() => setIsWasteModalOpen(true)}
-            className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs rounded-xl flex items-center space-x-2 transition-all shadow-xs"
+            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Catat Waste</span>
+            <span>[FORM-LOG-04] Catat Waste</span>
           </button>
         </div>
 
         {/* Barcode Quick Search / Scanner */}
         <form onSubmit={handleBarcodeScan} className="flex items-center space-x-2">
           <div className="relative">
-            <ScanBarcode className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <ScanBarcode className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
             <input
               type="text"
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
               placeholder="Scan Barcode / SKU..."
-              className="pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none w-48"
+              className="pl-9 pr-3 py-2 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none w-48"
             />
           </div>
           <button
             type="submit"
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium rounded-xl transition-colors"
+            className="px-3 py-2 bg-muted hover:bg-muted/80 text-foreground text-xs font-bold rounded-xl transition-colors cursor-pointer"
           >
             Cari
           </button>
@@ -177,44 +175,49 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
       </div>
 
       {/* Main Content Tabs */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="flex border-b border-slate-200 bg-slate-50/50 px-4">
+      <div className="bg-card rounded-2xl border border-border shadow-xs overflow-hidden">
+        <div className="flex border-b border-border bg-muted/30 px-4 overflow-x-auto">
           <button
+            type="button"
             onClick={() => setActiveTab('inventory')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'inventory' ? 'border-amber-600 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'inventory' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             Daftar Stok Inventaris ({filteredItems.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('transfers')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'transfers' ? 'border-amber-600 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'transfers' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             Log Transfer Stok ({transferRequests.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('receiving')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'receiving' ? 'border-amber-600 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'receiving' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             Riwayat Penerimaan ({receivingLogs.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('waste')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'waste' ? 'border-amber-600 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'waste' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             Jurnal Waste ({wasteAdjustments.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('vendors')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'vendors' ? 'border-amber-600 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'vendors' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             🏢 Pemasok & PO Vendor
@@ -226,13 +229,13 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="relative w-72">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Filter nama item / SKU..."
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -240,7 +243,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                  <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
                     <th className="py-3 px-4">Item & SKU</th>
                     <th className="py-3 px-4">Kategori</th>
                     <th className="py-3 px-4 text-center">Stok Saat Ini</th>
@@ -249,36 +252,36 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
                     <th className="py-3 px-4 text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody className="divide-y divide-border/60 text-xs">
                   {filteredItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-800">{item.name}</div>
-                        <div className="text-[11px] text-slate-400 font-mono">{item.sku} | Barcode: {item.barcode}</div>
+                        <div className="font-bold text-foreground">{item.name}</div>
+                        <div className="text-[11px] text-muted-foreground font-mono">{item.sku} | Barcode: {item.barcode}</div>
                       </td>
-                      <td className="py-3 px-4 text-slate-600 font-medium">{item.category}</td>
-                      <td className="py-3 px-4 text-center font-bold text-slate-800">
+                      <td className="py-3 px-4 text-muted-foreground font-medium">{item.category}</td>
+                      <td className="py-3 px-4 text-center font-bold text-foreground">
                         {item.currentStock} {item.unit}
                       </td>
-                      <td className="py-3 px-4 text-center text-slate-500">
+                      <td className="py-3 px-4 text-center text-muted-foreground">
                         {item.minStock} {item.unit}
                       </td>
-                      <td className="py-3 px-4 text-right font-medium text-slate-700">
+                      <td className="py-3 px-4 text-right font-medium text-foreground">
                         {formatIdr(item.unitCost)}
                       </td>
                       <td className="py-3 px-4 text-center">
                         {item.status === 'in_stock' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                             Aman
                           </span>
                         )}
                         {item.status === 'low_stock' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
                             Warning
                           </span>
                         )}
                         {item.status === 'out_of_stock' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
                             Habis
                           </span>
                         )}
@@ -287,7 +290,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
                   ))}
                   {filteredItems.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                      <td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">
                         Tidak ada data item stok yang sesuai.
                       </td>
                     </tr>
@@ -303,7 +306,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           <div className="p-4 overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
                   <th className="py-3 px-4">ID Mutasi</th>
                   <th className="py-3 px-4">Item</th>
                   <th className="py-3 px-4">Asal ➔ Tujuan</th>
@@ -312,31 +315,31 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
                   <th className="py-3 px-4 text-right">Aksi Konfirmasi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-border/60 text-xs">
                 {transferRequests.map((trf) => (
-                  <tr key={trf.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-slate-700">{trf.id}</td>
+                  <tr key={trf.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-foreground">{trf.id}</td>
                     <td className="py-3 px-4">
-                      <div className="font-bold text-slate-800">{trf.itemName}</div>
-                      <div className="text-[11px] text-slate-400">{trf.notes}</div>
+                      <div className="font-bold text-foreground">{trf.itemName}</div>
+                      <div className="text-[11px] text-muted-foreground">{trf.notes}</div>
                     </td>
-                    <td className="py-3 px-4 text-slate-600 font-medium">
+                    <td className="py-3 px-4 text-muted-foreground font-medium">
                       {trf.sourceWarehouseId} ➔ {trf.destinationWarehouseId}
                     </td>
-                    <td className="py-3 px-4 text-center font-bold text-slate-800">{trf.qty}</td>
+                    <td className="py-3 px-4 text-center font-bold text-foreground">{trf.qty}</td>
                     <td className="py-3 px-4 text-center">
                       {trf.status === 'requested' && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground">
                           Requested
                         </span>
                       )}
                       {trf.status === 'in_transit' && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20">
                           In Transit
                         </span>
                       )}
                       {trf.status === 'received' && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                           Received
                         </span>
                       )}
@@ -344,8 +347,9 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
                     <td className="py-3 px-4 text-right">
                       {trf.status === 'in_transit' && (
                         <button
+                          type="button"
                           onClick={() => updateTransferStatus(trf.id, 'received')}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center space-x-1"
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-colors inline-flex items-center space-x-1 cursor-pointer"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Konfirmasi Diterima</span>
@@ -364,7 +368,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           <div className="p-4 overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
                   <th className="py-3 px-4">ID Receiving</th>
                   <th className="py-3 px-4">Item & Batch</th>
                   <th className="py-3 px-4">Gudang</th>
@@ -373,23 +377,23 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
                   <th className="py-3 px-4">Kadaluarsa</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-border/60 text-xs">
                 {receivingLogs.map((rec) => (
-                  <tr key={rec.id}>
-                    <td className="py-3 px-4 font-mono font-bold text-slate-700">{rec.id}</td>
+                  <tr key={rec.id} className="hover:bg-muted/30">
+                    <td className="py-3 px-4 font-mono font-bold text-foreground">{rec.id}</td>
                     <td className="py-3 px-4">
-                      <div className="font-bold text-slate-800">{rec.itemName}</div>
-                      <div className="text-[11px] text-slate-400">Batch: {rec.batchNumber}</div>
+                      <div className="font-bold text-foreground">{rec.itemName}</div>
+                      <div className="text-[11px] text-muted-foreground">Batch: {rec.batchNumber}</div>
                     </td>
-                    <td className="py-3 px-4 text-slate-600">{rec.warehouseId}</td>
-                    <td className="py-3 px-4 text-center font-bold text-slate-800">{rec.qty}</td>
-                    <td className="py-3 px-4 text-slate-600 font-mono">{rec.supplierPoNumber}</td>
-                    <td className="py-3 px-4 text-slate-500">{rec.expiryDate || '-'}</td>
+                    <td className="py-3 px-4 text-muted-foreground">{rec.warehouseId}</td>
+                    <td className="py-3 px-4 text-center font-bold text-foreground">{rec.qty}</td>
+                    <td className="py-3 px-4 text-muted-foreground font-mono">{rec.supplierPoNumber}</td>
+                    <td className="py-3 px-4 text-muted-foreground">{rec.expiryDate || '-'}</td>
                   </tr>
                 ))}
                 {receivingLogs.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">
                       Belum ada riwayat penerimaan barang baru.
                     </td>
                   </tr>
@@ -404,7 +408,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           <div className="p-4 overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
                   <th className="py-3 px-4">ID Waste</th>
                   <th className="py-3 px-4">Item</th>
                   <th className="py-3 px-4">Alasan & Jurnal</th>
@@ -412,24 +416,24 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
                   <th className="py-3 px-4 text-right">Nilai Beban</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-border/60 text-xs">
                 {wasteAdjustments.map((wst) => (
-                  <tr key={wst.id}>
-                    <td className="py-3 px-4 font-mono font-bold text-red-600">{wst.id}</td>
-                    <td className="py-3 px-4 font-bold text-slate-800">{wst.itemName}</td>
+                  <tr key={wst.id} className="hover:bg-muted/30">
+                    <td className="py-3 px-4 font-mono font-bold text-rose-500">{wst.id}</td>
+                    <td className="py-3 px-4 font-bold text-foreground">{wst.itemName}</td>
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-700">{wst.reason}</div>
-                      <div className="text-[11px] text-slate-400 font-mono">GL: {wst.expenseGlAccount}</div>
+                      <div className="font-semibold text-foreground">{wst.reason}</div>
+                      <div className="text-[11px] text-muted-foreground font-mono">GL: {wst.expenseGlAccount}</div>
                     </td>
-                    <td className="py-3 px-4 text-center font-bold text-red-600">{wst.qty}</td>
-                    <td className="py-3 px-4 text-right font-bold text-red-700">
+                    <td className="py-3 px-4 text-center font-bold text-rose-500">{wst.qty}</td>
+                    <td className="py-3 px-4 text-right font-bold text-rose-500">
                       {formatIdr(wst.expenseAmountIdr)}
                     </td>
                   </tr>
                 ))}
                 {wasteAdjustments.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400 text-xs">
+                    <td colSpan={5} className="py-8 text-center text-muted-foreground text-xs">
                       Belum ada pencatatan waste/spoilage.
                     </td>
                   </tr>
