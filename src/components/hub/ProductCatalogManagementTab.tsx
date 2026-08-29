@@ -120,7 +120,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari produk / SKU / jasa..."
-              className="pl-9 bg-card border-border text-xs w-full min-h-[40px]"
+              className="w-full h-10 pl-9 pr-3 bg-card border-border rounded-xl text-xs"
             />
           </div>
 
@@ -128,7 +128,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="flex-1 sm:flex-none px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[40px]"
+              className="w-full sm:w-auto h-10 px-3 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
               <option value="all">Semua Kategori</option>
               <option value="coffee">☕ Minuman Kopi</option>
@@ -138,7 +138,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Top-Right CTA on Tablet/Desktop */}
+        {/* Top-Right CTA on Tablet/Desktop (Standard 40px / h-10) */}
         <Button
           variant="amber"
           size="sm"
@@ -146,7 +146,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
             setEditingProduct(null)
             setIsFormModalOpen(true)
           }}
-          className="hidden sm:flex"
+          className="hidden sm:flex h-10 px-4 rounded-xl text-xs"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
           <span>Tambah Produk / Jasa</span>
@@ -171,7 +171,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                   {prod.sku} • {prod.categoryLabel}
                 </p>
               </div>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] shrink-0 font-mono font-bold">
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] shrink-0 font-mono font-bold h-6 px-2">
                 Margin {prod.marginPercent}%
               </Badge>
             </div>
@@ -179,10 +179,10 @@ export const ProductCatalogManagementTab: React.FC = () => {
             <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
               <div>
                 <span className="text-[10px] text-muted-foreground block">Harga Jual:</span>
-                <span className="font-mono font-bold text-foreground">Rp {prod.price.toLocaleString('id-ID')}</span>
+                <span className="font-mono font-bold text-foreground text-xs">Rp {prod.price.toLocaleString('id-ID')}</span>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-amber-500 font-semibold">
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px]">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
                   🟢 Aktif Jual
                 </span>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -191,16 +191,16 @@ export const ProductCatalogManagementTab: React.FC = () => {
           </div>
         ))}
 
-        {/* Mobile Sticky Add Button */}
+        {/* Mobile Sticky Add Button (Prominent 48px / h-12) */}
         <Button
           variant="amber"
-          size="md"
+          size="lg"
           fullWidth
           onClick={() => {
             setEditingProduct(null)
             setIsFormModalOpen(true)
           }}
-          className="mt-4"
+          className="mt-4 h-12 rounded-xl text-xs font-bold"
         >
           <Plus className="w-4 h-4 mr-1.5" />
           <span>Tambah Produk / Jasa Baru</span>
@@ -235,7 +235,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                   </td>
                   <td className="py-3 px-4 text-muted-foreground">
                     <div>{prod.categoryLabel}</div>
-                    <div className="text-[10px] font-mono text-muted-foreground/80">{prod.sku}</div>
+                    <div className="text-[11px] font-mono text-muted-foreground/80">{prod.sku}</div>
                   </td>
                   <td className="py-3 px-4 font-mono font-bold text-foreground">
                     Rp {prod.price.toLocaleString('id-ID')}
@@ -244,7 +244,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                     Rp {prod.cogs.toLocaleString('id-ID')}
                   </td>
                   <td className="py-3 px-4">
-                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-mono font-bold">
+                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] font-mono font-bold h-6 px-2">
                       {prod.marginPercent}%
                     </Badge>
                   </td>
@@ -261,7 +261,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                         e.stopPropagation()
                         setSelectedProductForDetail(prod)
                       }}
-                      className="text-xs"
+                      className="h-8 px-3 rounded-lg text-xs"
                     >
                       Detail &amp; Resep ➔
                     </Button>
@@ -276,16 +276,16 @@ export const ProductCatalogManagementTab: React.FC = () => {
       {/* DETAIL DRAWER / MODAL (RESEP & ACTIONS BELONG HERE) */}
       {selectedProductForDetail && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn">
-          <div className="w-full max-w-xl bg-card rounded-t-3xl sm:rounded-3xl border border-border shadow-2xl overflow-hidden max-h-[85dvh] flex flex-col">
-            {/* Header */}
-            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
+          <div className="w-full max-w-xl bg-card rounded-t-3xl sm:rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[85dvh] flex flex-col">
+            {/* Header (Height: 56px) */}
+            <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-sm">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-sm shrink-0">
                   ☕
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-foreground">{selectedProductForDetail.name}</h3>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground leading-tight">
                     {selectedProductForDetail.sku} • {selectedProductForDetail.categoryLabel}
                   </p>
                 </div>
@@ -295,7 +295,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setSelectedProductForDetail(null)}
-                className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg"
+                className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-xl text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -306,19 +306,19 @@ export const ProductCatalogManagementTab: React.FC = () => {
               {/* Financial Metrics */}
               <div className="grid grid-cols-3 gap-2 p-3 bg-muted/40 rounded-xl border border-border">
                 <div>
-                  <span className="text-[10px] text-muted-foreground block">Harga Jual:</span>
+                  <span className="text-[11px] text-muted-foreground block">Harga Jual:</span>
                   <span className="font-mono font-bold text-sm text-foreground">
                     Rp {selectedProductForDetail.price.toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground block">HPP (Modal):</span>
+                  <span className="text-[11px] text-muted-foreground block">HPP (Modal):</span>
                   <span className="font-mono font-bold text-sm text-muted-foreground">
                     Rp {selectedProductForDetail.cogs.toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground block">Margin Laba:</span>
+                  <span className="text-[11px] text-muted-foreground block">Margin Laba:</span>
                   <span className="font-mono font-bold text-sm text-emerald-400">
                     {selectedProductForDetail.marginPercent}%
                   </span>
@@ -328,11 +328,11 @@ export const ProductCatalogManagementTab: React.FC = () => {
               {/* Recipe & Ingredients (BOM) */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                  <h4 className="font-bold text-foreground flex items-center gap-1.5 text-xs">
                     <ChefHat className="w-3.5 h-3.5 text-amber-500" />
                     <span>🧪 Resep &amp; Komposisi Bahan Baku (BOM)</span>
                   </h4>
-                  <span className="text-[10px] text-muted-foreground font-mono">
+                  <span className="text-[11px] text-muted-foreground font-mono">
                     Auto-Potong Stok Gudang
                   </span>
                 </div>
@@ -342,17 +342,17 @@ export const ProductCatalogManagementTab: React.FC = () => {
                     {selectedProductForDetail.recipeIngredients.map((ing, idx) => (
                       <div key={idx} className="p-2.5 flex items-center justify-between">
                         <div>
-                          <span className="font-semibold text-foreground">{ing.name}</span>
-                          <span className="text-[10px] text-muted-foreground block">Takaran: {ing.amount}</span>
+                          <span className="font-semibold text-foreground text-xs">{ing.name}</span>
+                          <span className="text-[11px] text-muted-foreground block">Takaran: {ing.amount}</span>
                         </div>
-                        <span className="font-mono text-muted-foreground">
+                        <span className="font-mono text-muted-foreground text-xs">
                           Rp {ing.cost.toLocaleString('id-ID')}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground p-3 bg-muted/30 rounded-xl">
+                  <p className="text-muted-foreground p-3 bg-muted/30 rounded-xl text-xs">
                     Produk retail / jasa ini tidak menggunakan resep bahan baku peracikan.
                   </p>
                 )}
@@ -360,25 +360,25 @@ export const ProductCatalogManagementTab: React.FC = () => {
 
               {/* Operational Routing */}
               <div className="p-3 bg-muted/20 border border-border rounded-xl space-y-1.5">
-                <h4 className="font-bold text-foreground">🎛️ Routing &amp; Kebijakan Toko:</h4>
-                <div className="flex items-center justify-between text-muted-foreground">
+                <h4 className="font-bold text-foreground text-xs">🎛️ Routing &amp; Kebijakan Toko:</h4>
+                <div className="flex items-center justify-between text-muted-foreground text-xs">
                   <span>Stasiun Cetak KDS:</span>
                   <span className="font-semibold text-foreground">{selectedProductForDetail.kdsStation}</span>
                 </div>
-                <div className="flex items-center justify-between text-muted-foreground">
+                <div className="flex items-center justify-between text-muted-foreground text-xs">
                   <span>Pajak Restoran PB1 (10%):</span>
                   <span className="text-emerald-400 font-semibold">✅ Dikenakan Pajak</span>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons in Detail View */}
-            <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between gap-2">
+            {/* Action Buttons in Detail View (Standard 40px / h-10 Buttons) */}
+            <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between gap-2 shrink-0">
               <Button
                 variant="danger"
                 size="sm"
                 onClick={() => setSelectedProductForDetail(null)}
-                className="text-xs"
+                className="h-10 px-3.5 rounded-xl text-xs font-semibold"
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1" /> Nonaktifkan
               </Button>
@@ -390,7 +390,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                     setEditingProduct(selectedProductForDetail)
                     setIsFormModalOpen(true)
                   }}
-                  className="text-xs"
+                  className="h-10 px-4 rounded-xl text-xs font-bold"
                 >
                   <Edit3 className="w-3.5 h-3.5 mr-1" /> Ubah Data &amp; Resep
                 </Button>
