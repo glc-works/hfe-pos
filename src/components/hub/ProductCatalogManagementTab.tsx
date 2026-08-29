@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Card, Button, Badge, TextInput } from '../../ui'
+import { Button, Badge, TextInput } from '../../ui'
 import { 
   ShoppingBag, Plus, Search, Filter, Edit3, Trash2, 
   Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, X,
@@ -120,7 +120,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari produk / SKU / jasa..."
-              className="pl-9 bg-card border-border text-xs w-full min-h-[38px]"
+              className="pl-9 bg-card border-border text-xs w-full min-h-[40px]"
             />
           </div>
 
@@ -128,7 +128,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="flex-1 sm:flex-none px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[38px]"
+              className="flex-1 sm:flex-none px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[40px]"
             >
               <option value="all">Semua Kategori</option>
               <option value="coffee">☕ Minuman Kopi</option>
@@ -140,13 +140,15 @@ export const ProductCatalogManagementTab: React.FC = () => {
 
         {/* Top-Right CTA on Tablet/Desktop */}
         <Button
+          variant="amber"
+          size="sm"
           onClick={() => {
             setEditingProduct(null)
             setIsFormModalOpen(true)
           }}
-          className="hidden sm:flex text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold items-center gap-1.5 min-h-[38px] shadow-xs cursor-pointer"
+          className="hidden sm:flex"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-3.5 h-3.5 mr-1" />
           <span>Tambah Produk / Jasa</span>
         </Button>
       </div>
@@ -191,13 +193,16 @@ export const ProductCatalogManagementTab: React.FC = () => {
 
         {/* Mobile Sticky Add Button */}
         <Button
+          variant="amber"
+          size="md"
+          fullWidth
           onClick={() => {
             setEditingProduct(null)
             setIsFormModalOpen(true)
           }}
-          className="w-full text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-1.5 min-h-[42px] shadow-xs cursor-pointer mt-4"
+          className="mt-4"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 mr-1.5" />
           <span>Tambah Produk / Jasa Baru</span>
         </Button>
       </div>
@@ -256,7 +261,7 @@ export const ProductCatalogManagementTab: React.FC = () => {
                         e.stopPropagation()
                         setSelectedProductForDetail(prod)
                       }}
-                      className="text-xs px-2.5 py-1 min-h-[30px]"
+                      className="text-xs"
                     >
                       Detail &amp; Resep ➔
                     </Button>
@@ -285,13 +290,15 @@ export const ProductCatalogManagementTab: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setSelectedProductForDetail(null)}
-                className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
+                className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
 
             {/* Scrollable Content */}
@@ -368,21 +375,22 @@ export const ProductCatalogManagementTab: React.FC = () => {
             {/* Action Buttons in Detail View */}
             <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between gap-2">
               <Button
-                variant="outline"
+                variant="danger"
                 size="sm"
                 onClick={() => setSelectedProductForDetail(null)}
-                className="text-xs text-rose-400 hover:text-rose-300 border-rose-500/20"
+                className="text-xs"
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1" /> Nonaktifkan
               </Button>
               <div className="flex gap-2">
                 <Button
+                  variant="amber"
                   size="sm"
                   onClick={() => {
                     setEditingProduct(selectedProductForDetail)
                     setIsFormModalOpen(true)
                   }}
-                  className="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
+                  className="text-xs"
                 >
                   <Edit3 className="w-3.5 h-3.5 mr-1" /> Ubah Data &amp; Resep
                 </Button>

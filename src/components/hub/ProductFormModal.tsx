@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Button, Badge, TextInput } from '../../ui'
+import { Button, Badge, TextInput } from '../../ui'
 import { 
   X, Plus, Trash2, ChefHat, Sparkles, CheckCircle2, 
   Layers, Package, Wrench, Coffee, Tag, Percent
@@ -89,7 +89,6 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     const next = [...ingredients]
     next.splice(index, 1)
     setIngredients(next)
-    // Recalculate cogs if recipe
     const totalCost = next.reduce((sum, item) => sum + item.cost, 0)
     setCogs(totalCost)
   }
@@ -142,13 +141,15 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </p>
             </div>
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
+            className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-lg"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Form Body */}
@@ -160,7 +161,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Contoh: Espresso Aren Latte"
-              className="w-full bg-background border-border text-xs min-h-[38px]"
+              className="w-full bg-background border-border text-xs min-h-[40px]"
               autoFocus
               required
             />
@@ -172,7 +173,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[38px]"
+                className="w-full px-3 py-2 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[40px]"
               >
                 <option value="coffee">☕ Minuman Kopi</option>
                 <option value="non_coffee">🍵 Non-Kopi &amp; Teh</option>
@@ -188,19 +189,19 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
                 placeholder="BEV-ESPR-01"
-                className="w-full bg-background border-border text-xs min-h-[38px] font-mono"
+                className="w-full bg-background border-border text-xs min-h-[40px] font-mono"
               />
             </div>
           </div>
 
           {/* Section 2: Financials & Margin */}
-          <div className="p-3 bg-muted/40 rounded-2xl border border-border space-y-2">
-            <h4 className="font-bold text-foreground flex items-center justify-between">
-              <span>💰 Harga &amp; Margin Laba:</span>
+          <div className="p-3.5 bg-muted/40 rounded-2xl border border-border space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-foreground">💰 Harga &amp; Margin Laba:</span>
               <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-mono font-bold">
                 Margin {calculatedMargin}%
               </Badge>
-            </h4>
+            </div>
 
             <div className="grid grid-cols-2 gap-2.5">
               <div>
@@ -209,7 +210,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
-                  className="w-full bg-background border-border text-xs min-h-[38px] font-mono font-bold"
+                  className="w-full bg-background border-border text-xs min-h-[40px] font-mono font-bold"
                   required
                 />
               </div>
@@ -220,7 +221,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   type="number"
                   value={cogs}
                   onChange={(e) => setCogs(Number(e.target.value))}
-                  className="w-full bg-background border-border text-xs min-h-[38px] font-mono"
+                  className="w-full bg-background border-border text-xs min-h-[40px] font-mono"
                   required
                 />
               </div>
@@ -230,59 +231,55 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
           {/* Section 3: Stock Type & BOM Recipe */}
           <div className="space-y-2">
             <label className="text-[11px] font-semibold text-muted-foreground block">Tipe Pengelolaan Stok:</label>
-            <div className="grid grid-cols-3 gap-1.5">
-              <button
+            <div className="grid grid-cols-3 gap-2">
+              <Button
                 type="button"
+                variant={stockType === 'recipe_bom' ? 'amber' : 'outline'}
+                size="sm"
                 onClick={() => setStockType('recipe_bom')}
-                className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                  stockType === 'recipe_bom'
-                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/50 font-bold'
-                    : 'bg-muted/30 border-border text-muted-foreground'
-                }`}
+                className="flex-col h-auto py-2.5 gap-1 rounded-xl text-center"
               >
-                <ChefHat className="w-4 h-4 mx-auto mb-1" />
-                <span className="text-[10px] block">Racikan Resep</span>
-              </button>
+                <ChefHat className="w-4 h-4" />
+                <span className="text-[10px]">Racikan Resep</span>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant={stockType === 'unit_inventory' ? 'amber' : 'outline'}
+                size="sm"
                 onClick={() => setStockType('unit_inventory')}
-                className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                  stockType === 'unit_inventory'
-                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/50 font-bold'
-                    : 'bg-muted/30 border-border text-muted-foreground'
-                }`}
+                className="flex-col h-auto py-2.5 gap-1 rounded-xl text-center"
               >
-                <Package className="w-4 h-4 mx-auto mb-1" />
-                <span className="text-[10px] block">Barang Jadi</span>
-              </button>
+                <Package className="w-4 h-4" />
+                <span className="text-[10px]">Barang Jadi</span>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant={stockType === 'non_stock_service' ? 'amber' : 'outline'}
+                size="sm"
                 onClick={() => setStockType('non_stock_service')}
-                className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                  stockType === 'non_stock_service'
-                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/50 font-bold'
-                    : 'bg-muted/30 border-border text-muted-foreground'
-                }`}
+                className="flex-col h-auto py-2.5 gap-1 rounded-xl text-center"
               >
-                <Wrench className="w-4 h-4 mx-auto mb-1" />
-                <span className="text-[10px] block">Jasa Non-Stok</span>
-              </button>
+                <Wrench className="w-4 h-4" />
+                <span className="text-[10px]">Jasa Non-Stok</span>
+              </Button>
             </div>
 
             {/* If Recipe BOM */}
             {stockType === 'recipe_bom' && (
-              <div className="p-3 bg-muted/20 border border-border rounded-2xl space-y-2 mt-2">
+              <div className="p-3.5 bg-muted/20 border border-border rounded-2xl space-y-2 mt-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-foreground">🧪 Resep Bahan Baku (BOM):</span>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={handleAddIngredient}
-                    className="text-[10px] text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1 cursor-pointer"
+                    className="text-[10px] h-7 px-2"
                   >
-                    <Plus className="w-3 h-3" /> Tambah Bahan
-                  </button>
+                    <Plus className="w-3 h-3 mr-1 text-amber-500" /> Tambah Bahan
+                  </Button>
                 </div>
 
                 <div className="space-y-1.5">
@@ -296,7 +293,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                           setIngredients(next)
                         }}
                         placeholder="Nama Bahan"
-                        className="flex-1 text-xs bg-card border-border/60 py-1"
+                        className="flex-1 text-xs bg-card border-border/60 min-h-[36px]"
                       />
                       <TextInput
                         value={ing.amount}
@@ -306,15 +303,17 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                           setIngredients(next)
                         }}
                         placeholder="18 Gram"
-                        className="w-20 text-xs bg-card border-border/60 py-1"
+                        className="w-20 text-xs bg-card border-border/60 min-h-[36px]"
                       />
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleRemoveIngredient(idx)}
-                        className="p-1.5 text-muted-foreground hover:text-rose-400 rounded-lg"
+                        className="w-8 h-8 min-w-[32px] min-h-[32px] text-muted-foreground hover:text-rose-400"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -329,7 +328,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <select
                 value={kdsStation}
                 onChange={(e) => setKdsStation(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none"
+                className="w-full px-2.5 py-2 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none min-h-[40px]"
               >
                 <option value="Barista Station">☕ Barista Station</option>
                 <option value="Kitchen Station">🍳 Kitchen Station</option>
@@ -339,17 +338,17 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
             <div>
               <label className="text-[10px] text-muted-foreground block mb-1">Pajak Restoran (PB1):</label>
-              <button
+              <Button
                 type="button"
+                variant={taxApplicable ? 'secondary' : 'outline'}
+                size="sm"
                 onClick={() => setTaxApplicable(!taxApplicable)}
-                className={`w-full p-1.5 rounded-xl border text-xs text-center transition-all cursor-pointer ${
-                  taxApplicable
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-bold'
-                    : 'bg-muted/30 text-muted-foreground border-border'
+                className={`w-full min-h-[40px] text-xs justify-center ${
+                  taxApplicable ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : ''
                 }`}
               >
                 {taxApplicable ? '✅ Pajak Restoran 10%' : '❌ Bebas Pajak'}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -366,8 +365,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </Button>
             <Button
               type="submit"
+              variant="amber"
               size="sm"
-              className="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
+              className="text-xs"
             >
               {isEditing ? 'Simpan Perubahan' : 'Simpan Produk Baru'}
             </Button>
