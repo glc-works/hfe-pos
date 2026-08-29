@@ -1,489 +1,386 @@
 import React, { useState } from 'react'
-import {
-  Search,
-  Plus,
-  Tag,
-  CheckCircle2,
-  AlertTriangle,
-  Percent,
-  SlidersHorizontal,
-  DollarSign,
-  Coffee,
-  ShoppingBag,
-  Sparkles,
-  Layers,
-  Edit3,
-  Trash2,
-  Check,
-  X
+import { Card, Button, Badge, TextInput } from '../../ui'
+import { 
+  ShoppingBag, Plus, Search, Filter, Edit3, Trash2, 
+  Sparkles, CheckCircle2, AlertCircle, ArrowUpRight, X,
+  ChefHat, Layers, Tag, Percent, ArrowRight, ChevronRight
 } from 'lucide-react'
 
-export interface ProductCatalogItem {
+interface ProductCatalogItem {
   id: string
   sku: string
   name: string
-  category: string
-  type: 'food_beverage' | 'retail_merch' | 'service'
+  category: 'coffee' | 'non_coffee' | 'food' | 'merchandise' | 'service'
+  categoryLabel: string
   price: number
-  unitCost: number
-  isAvailable: boolean
-  isTaxable: boolean
-  variants?: { name: string; priceDiff: number }[]
-  bomRecipe?: { ingredientName: string; qty: number; unit: string }[]
+  cogs: number
+  marginPercent: number
+  stockType: 'recipe_bom' | 'unit_inventory' | 'non_stock_service'
+  isActive: boolean
+  recipeIngredients?: { name: string; amount: string; cost: number }[]
+  kdsStation?: string
+  taxApplicable?: boolean
 }
 
 const INITIAL_PRODUCTS: ProductCatalogItem[] = [
   {
-    id: 'PRD-001',
+    id: 'prod-01',
     sku: 'BEV-ESPR-01',
     name: 'Espresso Aren Latte',
-    category: 'Minuman Kopi',
-    type: 'food_beverage',
+    category: 'coffee',
+    categoryLabel: 'Minuman Kopi',
     price: 28000,
-    unitCost: 9200,
-    isAvailable: true,
-    isTaxable: true,
-    variants: [
-      { name: 'Reguler (250ml)', priceDiff: 0 },
-      { name: 'Large (500ml)', priceDiff: 6000 }
+    cogs: 9200,
+    marginPercent: 67,
+    stockType: 'recipe_bom',
+    isActive: true,
+    recipeIngredients: [
+      { name: 'Biji Kopi House Blend Gayo', amount: '18 Gram', cost: 4500 },
+      { name: 'Susu Fresh Milk / Oat', amount: '150 ML', cost: 3500 },
+      { name: 'Sirup Gula Aren Organik', amount: '20 ML', cost: 1200 }
     ],
-    bomRecipe: [
-      { ingredientName: 'Biji Kopi House Blend Arabica', qty: 18, unit: 'Gram' },
-      { ingredientName: 'Oat Milk Barista Edition', qty: 150, unit: 'Ml' }
-    ]
+    kdsStation: 'Barista Station',
+    taxApplicable: true
   },
   {
-    id: 'PRD-002',
+    id: 'prod-02',
     sku: 'BEV-JAP-01',
     name: 'Japanese Iced Drip Coffee',
-    category: 'Manual Brew',
-    type: 'food_beverage',
+    category: 'coffee',
+    categoryLabel: 'Manual Brew',
     price: 35000,
-    unitCost: 11000,
-    isAvailable: true,
-    isTaxable: true,
-    bomRecipe: [
-      { ingredientName: 'Biji Kopi House Blend Arabica', qty: 15, unit: 'Gram' }
-    ]
+    cogs: 11000,
+    marginPercent: 69,
+    stockType: 'recipe_bom',
+    isActive: true,
+    recipeIngredients: [
+      { name: 'Biji Kopi Single Origin Ijen', amount: '15 Gram', cost: 8000 },
+      { name: 'Es Batu Kristal RO', amount: '120 Gram', cost: 1000 },
+      { name: 'Paper Filter V60', amount: '1 Pcs', cost: 2000 }
+    ],
+    kdsStation: 'Manual Brew Bar',
+    taxApplicable: true
   },
   {
-    id: 'PRD-003',
+    id: 'prod-03',
     sku: 'MER-TSHIRT-01',
     name: 'Kopi Nusantara Official T-Shirt',
-    category: 'Merchandise Retail',
-    type: 'retail_merch',
+    category: 'merchandise',
+    categoryLabel: 'Merchandise Retail',
     price: 149000,
-    unitCost: 65000,
-    isAvailable: true,
-    isTaxable: false,
-    variants: [
-      { name: 'Size S / M', priceDiff: 0 },
-      { name: 'Size L / XL', priceDiff: 10000 }
-    ]
+    cogs: 65000,
+    marginPercent: 56,
+    stockType: 'unit_inventory',
+    isActive: true,
+    recipeIngredients: [],
+    kdsStation: 'Kasir Retail Shelf',
+    taxApplicable: true
   },
   {
-    id: 'PRD-004',
+    id: 'prod-04',
     sku: 'SRV-ROAST-01',
     name: 'Jasa Custom Roasting Beans (1kg)',
-    category: 'Layanan Jasa',
-    type: 'service',
+    category: 'service',
+    categoryLabel: 'Layanan Jasa',
     price: 45000,
-    unitCost: 5000,
-    isAvailable: true,
-    isTaxable: false
+    cogs: 5000,
+    marginPercent: 89,
+    stockType: 'non_stock_service',
+    isActive: true,
+    recipeIngredients: [
+      { name: 'Gas Roaster & Tenaga Ahli', amount: '1 Batch', cost: 5000 }
+    ],
+    kdsStation: 'Roastery Lab',
+    taxApplicable: true
   }
 ]
 
 export const ProductCatalogManagementTab: React.FC = () => {
   const [products, setProducts] = useState<ProductCatalogItem[]>(INITIAL_PRODUCTS)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<ProductCatalogItem | null>(null)
+  const [selectedProductForDetail, setSelectedProductForDetail] = useState<ProductCatalogItem | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
 
-  // Form State for Adding / Editing
-  const [formName, setFormName] = useState('')
-  const [formSku, setFormSku] = useState('')
-  const [formCategory, setFormCategory] = useState('Minuman Kopi')
-  const [formPrice, setFormPrice] = useState('28000')
-  const [formUnitCost, setFormUnitCost] = useState('9000')
-
-  const categories = ['all', 'Minuman Kopi', 'Manual Brew', 'Merchandise Retail', 'Layanan Jasa']
-
+  // Filter products
   const filteredProducts = products.filter((item) => {
-    const matchSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchCat = selectedCategory === 'all' || item.category === selectedCategory
-    return matchSearch && matchCat
+    const matchesSearch = 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.sku.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory
+    return matchesSearch && matchesCategory
   })
-
-  const toggleAvailability = (id: string) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, isAvailable: !p.isAvailable } : p))
-    )
-  }
-
-  const handleOpenAddModal = () => {
-    setEditingProduct(null)
-    setFormName('')
-    setFormSku(`PRD-${Math.floor(100 + Math.random() * 900)}`)
-    setFormCategory('Minuman Kopi')
-    setFormPrice('25000')
-    setFormUnitCost('8000')
-    setIsModalOpen(true)
-  }
-
-  const handleSaveProduct = (e: React.FormEvent) => {
-    e.preventDefault()
-    const priceNum = parseInt(formPrice.replace(/\D/g, ''), 10) || 0
-    const costNum = parseInt(formUnitCost.replace(/\D/g, ''), 10) || 0
-
-    if (editingProduct) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id
-            ? { ...p, name: formName, sku: formSku, category: formCategory, price: priceNum, unitCost: costNum }
-            : p
-        )
-      )
-    } else {
-      const newProduct: ProductCatalogItem = {
-        id: `PRD-00${products.length + 1}`,
-        sku: formSku,
-        name: formName,
-        category: formCategory,
-        type: formCategory === 'Layanan Jasa' ? 'service' : formCategory === 'Merchandise Retail' ? 'retail_merch' : 'food_beverage',
-        price: priceNum,
-        unitCost: costNum,
-        isAvailable: true,
-        isTaxable: true
-      }
-      setProducts((prev) => [newProduct, ...prev])
-    }
-    setIsModalOpen(false)
-  }
-
-  const formatIdr = (val: number) =>
-    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val)
 
   return (
     <div className="space-y-4">
-      {/* Top Action Bar (Mobile-First Responsive Stack) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-card p-3.5 rounded-2xl border border-border">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+      {/* 3-DEVICE RESPONSIVE CONTROL TOOLBAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <TextInput
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari produk / SKU / jasa..."
-              className="w-full pl-9 pr-3 py-2 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
+              className="pl-9 bg-card border-border text-xs w-full min-h-[38px]"
             />
           </div>
 
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full sm:w-auto text-xs bg-background border border-border text-foreground rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer min-h-[40px]"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c === 'all' ? 'Semua Kategori' : c}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="flex-1 sm:flex-none px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[38px]"
+            >
+              <option value="all">Semua Kategori</option>
+              <option value="coffee">Kopi &amp; Manual Brew</option>
+              <option value="merchandise">Merchandise Retail</option>
+              <option value="service">Layanan Jasa</option>
+            </select>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenAddModal}
-          className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer min-h-[42px] shrink-0"
+        {/* Top-Right CTA on Tablet/Desktop */}
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className="hidden sm:flex text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold items-center gap-1.5 min-h-[38px] shadow-xs cursor-pointer"
         >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span>+ Tambah Produk / Jasa</span>
-        </button>
+          <Plus className="w-3.5 h-3.5" />
+          <span>Tambah Produk / Jasa</span>
+        </Button>
       </div>
 
-      {/* Mobile Card List (< md) */}
-      <div className="grid grid-cols-1 gap-2.5 md:hidden">
-        {filteredProducts.map((p) => {
-          const marginPct = p.price > 0 ? Math.round(((p.price - p.unitCost) / p.price) * 100) : 0
-          return (
-            <div key={p.id} className="p-3.5 bg-card rounded-2xl border border-border space-y-2.5 shadow-xs">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                    {p.type === 'service' ? (
-                      <Sparkles className="w-4 h-4 text-purple-400" />
-                    ) : (
-                      <Coffee className="w-4 h-4 text-amber-500" />
-                    )}
-                    <span>{p.name}</span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-mono">
-                    {p.sku} • {p.category}
-                  </span>
+      {/* MOBILE ONLY (< md): RESPONSIVE SUMMARY CARDS */}
+      <div className="md:hidden space-y-2.5">
+        {filteredProducts.map((prod) => (
+          <div
+            key={prod.id}
+            onClick={() => setSelectedProductForDetail(prod)}
+            className="p-3.5 rounded-2xl bg-card border border-border shadow-xs hover:border-amber-500/40 active:scale-[0.99] transition-all cursor-pointer space-y-2"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">☕</span>
+                  <h4 className="text-xs font-bold text-foreground truncate">{prod.name}</h4>
                 </div>
-
-                <span
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono ${
-                    marginPct >= 60
-                      ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                  }`}
-                >
-                  Margin: {marginPct}%
-                </span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {prod.sku} • {prod.categoryLabel}
+                </p>
               </div>
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] shrink-0 font-mono font-bold">
+                Margin {prod.marginPercent}%
+              </Badge>
+            </div>
 
-              {p.bomRecipe && (
-                <div className="text-[10px] text-amber-500 font-mono flex items-center gap-1">
-                  <Layers className="w-3 h-3" /> Resep: {p.bomRecipe.map((b) => `${b.qty}${b.unit} ${b.ingredientName.split(' ')[0]}`).join(', ')}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-1 border-t border-border/60 text-xs">
-                <div>
-                  <span className="text-[10px] text-muted-foreground block">Harga Jual / HPP:</span>
-                  <span className="font-bold font-mono text-foreground">{formatIdr(p.price)}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono ml-1">({formatIdr(p.unitCost)})</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleAvailability(p.id)}
-                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold cursor-pointer transition-all min-h-[32px] ${
-                      p.isAvailable
-                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                    }`}
-                  >
-                    {p.isAvailable ? '🟢 Aktif' : '🔴 Kosong (86)'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingProduct(p)
-                      setFormName(p.name)
-                      setFormSku(p.sku)
-                      setFormCategory(p.category)
-                      setFormPrice(p.price.toString())
-                      setFormUnitCost(p.unitCost.toString())
-                      setIsModalOpen(true)
-                    }}
-                    className="p-1.5 text-muted-foreground hover:text-foreground bg-muted rounded-lg"
-                    title="Edit"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+            <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
+              <div>
+                <span className="text-[10px] text-muted-foreground block">Harga Jual:</span>
+                <span className="font-mono font-bold text-foreground">Rp {prod.price.toLocaleString('id-ID')}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-amber-500 font-semibold">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px]">
+                  🟢 Aktif Jual
+                </span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
-          )
-        })}
+          </div>
+        ))}
+
+        {/* Mobile Sticky Add Button */}
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className="w-full text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-1.5 min-h-[42px] shadow-xs cursor-pointer mt-4"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Tambah Produk / Jasa Baru</span>
+        </Button>
       </div>
 
-      {/* Desktop Product Table (>= md) */}
-      <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden shadow-xs">
+      {/* DESKTOP / TABLET (>= md): COMPREHENSIVE FINANCIAL DATA TABLE */}
+      <div className="hidden md:block bg-card rounded-2xl border border-border shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
+              <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold">
                 <th className="py-3 px-4">Produk / Layanan</th>
-                <th className="py-3 px-3">Kategori & Tipe</th>
-                <th className="py-3 px-3 text-right">Harga Jual</th>
-                <th className="py-3 px-3 text-right">HPP (Cost)</th>
-                <th className="py-3 px-3 text-center">Margin Laba</th>
-                <th className="py-3 px-3 text-center">Status (86-ing)</th>
+                <th className="py-3 px-4">Kategori &amp; SKU</th>
+                <th className="py-3 px-4 font-mono">Harga Jual</th>
+                <th className="py-3 px-4 font-mono">HPP (Modal)</th>
+                <th className="py-3 px-4 font-mono">Margin %</th>
+                <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/60 text-xs">
-              {filteredProducts.map((p) => {
-                const marginPct = p.price > 0 ? Math.round(((p.price - p.unitCost) / p.price) * 100) : 0
-                return (
-                  <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-foreground flex items-center gap-1.5">
-                        {p.type === 'service' ? (
-                          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                        ) : (
-                          <Coffee className="w-3.5 h-3.5 text-amber-500" />
-                        )}
-                        <span>{p.name}</span>
-                      </div>
-                      <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                        SKU: {p.sku} {p.variants ? `• ${p.variants.length} Varian` : ''}
-                      </div>
-                      {p.bomRecipe && (
-                        <div className="text-[10px] text-amber-500/90 font-mono mt-0.5 flex items-center gap-1">
-                          <Layers className="w-3 h-3" /> Resep: {p.bomRecipe.map((b) => `${b.qty}${b.unit} ${b.ingredientName.split(' ')[0]}`).join(', ')}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded-lg bg-muted text-foreground text-[11px] font-medium">
-                        {p.category}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-foreground">
-                      {formatIdr(p.price)}
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono text-muted-foreground">
-                      {formatIdr(p.unitCost)}
-                    </td>
-                    <td className="py-3 px-3 text-center">
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[11px] font-bold font-mono ${
-                          marginPct >= 60
-                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                            : marginPct >= 30
-                            ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                            : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                        }`}
-                      >
-                        {marginPct}%
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-center">
-                      <button
-                        type="button"
-                        onClick={() => toggleAvailability(p.id)}
-                        className={`px-2.5 py-1 rounded-xl text-[11px] font-bold cursor-pointer transition-all ${
-                          p.isAvailable
-                            ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20'
-                            : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20'
-                        }`}
-                      >
-                        {p.isAvailable ? '🟢 Aktif Jual' : '🔴 Kosong (86)'}
-                      </button>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingProduct(p)
-                          setFormName(p.name)
-                          setFormSku(p.sku)
-                          setFormCategory(p.category)
-                          setFormPrice(p.price.toString())
-                          setFormUnitCost(p.unitCost.toString())
-                          setIsModalOpen(true)
-                        }}
-                        className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                        title="Edit Produk"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
+            <tbody className="divide-y divide-border/60">
+              {filteredProducts.map((prod) => (
+                <tr 
+                  key={prod.id} 
+                  onClick={() => setSelectedProductForDetail(prod)}
+                  className="hover:bg-muted/30 transition-colors cursor-pointer"
+                >
+                  <td className="py-3 px-4 font-bold text-foreground flex items-center gap-2">
+                    <span className="text-sm">☕</span>
+                    <span>{prod.name}</span>
+                  </td>
+                  <td className="py-3 px-4 text-muted-foreground">
+                    <div>{prod.categoryLabel}</div>
+                    <div className="text-[10px] font-mono text-muted-foreground/80">{prod.sku}</div>
+                  </td>
+                  <td className="py-3 px-4 font-mono font-bold text-foreground">
+                    Rp {prod.price.toLocaleString('id-ID')}
+                  </td>
+                  <td className="py-3 px-4 font-mono text-muted-foreground">
+                    Rp {prod.cogs.toLocaleString('id-ID')}
+                  </td>
+                  <td className="py-3 px-4">
+                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-mono font-bold">
+                      {prod.marginPercent}%
+                    </Badge>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
+                      🟢 Aktif
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedProductForDetail(prod)
+                      }}
+                      className="text-xs px-2.5 py-1 min-h-[30px]"
+                    >
+                      Detail &amp; Resep ➔
+                    </Button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Modal Add / Edit Product */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-card w-full max-w-md p-5 sm:p-6 rounded-2xl border border-border shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 border-b border-border">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Tag className="w-4 h-4 text-amber-500" />
-                <span>{editingProduct ? 'Edit Produk / Layanan' : 'Tambah Produk / Jasa Baru'}</span>
-              </h3>
+      {/* DETAIL DRAWER / MODAL (RESEP & ACTIONS BELONG HERE) */}
+      {selectedProductForDetail && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn">
+          <div className="w-full max-w-xl bg-card rounded-t-3xl sm:rounded-3xl border border-border shadow-2xl overflow-hidden max-h-[85dvh] flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-sm">
+                  ☕
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">{selectedProductForDetail.name}</h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    {selectedProductForDetail.sku} • {selectedProductForDetail.categoryLabel}
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground p-1"
+                onClick={() => setSelectedProductForDetail(null)}
+                className="p-1 text-muted-foreground hover:text-foreground rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-muted-foreground font-semibold mb-1">Nama Produk / Jasa</label>
-                <input
-                  type="text"
-                  required
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  placeholder="Contoh: Caramel Macchiato"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Scrollable Content */}
+            <div className="p-4 space-y-4 overflow-y-auto flex-1 text-xs">
+              {/* Financial Metrics */}
+              <div className="grid grid-cols-3 gap-2 p-3 bg-muted/40 rounded-xl border border-border">
                 <div>
-                  <label className="block text-muted-foreground font-semibold mb-1">SKU / Barcode</label>
-                  <input
-                    type="text"
-                    required
-                    value={formSku}
-                    onChange={(e) => setFormSku(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
-                  />
+                  <span className="text-[10px] text-muted-foreground block">Harga Jual:</span>
+                  <span className="font-mono font-bold text-sm text-foreground">
+                    Rp {selectedProductForDetail.price.toLocaleString('id-ID')}
+                  </span>
                 </div>
                 <div>
-                  <label className="block text-muted-foreground font-semibold mb-1">Kategori</label>
-                  <select
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
-                  >
-                    <option value="Minuman Kopi">Minuman Kopi</option>
-                    <option value="Manual Brew">Manual Brew</option>
-                    <option value="Merchandise Retail">Merchandise Retail</option>
-                    <option value="Layanan Jasa">Layanan Jasa</option>
-                  </select>
+                  <span className="text-[10px] text-muted-foreground block">HPP (Modal):</span>
+                  <span className="font-mono font-bold text-sm text-muted-foreground">
+                    Rp {selectedProductForDetail.cogs.toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground block">Margin Laba:</span>
+                  <span className="font-mono font-bold text-sm text-emerald-400">
+                    {selectedProductForDetail.marginPercent}%
+                  </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-muted-foreground font-semibold mb-1">Harga Jual (IDR)</label>
-                  <input
-                    type="number"
-                    required
-                    value={formPrice}
-                    onChange={(e) => setFormPrice(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
-                  />
+              {/* Recipe & Ingredients (BOM) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                    <ChefHat className="w-3.5 h-3.5 text-amber-500" />
+                    <span>🧪 Resep &amp; Komposisi Bahan Baku (BOM)</span>
+                  </h4>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    Auto-Potong Stok Gudang
+                  </span>
                 </div>
-                <div>
-                  <label className="block text-muted-foreground font-semibold mb-1">HPP / Cost (IDR)</label>
-                  <input
-                    type="number"
-                    required
-                    value={formUnitCost}
-                    onChange={(e) => setFormUnitCost(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-foreground font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none min-h-[40px]"
-                  />
-                </div>
+
+                {selectedProductForDetail.recipeIngredients && selectedProductForDetail.recipeIngredients.length > 0 ? (
+                  <div className="rounded-xl border border-border divide-y divide-border/60 overflow-hidden bg-background">
+                    {selectedProductForDetail.recipeIngredients.map((ing, idx) => (
+                      <div key={idx} className="p-2.5 flex items-center justify-between">
+                        <div>
+                          <span className="font-semibold text-foreground">{ing.name}</span>
+                          <span className="text-[10px] text-muted-foreground block">Takaran: {ing.amount}</span>
+                        </div>
+                        <span className="font-mono text-muted-foreground">
+                          Rp {ing.cost.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground p-3 bg-muted/30 rounded-xl">
+                    Produk retail / jasa ini tidak menggunakan resep bahan baku peracikan.
+                  </p>
+                )}
               </div>
 
-              <div className="pt-3 flex gap-2 justify-end border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-muted-foreground hover:bg-muted"
+              {/* Operational Routing */}
+              <div className="p-3 bg-muted/20 border border-border rounded-xl space-y-1.5">
+                <h4 className="font-bold text-foreground">🎛️ Routing &amp; Kebijakan Toko:</h4>
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>Stasiun Cetak KDS:</span>
+                  <span className="font-semibold text-foreground">{selectedProductForDetail.kdsStation}</span>
+                </div>
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>Pajak Restoran PB1 (10%):</span>
+                  <span className="text-emerald-400 font-semibold">✅ Dikenakan Pajak</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons in Detail View */}
+            <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedProductForDetail(null)}
+                className="text-xs text-rose-400 hover:text-rose-300 border-rose-500/20"
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" /> Nonaktifkan
+              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setSelectedProductForDetail(null)}
+                  className="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
                 >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-xs"
-                >
-                  Simpan Produk
-                </button>
+                  <Edit3 className="w-3.5 h-3.5 mr-1" /> Ubah Data &amp; Resep
+                </Button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
