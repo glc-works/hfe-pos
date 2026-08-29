@@ -91,9 +91,10 @@ describe('L2-POS-102: Luxury Online Delivery Checkout & Precision Address Archit
 
     // Verify zero raw radio buttons in DOM
     expect(html).not.toContain('type="radio"')
+    expect(html).toContain('Metode Pembayaran')
     expect(html).toContain('QRIS Instan (Lunas di Depan)')
-    expect(html).toContain('Aktif • Bebas Biaya')
-    expect(html).toContain('Pay-First • Terverifikasi')
+    expect(html).toContain('BCA, Mandiri, GoPay, OVO')
+    expect(html).toContain('Ubah')
   })
 
   it('renders CustomerCheckoutView in delivery mode with delivery fee, thermal packaging fee and CTA', () => {

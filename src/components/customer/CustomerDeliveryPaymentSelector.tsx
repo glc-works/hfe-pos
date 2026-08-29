@@ -61,45 +61,39 @@ export const CustomerDeliveryPaymentSelector: React.FC<CustomerDeliveryPaymentSe
   const activeOption = paymentOptions.find((p) => p.id === selectedMethod) || paymentOptions[0]
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2.5 shadow-lg transition-all">
+    <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-2.5 shadow-md transition-all">
+      {/* Top Header Row with Title and Action Trigger */}
       <div className="flex items-center justify-between">
-        <label className="text-[11px] font-bold text-muted-foreground flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Metode Pembayaran Online</span>
+        <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+          <CreditCard className="w-4 h-4 text-primary" />
+          <span>Metode Pembayaran</span>
         </label>
-        <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full">
-          Pay-First • Terverifikasi
-        </span>
+        <button
+          type="button"
+          onClick={() => setShowDetailModal(true)}
+          className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-0.5 px-2 py-0.5 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer"
+        >
+          <span>Ubah</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
-      {/* Interactive Selected Card (Zero Radio Button) */}
+      {/* Selected Payment Method Card (Spacious 2-Row Stacked Layout) */}
       <button
         type="button"
         onClick={() => setShowDetailModal(true)}
-        className="w-full bg-background hover:bg-muted/40 border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between gap-3 text-left transition-all active:scale-[0.99] group shadow-sm"
+        className="w-full bg-background hover:bg-muted/40 border border-border hover:border-primary/40 rounded-xl p-3 flex items-center gap-3 text-left transition-all active:scale-[0.99] group shadow-sm cursor-pointer"
       >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            {activeOption.icon}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-foreground truncate">
-                {activeOption.title}
-              </span>
-              <span className="text-[9px] font-bold px-1.5 py-0.2 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded font-mono">
-                {activeOption.badge}
-              </span>
-            </div>
-            <span className="text-[11px] text-muted-foreground truncate">
-              {activeOption.subtitle}
-            </span>
-          </div>
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+          {activeOption.icon}
         </div>
-
-        <div className="flex items-center gap-1 text-xs font-bold text-primary shrink-0">
-          <span>Ubah</span>
-          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="text-xs sm:text-sm font-bold text-foreground leading-tight">
+            {activeOption.title}
+          </span>
+          <span className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+            {activeOption.subtitle}
+          </span>
         </div>
       </button>
 
@@ -120,7 +114,7 @@ export const CustomerDeliveryPaymentSelector: React.FC<CustomerDeliveryPaymentSe
               <button
                 type="button"
                 onClick={() => setShowDetailModal(false)}
-                className="w-8 h-8 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-all"
+                className="w-8 h-8 rounded-xl bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -144,7 +138,7 @@ export const CustomerDeliveryPaymentSelector: React.FC<CustomerDeliveryPaymentSe
                       isSelected
                         ? 'bg-emerald-500/10 border-emerald-500 text-foreground shadow-md'
                         : opt.isAvailable
-                        ? 'bg-background hover:bg-muted/50 border-border text-foreground'
+                        ? 'bg-background hover:bg-muted/50 border-border text-foreground cursor-pointer'
                         : 'bg-muted/20 border-border/50 text-muted-foreground opacity-60 cursor-not-allowed'
                     }`}
                   >
