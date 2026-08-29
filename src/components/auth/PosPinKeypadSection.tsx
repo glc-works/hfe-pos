@@ -32,14 +32,14 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
     <form onSubmit={onLoginSubmit} className="flex flex-col gap-4">
       {/* BRANCH SELECTOR */}
       <div className="flex flex-col gap-1">
-        <label className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-amber-400" />
+        <label className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-amber-500" />
           <span>Lokasi Outlet / Cabang:</span>
         </label>
         <select
           value={activeBranchId}
           onChange={(e) => setActiveBranchId(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-amber-500"
         >
           {branches.map(b => (
             <option key={b.id} value={b.id}>{b.name}</option>
@@ -55,26 +55,26 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
               key={idx}
               className={`w-3.5 h-3.5 rounded-full transition-all ${
                 idx < pin.length
-                  ? 'bg-amber-400 scale-125 shadow-lg shadow-amber-400/50'
-                  : 'bg-slate-800 border border-slate-700'
+                  ? 'bg-amber-500 scale-125 shadow-lg shadow-amber-500/50'
+                  : 'bg-muted border border-border'
               }`}
             />
           ))}
         </div>
-        <span className="text-[11px] font-mono text-slate-400">
+        <span className="text-[11px] font-mono text-muted-foreground">
           {isCooldownActive ? `⏳ Terkunci sementara (${cooldownSeconds}s)` : 'Masukkan 6 Digit PIN Kasir'}
         </span>
       </div>
 
       {errorMessage && (
-        <div className="p-2.5 bg-rose-500/20 border border-rose-500/40 rounded-xl text-rose-300 text-xs font-bold flex items-center gap-2">
+        <div className="p-2.5 bg-rose-500/15 border border-rose-500/30 rounded-xl text-rose-600 dark:text-rose-300 text-xs font-bold flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {successMessage && (
-        <div className="p-2.5 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-bold flex items-center gap-2">
+        <div className="p-2.5 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-600 dark:text-emerald-300 text-xs font-bold flex items-center gap-2">
           <CheckCircle className="w-4 h-4 shrink-0" />
           <span>{successMessage}</span>
         </div>
@@ -88,10 +88,10 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
             type="button"
             disabled={isCooldownActive || loading}
             onClick={() => onKeypadPress(btn)}
-            className={`py-3.5 rounded-2xl font-mono font-bold text-base transition-all active:scale-95 cursor-pointer shadow-md ${
+            className={`py-3.5 rounded-2xl font-mono font-bold text-base transition-all active:scale-95 cursor-pointer shadow-sm ${
               btn === 'CLR' || btn === 'DEL'
-                ? 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 text-xs'
-                : 'bg-slate-900/90 text-white hover:bg-slate-800 border border-slate-800 hover:border-slate-700'
+                ? 'bg-muted/80 text-muted-foreground hover:text-foreground border border-border text-xs'
+                : 'bg-card text-foreground hover:bg-muted/60 border border-border hover:border-amber-500/40'
             }`}
           >
             {btn === 'CLR' ? 'Hapus' : btn === 'DEL' ? '⌫' : btn}
@@ -102,7 +102,7 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
       <button
         type="submit"
         disabled={pin.length < 6 || loading || isCooldownActive}
-        className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-xs transition-all shadow-lg active:scale-98 cursor-pointer mt-1"
+        className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-xs transition-all shadow-lg active:scale-98 cursor-pointer mt-1"
       >
         {loading ? 'Memverifikasi PIN...' : 'Masuk ke Kasir POS ➔'}
       </button>

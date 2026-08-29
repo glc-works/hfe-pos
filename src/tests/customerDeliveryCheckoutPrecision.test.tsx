@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { CustomerDeliveryAddressCard } from '../components/customer/CustomerDeliveryAddressCard'
+import { CustomerDeliveryAddressModal } from '../components/customer/CustomerDeliveryAddressModal'
 import { CustomerDeliveryPaymentSelector } from '../components/customer/CustomerDeliveryPaymentSelector'
 import { CustomerCheckoutView } from '../components/customer/CustomerCheckoutView'
 import { LanguageProvider } from '../context/LanguageContext'
@@ -19,14 +20,14 @@ const mockAddress: DeliveryAddressInfo = {
 }
 
 const mockTheme: CafeThemeConfig = {
-  themeName: 'Luxury Dark',
+  themeName: 'Warm Latte Cream (Light)',
   fontFamily: 'sans-serif',
-  mode: 'dark',
-  pageBgHex: '#020617',
-  cardBgHex: '#0f172a',
-  primaryAccentHex: '#10b981',
-  textColorHex: '#f8fafc',
-  secondaryTextColorHex: '#94a3b8'
+  mode: 'light',
+  pageBgHex: '#ffffff',
+  cardBgHex: '#f8fafc',
+  primaryAccentHex: '#d97706',
+  textColorHex: '#0f172a',
+  secondaryTextColorHex: '#64748b'
 }
 
 const mockCart: CartItem[] = [
@@ -43,7 +44,7 @@ const mockCart: CartItem[] = [
 ]
 
 describe('L2-POS-102: Luxury Online Delivery Checkout & Precision Address Architecture', () => {
-  it('renders CustomerDeliveryAddressCard with 3-tier address, distance km and drop-off options', () => {
+  it('renders CustomerDeliveryAddressCard as a compact summary card on checkout', () => {
     const html = renderToString(
       <CustomerDeliveryAddressCard
         address={mockAddress}
@@ -56,9 +57,27 @@ describe('L2-POS-102: Luxury Online Delivery Checkout & Precision Address Archit
     expect(html).toContain('Menara Mandiri, Jl. Jend. Sudirman Kav. 54-55')
     expect(html).toContain('Lantai 18, Ruang 1802')
     expect(html).toContain('Titip Satpam / Lobby')
+    expect(html).toContain('Titip di meja resepsionis lobi utama')
+    expect(html).toContain('Ubah')
+  })
+
+  it('renders CustomerDeliveryAddressModal with complete 3-tier address form and drop-off selectors', () => {
+    const html = renderToString(
+      <CustomerDeliveryAddressModal
+        isOpen={true}
+        onClose={() => {}}
+        address={mockAddress}
+        onSaveAddress={() => {}}
+      />
+    )
+
+    expect(html).toContain('Detail Alamat Pengiriman')
+    expect(html).toContain('Alamat Utama &amp; Titik Lokasi')
+    expect(html).toContain('Detail Unit / Lantai / Patokan')
+    expect(html).toContain('Titip Satpam / Lobby')
     expect(html).toContain('Depan Pintu Unit')
     expect(html).toContain('Bertemu Langsung')
-    expect(html).toContain('Titip di meja resepsionis lobi utama')
+    expect(html).toContain('Simpan Alamat Pengiriman')
   })
 
   it('renders CustomerDeliveryPaymentSelector without raw radio buttons and enforces pay-first QRIS', () => {

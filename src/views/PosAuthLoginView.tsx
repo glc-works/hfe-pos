@@ -145,19 +145,19 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[100dvh] bg-slate-950 p-4 font-sans text-slate-100">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-5 animate-scaleUp">
+    <div className="flex items-center justify-center min-h-[100dvh] bg-background p-4 font-sans text-foreground">
+      <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl flex flex-col gap-5 animate-scaleUp">
         {/* BRAND LOGO */}
         <div className="flex flex-col items-center gap-1.5 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-md">
             <Store className="w-6 h-6" />
           </div>
-          <h2 className="text-lg font-black text-white">Hfe POS Terminal</h2>
-          <span className="text-xs text-slate-400">Point of Sale & Backoffice Authentication</span>
+          <h2 className="text-lg font-black text-foreground">Hfe POS Terminal</h2>
+          <span className="text-xs text-muted-foreground">Point of Sale & Backoffice Authentication</span>
         </div>
 
         {/* TAB SELECTOR */}
-        <div className="grid grid-cols-4 gap-1 p-1 bg-slate-950 rounded-2xl border border-slate-800">
+        <div className="grid grid-cols-4 gap-1 p-1 bg-muted/60 rounded-2xl border border-border">
           {[
             { id: 'pin', label: 'PIN Kasir', icon: Keyboard },
             { id: 'owner-login', label: 'Owner', icon: UserCheck },
@@ -176,7 +176,7 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
                 className={`py-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
                   activeTab === t.id
                     ? 'bg-amber-500 text-slate-950 font-black shadow'
-                    : 'text-slate-400 hover:text-white'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />

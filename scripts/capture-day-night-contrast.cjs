@@ -6,7 +6,7 @@ const path = require('path');
   const brainDir = process.env.BRAIN_DIR || '/Users/aldi/.gemini/antigravity/brain/b1389ef7-dd0b-4095-bbea-de93e1d65656';
   const port = process.env.PORT || '3000';
 
-  console.log(`Starting visual capture for Luxury Delivery Checkout on port ${port}...`);
+  console.log(`Starting visual capture for Day Mode Express Checkout & Address Modal on port ${port}...`);
 
   const mobileContext = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -15,11 +15,17 @@ const path = require('path');
   });
   const page = await mobileContext.newPage();
 
-  // 1. Navigate to Customer QR / Online App in Delivery Mode
+  // Explicitly initialize localStorage with clean Day Mode state
+  await page.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('hfe_theme_mode', 'light');
+  });
+
+  // 1. Navigate to Customer QR / Online App in Delivery Mode (Clean Day Mode)
   await page.goto(`http://localhost:${port}/?app=customer&fulfillment=delivery`);
   await page.waitForTimeout(1000);
 
-  // Click the plus button to add item
+  // Add 1 item to cart if empty
   const addBtn = page.getByTitle(/Tambah/i).first();
   if (await addBtn.isVisible()) {
     await addBtn.click();
@@ -32,35 +38,52 @@ const path = require('path');
     }
   }
 
-  // Click the floating bottom cart dock
+  // Click the floating bottom cart dock to go to checkout
   const cartDock = page.locator('.min-h-\\[64px\\]').first();
   if (await cartDock.isVisible()) {
     await cartDock.click();
     await page.waitForTimeout(1000);
   }
 
-  const deliveryCheckoutPath = path.join(brainDir, 'delivery_checkout_precision_verified.png');
-  await page.screenshot({ path: deliveryCheckoutPath, fullPage: false });
-  console.log(`✓ Mobile Delivery Checkout captured: ${deliveryCheckoutPath}`);
+  const dayModeCheckoutPath = path.join(brainDir, 'day_mode_express_checkout_verified.png');
+  await page.screenshot({ path: dayModeCheckoutPath });
+  console.log(`✓ Day Mode Express Checkout captured: ${dayModeCheckoutPath}`);
 
-  // 2. Click "Ubah" on Payment Selector to open rich payment methods modal
-  const changePaymentBtn = page.locator('button:has-text("Ubah")').first();
-  if (await changePaymentBtn.isVisible()) {
-    await changePaymentBtn.click();
+  // 2. Click "Ubah" on Address Summary Card to open Dedicated Address Modal
+  const editAddressBtn = page.locator('button:has-text("Ubah")').first();
+  if (await editAddressBtn.isVisible()) {
+    await editAddressBtn.click();
     await page.waitForTimeout(600);
-    const paymentModalPath = path.join(brainDir, 'delivery_payment_selector_modal_verified.png');
-    
-    // Screenshot of the active modal sheet card
+
+    const addressModalPath = path.join(brainDir, 'day_mode_detailed_address_modal_verified.png');
     const modalContent = page.locator('div.fixed.inset-0.z-50 > div.w-full').first();
     if (await modalContent.isVisible()) {
-      await modalContent.screenshot({ path: paymentModalPath });
+      await modalContent.screenshot({ path: addressModalPath });
     } else {
-      await page.screenshot({ path: paymentModalPath });
+      await page.screenshot({ path: addressModalPath });
     }
-    console.log(`✓ Delivery Payment Methods Modal captured: ${paymentModalPath}`);
+    console.log(`✓ Day Mode Detailed Address Modal captured: ${addressModalPath}`);
   }
 
+  // 3. Capture POS Workstation in Day Mode
+  const desktopContext = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 2
+  });
+  const desktopPage = await desktopContext.newPage();
+  await desktopPage.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('hfe_theme_mode', 'light');
+  });
+  await desktopPage.goto(`http://localhost:${port}/?app=cafe`);
+  await desktopPage.waitForTimeout(1000);
+
+  const posDayModePath = path.join(brainDir, 'day_mode_pos_workstation_verified.png');
+  await desktopPage.screenshot({ path: posDayModePath });
+  console.log(`✓ Day Mode POS Workstation captured: ${posDayModePath}`);
+
   await mobileContext.close();
+  await desktopContext.close();
   await browser.close();
-  console.log('All visual captures completed!');
+  console.log('All Day Mode visual captures completed!');
 })();
