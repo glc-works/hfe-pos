@@ -3,20 +3,23 @@ import { Card, Button, Badge, TextInput } from '../ui'
 import { 
   Building2, Landmark, TrendingUp, QrCode, Globe, Users, 
   Calendar, ShieldAlert, KeyRound, AlertTriangle, ArrowLeft,
-  CheckCircle2, Bell, Sparkles, ExternalLink, Loader2
+  CheckCircle2, Bell, Sparkles, ExternalLink, Loader2,
+  ShoppingBag, Ticket
 } from 'lucide-react'
 import { useMerchantConfig } from '../context/MerchantConfigContext'
 import { CafeGoLiveReadinessModal } from '../components/hub/CafeGoLiveReadinessModal'
 
 const PayoutsSettlementTab = lazy(() => import('../components/hub/PayoutsSettlementTab').then(m => ({ default: m.PayoutsSettlementTab })))
 const ExecutiveInsightsTab = lazy(() => import('../components/hub/ExecutiveInsightsTab').then(m => ({ default: m.ExecutiveInsightsTab })))
+const ProductCatalogManagementTab = lazy(() => import('../components/hub/ProductCatalogManagementTab').then(m => ({ default: m.ProductCatalogManagementTab })))
+const PromotionsAndDiscountsTab = lazy(() => import('../components/hub/PromotionsAndDiscountsTab').then(m => ({ default: m.PromotionsAndDiscountsTab })))
 const MultiEntityHoldingTab = lazy(() => import('../components/hub/MultiEntityHoldingTab').then(m => ({ default: m.MultiEntityHoldingTab })))
 const PrintQrStudioTab = lazy(() => import('../components/hub/PrintQrStudioTab').then(m => ({ default: m.PrintQrStudioTab })))
 const DomainManagerTab = lazy(() => import('../components/hub/DomainManagerTab').then(m => ({ default: m.DomainManagerTab })))
 const TeamPinAccessTab = lazy(() => import('../components/hub/TeamPinAccessTab').then(m => ({ default: m.TeamPinAccessTab })))
 const TaxComplianceTab = lazy(() => import('../components/hub/TaxComplianceTab').then(m => ({ default: m.TaxComplianceTab })))
 
-export type HubTabKey = 'payouts' | 'insights' | 'holding_entities' | 'print_qr' | 'domains' | 'team_pin' | 'tax_pb1'
+export type HubTabKey = 'payouts' | 'insights' | 'products' | 'promotions' | 'holding_entities' | 'print_qr' | 'domains' | 'team_pin' | 'tax_pb1'
 
 interface MerchantHomeHubViewProps {
   onBackToPos?: () => void
@@ -98,24 +101,23 @@ export function MerchantHomeHubView({
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="flex-1 text-xs"
                   onClick={onBackToPos}
+                  className="flex-1 text-xs"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Kembali ke Kasir
+                  Batal
                 </Button>
               )}
               <Button 
                 type="submit" 
-                className="flex-1 font-bold text-xs bg-primary text-primary-foreground"
-                disabled={pinInput.length !== 4}
+                className="flex-1 text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold"
               >
-                Buka Akses Hub
+                Buka Sesi
               </Button>
             </div>
           </form>
 
-          <div className="text-[10px] text-muted-foreground pt-3 border-t border-border/50">
-            PIN Demo Owner: <span className="font-mono font-bold text-foreground">8888</span> atau <span className="font-mono font-bold text-foreground">1234</span>
+          <div className="pt-2 border-t border-border/50 text-[11px] text-muted-foreground">
+            <span className="font-mono">Default Demo PIN: 8888 atau 1234</span>
           </div>
         </Card>
       </div>
@@ -125,6 +127,8 @@ export function MerchantHomeHubView({
   const tabs: { key: HubTabKey; label: string; icon: React.ReactNode; glyph: string }[] = [
     { key: 'payouts', label: 'Payouts & Kas', icon: <Landmark className="w-4 h-4" />, glyph: '💰' },
     { key: 'insights', label: 'Executive Insights', icon: <TrendingUp className="w-4 h-4" />, glyph: '📊' },
+    { key: 'products', label: 'Produk & Layanan', icon: <ShoppingBag className="w-4 h-4" />, glyph: '🛍️' },
+    { key: 'promotions', label: 'Promo & Diskon', icon: <Ticket className="w-4 h-4" />, glyph: '🏷️' },
     { key: 'holding_entities', label: 'Holding & Multi-Entitas', icon: <Building2 className="w-4 h-4" />, glyph: '🏢' },
     { key: 'print_qr', label: 'Print & QR Studio', icon: <QrCode className="w-4 h-4" />, glyph: '🖨️' },
     { key: 'domains', label: 'Storefront & Domain', icon: <Globe className="w-4 h-4" />, glyph: '🌐' },
@@ -157,7 +161,7 @@ export function MerchantHomeHubView({
               </Badge>
             </div>
             <p className="text-[11px] text-muted-foreground hidden sm:block">
-              Ruang kendali terpadu bisnis, arus kas, cetak QR, domain, dan kepatuhan pajak daerah
+              Ruang kendali terpadu bisnis, katalog produk, promosi, arus kas, domain, dan kepatuhan pajak daerah
             </p>
           </div>
         </div>
@@ -200,7 +204,7 @@ export function MerchantHomeHubView({
         </div>
       </div>
 
-      {/* 6-Tab Navigation Bar */}
+      {/* Navigation Tabs Bar */}
       <div className="shrink-0 border-b border-border bg-muted/30 px-4 pt-2 overflow-x-auto">
         <div className="flex gap-2 min-w-max pb-2">
           {tabs.map((tab) => {
@@ -209,7 +213,7 @@ export function MerchantHomeHubView({
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all select-none ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all select-none cursor-pointer ${
                   isActive
                     ? 'bg-card text-primary shadow-sm border border-border font-bold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -234,6 +238,8 @@ export function MerchantHomeHubView({
           }>
             {activeTab === 'payouts' && <PayoutsSettlementTab />}
             {activeTab === 'insights' && <ExecutiveInsightsTab />}
+            {activeTab === 'products' && <ProductCatalogManagementTab />}
+            {activeTab === 'promotions' && <PromotionsAndDiscountsTab />}
             {activeTab === 'holding_entities' && <MultiEntityHoldingTab />}
             {activeTab === 'print_qr' && <PrintQrStudioTab />}
             {activeTab === 'domains' && <DomainManagerTab />}

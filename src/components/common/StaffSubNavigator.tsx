@@ -117,9 +117,9 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
 
             <button
               type="button"
-              onClick={() => setActiveStaffSurface('hfe-connect-hub')}
+              onClick={() => setActiveStaffSurface('merchant-hub')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                ['hfe-connect-hub', 'merchant-hub', 'hfe-insights', 'hfe-company-book', 'cafe-config', 'admin-hub'].includes(activeStaffSurface)
+                ['merchant-hub', 'hfe-connect-hub', 'hfe-insights', 'hfe-company-book', 'cafe-config', 'admin-hub'].includes(activeStaffSurface)
                   ? 'bg-amber-500 text-slate-950 shadow-md font-black'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
               }`}
