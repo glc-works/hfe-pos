@@ -13,13 +13,14 @@ const PayoutsSettlementTab = lazy(() => import('../components/hub/PayoutsSettlem
 const ExecutiveInsightsTab = lazy(() => import('../components/hub/ExecutiveInsightsTab').then(m => ({ default: m.ExecutiveInsightsTab })))
 const ProductCatalogManagementTab = lazy(() => import('../components/hub/ProductCatalogManagementTab').then(m => ({ default: m.ProductCatalogManagementTab })))
 const PromotionsAndDiscountsTab = lazy(() => import('../components/hub/PromotionsAndDiscountsTab').then(m => ({ default: m.PromotionsAndDiscountsTab })))
+const EventManagementTab = lazy(() => import('../components/hub/EventManagementTab').then(m => ({ default: m.EventManagementTab })))
 const MultiEntityHoldingTab = lazy(() => import('../components/hub/MultiEntityHoldingTab').then(m => ({ default: m.MultiEntityHoldingTab })))
 const PrintQrStudioTab = lazy(() => import('../components/hub/PrintQrStudioTab').then(m => ({ default: m.PrintQrStudioTab })))
 const DomainManagerTab = lazy(() => import('../components/hub/DomainManagerTab').then(m => ({ default: m.DomainManagerTab })))
 const TeamPinAccessTab = lazy(() => import('../components/hub/TeamPinAccessTab').then(m => ({ default: m.TeamPinAccessTab })))
 const TaxComplianceTab = lazy(() => import('../components/hub/TaxComplianceTab').then(m => ({ default: m.TaxComplianceTab })))
 
-export type HubTabKey = 'payouts' | 'insights' | 'products' | 'promotions' | 'holding_entities' | 'print_qr' | 'domains' | 'team_pin' | 'tax_pb1'
+export type HubTabKey = 'payouts' | 'insights' | 'products' | 'promotions' | 'events' | 'holding_entities' | 'print_qr' | 'domains' | 'team_pin' | 'tax_pb1'
 
 interface MerchantHomeHubViewProps {
   onBackToPos?: () => void
@@ -129,6 +130,7 @@ export function MerchantHomeHubView({
     { key: 'insights', label: 'Executive Insights', icon: <TrendingUp className="w-4 h-4" />, glyph: '📊' },
     { key: 'products', label: 'Produk & Layanan', icon: <ShoppingBag className="w-4 h-4" />, glyph: '🛍️' },
     { key: 'promotions', label: 'Promo & Diskon', icon: <Ticket className="w-4 h-4" />, glyph: '🏷️' },
+    { key: 'events', label: 'Event & Tiket', icon: <Calendar className="w-4 h-4" />, glyph: '🎟️' },
     { key: 'holding_entities', label: 'Holding & Multi-Entitas', icon: <Building2 className="w-4 h-4" />, glyph: '🏢' },
     { key: 'print_qr', label: 'Print & QR Studio', icon: <QrCode className="w-4 h-4" />, glyph: '🖨️' },
     { key: 'domains', label: 'Storefront & Domain', icon: <Globe className="w-4 h-4" />, glyph: '🌐' },
@@ -240,6 +242,7 @@ export function MerchantHomeHubView({
             {activeTab === 'insights' && <ExecutiveInsightsTab />}
             {activeTab === 'products' && <ProductCatalogManagementTab />}
             {activeTab === 'promotions' && <PromotionsAndDiscountsTab />}
+            {activeTab === 'events' && <EventManagementTab />}
             {activeTab === 'holding_entities' && <MultiEntityHoldingTab />}
             {activeTab === 'print_qr' && <PrintQrStudioTab />}
             {activeTab === 'domains' && <DomainManagerTab />}
