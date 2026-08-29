@@ -7,14 +7,17 @@ import {
   ScanBarcode,
   Search,
   CheckCircle2,
-  Clock,
   AlertTriangle,
+  PackageCheck,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react'
 import { useWarehouse } from '../hooks/useWarehouse'
 import { GoodsReceivingModal } from '../components/warehouse/GoodsReceivingModal'
 import { StockTransferModal } from '../components/warehouse/StockTransferModal'
 import { WasteAdjustmentModal } from '../components/warehouse/WasteAdjustmentModal'
 import { VendorDirectoryTab, PurchaseOrderRecord } from '../components/warehouse/VendorDirectoryTab'
+import { LogisticsPipelineTab } from '../components/warehouse/LogisticsPipelineTab'
 
 export interface WarehouseManagementViewProps {
   bookId?: string
@@ -29,7 +32,6 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
     activeWarehouse,
     warehouses,
     stockItems,
-    allStockItems,
     transferRequests,
     wasteAdjustments,
     receivingLogs,
@@ -41,13 +43,12 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
     setIsWasteModalOpen,
     handleReceiveGoods,
     handleTransferStock,
-    updateTransferStatus,
     handleAdjustWaste,
   } = useWarehouse(bookId)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [barcodeInput, setBarcodeInput] = useState('')
-  const [activeTab, setActiveTab] = useState<'inventory' | 'transfers' | 'receiving' | 'waste' | 'vendors'>('inventory')
+  const [activeTab, setActiveTab] = useState<'inventory' | 'logistics' | 'receiving' | 'waste' | 'vendors'>('inventory')
   const [prefillPo, setPrefillPo] = useState<PurchaseOrderRecord | undefined>(undefined)
 
   const filteredItems = stockItems.filter(
@@ -77,12 +78,12 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-foreground">Manajemen Gudang & Stok Multi-Lokasi</h1>
+              <h1 className="text-xl font-bold text-foreground">Manajemen Gudang & Multi-Cabang</h1>
               <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500 font-mono text-[10px] font-bold">
                 SOP-LOG-01
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">Penerimaan barang supplier, transfer antar cabang & penyesuaian waste</p>
+            <p className="text-xs text-muted-foreground">Pusat logistik pergerakan barang, penerimaan supplier, PO vendor & mutasi cabang</p>
           </div>
         </div>
 
@@ -124,12 +125,15 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
         </div>
       </div>
 
-      {/* Action Toolbar with Form SOP Badges */}
+      {/* Action Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border shadow-xs">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setIsReceivingModalOpen(true)}
+            onClick={() => {
+              setPrefillPo(undefined)
+              setIsReceivingModalOpen(true)
+            }}
             className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
           >
             <PackagePlus className="w-4 h-4" />
@@ -184,34 +188,16 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
               activeTab === 'inventory' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            Daftar Stok Inventaris ({filteredItems.length})
+            📊 Stok & Health Velocity ({filteredItems.length})
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('transfers')}
+            onClick={() => setActiveTab('logistics')}
             className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'transfers' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
+              activeTab === 'logistics' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            Log Transfer Stok ({transferRequests.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('receiving')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'receiving' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Riwayat Penerimaan ({receivingLogs.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('waste')}
-            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === 'waste' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Jurnal Waste ({wasteAdjustments.length})
+            🚚 Pipeline Logistik & Pengiriman
           </button>
           <button
             type="button"
@@ -222,9 +208,27 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           >
             🏢 Pemasok & PO Vendor
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('receiving')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'receiving' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Riwayat Penerimaan GRN ({receivingLogs.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('waste')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'waste' ? 'border-amber-500 text-amber-500' : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Jurnal Waste ({wasteAdjustments.length})
+          </button>
         </div>
 
-        {/* Tab 1: Inventory Table */}
+        {/* Tab 1: Universal Inventory Table with Visual Stock Health */}
         {activeTab === 'inventory' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
@@ -234,7 +238,7 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Filter nama item / SKU..."
+                  placeholder="Filter nama barang / SKU / barcode..."
                   className="w-full pl-9 pr-3 py-2 text-xs bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>
@@ -244,54 +248,89 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
-                    <th className="py-3 px-4">Item & SKU</th>
+                    <th className="py-3 px-4">Item & Identitas SKU</th>
                     <th className="py-3 px-4">Kategori</th>
-                    <th className="py-3 px-4 text-center">Stok Saat Ini</th>
-                    <th className="py-3 px-4 text-center">Min. Stok</th>
-                    <th className="py-3 px-4 text-right">Cost/Unit</th>
-                    <th className="py-3 px-4 text-center">Status</th>
+                    <th className="py-3 px-4 text-center">Tingkat Ketersediaan</th>
+                    <th className="py-3 px-4 text-right">Cost / Unit</th>
+                    <th className="py-3 px-4 text-center">Status Health</th>
+                    <th className="py-3 px-4 text-right">Aksi Cepat</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-xs">
-                  {filteredItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-4">
-                        <div className="font-bold text-foreground">{item.name}</div>
-                        <div className="text-[11px] text-muted-foreground font-mono">{item.sku} | Barcode: {item.barcode}</div>
-                      </td>
-                      <td className="py-3 px-4 text-muted-foreground font-medium">{item.category}</td>
-                      <td className="py-3 px-4 text-center font-bold text-foreground">
-                        {item.currentStock} {item.unit}
-                      </td>
-                      <td className="py-3 px-4 text-center text-muted-foreground">
-                        {item.minStock} {item.unit}
-                      </td>
-                      <td className="py-3 px-4 text-right font-medium text-foreground">
-                        {formatIdr(item.unitCost)}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        {item.status === 'in_stock' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                            Aman
-                          </span>
-                        )}
-                        {item.status === 'low_stock' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                            Warning
-                          </span>
-                        )}
-                        {item.status === 'out_of_stock' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                            Habis
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredItems.map((item) => {
+                    const healthPct = Math.min(100, Math.round((item.currentStock / Math.max(1, item.minStock * 2)) * 100))
+                    const isLow = item.currentStock <= item.minStock
+                    const isOut = item.currentStock === 0
+
+                    return (
+                      <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="font-bold text-foreground">{item.name}</div>
+                          <div className="text-[11px] text-muted-foreground font-mono">{item.sku} | Barcode: {item.barcode}</div>
+                        </td>
+                        <td className="py-3 px-4 text-muted-foreground font-medium">{item.category}</td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="font-mono font-bold text-foreground text-sm">
+                            {item.currentStock} <span className="text-xs font-normal text-muted-foreground">{item.unit}</span>
+                          </div>
+                          <div className="w-24 mx-auto bg-muted rounded-full h-1.5 mt-1 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                isOut ? 'bg-rose-500 w-full' : isLow ? 'bg-amber-500' : 'bg-emerald-500'
+                              }`}
+                              style={{ width: isOut ? '100%' : `${healthPct}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">Min: {item.minStock} {item.unit}</span>
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-medium text-foreground">
+                          {formatIdr(item.unitCost)}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {isOut ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                              Habis
+                            </span>
+                          ) : isLow ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                              Perlu Reorder
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                              Optimal
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPrefillPo(undefined)
+                                setIsReceivingModalOpen(true)
+                              }}
+                              className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
+                              title="Terima Barang Masuk"
+                            >
+                              + Terima
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsTransferModalOpen(true)}
+                              className="px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 border border-blue-500/20 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
+                              title="Transfer ke Cabang Lain"
+                            >
+                              ↔ Transfer
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                   {filteredItems.length === 0 && (
                     <tr>
                       <td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">
-                        Tidak ada data item stok yang sesuai.
+                        Tidak ada data item stok yang sesuai dengan pencarian.
                       </td>
                     </tr>
                   )}
@@ -301,149 +340,22 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           </div>
         )}
 
-        {/* Tab 2: Transfers List */}
-        {activeTab === 'transfers' && (
-          <div className="p-4 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
-                  <th className="py-3 px-4">ID Mutasi</th>
-                  <th className="py-3 px-4">Item</th>
-                  <th className="py-3 px-4">Asal ➔ Tujuan</th>
-                  <th className="py-3 px-4 text-center">Qty</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-right">Aksi Konfirmasi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 text-xs">
-                {transferRequests.map((trf) => (
-                  <tr key={trf.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-foreground">{trf.id}</td>
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-foreground">{trf.itemName}</div>
-                      <div className="text-[11px] text-muted-foreground">{trf.notes}</div>
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground font-medium">
-                      {trf.sourceWarehouseId} ➔ {trf.destinationWarehouseId}
-                    </td>
-                    <td className="py-3 px-4 text-center font-bold text-foreground">{trf.qty}</td>
-                    <td className="py-3 px-4 text-center">
-                      {trf.status === 'requested' && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground">
-                          Requested
-                        </span>
-                      )}
-                      {trf.status === 'in_transit' && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                          In Transit
-                        </span>
-                      )}
-                      {trf.status === 'received' && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                          Received
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      {trf.status === 'in_transit' && (
-                        <button
-                          type="button"
-                          onClick={() => updateTransferStatus(trf.id, 'received')}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-colors inline-flex items-center space-x-1 cursor-pointer"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Konfirmasi Diterima</span>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Tab 2: Universal Logistics & Inbound/Outbound Delivery Pipeline */}
+        {activeTab === 'logistics' && (
+          <div className="p-4">
+            <LogisticsPipelineTab
+              currentWarehouseId={activeWarehouseId}
+              transferRequests={transferRequests}
+              onOpenReceivingModal={(prefill) => {
+                setPrefillPo(prefill)
+                setIsReceivingModalOpen(true)
+              }}
+              onOpenTransferModal={() => setIsTransferModalOpen(true)}
+            />
           </div>
         )}
 
-        {/* Tab 3: Receiving Logs */}
-        {activeTab === 'receiving' && (
-          <div className="p-4 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
-                  <th className="py-3 px-4">ID Receiving</th>
-                  <th className="py-3 px-4">Item & Batch</th>
-                  <th className="py-3 px-4">Gudang</th>
-                  <th className="py-3 px-4 text-center">Qty Diterima</th>
-                  <th className="py-3 px-4">PO Supplier</th>
-                  <th className="py-3 px-4">Kadaluarsa</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 text-xs">
-                {receivingLogs.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-muted/30">
-                    <td className="py-3 px-4 font-mono font-bold text-foreground">{rec.id}</td>
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-foreground">{rec.itemName}</div>
-                      <div className="text-[11px] text-muted-foreground">Batch: {rec.batchNumber}</div>
-                    </td>
-                    <td className="py-3 px-4 text-muted-foreground">{rec.warehouseId}</td>
-                    <td className="py-3 px-4 text-center font-bold text-foreground">{rec.qty}</td>
-                    <td className="py-3 px-4 text-muted-foreground font-mono">{rec.supplierPoNumber}</td>
-                    <td className="py-3 px-4 text-muted-foreground">{rec.expiryDate || '-'}</td>
-                  </tr>
-                ))}
-                {receivingLogs.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">
-                      Belum ada riwayat penerimaan barang baru.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Tab 4: Waste Journal */}
-        {activeTab === 'waste' && (
-          <div className="p-4 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
-                  <th className="py-3 px-4">ID Waste</th>
-                  <th className="py-3 px-4">Item</th>
-                  <th className="py-3 px-4">Alasan & Jurnal</th>
-                  <th className="py-3 px-4 text-center">Qty Waste</th>
-                  <th className="py-3 px-4 text-right">Nilai Beban</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 text-xs">
-                {wasteAdjustments.map((wst) => (
-                  <tr key={wst.id} className="hover:bg-muted/30">
-                    <td className="py-3 px-4 font-mono font-bold text-rose-500">{wst.id}</td>
-                    <td className="py-3 px-4 font-bold text-foreground">{wst.itemName}</td>
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-foreground">{wst.reason}</div>
-                      <div className="text-[11px] text-muted-foreground font-mono">GL: {wst.expenseGlAccount}</div>
-                    </td>
-                    <td className="py-3 px-4 text-center font-bold text-rose-500">{wst.qty}</td>
-                    <td className="py-3 px-4 text-right font-bold text-rose-500">
-                      {formatIdr(wst.expenseAmountIdr)}
-                    </td>
-                  </tr>
-                ))}
-                {wasteAdjustments.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="py-8 text-center text-muted-foreground text-xs">
-                      Belum ada pencatatan waste/spoilage.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Tab 5: Vendor Directory & PO Management */}
+        {/* Tab 3: Vendor Directory & PO Suite */}
         {activeTab === 'vendors' && (
           <div className="p-4">
             <VendorDirectoryTab
@@ -454,9 +366,93 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
             />
           </div>
         )}
+
+        {/* Tab 4: Riwayat Penerimaan GRN */}
+        {activeTab === 'receiving' && (
+          <div className="p-4 overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
+                  <th className="py-3 px-4">No. Penerimaan</th>
+                  <th className="py-3 px-4">Item & SKU</th>
+                  <th className="py-3 px-4">Referensi Vendor / PO</th>
+                  <th className="py-3 px-4 text-center">Batch / Exp</th>
+                  <th className="py-3 px-4 text-center">Qty Diterima</th>
+                  <th className="py-3 px-4 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60 text-xs">
+                {receivingLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-amber-500">{log.id}</td>
+                    <td className="py-3 px-4 font-semibold text-foreground">{log.itemCode}</td>
+                    <td className="py-3 px-4 text-muted-foreground">{log.supplierPoNumber}</td>
+                    <td className="py-3 px-4 text-center font-mono text-[11px] text-muted-foreground">
+                      {log.batchNumber || '-'} / {log.expiryDate || '-'}
+                    </td>
+                    <td className="py-3 px-4 text-center font-bold text-foreground">{log.qty} Unit</td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="inline-flex items-center gap-1 text-emerald-500 font-bold text-xs">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Terverifikasi
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {receivingLogs.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">
+                      Belum ada riwayat penerimaan barang di gudang ini.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Tab 5: Jurnal Waste */}
+        {activeTab === 'waste' && (
+          <div className="p-4 overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider bg-muted/20">
+                  <th className="py-3 px-4">ID Jurnal Waste</th>
+                  <th className="py-3 px-4">Item & SKU</th>
+                  <th className="py-3 px-4">Alasan Kerusakan</th>
+                  <th className="py-3 px-4">Akun Beban GL</th>
+                  <th className="py-3 px-4 text-center">Qty Rusak</th>
+                  <th className="py-3 px-4 text-right">Status Posting</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60 text-xs">
+                {wasteAdjustments.map((w) => (
+                  <tr key={w.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-rose-500">{w.id}</td>
+                    <td className="py-3 px-4 font-semibold text-foreground">{w.itemCode}</td>
+                    <td className="py-3 px-4 text-muted-foreground">{w.reason}</td>
+                    <td className="py-3 px-4 font-mono text-[11px] text-muted-foreground">{w.expenseGlAccount}</td>
+                    <td className="py-3 px-4 text-center font-bold text-rose-500">{w.qty} Unit</td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="inline-flex items-center gap-1 text-emerald-500 font-bold text-xs">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Posted di GL
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {wasteAdjustments.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">
+                      Belum ada penyesuaian barang rusak / waste yang tercatat.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Modals */}
+      {/* MODALS */}
       <GoodsReceivingModal
         isOpen={isReceivingModalOpen}
         onClose={() => {
@@ -464,11 +460,10 @@ export const WarehouseManagementView: React.FC<WarehouseManagementViewProps> = (
           setPrefillPo(undefined)
         }}
         onReceive={handleReceiveGoods}
-        stockItems={allStockItems}
+        stockItems={stockItems}
         warehouses={warehouses}
         currentWarehouseId={activeWarehouseId}
-        prefillPoNumber={prefillPo?.poNumber}
-        prefillVendorName={prefillPo?.vendorName}
+        prefill={prefillPo}
       />
 
       <StockTransferModal

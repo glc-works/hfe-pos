@@ -11,6 +11,12 @@ export interface GoodsReceivingModalProps {
   currentWarehouseId: string
   prefillPoNumber?: string
   prefillVendorName?: string
+  prefill?: {
+    poNumber?: string
+    vendorName?: string
+    itemSku?: string
+    qtyOrdered?: number
+  }
 }
 
 export const GoodsReceivingModal: React.FC<GoodsReceivingModalProps> = ({
@@ -22,12 +28,13 @@ export const GoodsReceivingModal: React.FC<GoodsReceivingModalProps> = ({
   currentWarehouseId,
   prefillPoNumber,
   prefillVendorName,
+  prefill,
 }) => {
   const [warehouseId, setWarehouseId] = useState(currentWarehouseId)
-  const [itemCode, setItemCode] = useState(stockItems[0]?.sku || '')
-  const [vendorName, setVendorName] = useState(prefillVendorName || 'PT Nusantara Roastery Abadi')
+  const [itemCode, setItemCode] = useState(prefill?.itemSku || stockItems[0]?.sku || '')
+  const [vendorName, setVendorName] = useState(prefill?.vendorName || prefillVendorName || 'PT Nusantara Roastery Abadi')
   const [deliveryOrderNo, setDeliveryOrderNo] = useState(`DO-${Date.now().toString().slice(-6)}`)
-  const [qty, setQty] = useState(20)
+  const [qty, setQty] = useState(prefill?.qtyOrdered || 20)
   const [damagedQty, setDamagedQty] = useState(0)
   const [unitCost, setUnitCost] = useState(180000)
   const [supplierPoNumber, setSupplierPoNumber] = useState(prefillPoNumber || `PO-SUPP-${Date.now().toString().slice(-4)}`)
