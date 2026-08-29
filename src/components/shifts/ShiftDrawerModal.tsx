@@ -8,6 +8,8 @@ interface ShiftDrawerModalProps {
   openingFloat?: number
   totalCashSales?: number
   bookId?: string
+  operationalMode?: 'solo' | 'team'
+  userRole?: 'owner' | 'manager' | 'cashier' | 'barista'
   onReconciled?: (result: ReconcileShiftResponse) => void
 }
 
@@ -27,9 +29,14 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
   openingFloat = 500000,
   totalCashSales = 1250000,
   bookId = 'BOOK-CAFE-HQ-88',
+  operationalMode = 'solo',
+  userRole = 'owner',
   onReconciled,
 }) => {
   const [activeTab, setActiveTab] = useState<'float' | 'cash_out' | 'reconcile'>('reconcile')
+  const [currentMode, setCurrentMode] = useState<'solo' | 'team'>(
+    userRole === 'cashier' || userRole === 'barista' ? 'team' : operationalMode
+  )
   const [currentFloat, setCurrentFloat] = useState<number>(openingFloat)
   const [cashOutAmount, setCashOutAmount] = useState<number | ''>('')
   const [cashOutReason, setCashOutReason] = useState<string>('')
@@ -49,6 +56,9 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
   const [notes, setNotes] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [reconcileResult, setReconcileResult] = useState<ReconcileShiftResponse | null>(null)
+  const [teamSubmitPending, setTeamSubmitPending] = useState<boolean>(false)
+
+  const isSoloMode = currentMode === 'solo'
 
   const calculatedDenomTotal = useMemo(() => {
     const paperSum = Object.entries(counts).reduce((sum, [val, qty]) => sum + (Number(val) * qty), 0)
@@ -87,7 +97,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
   }
 
   const handleReconcileShift = async () => {
-    if (isHighVariance && !isManagerPinValid) {
+    if (!isSoloMode && isHighVariance && !isManagerPinValid) {
       alert('⚠️ Selisih kas melebihi Rp 50.000. Wajib memasukkan 6-digit PIN Otorisasi Manajer.')
       return
     }
@@ -100,11 +110,14 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
           cashOutTotal: totalCashOut,
           physicalCashCount: numericPhysicalCount,
           variance,
-          notes: `${notes} ${isHighVariance ? `[SPV Approved: ${managerPin}]` : ''}`.trim(),
+          notes: `${notes} ${isSoloMode ? '[Solo Operator Auto-Settled]' : isHighVariance ? `[SPV Approved: ${managerPin}]` : '[Team Shift Submission]'}`.trim(),
         },
         bookId
       )
       setReconcileResult(res)
+      if (!isSoloMode) {
+        setTeamSubmitPending(true)
+      }
       if (onReconciled) onReconciled(res)
     } catch (err) {
       console.error('Shift reconciliation error:', err)
@@ -124,13 +137,39 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
           <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-3 border-b border-border pb-3 pr-8">
-          <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-500">
-            <DollarSign className="w-6 h-6" />
+        <div className="flex items-center justify-between border-b border-border pb-3 pr-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-500">
+              <DollarSign className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">Shift Cash Drawer & Rekonsiliasi Kas</h3>
+              <p className="text-xs text-muted-foreground">Hitung denominasi fisik laci, otorisasi selisih & posting jurnal CORE</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground">Shift Cash Drawer & Rekonsiliasi Kas</h3>
-            <p className="text-xs text-muted-foreground">Hitung denominasi fisik laci, otorisasi selisih & posting jurnal CORE</p>
+
+          {/* Operational Scale Mode Pill */}
+          <div className="hidden sm:flex bg-muted/80 p-0.5 rounded-xl border border-border text-[11px] font-bold">
+            <button
+              type="button"
+              onClick={() => setCurrentMode('solo')}
+              className={`px-2 py-1 rounded-lg transition-all ${
+                isSoloMode ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Mode 1 Orang: Langsung Selesai & Posting Jurnal Instan"
+            >
+              👤 Solo
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentMode('team')}
+              className={`px-2 py-1 rounded-lg transition-all ${
+                !isSoloMode ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Mode Tim: Kasir Submit & SPV Review di Backoffice"
+            >
+              👥 Tim
+            </button>
           </div>
         </div>
 
@@ -403,7 +442,10 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
         {reconcileResult && (
           <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400">
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Rekonsiliasi Shift #{reconcileResult.reconcileId} Berhasil Ditutup!
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              {isSoloMode
+                ? `Rekonsiliasi Shift #${reconcileResult.reconcileId} Berhasil Ditutup & Jurnal Terbit!`
+                : `Laporan Shift #${reconcileResult.reconcileId} Terkirim ke Antrean Review SPV!`}
             </span>
             <span className="font-mono font-bold uppercase">{reconcileResult.status}</span>
           </div>
@@ -414,16 +456,21 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
           <button
             type="button"
             onClick={handleReconcileShift}
-            disabled={isSubmitting || (isHighVariance && !isManagerPinValid)}
+            disabled={isSubmitting || (!isSoloMode && isHighVariance && !isManagerPinValid)}
             className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <Calculator className="w-4 h-4" /> {isSubmitting ? 'Memproses Jurnal...' : 'Tutup Shift & Posting Jurnal'}
+            <Calculator className="w-4 h-4" />
+            {isSubmitting
+              ? 'Memproses...'
+              : isSoloMode
+              ? 'Tutup Shift & Posting Jurnal (Solo)'
+              : 'Submit Laporan ke SPV (Review)'}
           </button>
           <button
             type="button"
             onClick={() => window.print()}
             className="bg-muted hover:bg-muted/80 text-foreground p-2.5 rounded-xl border border-border cursor-pointer"
-            title="Cetak Struk Z-Report Thermal"
+            title={isSoloMode ? 'Cetak Struk Z-Report Thermal' : 'Cetak Slip Amplop Setoran Kasir'}
           >
             <Printer className="w-4 h-4" />
           </button>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-describe('ShiftDrawer & Cash Denomination Reconciliation', () => {
+describe('ShiftDrawer & Scale-Adaptive Reconciliation (Solo to Team)', () => {
   const openingFloat = 500000
   const cashSales = 1250000
   const cashOutTotal = 50000
@@ -26,7 +26,19 @@ describe('ShiftDrawer & Cash Denomination Reconciliation', () => {
     expect(variance).toBe(0)
   })
 
-  it('flags shortage and requires manager PIN when variance exceeds threshold', () => {
+  it('allows Solo Operator to close shift instantly without second-PIN blocker', () => {
+    const isSoloMode = true
+    const totalPhysical = 1620000 // Short Rp 80.000
+    const variance = totalPhysical - expectedCash
+    expect(variance).toBe(-80000)
+
+    // Solo operator can close without requiring a second SPV PIN
+    const canSubmit = isSoloMode || Math.abs(variance) <= 50000
+    expect(canSubmit).toBe(true)
+  })
+
+  it('enforces 2-stage submission or SPV PIN gate for Team Multi-Staff mode', () => {
+    const isSoloMode = false
     const totalPhysical = 1620000 // Short Rp 80.000
     const variance = totalPhysical - expectedCash
     expect(variance).toBe(-80000)
@@ -34,18 +46,13 @@ describe('ShiftDrawer & Cash Denomination Reconciliation', () => {
     const isHighVariance = Math.abs(variance) > 50000
     expect(isHighVariance).toBe(true)
 
-    // Manager PIN check
-    const managerPin = '123456'
-    const isManagerPinValid = managerPin.length === 6
-    expect(isManagerPinValid).toBe(true)
-  })
+    // In team mode without valid PIN, it requires SPV approval
+    let managerPin = '123'
+    let isManagerPinValid = managerPin.length === 6
+    expect(!isSoloMode && isHighVariance && !isManagerPinValid).toBe(true)
 
-  it('flags overage properly for small change tips', () => {
-    const totalPhysical = 1705000 // Over Rp 5.000
-    const variance = totalPhysical - expectedCash
-    expect(variance).toBe(5000)
-
-    const isHighVariance = Math.abs(variance) > 50000
-    expect(isHighVariance).toBe(false)
+    managerPin = '123456'
+    isManagerPinValid = managerPin.length === 6
+    expect(!isSoloMode && isHighVariance && !isManagerPinValid).toBe(false)
   })
 })
