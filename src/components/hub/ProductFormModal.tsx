@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Badge, TextInput } from '../../ui'
 import { 
-  X, Plus, Trash2, ChefHat, Sparkles, CheckCircle2, 
-  Layers, Package, Wrench, Coffee, Tag, Percent, Sliders, Shirt
+  X, ChefHat, Tag, Sliders, Package, Wrench
 } from 'lucide-react'
 import { 
   ProductFormModifierSection, 
@@ -11,6 +10,7 @@ import {
   ModifierOption 
 } from './ProductFormModifierSection'
 import { ProductFormChannelPricingSection } from './ProductFormChannelPricingSection'
+import { ProductFormLivePreviewPane } from './ProductFormLivePreviewPane'
 
 export type { ModifierGroup, MatrixVariant, ModifierOption }
 
@@ -149,23 +149,21 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   if (!isOpen) return null
 
   const calculatedMargin = price > 0 ? Math.round(((price - cogs) / price) * 100) : 0
-  
-  // Auto-calculate delivery price rounded to thousand (e.g. 28.000 * 1.25 = 35.000)
   const autoCalculatedDeliveryPrice = Math.ceil((price * (1 + channelMarkupPercent / 100)) / 1000) * 1000
   const effectiveDeliveryPrice = customDeliveryPrice !== null ? customDeliveryPrice : autoCalculatedDeliveryPrice
   const effectiveQrPrice = customQrPrice !== null ? customQrPrice : price
 
+  const categoryLabels: Record<string, string> = {
+    coffee: 'Minuman Kopi',
+    non_coffee: 'Non-Kopi & Teh',
+    food: 'Makanan & Pastry',
+    merchandise: 'Merchandise Retail',
+    service: 'Layanan Jasa'
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
-
-    const categoryLabels: Record<string, string> = {
-      coffee: 'Minuman Kopi',
-      non_coffee: 'Non-Kopi & Teh',
-      food: 'Makanan & Pastry',
-      merchandise: 'Merchandise Retail',
-      service: 'Layanan Jasa'
-    }
 
     onSave({
       id: initialData?.id || `prod-${Date.now()}`,
@@ -194,20 +192,25 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn font-sans">
-      <div className="w-full max-w-lg bg-card rounded-t-3xl sm:rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col">
-        {/* Header */}
-        <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
-          <div className="flex items-center gap-2.5">
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 lg:p-6 animate-fadeIn font-sans">
+      <div className="w-full max-w-5xl bg-card rounded-t-3xl sm:rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[92dvh] flex flex-col">
+        {/* Header with Persistent Form Code */}
+        <div className="h-14 px-4 sm:px-6 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-sm shrink-0">
               ☕
             </div>
             <div>
-              <h3 className="text-sm font-bold text-foreground">
-                {isEditing ? 'Ubah Data & Varian Produk' : 'Tambah Produk & Varian Baru'}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground">
+                  {isEditing ? 'Ubah Data & Varian Produk' : 'Tambah Produk & Varian Baru'}
+                </h3>
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-mono font-bold">
+                  #FORM-PROD • {sku || 'AUTO'}
+                </span>
+              </div>
               <p className="text-[11px] text-muted-foreground leading-tight">
-                POS &amp; Hub Unified Catalog Suite
+                POS &amp; Hub Unified Catalog Suite • Golden Ratio Dual-Pane
               </p>
             </div>
           </div>
@@ -223,7 +226,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
         </div>
 
         {/* Tab Navigation Strip */}
-        <div className="h-11 px-4 border-b border-border bg-muted/20 flex items-center gap-2 shrink-0">
+        <div className="h-11 px-4 sm:px-6 border-b border-border bg-muted/20 flex items-center gap-2 shrink-0">
           {[
             { key: 'general', label: 'Informasi & Harga', icon: <Tag className="w-3.5 h-3.5" /> },
             { key: 'modifiers', label: 'Varian & Modifier', icon: <Sliders className="w-3.5 h-3.5" /> },
@@ -245,200 +248,206 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
           ))}
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto flex-1 text-xs">
-          {activeTab === 'general' && (
-            <>
-              {/* Basic Info */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground block">Nama Menu / Produk:</label>
-                <TextInput
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Espresso Aren Latte"
-                  className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs"
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2.5">
+        {/* Dual-Pane Responsive Body */}
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-border">
+          {/* LEFT PANE: Dynamic Form Input (Mobile 100%, Fold 7-Col, Desktop 8-Col) */}
+          <div className="md:col-span-7 lg:col-span-8 p-4 sm:p-5 space-y-4 overflow-y-auto">
+            {activeTab === 'general' && (
+              <>
+                {/* Basic Info */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground block">Kategori:</label>
+                  <label className="text-xs font-bold text-foreground block">Nama Menu / Produk:</label>
+                  <TextInput
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Contoh: Espresso Aren Latte"
+                    className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs"
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground block">Kategori:</label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as any)}
+                      className="w-full h-10 px-3 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    >
+                      <option value="coffee">☕ Minuman Kopi</option>
+                      <option value="non_coffee">🍵 Non-Kopi &amp; Teh</option>
+                      <option value="food">🥐 Makanan &amp; Pastry</option>
+                      <option value="merchandise">👕 Merchandise Retail</option>
+                      <option value="service">🛠️ Layanan Jasa</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-muted-foreground block">Kode SKU / Barcode:</label>
+                      <span className="text-[10px] text-muted-foreground">(Otomatis)</span>
+                    </div>
+                    <TextInput
+                      value={sku}
+                      onChange={(e) => setSku(e.target.value)}
+                      placeholder="BEV-ESPR-01"
+                      className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Pricing & Margin (Level 1 Base State) */}
+                <div className="p-3.5 bg-muted/40 rounded-xl border border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground">💰 Harga Jual Toko &amp; Margin:</span>
+                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] font-mono font-bold h-6 px-2">
+                      Margin {calculatedMargin}%
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] text-muted-foreground block">Harga Toko / Kasir (Rp):</label>
+                      <TextInput
+                        type="number"
+                        value={price}
+                        onChange={(e) => setPrice(Number(e.target.value))}
+                        className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs font-mono font-bold"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] text-muted-foreground block">HPP / Biaya Modal (Rp):</label>
+                      <TextInput
+                        type="number"
+                        value={cogs}
+                        onChange={(e) => setCogs(Number(e.target.value))}
+                        className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs font-mono"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Level 2/3 Progressive Multi-Channel Pricing */}
+                  <ProductFormChannelPricingSection
+                    price={price}
+                    showChannelPricing={showChannelPricing}
+                    setShowChannelPricing={setShowChannelPricing}
+                    channelMarkupPercent={channelMarkupPercent}
+                    setChannelMarkupPercent={setChannelMarkupPercent}
+                    effectiveDeliveryPrice={effectiveDeliveryPrice}
+                    customDeliveryPrice={customDeliveryPrice}
+                    setCustomDeliveryPrice={setCustomDeliveryPrice}
+                  />
+                </div>
+
+                {/* Stock Management: Centered Vertical Tiles */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground block">Tipe Pengelolaan Stok:</label>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setStockType('recipe_bom')}
+                      className={`min-h-[58px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-semibold transition-all cursor-pointer ${
+                        stockType === 'recipe_bom'
+                          ? 'bg-amber-500/10 border-amber-500/50 text-amber-500 shadow-xs'
+                          : 'bg-background hover:bg-muted border-border text-muted-foreground'
+                      }`}
+                    >
+                      <ChefHat className="w-4 h-4" />
+                      <span className="leading-none text-[11px]">Racikan Resep</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStockType('unit_inventory')}
+                      className={`min-h-[58px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-semibold transition-all cursor-pointer ${
+                        stockType === 'unit_inventory'
+                          ? 'bg-amber-500/10 border-amber-500/50 text-amber-500 shadow-xs'
+                          : 'bg-background hover:bg-muted border-border text-muted-foreground'
+                      }`}
+                    >
+                      <Package className="w-4 h-4" />
+                      <span className="leading-none text-[11px]">Barang Jadi</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStockType('non_stock_service')}
+                      className={`min-h-[58px] p-2 rounded-xl border flex flex-col items-center justify-center gap-1 text-xs font-semibold transition-all cursor-pointer ${
+                        stockType === 'non_stock_service'
+                          ? 'bg-amber-500/10 border-amber-500/50 text-amber-500 shadow-xs'
+                          : 'bg-background hover:bg-muted border-border text-muted-foreground'
+                      }`}
+                    >
+                      <Wrench className="w-4 h-4" />
+                      <span className="leading-none text-[11px]">Jasa Non-Stok</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'modifiers' && (
+              <ProductFormModifierSection
+                customizationType={customizationType}
+                setCustomizationType={setCustomizationType}
+                modifierGroups={modifierGroups}
+                setModifierGroups={setModifierGroups}
+                matrixVariants={matrixVariants}
+                setMatrixVariants={setMatrixVariants}
+              />
+            )}
+
+            {activeTab === 'routing' && (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground block">Stasiun Cetak Dapur (KDS):</label>
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as any)}
-                    className="w-full h-10 px-3 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    value={kdsStation}
+                    onChange={(e) => setKdsStation(e.target.value)}
+                    className="w-full h-10 px-3 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none"
                   >
-                    <option value="coffee">☕ Minuman Kopi</option>
-                    <option value="non_coffee">🍵 Non-Kopi &amp; Teh</option>
-                    <option value="food">🥐 Makanan &amp; Pastry</option>
-                    <option value="merchandise">👕 Merchandise Retail</option>
-                    <option value="service">🛠️ Layanan Jasa</option>
+                    <option value="Barista Station">☕ Barista Station</option>
+                    <option value="Kitchen Station">🍳 Kitchen Station</option>
+                    <option value="Retail Station">🛍️ Retail Shelf</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-muted-foreground block">Kode SKU / Barcode:</label>
-                    <span className="text-[10px] text-muted-foreground">(Otomatis)</span>
-                  </div>
-                  <TextInput
-                    value={sku}
-                    onChange={(e) => setSku(e.target.value)}
-                    placeholder="BEV-ESPR-01"
-                    className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Pricing & Margin (Level 1 Base State) */}
-              <div className="p-3.5 bg-muted/40 rounded-xl border border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-foreground">💰 Harga Jual Toko &amp; Margin:</span>
-                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] font-mono font-bold h-6 px-2">
-                    Margin {calculatedMargin}%
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] text-muted-foreground block">Harga Toko / Kasir (Rp):</label>
-                    <TextInput
-                      type="number"
-                      value={price}
-                      onChange={(e) => setPrice(Number(e.target.value))}
-                      className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs font-mono font-bold"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] text-muted-foreground block">HPP / Biaya Modal (Rp):</label>
-                    <TextInput
-                      type="number"
-                      value={cogs}
-                      onChange={(e) => setCogs(Number(e.target.value))}
-                      className="w-full h-10 px-3 bg-background border-border rounded-xl text-xs font-mono"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Level 2/3 Progressive Multi-Channel Pricing */}
-                <ProductFormChannelPricingSection
-                  price={price}
-                  showChannelPricing={showChannelPricing}
-                  setShowChannelPricing={setShowChannelPricing}
-                  channelMarkupPercent={channelMarkupPercent}
-                  setChannelMarkupPercent={setChannelMarkupPercent}
-                  effectiveDeliveryPrice={effectiveDeliveryPrice}
-                  customDeliveryPrice={customDeliveryPrice}
-                  setCustomDeliveryPrice={setCustomDeliveryPrice}
-                />
-              </div>
-
-              {/* Stock Management */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground block">Tipe Pengelolaan Stok:</label>
-                <div className="grid grid-cols-3 gap-2">
+                  <label className="text-xs font-semibold text-muted-foreground block">Kepatuhan Pajak Restoran (PB1):</label>
                   <Button
                     type="button"
-                    variant={stockType === 'recipe_bom' ? 'amber' : 'outline'}
+                    variant={taxApplicable ? 'secondary' : 'outline'}
                     size="sm"
-                    onClick={() => setStockType('recipe_bom')}
-                    className="h-10 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                    onClick={() => setTaxApplicable(!taxApplicable)}
+                    className={`w-full h-10 rounded-xl text-xs justify-center ${
+                      taxApplicable ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10 font-bold' : ''
+                    }`}
                   >
-                    <ChefHat className="w-3.5 h-3.5" />
-                    <span>Racikan Resep</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={stockType === 'unit_inventory' ? 'amber' : 'outline'}
-                    size="sm"
-                    onClick={() => setStockType('unit_inventory')}
-                    className="h-10 rounded-xl text-xs flex items-center justify-center gap-1.5"
-                  >
-                    <Package className="w-3.5 h-3.5" />
-                    <span>Barang Jadi</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={stockType === 'non_stock_service' ? 'amber' : 'outline'}
-                    size="sm"
-                    onClick={() => setStockType('non_stock_service')}
-                    className="h-10 rounded-xl text-xs flex items-center justify-center gap-1.5"
-                  >
-                    <Wrench className="w-3.5 h-3.5" />
-                    <span>Jasa Non-Stok</span>
+                    {taxApplicable ? '✅ Pajak Restoran 10%' : '❌ Bebas Pajak'}
                   </Button>
                 </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
 
-          {activeTab === 'modifiers' && (
-            <ProductFormModifierSection
+          {/* RIGHT PANE: Live Interactive Preview & Action Dock (Mobile Bottom, Fold 5-Col, Desktop 4-Col) */}
+          <div className="md:col-span-5 lg:col-span-4 p-4 sm:p-5 bg-muted/20 flex flex-col justify-between">
+            <ProductFormLivePreviewPane
+              name={name}
+              sku={sku}
+              categoryLabel={categoryLabels[category] || 'Produk'}
+              price={price}
+              cogs={cogs}
+              calculatedMargin={calculatedMargin}
+              effectiveDeliveryPrice={effectiveDeliveryPrice}
               customizationType={customizationType}
-              setCustomizationType={setCustomizationType}
               modifierGroups={modifierGroups}
-              setModifierGroups={setModifierGroups}
               matrixVariants={matrixVariants}
-              setMatrixVariants={setMatrixVariants}
+              isEditing={isEditing}
+              onClose={onClose}
             />
-          )}
-
-          {activeTab === 'routing' && (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground block">Stasiun Cetak Dapur (KDS):</label>
-                <select
-                  value={kdsStation}
-                  onChange={(e) => setKdsStation(e.target.value)}
-                  className="w-full h-10 px-3 bg-background border border-border rounded-xl text-xs text-foreground focus:outline-none"
-                >
-                  <option value="Barista Station">☕ Barista Station</option>
-                  <option value="Kitchen Station">🍳 Kitchen Station</option>
-                  <option value="Retail Station">🛍️ Retail Shelf</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground block">Kepatuhan Pajak Restoran (PB1):</label>
-                <Button
-                  type="button"
-                  variant={taxApplicable ? 'secondary' : 'outline'}
-                  size="sm"
-                  onClick={() => setTaxApplicable(!taxApplicable)}
-                  className={`w-full h-10 rounded-xl text-xs justify-center ${
-                    taxApplicable ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10 font-bold' : ''
-                  }`}
-                >
-                  {taxApplicable ? '✅ Pajak Restoran 10%' : '❌ Bebas Pajak'}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Footer Submit */}
-          <div className="pt-3 border-t border-border flex items-center justify-end gap-2 shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="h-10 px-4 rounded-xl text-xs"
-            >
-              Batal
-            </Button>
-            <Button
-              type="submit"
-              variant="amber"
-              size="sm"
-              className="h-10 px-5 rounded-xl text-xs font-bold"
-            >
-              {isEditing ? 'Simpan Perubahan' : 'Simpan Produk Baru'}
-            </Button>
           </div>
         </form>
       </div>
