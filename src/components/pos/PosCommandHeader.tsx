@@ -38,6 +38,7 @@ export interface PosCommandHeaderProps {
   onOpenTableOps: () => void
   onOpenNotifications?: () => void
   onOpenSpotlight?: () => void
+  onOpenShiftDrawer?: () => void
   // Tier 2: Table Props
   propertyZones?: PropertyZoneConfig[]
   activeZoneId?: PropertyZoneId
@@ -68,6 +69,7 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   onOpenTableOps,
   onOpenNotifications,
   onOpenSpotlight,
+  onOpenShiftDrawer,
   propertyZones = [],
   activeZoneId = 'all',
   onSelectZone,
@@ -178,6 +180,18 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               {themeMode === 'light' ? 'Malam' : 'Siang'}
             </span>
           </button>
+
+          {onOpenShiftDrawer && (
+            <button
+              type="button"
+              onClick={onOpenShiftDrawer}
+              className="p-1 sm:px-2 sm:py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+              title="Laci Kas & Rekonsiliasi Tutup Shift"
+            >
+              <Store className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden md:inline text-[11px]">Shift & Laci</span>
+            </button>
+          )}
 
           {onOpenSpotlight && (
             <button

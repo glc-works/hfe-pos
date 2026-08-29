@@ -13,6 +13,7 @@ import { UnifiedPosModalsCluster } from '../components/pos/UnifiedPosModalsClust
 import { FinancialStatusBanner } from '../components/pos/FinancialStatusBanner'
 import { GovernedQrisPendingModal } from '../components/pos/GovernedQrisPendingModal'
 import { ActiveOperationsTrayDock } from '../components/pos/ActiveOperationsTrayDock'
+import { ShiftDrawerModal } from '../components/shifts/ShiftDrawerModal'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useOperationsTray } from '../hooks/useOperationsTray'
 import { useTranslation } from '../context/LanguageContext'
@@ -36,7 +37,7 @@ export interface UnifiedPosViewProps {
 
 export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   activeStaffSurface = 'barista-pos', setActiveStaffSurface, tablesGrid, selectedPOSTable, productCatalog,
-  posPayMethod, posCashGiven, orders, enableTableFloorPlan = true, viewportMode = 'responsive',
+  posPayMethod, posCashGiven, orders, enableTableFloorPlan = true, viewportMode = 'responsive', cashDrawerFloat = 500000,
   setSelectedPOSTable, setTablesGrid, setPosPayMethod, setPosCashGiven, handlePOSCheckoutTable, handleMoveStatus,
   financialPort, organizationId, companyBookId, authorityContext, cashierId,
 }) => {
@@ -66,6 +67,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const [showServiceTickets, setShowServiceTickets] = useState(false)
   const [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false)
   const [showSpotlightModal, setShowSpotlightModal] = useState(false)
+  const [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false)
 
   const [reassignFromTable, setReassignFromTable] = useState('OUT-04')
   const [reassignTargetTable, setReassignTargetTable] = useState('IND-01')
@@ -237,6 +239,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               onOpenAppDrawer={() => setIsAppDrawerOpen(true)} onOpenGuestBinding={() => setShowTableGuestBindingDrawer(true)}
               onOpenScanner={() => setShowCameraScanner(true)} onOpenTableOps={() => setShowTableOpsModal(true)}
               onOpenNotifications={() => setShowNotificationCenter(true)} onOpenSpotlight={() => setShowSpotlightModal(true)}
+              onOpenShiftDrawer={() => setShowShiftDrawerModal(true)}
               propertyZones={PROPERTY_ZONES} activeZoneId={selectedZoneId} onSelectZone={setSelectedZoneId}
               tableStatusFilter={tableStatusFilter} setTableStatusFilter={setTableStatusFilter}
               unpaidCount={unpaidCount} availableCount={availableCount} tablesGrid={tablesGrid}
@@ -477,6 +480,14 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         showEventTicketCheckIn={showEventTicketCheckIn} setShowEventTicketCheckIn={setShowEventTicketCheckIn}
         showSpotlightModal={showSpotlightModal} setShowSpotlightModal={setShowSpotlightModal}
         handleAddToCart={handleAddToCart} handleTableClick={handleTableClick}
+      />
+
+      <ShiftDrawerModal
+        isOpen={showShiftDrawerModal}
+        onClose={() => setShowShiftDrawerModal(false)}
+        openingFloat={cashDrawerFloat || 500000}
+        totalCashSales={1250000}
+        bookId={companyBookId || 'BOOK-CAFE-HQ-88'}
       />
     </div>
   )
