@@ -9,6 +9,11 @@ export type PaymentPolicy = 'pay-first' | 'open-tab'
 export type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
 export type PosPayMethod = 'cash' | 'qris' | 'cc' | 'debit' | 'card'
 export type OrderFulfillmentMode = 'dine_in' | 'takeaway' | 'delivery'
+export type DeliveryDropOffOption = 'leave_at_lobby_guard' | 'meet_at_door' | 'meet_in_person'
+export interface DeliveryAddressInfo {
+  recipientName: string; phoneNumber: string; streetAddress: string; unitOrFloor: string
+  dropOffOption: DeliveryDropOffOption; driverNotes?: string; distanceKm: number
+}
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
 
 export interface CardTenderMetadata {

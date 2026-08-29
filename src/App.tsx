@@ -7,27 +7,28 @@ import { useTableState } from './hooks/useTableState'
 import { useCart } from './hooks/useCart'
 import { LandingView } from './views/LandingView'
 import { CustomerMobileView } from './views/CustomerMobileView'
+import { lazy, Suspense } from 'react'
 import { UnifiedPosView } from './views/UnifiedPosView'
 import { StaffWorkstationView } from './views/StaffWorkstationView'
 import { UnifiedKdsView } from './views/UnifiedKdsView'
 import { CustomerFacingDisplayView } from './views/CustomerFacingDisplayView'
 import { CafeSettingsView } from './views/CafeSettingsView'
-import { WarehouseManagementView } from './views/WarehouseManagementView'
-import { BranchManagementView } from './views/BranchManagementView'
-import { ScanAndGoView } from './views/ScanAndGoView'
-import { SommelierView } from './views/SommelierView'
-import { MaitreDView } from './views/MaitreDView'
-import { CustomerContactsView } from './views/CustomerContactsView'
-import { ComponentShowcaseView } from './views/ComponentShowcaseView'
-import { NativeComponentGalleryView } from './views/NativeComponentGalleryView'
-import { HfeInsightsView } from './views/HfeInsightsView'
-import { ConnectHubAdminView } from './views/ConnectHubAdminView'
 import { CustomerPortalView } from './views/CustomerPortalView'
-import { CompanyBookView } from './views/CompanyBookView'
-import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
-import { HfeitCorporateView } from './views/HfeitCorporateView'
-import { MerchantHomeHubView } from './views/MerchantHomeHubView'
 import { PosAuthLoginView } from './views/PosAuthLoginView'
+
+const WarehouseManagementView = lazy(() => import('./views/WarehouseManagementView').then(m => ({ default: m.WarehouseManagementView })))
+const BranchManagementView = lazy(() => import('./views/BranchManagementView').then(m => ({ default: m.BranchManagementView })))
+const ScanAndGoView = lazy(() => import('./views/ScanAndGoView').then(m => ({ default: m.ScanAndGoView })))
+const SommelierView = lazy(() => import('./views/SommelierView').then(m => ({ default: m.SommelierView })))
+const MaitreDView = lazy(() => import('./views/MaitreDView').then(m => ({ default: m.MaitreDView })))
+const CustomerContactsView = lazy(() => import('./views/CustomerContactsView').then(m => ({ default: m.CustomerContactsView })))
+const NativeComponentGalleryView = lazy(() => import('./views/NativeComponentGalleryView').then(m => ({ default: m.NativeComponentGalleryView })))
+const AdminMerchantUserView = lazy(() => import('./views/admin/AdminMerchantUserView').then(m => ({ default: m.AdminMerchantUserView })))
+const MerchantHomeHubView = lazy(() => import('./views/MerchantHomeHubView').then(m => ({ default: m.MerchantHomeHubView })))
+const HfeitCorporateView = lazy(() => import('./views/HfeitCorporateView').then(m => ({ default: m.HfeitCorporateView })))
+const HfeInsightsView = lazy(() => import('./views/HfeInsightsView').then(m => ({ default: m.HfeInsightsView })))
+const ConnectHubAdminView = lazy(() => import('./views/ConnectHubAdminView').then(m => ({ default: m.ConnectHubAdminView })))
+const CompanyBookView = lazy(() => import('./views/CompanyBookView').then(m => ({ default: m.CompanyBookView })))
 import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { createRuntimeInitialOrders } from './data/runtimeDemoData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
@@ -352,20 +353,22 @@ function AppMain() {
               />
             )}
 
-            {activeStaffSurface === 'hfe-insights' && (
-              <HfeInsightsView
-                productCatalog={productCatalog}
-                orders={orders}
-                tablesGrid={table.tablesGrid}
-                cashDrawerFloat={cashDrawerFloat}
-              />
-            )}
+            <Suspense fallback={null}>
+              {activeStaffSurface === 'hfe-insights' && (
+                <HfeInsightsView
+                  productCatalog={productCatalog}
+                  orders={orders}
+                  tablesGrid={table.tablesGrid}
+                  cashDrawerFloat={cashDrawerFloat}
+                />
+              )}
 
-            {activeStaffSurface === 'hfe-connect-hub' && <ConnectHubAdminView />}
+              {activeStaffSurface === 'hfe-connect-hub' && <ConnectHubAdminView />}
 
-            {activeStaffSurface === 'hfe-company-book' && (
-              <CompanyBookView bookId={sync.hfeCompanyProfile.companyBookId} />
-            )}
+              {activeStaffSurface === 'hfe-company-book' && (
+                <CompanyBookView bookId={sync.hfeCompanyProfile.companyBookId} />
+              )}
+            </Suspense>
 
             {activeStaffSurface === 'cafe-config' && (
               <CafeSettingsView
@@ -409,27 +412,24 @@ function AppMain() {
               />
             )}
 
-            {activeStaffSurface === 'warehouse-mgmt' && (
-              <WarehouseManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
-            )}
-
-            {activeStaffSurface === 'branch-mgmt' && (
-              <BranchManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
-            )}
-
-            {activeStaffSurface === 'scan-go' && <ScanAndGoView />}
-
-            {activeStaffSurface === 'sommelier' && <SommelierView />}
-
-            {activeStaffSurface === 'maitre-d' && <MaitreDView />}
-
-            {activeStaffSurface === 'customer-crm' && <CustomerContactsView />}
-            {activeStaffSurface === 'admin-hub' && (
-              <AdminMerchantUserView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
-            )}
-            {activeStaffSurface === 'merchant-hub' && (
-              <MerchantHomeHubView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
-            )}
+            <Suspense fallback={null}>
+              {activeStaffSurface === 'warehouse-mgmt' && (
+                <WarehouseManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
+              )}
+              {activeStaffSurface === 'branch-mgmt' && (
+                <BranchManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
+              )}
+              {activeStaffSurface === 'scan-go' && <ScanAndGoView />}
+              {activeStaffSurface === 'sommelier' && <SommelierView />}
+              {activeStaffSurface === 'maitre-d' && <MaitreDView />}
+              {activeStaffSurface === 'customer-crm' && <CustomerContactsView />}
+              {activeStaffSurface === 'admin-hub' && (
+                <AdminMerchantUserView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
+              )}
+              {activeStaffSurface === 'merchant-hub' && (
+                <MerchantHomeHubView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
+              )}
+            </Suspense>
           </div>
         )}
 
@@ -441,13 +441,15 @@ function AppMain() {
           />
         )}
 
-        {(config.activeApp === 'gallery' || activeStaffSurface === 'gallery' || config.activeApp === 'design-system') && (
-          <NativeComponentGalleryView />
-        )}
+        <Suspense fallback={null}>
+          {(config.activeApp === 'gallery' || activeStaffSurface === 'gallery' || config.activeApp === 'design-system') && (
+            <NativeComponentGalleryView />
+          )}
 
-        {config.activeApp === 'hfeit-corporate' && (
-          <HfeitCorporateView onNavigateToApp={(app: any) => config.setActiveApp(app)} />
-        )}
+          {config.activeApp === 'hfeit-corporate' && (
+            <HfeitCorporateView onNavigateToApp={(app: any) => config.setActiveApp(app)} />
+          )}
+        </Suspense>
       </div>
 
       {/* DEV-ONLY FLOATING QUICK SETTINGS (AUTOMATICALLY STRIPPED IN PROD) */}
