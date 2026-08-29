@@ -10,8 +10,15 @@ import {
   MatrixVariant,
   ModifierOption 
 } from './ProductFormModifierSection'
+import { ProductFormChannelPricingSection } from './ProductFormChannelPricingSection'
 
 export type { ModifierGroup, MatrixVariant, ModifierOption }
+
+export interface ChannelPricing {
+  deliveryGoFood?: number
+  deliveryGrabFood?: number
+  qrSelfOrder?: number
+}
 
 export interface ProductFormData {
   id?: string
@@ -28,6 +35,7 @@ export interface ProductFormData {
   customizationType?: 'none' | 'modifiers_fnb' | 'matrix_retail'
   modifierGroups?: ModifierGroup[]
   matrixVariants?: MatrixVariant[]
+  channelPricing?: ChannelPricing
   kdsStation?: string
   taxApplicable?: boolean
 }
@@ -51,12 +59,18 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   const [name, setName] = useState('')
   const [sku, setSku] = useState('')
   const [category, setCategory] = useState<'coffee' | 'non_coffee' | 'food' | 'merchandise' | 'service'>('coffee')
-  const [price, setPrice] = useState<number>(25000)
-  const [cogs, setCogs] = useState<number>(8000)
+  const [price, setPrice] = useState<number>(28000)
+  const [cogs, setCogs] = useState<number>(9000)
   const [stockType, setStockType] = useState<'recipe_bom' | 'unit_inventory' | 'non_stock_service'>('recipe_bom')
   const [customizationType, setCustomizationType] = useState<'none' | 'modifiers_fnb' | 'matrix_retail'>('modifiers_fnb')
   const [kdsStation, setKdsStation] = useState('Barista Station')
   const [taxApplicable, setTaxApplicable] = useState(true)
+
+  // Progressive Multi-Channel Pricing (Level 1 / 2 / 3)
+  const [showChannelPricing, setShowChannelPricing] = useState(false)
+  const [channelMarkupPercent, setChannelMarkupPercent] = useState<number>(25)
+  const [customDeliveryPrice, setCustomDeliveryPrice] = useState<number | null>(null)
+  const [customQrPrice, setCustomQrPrice] = useState<number | null>(null)
 
   // Ingredients for BOM
   const [ingredients, setIngredients] = useState<{ name: string; amount: string; cost: number }[]>([
@@ -90,9 +104,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   // Matrix Variants for Retail
   const [matrixVariants, setMatrixVariants] = useState<MatrixVariant[]>([
     { sku: 'MER-TSHIRT-BLK-S', name: 'Hitam - S', price: 149000, stock: 12 },
-    { sku: 'MER-TSHIRT-BLK-M', name: 'Hitam - M', price: 149000, stock: 24 },
-    { sku: 'MER-TSHIRT-BLK-L', name: 'Hitam - L', price: 149000, stock: 18 },
-    { sku: 'MER-TSHIRT-BLK-XL', name: 'Hitam - XL', price: 159000, stock: 8 }
+    { sku: 'MER-TSHIRT-BLK-M', name: 'Hitam - M', price: 149000, stock: 24 }
   ])
 
   useEffect(() => {
@@ -100,8 +112,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setName(initialData.name || '')
       setSku(initialData.sku || '')
       setCategory(initialData.category || 'coffee')
-      setPrice(initialData.price || 25000)
-      setCogs(initialData.cogs || 8000)
+      setPrice(initialData.price || 28000)
+      setCogs(initialData.cogs || 9000)
       setStockType(initialData.stockType || 'recipe_bom')
       setCustomizationType(initialData.customizationType || (initialData.category === 'merchandise' ? 'matrix_retail' : 'modifiers_fnb'))
       setKdsStation(initialData.kdsStation || 'Barista Station')
@@ -109,6 +121,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setIngredients(initialData.recipeIngredients || [])
       if (initialData.modifierGroups) setModifierGroups(initialData.modifierGroups)
       if (initialData.matrixVariants) setMatrixVariants(initialData.matrixVariants)
+      if (initialData.channelPricing?.deliveryGoFood) {
+        setShowChannelPricing(true)
+        setCustomDeliveryPrice(initialData.channelPricing.deliveryGoFood)
+        setCustomQrPrice(initialData.channelPricing.qrSelfOrder || null)
+      }
     } else {
       setName('')
       setSku(`SKU-${Date.now().toString().slice(-4)}`)
@@ -119,6 +136,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       setCustomizationType('modifiers_fnb')
       setKdsStation('Barista Station')
       setTaxApplicable(true)
+      setShowChannelPricing(false)
+      setCustomDeliveryPrice(null)
+      setCustomQrPrice(null)
       setIngredients([
         { name: 'Biji Kopi House Blend', amount: '18 Gram', cost: 4500 },
         { name: 'Fresh Milk', amount: '150 ML', cost: 3500 }
@@ -129,6 +149,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   if (!isOpen) return null
 
   const calculatedMargin = price > 0 ? Math.round(((price - cogs) / price) * 100) : 0
+  
+  // Auto-calculate delivery price rounded to thousand (e.g. 28.000 * 1.25 = 35.000)
+  const autoCalculatedDeliveryPrice = Math.ceil((price * (1 + channelMarkupPercent / 100)) / 1000) * 1000
+  const effectiveDeliveryPrice = customDeliveryPrice !== null ? customDeliveryPrice : autoCalculatedDeliveryPrice
+  const effectiveQrPrice = customQrPrice !== null ? customQrPrice : price
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -157,6 +182,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       customizationType,
       modifierGroups: customizationType === 'modifiers_fnb' ? modifierGroups : [],
       matrixVariants: customizationType === 'matrix_retail' ? matrixVariants : [],
+      channelPricing: showChannelPricing ? {
+        deliveryGoFood: effectiveDeliveryPrice,
+        deliveryGrabFood: effectiveDeliveryPrice,
+        qrSelfOrder: effectiveQrPrice
+      } : undefined,
       kdsStation,
       taxApplicable
     })
@@ -249,7 +279,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground block">Kode SKU / Barcode:</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-muted-foreground block">Kode SKU / Barcode:</label>
+                    <span className="text-[10px] text-muted-foreground">(Otomatis)</span>
+                  </div>
                   <TextInput
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
@@ -259,10 +292,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 </div>
               </div>
 
-              {/* Pricing & Margin */}
-              <div className="p-3.5 bg-muted/40 rounded-xl border border-border space-y-2.5">
+              {/* Pricing & Margin (Level 1 Base State) */}
+              <div className="p-3.5 bg-muted/40 rounded-xl border border-border space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-foreground">💰 Harga &amp; Margin Laba:</span>
+                  <span className="text-xs font-bold text-foreground">💰 Harga Jual Toko &amp; Margin:</span>
                   <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] font-mono font-bold h-6 px-2">
                     Margin {calculatedMargin}%
                   </Badge>
@@ -270,7 +303,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] text-muted-foreground block">Harga Jual Konsumen (Rp):</label>
+                    <label className="text-[11px] text-muted-foreground block">Harga Toko / Kasir (Rp):</label>
                     <TextInput
                       type="number"
                       value={price}
@@ -291,6 +324,18 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     />
                   </div>
                 </div>
+
+                {/* Level 2/3 Progressive Multi-Channel Pricing */}
+                <ProductFormChannelPricingSection
+                  price={price}
+                  showChannelPricing={showChannelPricing}
+                  setShowChannelPricing={setShowChannelPricing}
+                  channelMarkupPercent={channelMarkupPercent}
+                  setChannelMarkupPercent={setChannelMarkupPercent}
+                  effectiveDeliveryPrice={effectiveDeliveryPrice}
+                  customDeliveryPrice={customDeliveryPrice}
+                  setCustomDeliveryPrice={setCustomDeliveryPrice}
+                />
               </div>
 
               {/* Stock Management */}

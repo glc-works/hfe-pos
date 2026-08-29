@@ -325,6 +325,28 @@ export const ProductCatalogManagementTab: React.FC = () => {
                 </div>
               </div>
 
+              {/* Multi-Channel Pricing Breakdown */}
+              <div className="p-3 bg-muted/30 border border-border rounded-xl space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-foreground">🛵 Saluran Penjualan &amp; Harga:</span>
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] font-bold">
+                    Omnichannel
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                  <div className="p-2 bg-background rounded-lg border border-border/80 flex items-center justify-between">
+                    <span className="text-muted-foreground">🏬 Toko Fisik:</span>
+                    <span className="font-mono font-bold text-foreground">Rp {selectedProductForDetail.price.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="p-2 bg-background rounded-lg border border-border/80 flex items-center justify-between">
+                    <span className="text-muted-foreground">🛵 GoFood/Grab:</span>
+                    <span className="font-mono font-bold text-emerald-400">
+                      Rp {(selectedProductForDetail.channelPricing?.deliveryGoFood || Math.ceil((selectedProductForDetail.price * 1.25) / 1000) * 1000).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* Recipe & Ingredients (BOM) */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

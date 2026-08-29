@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ProductFormData, ModifierGroup, MatrixVariant } from '../components/hub/ProductFormModal'
+import { ProductFormData, ModifierGroup, MatrixVariant, ChannelPricing } from '../components/hub/ProductFormModal'
 import { AttentionNotificationItem } from '../components/common/UnifiedAttentionCenterPopOver'
 
 describe('2-Tier Attention Center & Product Modifiers Suite (L2-POS-825 Parity)', () => {
@@ -71,13 +71,19 @@ describe('2-Tier Attention Center & Product Modifiers Suite (L2-POS-825 Parity)'
             { id: 'a2', name: 'Ganti Oat Milk', priceDelta: 8000, bomDelta: 'Susu Oat 150ml' }
           ]
         }
-      ]
+      ],
+      channelPricing: {
+        deliveryGoFood: 35000,
+        deliveryGrabFood: 35000,
+        qrSelfOrder: 28000
+      }
     }
 
     expect(sampleFnbProduct.customizationType).toBe('modifiers_fnb')
     expect(sampleFnbProduct.modifierGroups?.length).toBe(2)
     expect(sampleFnbProduct.modifierGroups?.[0].options.length).toBe(3)
     expect(sampleFnbProduct.modifierGroups?.[1].options[0].priceDelta).toBe(6000)
+    expect(sampleFnbProduct.channelPricing?.deliveryGoFood).toBe(35000)
 
     const sampleRetailProduct: ProductFormData = {
       sku: 'MER-TSHIRT-01',
