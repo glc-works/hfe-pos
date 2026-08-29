@@ -77,14 +77,14 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
 
         {/* DESKTOP / TABLET VIEW (>= md): 6 DIRECT WORKSTATION TABS (ZERO FLANK DUPLICATES) */}
         <div className="hidden md:flex items-center justify-between w-full gap-2">
-          {/* LEFT: 6 DIRECT WORKSTATION TABS */}
+          {/* LEFT: 4 UNIFIED ROLE PILLARS (ZERO CLUTTER) */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               type="button"
               onClick={() => setActiveStaffSurface('barista-pos')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeStaffSurface === 'barista-pos' || ['retail-pos', 'scan-go'].includes(activeStaffSurface)
-                  ? 'bg-indigo-500 text-white shadow-md font-extrabold'
+                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
               }`}
             >
@@ -94,9 +94,9 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
             <button
               type="button"
               onClick={() => setActiveStaffSurface('kds-screen')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeStaffSurface === 'kds-screen' || ['fine-dining-kds', 'checker-qc', 'server-waiter'].includes(activeStaffSurface)
-                  ? 'bg-indigo-500 text-white shadow-md font-extrabold'
+                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
               }`}
             >
@@ -105,62 +105,26 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
 
             <button
               type="button"
-              onClick={() => setActiveStaffSurface('hfe-insights')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeStaffSurface === 'hfe-insights'
-                  ? 'bg-gradient-to-r from-amber-400 to-purple-600 text-white shadow-md font-extrabold'
-                  : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+              onClick={() => setActiveStaffSurface('warehouse-mgmt')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeStaffSurface === 'warehouse-mgmt' || activeStaffSurface === 'branch-mgmt'
+                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" /> HFE Insights
+              <Warehouse className="w-3.5 h-3.5" /> Gudang & Logistik
             </button>
 
             <button
               type="button"
               onClick={() => setActiveStaffSurface('hfe-connect-hub')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeStaffSurface === 'hfe-connect-hub'
-                  ? 'bg-sky-600 text-white shadow-md font-extrabold'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                ['hfe-connect-hub', 'merchant-hub', 'hfe-insights', 'hfe-company-book', 'cafe-config', 'admin-hub'].includes(activeStaffSurface)
+                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
               }`}
             >
-              <Globe className="w-3.5 h-3.5" /> Connect Hub
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveStaffSurface('hfe-company-book')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeStaffSurface === 'hfe-company-book'
-                  ? 'bg-emerald-600 text-white shadow-md font-extrabold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" /> Buku Kas &amp; Ledger
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveStaffSurface('warehouse-mgmt')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeStaffSurface === 'warehouse-mgmt' || activeStaffSurface === 'branch-mgmt'
-                  ? 'bg-amber-600 text-white shadow-md font-extrabold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
-              }`}
-            >
-              <Warehouse className="w-3.5 h-3.5" /> Gudang & Cabang
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveStaffSurface('cafe-config')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeStaffSurface === 'cafe-config'
-                  ? 'bg-indigo-500 text-white shadow-md font-extrabold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
-              }`}
-            >
-              <Settings className="w-3.5 h-3.5" /> Pengaturan
+              <Globe className="w-3.5 h-3.5" /> Merchant Hub (Backoffice)
             </button>
           </div>
 
