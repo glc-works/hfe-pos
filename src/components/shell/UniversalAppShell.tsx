@@ -12,10 +12,7 @@ import {
   Package,
   Globe,
   X,
-  Store,
-  MapPin,
-  Sparkles,
-  ArrowRight
+  MapPin
 } from 'lucide-react'
 import { useMerchantConfig } from '@/context/MerchantConfigContext'
 import { GlobalSpotlightCommandPalette, SpotlightRole } from '../common/GlobalSpotlightCommandPalette'
@@ -56,6 +53,8 @@ export const UniversalAppShell: React.FC<UniversalAppShellProps> = ({
   const surfaces = [
     {
       id: 'barista-pos',
+      shortLabel: 'Kasir',
+      glyph: '🛒',
       label: 'Kasir POS',
       sublabel: 'Front of House',
       icon: <ShoppingBag className="w-4 h-4 text-amber-500" />,
@@ -63,6 +62,8 @@ export const UniversalAppShell: React.FC<UniversalAppShellProps> = ({
     },
     {
       id: 'kds-screen',
+      shortLabel: 'Dapur',
+      glyph: '🍳',
       label: 'Dapur KDS',
       sublabel: 'Kitchen & Barista',
       icon: <ChefHat className="w-4 h-4 text-emerald-500" />,
@@ -70,6 +71,8 @@ export const UniversalAppShell: React.FC<UniversalAppShellProps> = ({
     },
     {
       id: 'warehouse-mgmt',
+      shortLabel: 'Gudang',
+      glyph: '📦',
       label: 'Gudang & Logistik',
       sublabel: 'Supply Chain',
       icon: <Package className="w-4 h-4 text-blue-400" />,
@@ -77,6 +80,8 @@ export const UniversalAppShell: React.FC<UniversalAppShellProps> = ({
     },
     {
       id: 'merchant-hub',
+      shortLabel: 'Hub',
+      glyph: '📊',
       label: 'Merchant Hub',
       sublabel: 'Backoffice Owner',
       icon: <Globe className="w-4 h-4 text-purple-400" />,
@@ -90,16 +95,17 @@ export const UniversalAppShell: React.FC<UniversalAppShellProps> = ({
     <div className="h-[100dvh] w-full flex flex-col bg-background text-foreground overflow-hidden font-sans">
       {/* LAYER 1: PERSISTENT PLATFORM TOP BAR */}
       <header className="shrink-0 z-30 h-12 sm:h-13 border-b border-border bg-card/90 backdrop-blur-md px-3 sm:px-4 flex items-center justify-between gap-2">
-        {/* Left: Mobile Monogram Avatar [ ☕ ▾ ] vs Desktop Full Breadcrumb */}
+        {/* Left: Mobile Mode Name [ 🛒 Kasir ▾ ] vs Desktop Full Breadcrumb */}
         <div className="relative">
-          {/* Mobile Icon Trigger (< sm) */}
+          {/* Mobile Strict Mode Name (< sm) */}
           <button
             type="button"
             onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
-            className="sm:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-muted/60 hover:bg-muted border border-border transition-all cursor-pointer min-h-[38px]"
-            title="Pilih Cabang & Ruang Kerja"
+            className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-muted border border-border transition-all cursor-pointer min-h-[38px]"
+            title="Ganti Mode / Ruang Kerja"
           >
-            <span className="text-sm">☕</span>
+            <span className="text-xs">{activeSurfaceObj.glyph}</span>
+            <span className="text-xs font-bold text-foreground">{activeSurfaceObj.shortLabel}</span>
             <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
           </button>
 
@@ -110,7 +116,7 @@ export const UniversalAppShell: React.FC<UniversalAppShellProps> = ({
             className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-muted border border-border transition-all cursor-pointer text-left"
           >
             <div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 font-bold text-xs">
-              {activeSurface === 'kds-screen' ? '🍳' : activeSurface === 'warehouse-mgmt' ? '📦' : activeSurface === 'merchant-hub' ? '📊' : '🛒'}
+              {activeSurfaceObj.glyph}
             </div>
             <div className="leading-tight pr-1">
               <span className="text-xs font-bold text-foreground block truncate max-w-[140px] md:max-w-[200px]">

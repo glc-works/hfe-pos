@@ -20,26 +20,26 @@ export interface StaffSubNavigatorProps {
   setActiveStaffSurface: (surface: StaffSurfaceMode) => void
 }
 
-const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; icon: React.ReactNode; color: string }> = {
-  'barista-pos': { name: 'Barista Touch POS', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-indigo-500' },
-  'retail-pos': { name: 'Retail Barcode POS', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-amber-500' },
-  'scan-go': { name: 'Scan & Go Mobile', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-emerald-500' },
-  'kds-screen': { name: 'Kitchen KDS', icon: <Kanban className="w-3.5 h-3.5" />, color: 'bg-sky-500' },
-  'fine-dining-kds': { name: 'Chef Course KDS', icon: <Kanban className="w-3.5 h-3.5" />, color: 'bg-rose-500' },
-  'checker-qc': { name: 'Checker QC', icon: <ShieldCheck className="w-3.5 h-3.5" />, color: 'bg-teal-500' },
-  'server-waiter': { name: 'Server / Waiter', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-purple-500' },
-  'sommelier': { name: 'Sommelier Wine', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-red-600' },
-  'maitre-d': { name: "Maître d' VIP", icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-yellow-500' },
-  'hfe-insights': { name: '📈 HFE Insights', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-gradient-to-r from-amber-400 to-purple-600' },
-  'hfe-company-book': { name: '📚 Company Books (Ledger)', icon: <BookOpen className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
-  'warehouse-mgmt': { name: 'Gudang & Stok', icon: <Warehouse className="w-3.5 h-3.5" />, color: 'bg-amber-600' },
-  'branch-mgmt': { name: 'Multi-Cabang', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
-  'cafe-config': { name: 'Owner Settings', icon: <Settings className="w-3.5 h-3.5" />, color: 'bg-slate-600' },
-  'customer-crm': { name: 'Customer CRM', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-blue-600' },
-  'hfe-connect-hub': { name: '🧩 HFE Connect Hub', icon: <Globe className="w-3.5 h-3.5" />, color: 'bg-sky-500' },
-  'admin-hub': { name: '🛡️ Mode Admin', icon: <ShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-600' },
-  'merchant-hub': { name: '🏠 Merchant Hub (Owner)', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-purple-600' },
-  'gallery': { name: '🎨 Living Component Gallery', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-emerald-600' }
+const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; shortName: string; icon: React.ReactNode; color: string }> = {
+  'barista-pos': { name: 'Kasir POS', shortName: 'Kasir', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-indigo-500' },
+  'retail-pos': { name: 'Retail POS', shortName: 'Kasir', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-amber-500' },
+  'scan-go': { name: 'Scan & Go', shortName: 'Kasir', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-emerald-500' },
+  'kds-screen': { name: 'Dapur KDS', shortName: 'Dapur', icon: <Kanban className="w-3.5 h-3.5" />, color: 'bg-sky-500' },
+  'fine-dining-kds': { name: 'Chef KDS', shortName: 'Dapur', icon: <Kanban className="w-3.5 h-3.5" />, color: 'bg-rose-500' },
+  'checker-qc': { name: 'Checker QC', shortName: 'Checker', icon: <ShieldCheck className="w-3.5 h-3.5" />, color: 'bg-teal-500' },
+  'server-waiter': { name: 'Server / Waiter', shortName: 'Waiter', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-purple-500' },
+  'sommelier': { name: 'Sommelier', shortName: 'Sommelier', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-red-600' },
+  'maitre-d': { name: "Maître d'", shortName: 'VIP', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-yellow-500' },
+  'hfe-insights': { name: 'HFE Insights', shortName: 'Insights', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-gradient-to-r from-amber-400 to-purple-600' },
+  'hfe-company-book': { name: 'Company Books', shortName: 'Books', icon: <BookOpen className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
+  'warehouse-mgmt': { name: 'Gudang & Logistik', shortName: 'Gudang', icon: <Warehouse className="w-3.5 h-3.5" />, color: 'bg-amber-600' },
+  'branch-mgmt': { name: 'Multi-Cabang', shortName: 'Cabang', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
+  'cafe-config': { name: 'Pengaturan Toko', shortName: 'Setting', icon: <Settings className="w-3.5 h-3.5" />, color: 'bg-slate-600' },
+  'customer-crm': { name: 'Customer CRM', shortName: 'CRM', icon: <Users className="w-3.5 h-3.5" />, color: 'bg-blue-600' },
+  'hfe-connect-hub': { name: 'Connect Hub', shortName: 'Hub', icon: <Globe className="w-3.5 h-3.5" />, color: 'bg-sky-500' },
+  'admin-hub': { name: 'Mode Admin', shortName: 'Admin', icon: <ShieldCheck className="w-3.5 h-3.5" />, color: 'bg-indigo-600' },
+  'merchant-hub': { name: 'Merchant Hub', shortName: 'Hub', icon: <Store className="w-3.5 h-3.5" />, color: 'bg-purple-600' },
+  'gallery': { name: 'Component Gallery', shortName: 'Gallery', icon: <Sparkles className="w-3.5 h-3.5" />, color: 'bg-emerald-600' }
 }
 
 export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
@@ -48,29 +48,30 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const currentApp = SURFACE_NAMES[activeStaffSurface] || {
-    name: 'Aplikasi Staff',
-    icon: <Grid className="w-3.5 h-3.5" />,
-    color: 'bg-slate-700'
+    name: 'Kasir POS',
+    shortName: 'Kasir',
+    icon: <Users className="w-3.5 h-3.5" />,
+    color: 'bg-amber-500'
   }
 
   return (
     <>
-      <div className="bg-slate-900 border-b border-slate-800 px-3 sm:px-4 py-2 flex items-center justify-between gap-3 shadow-md">
-        {/* MOBILE VIEW (< md): 1 SINGLE APP SELECTOR PILL */}
+      <div className="bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between z-20 shrink-0 select-none">
+        {/* MOBILE VIEW (< md): COMPACT MODE NAME */}
         <div className="flex md:hidden items-center justify-between w-full gap-2">
           <button
             type="button"
             onClick={() => setIsDrawerOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-500/20 via-slate-800 to-slate-800 hover:from-amber-500/30 hover:to-slate-750 border border-amber-500/40 hover:border-amber-400/80 rounded-2xl text-white transition-all shadow-sm group min-w-0"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 hover:bg-slate-750 border border-slate-700 rounded-xl text-white transition-all shadow-xs cursor-pointer min-w-0"
           >
-            <div className="w-5 h-5 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0 shadow-sm">
-              <Grid className="w-3 h-3 stroke-[2.5]" />
+            <div className="w-4 h-4 rounded-md bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0">
+              <Grid className="w-2.5 h-2.5 stroke-[2.5]" />
             </div>
-            <span className="text-xs font-black text-white truncate">{currentApp.name}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-amber-400 group-hover:translate-y-0.5 transition-transform shrink-0" />
+            <span className="text-xs font-bold text-white truncate">{currentApp.shortName}</span>
+            <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
           </button>
 
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 shrink-0">
+          <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Shift Aktif
           </div>
         </div>
