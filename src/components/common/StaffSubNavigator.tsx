@@ -11,9 +11,11 @@ import {
   Warehouse,
   ShieldCheck,
   Globe,
-  BookOpen
+  BookOpen,
+  Bell
 } from 'lucide-react'
 import { StaffAppDrawerModal } from './StaffAppDrawerModal'
+import { UnifiedAttentionCenterPopOver } from './UnifiedAttentionCenterPopOver'
 
 export interface StaffSubNavigatorProps {
   activeStaffSurface: StaffSurfaceMode
@@ -47,6 +49,7 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
   setActiveStaffSurface
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
   const currentApp = SURFACE_NAMES[activeStaffSurface] || {
     name: 'Kasir POS',
     shortName: 'Kasir',
@@ -129,8 +132,27 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
             </button>
           </div>
 
-          {/* RIGHT: STORE & SHIFT STATUS */}
+          {/* RIGHT: ATTENTION CENTER & SHIFT STATUS */}
           <div className="flex items-center gap-2">
+            {/* Attention Bell Button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className="relative p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition-all cursor-pointer flex items-center justify-center"
+                title="Attention Center (Notifikasi)"
+              >
+                <Bell className="w-4 h-4 text-amber-500" />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-slate-900 animate-pulse" />
+              </button>
+
+              <UnifiedAttentionCenterPopOver
+                isOpen={isNotifOpen}
+                onClose={() => setIsNotifOpen(false)}
+                onNavigateToHub={() => setActiveStaffSurface('merchant-hub')}
+              />
+            </div>
+
             <div className="flex items-center gap-1.5 text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Shift Kasir Aktif
             </div>

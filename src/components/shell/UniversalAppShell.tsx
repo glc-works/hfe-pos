@@ -12,10 +12,12 @@ import {
   Package,
   Globe,
   X,
-  MapPin
+  MapPin,
+  Plus
 } from 'lucide-react'
 import { useMerchantConfig } from '@/context/MerchantConfigContext'
 import { GlobalSpotlightCommandPalette, SpotlightRole } from '../common/GlobalSpotlightCommandPalette'
+import { UnifiedAttentionCenterPopOver } from '../common/UnifiedAttentionCenterPopOver'
 
 export interface UniversalAppShellProps {
   activeSurface: string
@@ -214,73 +216,42 @@ export const UniversalAppShell: React.FC<UniversalAppShellProps> = ({
             <Search className="w-4 h-4 text-amber-500" />
           </button>
 
-          {/* Notifications Bell */}
+          {/* Quick Action [+] Omni Dropdown (Plan #825a) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => onSelectSurface('merchant-hub')}
+              className="h-10 px-2.5 sm:px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center gap-1 text-xs transition-all shadow-xs cursor-pointer"
+              title="Aksi Cepat (+)"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="hidden sm:inline">Aksi Cepat</span>
+            </button>
+          </div>
+
+          {/* 2-Tier Attention & Notification Center (Plan #825c) */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center"
-              title="Notifikasi & Attention Center"
+              className="relative w-10 h-10 min-w-[40px] min-h-[40px] rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-all cursor-pointer flex items-center justify-center"
+              title="Attention Center (Notifikasi)"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-card animate-pulse" />
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-card animate-pulse" />
             </button>
 
-            {/* Notification Popover */}
-            {isNotifOpen && (
-              <div className="fixed sm:absolute inset-x-4 top-16 sm:inset-auto sm:top-full sm:right-0 sm:mt-1.5 w-auto sm:w-80 bg-card rounded-3xl sm:rounded-2xl border border-border shadow-2xl p-3.5 space-y-2.5 z-50 animate-fadeIn">
-                <div className="flex items-center justify-between pb-2 border-b border-border text-xs font-bold text-foreground">
-                  <div className="flex items-center gap-1.5">
-                    <Bell className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Attention Center (2)</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsNotifOpen(false)}
-                    className="text-muted-foreground hover:text-foreground p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      <span>Stok Menipis: Biji Kopi Gayo</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Tersisa 1.8 kg di Gudang Pusat (Batas aman: 3.0 kg).
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                      <span>Domain &amp; DNS Live</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Domain kopinusantara.id aktif melayani QR order.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* 2-Tier Attention Center PopOver */}
+            <UnifiedAttentionCenterPopOver
+              isOpen={isNotifOpen}
+              onClose={() => setIsNotifOpen(false)}
+              onNavigateToHub={() => onSelectSurface('merchant-hub')}
+            />
           </div>
 
-          {/* Theme Toggle */}
-          <button
-            type="button"
-            onClick={toggleThemeMode}
-            className="hidden sm:flex p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
-            title="Ganti Tema (Day/Night)"
-          >
-            {themeMode === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500" />}
-          </button>
-
           {/* Shift Status Capsule */}
-          <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center gap-1 text-[10px] sm:text-[11px] font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="h-10 px-2.5 sm:px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center gap-1.5 text-[11px] font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="hidden md:inline">Shift</span>
             <span className="font-mono">{shiftNumber}</span>
           </div>
