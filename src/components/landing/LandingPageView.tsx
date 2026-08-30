@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { HfeCompanyProfile, MenuItem, ViewportModeType, EventTicketItem } from '../../types/pos'
 import {
   Coffee, CalendarCheck, Sparkles, ChevronRight,
-  Ticket, Search, ShoppingBag, Instagram, Share2, MessageCircle, MapPin, Check, ArrowRight
+  Ticket, Search, ShoppingBag, Instagram, Share2, MessageCircle, MapPin, Check, ArrowRight, Sun, Moon
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
+import { useTheme } from '../../context/ThemeContext'
 import { useViewport } from '../../context/ViewportContext'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
@@ -32,6 +33,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onSwitchToCustomerApp
 }) => {
   const { isMobile: isContextMobile } = useViewport()
+  const { effectiveTheme, toggleThemeMode } = useTheme()
   const isMobile = viewportMode === 'mobile' || isContextMobile
   const { t, formatPrice } = useTranslation()
   const { vouchers, setActiveApp, storefrontConfig } = useMerchantConfig()
@@ -165,8 +167,17 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </nav>
         )}
 
-        {/* KANAN: Search + Share + Masuk + CTA Reservasi */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        {/* KANAN: Theme Toggle + Search + Share + Masuk + CTA Reservasi */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={toggleThemeMode}
+            className="p-2 text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-all cursor-pointer active:scale-95"
+            title={effectiveTheme === 'dark' ? 'Ganti ke Mode Siang (Day)' : 'Ganti ke Mode Malam (Night)'}
+            aria-label="Toggle Theme Mode"
+          >
+            {effectiveTheme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+          </button>
           <button
             type="button"
             onClick={() => setShowSpotlightModal(true)}
