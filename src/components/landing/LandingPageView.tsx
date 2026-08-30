@@ -142,11 +142,11 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
 
         {/* TENGAH: Tautan Navigasi Halus (Desktop Only) */}
-        <nav className="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-600 dark:text-slate-200">
-          <a href="#featured-menu" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Menu Populer</a>
-          <a href="#promos-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Promo & Kupon</a>
+        <nav className="hidden lg:flex items-center gap-8 text-xs font-bold text-slate-600 dark:text-slate-200">
+          <a href="#featured-menu" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Menu</a>
+          <a href="#promos-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Promo</a>
           <a href="#facilities-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Fasilitas</a>
-          <a href="#events-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Event & Jadwal</a>
+          <a href="#events-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Event</a>
         </nav>
 
         {/* KANAN: Search Minimalis + Share Info + Masuk + CTA Reservasi */}
