@@ -5,12 +5,15 @@ export { demoAccess }
 
 export async function loginAsCanonicalDemoStaff(page: Page): Promise<void> {
   await page.goto('/?app=cafe')
+  const branchSelect = page.locator('select').first()
+  if (await branchSelect.isVisible()) {
+    await branchSelect.selectOption(demoAccess.branchId)
+  }
   const staffCard = page.locator('button:has-text("Siti")').first()
   if (await staffCard.isVisible()) {
     await staffCard.click()
   }
   await expect(page.getByText('Masukkan 6 Digit PIN Kasir')).toBeVisible()
-  await page.locator('select').selectOption(demoAccess.branchId)
 
   for (const digit of demoAccess.staff.pin) {
     await page.getByRole('button', { name: digit, exact: true }).click()
