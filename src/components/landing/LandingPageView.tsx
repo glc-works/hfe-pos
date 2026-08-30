@@ -110,54 +110,55 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
       )}
 
-      {/* LANDING PAGE NAVBAR */}
-      <header className={`border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-40 flex items-center justify-between gap-2 shadow-xs dark:shadow-lg ${
-        isMobile ? 'px-3 pt-[max(env(safe-area-inset-top,8px),8px)] pb-2.5' : 'px-4 sm:px-8 py-3'
+      {/* LANDING PAGE NAVBAR (WORLD-CLASS MERCHANT STANDARD) */}
+      <header className={`border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between gap-4 shadow-xs dark:shadow-md transition-all ${
+        isMobile ? 'px-4 pt-[max(env(safe-area-inset-top,10px),10px)] pb-3' : 'px-6 sm:px-8 py-3.5'
       }`}>
+        {/* KIRI: Logo & Nama Brand Bersih */}
         <div className="flex items-center gap-2.5 min-w-0">
           {hfeCompanyProfile.logoUrl ? (
-            <img src={hfeCompanyProfile.logoUrl} alt={hfeCompanyProfile.brandName} className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-amber-500/50 shadow shrink-0" />
+            <img src={hfeCompanyProfile.logoUrl} alt={hfeCompanyProfile.brandName} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-amber-500/40 shadow-xs shrink-0" />
           ) : (
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl theme-customer-btn-primary flex items-center justify-center font-black text-xs shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
               <Coffee className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950" />
             </div>
           )}
-          <div className="min-w-0">
-            <h1 className="font-extrabold text-xs sm:text-base text-slate-900 dark:text-white tracking-tight leading-tight truncate max-w-[120px] sm:max-w-none">
-              {hfeCompanyProfile.brandName}
-            </h1>
-            <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1 truncate max-w-[120px] sm:max-w-none">
-              <Building className="w-3 h-3 text-amber-500 shrink-0" /> <span className="truncate">{hfeCompanyProfile.ptLegalName}</span>
-            </p>
-          </div>
+          <span className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+            {hfeCompanyProfile.brandName}
+          </span>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* PUBLIC SPOTLIGHT SEARCH TRIGGER BUTTON */}
+        {/* TENGAH: Tautan Navigasi Halus (Desktop Only) */}
+        <nav className="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-600 dark:text-slate-400">
+          <a href="#featured-menu" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Menu Populer</a>
+          <a href="#promos-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Promo & Kupon</a>
+          <a href="#facilities-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Fasilitas</a>
+          <a href="#events-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Event & Jadwal</a>
+        </nav>
+
+        {/* KANAN: Search Minimalis + Masuk + CTA Reservasi */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             type="button"
             onClick={() => setShowSpotlightModal(true)}
-            className="p-1.5 sm:px-3 sm:py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 text-[11px] sm:text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 whitespace-nowrap shadow-xs transition-all cursor-pointer"
-            title="Pencarian Spotlight Publik (⌘K atau /)"
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-all cursor-pointer"
+            title="Cari Menu atau Info (⌘K)"
           >
-            <Search className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
-            <span className="hidden sm:inline">Cari</span>
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[9px] font-mono text-slate-600 dark:text-slate-400 font-bold">⌘K</kbd>
+            <Search className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => setActiveApp('customer-portal')}
-            className="hidden md:flex bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-amber-500/40 items-center gap-1.5 whitespace-nowrap shadow-xs hover:border-amber-500 cursor-pointer"
+            className="hidden sm:inline-flex text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer"
           >
-            <LogIn className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
-            <span>{t.landing.loginRegister}</span>
+            {t.landing.loginRegister}
           </button>
           <button
             type="button"
             onClick={onOpenReservationModal}
-            className="hidden sm:flex bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 items-center gap-1.5 whitespace-nowrap cursor-pointer"
+            className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
           >
-            <CalendarCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
             <span>{t.landing.reserveTable}</span>
           </button>
         </div>
@@ -229,7 +230,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       </section>
 
       {/* ☕ FEATURED SPECIALTY MENU (MOVED TO TOP HOOK) */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+      <section id="featured-menu" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
         <div className="flex items-center justify-between">
@@ -259,7 +260,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
       {/* 🎟️ PROMOS & CLAIMABLE COUPONS SECTION (RESPONSIVE SNAP ON MOBILE) */}
       {activePromos.length > 0 && (
-        <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+        <section id="promos-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
           isMobile ? 'px-4' : 'px-4 sm:px-8'
         }`}>
           <div className="flex items-center justify-between">
@@ -310,7 +311,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       )}
 
       {/* ✨ FACILITY & AMBIANCE CARDS (2x2 MOBILE, 4-COL DESKTOP) */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+      <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
         <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
@@ -337,7 +338,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       <OneTransactionOneTruthSection />
 
       {/* 🎉 UPCOMING EVENTS & COMMUNITY CALENDAR */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+      <section id="events-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
         <div className="flex items-center justify-between">
