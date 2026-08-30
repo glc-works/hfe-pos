@@ -260,14 +260,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         </div>
 
         {isCardEligible && (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
-          <Suspense fallback={<div className="min-h-[180px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
-          <div className="flex flex-col gap-2.5 bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5">
-              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 font-mono flex items-center gap-1">
-                <CreditCard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                {t.cart.edcSectionTitle}
-              </span>
-            </div>
+          <Suspense fallback={<div className="min-h-[140px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
             <PosCardTenderForm
               posPayMethod={posPayMethod}
               internalCardType={internalCardType}
@@ -283,7 +276,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               onCardLast4Change={handleCardLast4Change}
               setApprovalCode={setApprovalCode}
             />
-          </div>
           </Suspense>
         )}
 
