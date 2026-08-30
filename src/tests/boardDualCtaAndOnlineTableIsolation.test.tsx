@@ -93,4 +93,33 @@ describe('L2-POS-101: BOARD Dual-CTA & Online Table State Isolation', () => {
     expect(html).toContain('Seat 1')
     expect(html).toContain('Bill &amp; Info')
   })
+
+  it('dynamically adapts navbar and CTA taxonomy for service/barber business vertical', () => {
+    const barberProfile = {
+      ...DEFAULT_COMPANY_PROFILE,
+      brandName: 'Gentlemen Premium Barber',
+      businessType: 'barber' as any
+    }
+
+    const html = renderToString(
+      <LanguageProvider>
+        <ViewportProvider viewportMode="responsive">
+          <MerchantConfigProvider>
+            <NotificationProvider>
+              <LandingPageView
+                hfeCompanyProfile={barberProfile}
+                productCatalog={PRODUCT_CATALOG}
+                onOpenReservationModal={() => {}}
+                onSwitchToCustomerApp={() => {}}
+              />
+            </NotificationProvider>
+          </MerchantConfigProvider>
+        </ViewportProvider>
+      </LanguageProvider>
+    )
+
+    // Should render "Layanan" instead of "Menu"
+    expect(html).toContain('Layanan')
+    expect(html).toContain('Pilih Stylist / Jadwal')
+  })
 })

@@ -34,6 +34,19 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const [selectedEventForTicket, setSelectedEventForTicket] = useState<EventTicketItem | null>(null)
   const [showSpotlightModal, setShowSpotlightModal] = useState(false)
 
+  // Dynamic Industry Archetype Taxonomy Resolver (F&B vs Service/Barber vs Retail vs Space)
+  const vertical = (storefrontConfig as any).businessVertical || (hfeCompanyProfile as any).businessType || 'fnb'
+  const isService = ['service', 'barber', 'salon', 'clinic'].includes(vertical)
+  const isRetail = ['retail', 'boutique', 'pharmacy'].includes(vertical)
+  const isSpace = ['space', 'coworking', 'studio'].includes(vertical)
+
+  const catalogNavLabel = isService ? 'Layanan' : isRetail ? 'Katalog' : isSpace ? 'Ruangan' : 'Menu'
+  const catalogSectionTitle = isService ? 'Layanan & Treatment' : isRetail ? 'Katalog Produk' : isSpace ? 'Daftar Ruangan' : t.landing.featuredMenuTitle
+  const defaultOrderCta = isService ? 'Pilih Layanan & Booking' : isRetail ? 'Belanja Produk' : isSpace ? 'Cek Ruangan' : (t.landing.orderOnlineCta || 'Buka Menu & Pesan')
+  const defaultReserveCta = isService ? 'Pilih Stylist / Jadwal' : isRetail ? 'Cek Stok Cabang' : isSpace ? 'Reservasi Slot' : (t.landing.reserveTableCta || 'Reservasi Meja')
+  const effectiveOrderCta = (storefrontConfig.ctaOrderText && storefrontConfig.ctaOrderText !== 'Buka Menu & Pesan') ? storefrontConfig.ctaOrderText : defaultOrderCta
+  const effectiveReserveCta = (storefrontConfig.ctaReserveText && storefrontConfig.ctaReserveText !== 'Reservasi Meja') ? storefrontConfig.ctaReserveText : defaultReserveCta
+
   const handleCopyShareInfo = () => {
     const url = typeof window !== 'undefined' ? window.location.href : 'https://pos.hfeit.com'
     const promoSnippet = storefrontConfig.announcementBarActive && storefrontConfig.announcementBarText
@@ -85,29 +98,16 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
   const upcomingEvents: EventTicketItem[] = [
     {
-      id: 'EVT-JAZZ-01',
-      title: '🎷 Friday Night Live Acoustic Jazz',
-      category: 'music_event',
-      date: 'Setiap Jumat',
-      time: '19:30 - 22:00 WIB',
-      location: '🌿 Outdoor Garden & Stage',
-      price: 150000,
-      quotaTotal: 40,
-      quotaRemaining: 14,
+      id: 'EVT-JAZZ-01', title: '🎷 Friday Night Live Acoustic Jazz', category: 'music_event',
+      date: 'Setiap Jumat', time: '19:30 - 22:00 WIB', location: '🌿 Outdoor Garden & Stage',
+      price: 150000, quotaTotal: 40, quotaRemaining: 14,
       description: 'Penampilan jazz akustik santai, termasuk Welcome Drink Signature Mocktail.',
       includedBenefits: ['Welcome Drink', 'Free Seating Stage View']
     },
     {
-      id: 'EVT-WORKSHOP-02',
-      title: '☕ Barista Cupping & Manual Brew Masterclass',
-      category: 'workshop_class',
-      date: 'Sabtu, 29 Agustus',
-      time: '10:00 - 13:00 WIB',
-      location: '❄️ VIP Roastery Room',
-      price: 250000,
-      quotaTotal: 12,
-      quotaRemaining: 4,
-      instructorName: 'Head Roaster Dimas',
+      id: 'EVT-WORKSHOP-02', title: '☕ Barista Cupping & Manual Brew Masterclass', category: 'workshop_class',
+      date: 'Sabtu, 29 Agustus', time: '10:00 - 13:00 WIB', location: '❄️ VIP Roastery Room',
+      price: 250000, quotaTotal: 12, quotaRemaining: 4, instructorName: 'Head Roaster Dimas',
       description: 'Workshop seduh V60 & cupping 5 single-origin nusantara + Sertifikat & Biji Kopi 200g.',
       includedBenefits: ['Sertifikat Workshop', 'Beans 200g', 'Cupping Kit']
     }
@@ -143,7 +143,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
         {/* TENGAH: Tautan Navigasi Halus (Desktop Only) */}
         <nav className="hidden lg:flex items-center gap-8 text-xs font-bold text-slate-600 dark:text-slate-200">
-          <a href="#featured-menu" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Menu</a>
+          <a href="#featured-menu" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">{catalogNavLabel}</a>
           <a href="#promos-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Promo</a>
           <a href="#facilities-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Fasilitas</a>
           <a href="#events-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Event</a>
@@ -184,7 +184,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
           >
             <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
-            <span>{t.landing.reserveTable}</span>
+            <span>{effectiveReserveCta}</span>
           </button>
         </div>
       </header>
@@ -235,7 +235,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 isMobile ? 'w-full' : ''
               }`}
             >
-              <ShoppingBag className="w-4 h-4 text-slate-950 shrink-0" /> {storefrontConfig.ctaOrderText || t.landing.orderOnlineCta}
+              <ShoppingBag className="w-4 h-4 text-slate-950 shrink-0" /> {effectiveOrderCta}
             </button>
             <button
               type="button"
@@ -244,7 +244,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 isMobile ? 'w-full' : ''
               }`}
             >
-              <CalendarCheck className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" /> {storefrontConfig.ctaReserveText || t.landing.reserveTableCta}
+              <CalendarCheck className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" /> {effectiveReserveCta}
             </button>
           </div>
         </div>
@@ -262,13 +262,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         )}
       </section>
 
-      {/* ☕ FEATURED SPECIALTY MENU (MOVED TO TOP HOOK) */}
+      {/* ☕ FEATURED SPECIALTY MENU / SERVICES (MOVED TO TOP HOOK) */}
       <section id="featured-menu" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
         <div className="flex items-center justify-between">
           <h3 className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
-            <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.featuredMenuTitle}
+            <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {catalogSectionTitle}
           </h3>
           <button type="button" onClick={onSwitchToCustomerApp} className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer">
             {t.landing.viewAllCatalog} <ChevronRight className="w-3.5 h-3.5 shrink-0" />
