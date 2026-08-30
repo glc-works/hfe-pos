@@ -45,6 +45,12 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
       title: 'Main Bar & Roastery',
       desc: 'Area slow bar manual brew',
       image: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&q=80'
+    },
+    {
+      icon: 'sparkles',
+      title: 'Rooftop Terrace',
+      desc: 'Pemandangan kota senja',
+      image: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=600&q=80'
     }
   ],
   amenityTags: DEFAULT_MERCHANT_AMENITY_TAGS,
@@ -53,6 +59,7 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
       id: 'EVT-JAZZ-01', title: 'Friday Night Live Acoustic Jazz', category: 'music_event',
       date: 'Setiap Jumat', time: '19:30 - 22:00 WIB', location: 'Outdoor Garden & Stage',
       price: 150000, quotaTotal: 40, quotaRemaining: 14,
+      bannerUrl: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=600&q=80',
       description: 'Penampilan jazz akustik santai, termasuk Welcome Drink Signature Mocktail.',
       includedBenefits: ['Welcome Drink', 'Free Seating Stage View']
     },
@@ -60,6 +67,7 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
       id: 'EVT-WORKSHOP-02', title: 'Barista Cupping & Manual Brew Masterclass', category: 'workshop_class',
       date: 'Sabtu, 29 Agustus', time: '10:00 - 13:00 WIB', location: 'VIP Roastery Room',
       price: 250000, quotaTotal: 12, quotaRemaining: 4, instructorName: 'Head Roaster Dimas',
+      bannerUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
       description: 'Workshop seduh V60 & cupping 5 single-origin nusantara + Sertifikat & Biji Kopi 200g.',
       includedBenefits: ['Sertifikat Workshop', 'Beans 200g', 'Cupping Kit']
     }

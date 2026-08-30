@@ -1,5 +1,5 @@
-import React from 'react'
-import { Sparkles, Trees, Car, Wifi, Zap, Wind, Coffee, Check, Music, CalendarCheck, PawPrint } from 'lucide-react'
+import React, { useRef } from 'react'
+import { Sparkles, Trees, Car, Wifi, Zap, Wind, Coffee, Check, Music, CalendarCheck, PawPrint, ChevronLeft, ChevronRight } from 'lucide-react'
 import { AmenityTagId } from '../../types/pos'
 import { STANDARD_AMENITIES_CATALOG, DEFAULT_MERCHANT_AMENITY_TAGS } from '../../data/amenityCatalog'
 import { useTranslation } from '../../context/LanguageContext'
@@ -25,6 +25,7 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
   isMobile
 }) => {
   const { language } = useTranslation()
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   if ((!facilities || facilities.length === 0) && (!amenityTags || amenityTags.length === 0)) {
     return null
@@ -33,6 +34,13 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
   const activeTagDefinitions = (amenityTags && amenityTags.length > 0 ? amenityTags : DEFAULT_MERCHANT_AMENITY_TAGS)
     .map(tagId => STANDARD_AMENITIES_CATALOG.find(cat => cat.id === tagId))
     .filter((def): def is NonNullable<typeof def> => Boolean(def))
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -320 : 320
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
 
   const renderAmenityIcon = (iconName: string) => {
     switch (iconName) {
@@ -63,17 +71,44 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
     <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
       isMobile ? 'px-4' : 'px-4 sm:px-8'
     }`}>
-      <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {title}
-      </h3>
+      {/* SECTION HEADER WITH CAROUSEL CONTROLS */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {title}
+        </h3>
 
-      {/* VISUAL CARDS GALLERY (PHOTO-DOMINANT) */}
+        {facilities.length > 3 && (
+          <div className="hidden sm:flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => scroll('left')}
+              className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
+              title="Geser Kiri"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scroll('right')}
+              className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
+              title="Geser Kanan"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* HORIZONTAL SNAP CAROUSEL GALLERY */}
       {facilities && facilities.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-3 sm:gap-4 pb-1 scroll-smooth"
+        >
           {facilities.map((fac, idx) => (
             <div
               key={idx}
-              className="relative group rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 h-44 sm:h-48 shadow-xs dark:shadow-md bg-slate-900"
+              className="min-w-[270px] sm:min-w-[320px] max-w-[340px] snap-start shrink-0 relative group rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 h-44 sm:h-48 shadow-xs dark:shadow-md bg-slate-900"
             >
               {fac.image ? (
                 <img
