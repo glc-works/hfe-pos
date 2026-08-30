@@ -334,7 +334,7 @@ export interface StorefrontCustomizationConfig {
   operatingHoursText: string
   socialLinks: StorefrontSocialLinks
   channels?: StorefrontChannelToggles
-  facilities?: { icon: string; title: string; desc: string }[]
+  facilities?: { icon: string; title: string; desc?: string; image?: string }[]
   events?: EventTicketItem[]
   businessVertical?: 'fnb' | 'service' | 'barber' | 'salon' | 'retail' | 'space' | string
 

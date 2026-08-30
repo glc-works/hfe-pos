@@ -10,6 +10,7 @@ import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useViewport } from '../../context/ViewportContext'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
+import { LandingFacilitiesSection } from './LandingFacilitiesSection'
 
 interface LandingPageViewProps {
   hfeCompanyProfile: HfeCompanyProfile
@@ -247,13 +248,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         )}
       </section>
 
-      {/* ☕ FEATURED SPECIALTY MENU / SERVICES (MOVED TO TOP HOOK) */}
+      {/* ☕ FEATURED SPECIALTY MENU / SERVICES */}
       <section id="featured-menu" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
       }`}>
         <div className="flex items-center justify-between">
-          <h3 className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
-            <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {catalogSectionTitle}
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+            <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {catalogNavLabel}
           </h3>
           <button type="button" onClick={onSwitchToCustomerApp} className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer">
             {t.landing.viewAllCatalog} <ChevronRight className="w-3.5 h-3.5 shrink-0" />
@@ -276,14 +277,14 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
       </section>
 
-      {/* 🎟️ PROMOS & CLAIMABLE COUPONS SECTION (RESPONSIVE SNAP ON MOBILE) */}
+      {/* 🎟️ PROMOS & CLAIMABLE COUPONS SECTION */}
       {activePromos.length > 0 && (
         <section id="promos-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
           isMobile ? 'px-4' : 'px-4 sm:px-8'
         }`}>
           <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-amber-500 shrink-0" /> Promo & Kupon Spesial
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Ticket className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.promosTitle}
             </h3>
             <span className="text-[11px] text-slate-500 dark:text-slate-300 font-mono">{t.landing.promoSubtitle}</span>
           </div>
@@ -328,50 +329,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </section>
       )}
 
-      {/* 🏢 FACILITY & AMENITIES STRIP (GOOGLE MAPS & AIRBNB MINIMALIST STANDARD) */}
-      {facilities.length > 0 && (
-        <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-3.5 border-t border-slate-200 dark:border-slate-800/80 ${
-          isMobile ? 'px-4' : 'px-4 sm:px-8'
-        }`}>
-          <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.facilitiesTitle}
-          </h3>
-
-          <div className="flex flex-wrap gap-2 sm:gap-2.5">
-            {facilities.map((fac, idx) => {
-              const k = (fac.icon || '').toLowerCase()
-              const iconElement = k.includes('wifi') || k.includes('internet') ? (
-                <Wifi className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-              ) : k.includes('trees') || k.includes('garden') || k.includes('outdoor') ? (
-                <Trees className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              ) : k.includes('car') || k.includes('park') || k.includes('valet') ? (
-                <Car className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-              ) : k.includes('sparkles') || k.includes('room') || k.includes('vip') || k.includes('ac') ? (
-                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              ) : k.includes('zap') || k.includes('power') ? (
-                <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              ) : (
-                <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              )
-
-              return (
-                <div
-                  key={idx}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-amber-500/40 transition-all text-xs font-medium text-slate-800 dark:text-slate-200"
-                >
-                  {iconElement}
-                  <span className="font-semibold">{fac.title}</span>
-                  {fac.desc && (
-                    <span className="text-[11px] text-slate-500 dark:text-slate-300 font-normal border-l border-slate-200 dark:border-slate-800 pl-2 ml-0.5 hidden sm:inline">
-                      {fac.desc}
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
+      {/* 🏢 VISUAL CARD GALLERY & AMENITIES */}
+      <LandingFacilitiesSection
+        facilities={facilities}
+        title={t.landing.facilitiesTitle}
+        isMobile={isMobile}
+      />
 
       {/* 🎉 UPCOMING EVENTS & COMMUNITY CALENDAR */}
       {upcomingEvents.length > 0 && (
@@ -379,7 +342,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           isMobile ? 'px-4' : 'px-4 sm:px-8'
         }`}>
           <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <Music className="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" /> {t.landing.eventsTitle}
             </h3>
             <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1 cursor-pointer">

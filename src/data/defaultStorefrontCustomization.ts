@@ -27,10 +27,24 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
     isEmergencyBusyMode: false
   },
   facilities: [
-    { icon: 'trees', title: 'Outdoor Garden', desc: 'Area outdoor asri & smoking area' },
-    { icon: 'sparkles', title: 'VIP AC Room', desc: 'Ruang privat meeting 12 pax' },
-    { icon: 'wifi', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
-    { icon: 'car', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
+    {
+      icon: 'trees',
+      title: 'Taman & Outdoor',
+      desc: 'Area asri & smoking area',
+      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&q=80'
+    },
+    {
+      icon: 'sparkles',
+      title: 'Ruang VIP Privat',
+      desc: 'Ruang meeting AC 12 pax',
+      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'
+    },
+    {
+      icon: 'coffee',
+      title: 'Main Bar & Roastery',
+      desc: 'Area slow bar manual brew',
+      image: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&q=80'
+    }
   ],
   events: [
     {
