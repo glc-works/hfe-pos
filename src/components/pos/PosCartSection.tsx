@@ -316,7 +316,11 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             icon={<CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />}
             className="rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm"
           >
-            {reviewReady ? t.cart.acceptReviewedCoreQuote : t.cart.reviewCoreQuote}
+            {reviewReady
+              ? t.cart.acceptReviewedCoreQuote
+              : fulfillmentMode === 'takeaway'
+                ? `${t.cart.takeawayModeLabel} • ${t.cart.reviewCoreQuote}`
+                : t.cart.reviewCoreQuote}
           </Button>
         </div>
       </div>
