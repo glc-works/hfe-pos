@@ -57,22 +57,22 @@ export const LandingEventsSection: React.FC<LandingEventsSectionProps> = ({
           </button>
 
           {events.length > 2 && (
-            <div className="hidden sm:flex items-center gap-1 pl-1 border-l border-slate-200 dark:border-slate-800">
+            <div className="hidden sm:flex items-center gap-1.5 pl-1.5 border-l border-slate-200 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => scroll('left')}
-                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-purple-600 hover:text-white transition-all cursor-pointer active:scale-95"
                 title="Geser Kiri"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => scroll('right')}
-                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-purple-600 hover:text-white transition-all cursor-pointer active:scale-95"
                 title="Geser Kanan"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           )}
