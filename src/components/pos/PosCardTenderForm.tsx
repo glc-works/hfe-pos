@@ -22,24 +22,6 @@ export interface PosCardTenderFormProps {
   setApprovalCode: (code: string) => void
 }
 
-interface BankPreset {
-  id: string
-  label: string
-  icon: string
-  prefix: string
-  suffix: string
-  bankName: string
-  cardType: 'debit' | 'cc'
-}
-
-const BANK_PRESETS: BankPreset[] = [
-  { id: 'bca', label: 'BCA', icon: '🏦', prefix: '45563321', suffix: '9876', bankName: 'BCA', cardType: 'debit' },
-  { id: 'mandiri', label: 'Mandiri', icon: '💳', prefix: '40978412', suffix: '3456', bankName: 'Mandiri', cardType: 'debit' },
-  { id: 'bri', label: 'BRI', icon: '🏛️', prefix: '46170012', suffix: '7890', bankName: 'BRI', cardType: 'debit' },
-  { id: 'bni', label: 'BNI', icon: '🏧', prefix: '42145612', suffix: '1122', bankName: 'BNI', cardType: 'debit' },
-  { id: 'cc-bca', label: 'Kredit', icon: '✨', prefix: '53717600', suffix: '8888', bankName: 'BCA', cardType: 'cc' },
-]
-
 export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
   posPayMethod: _posPayMethod,
   internalCardType: _internalCardType,
@@ -84,15 +66,6 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
     }
   }
 
-  const applyBankPreset = (preset: BankPreset) => {
-    onCardPrefixChange(preset.prefix)
-    if (onCardLast4Change) onCardLast4Change(preset.suffix)
-    else if (onCardLast3Change) onCardLast3Change(preset.suffix)
-    setSelectedBank(preset.bankName)
-    setInternalCardType(preset.cardType)
-    setPosPayMethod(preset.cardType)
-  }
-
   // Format 16 digits with spaces: "4556 3321 8899 9876"
   const formatCardInputDisplay = (val: string) => {
     const digits = val.replace(/\D/g, '')
@@ -105,7 +78,7 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {/* 1. SINGLE UNIFIED INTERACTIVE VIRTUAL CARD */}
+      {/* SINGLE UNIFIED INTERACTIVE VIRTUAL CARD */}
       <div className="relative overflow-hidden rounded-2xl p-3.5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 text-white shadow-xl flex flex-col gap-3">
         {/* Subtle Decorative Background Glow */}
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
@@ -173,31 +146,6 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
             />
           </div>
         </div>
-      </div>
-
-      {/* 2. SPEED EDC PRESET CHIPS (1-TAP BANK FILL FOR RUSH-HOUR CASHIERS) */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 custom-scrollbar">
-        {BANK_PRESETS.map((preset) => {
-          const isSelected = binInfo.bankName === preset.bankName && (
-            (preset.cardType === 'cc' && binInfo.cardType === 'credit') ||
-            (preset.cardType === 'debit' && binInfo.cardType === 'debit')
-          )
-          return (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => applyBankPreset(preset)}
-              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1 shrink-0 ${
-                isSelected
-                  ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
-              }`}
-            >
-              <span>{preset.icon}</span>
-              <span>{preset.label}</span>
-            </button>
-          )
-        })}
       </div>
     </div>
   )

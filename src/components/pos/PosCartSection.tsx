@@ -197,7 +197,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             {t.cart.awaitingCoreQuote}
           </p>
         ) : <div data-testid={!authoritativeQuote ? 'local-price-estimate' : undefined}>
-          {!authoritativeQuote && <p className="mb-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">{t.cart.localPriceEstimate}</p>}
           <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{t.cart.subtotal}</span>
             <span className="font-mono text-slate-900 dark:text-slate-100 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.subtotalMinor) : formatPrice(subtotal)}</span>
