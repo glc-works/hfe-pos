@@ -52,7 +52,9 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
     const promoSnippet = storefrontConfig.announcementBarActive && storefrontConfig.announcementBarText
       ? `\n✨ Promo: ${storefrontConfig.announcementBarText}`
       : ''
-    const shareText = `☕ *${hfeCompanyProfile.brandName}*\n${storefrontConfig.heroTagline || hfeCompanyProfile.tagline || 'Specialty Coffee & Artisan Pastry'}${promoSnippet}\n\n👉 Buka menu & reservasi online:\n${url}\n\n📍 ${hfeCompanyProfile.address || 'Senopati, Jakarta Selatan'}`.trim()
+    const tagline = storefrontConfig.heroTagline || (hfeCompanyProfile as any).tagline || t.landing.defaultTaglineFallback
+    const address = hfeCompanyProfile.address || t.landing.defaultAddressFallback
+    const shareText = `☕ *${hfeCompanyProfile.brandName}*\n${tagline}${promoSnippet}\n\n👉 Buka ${catalogNavLabel.toLowerCase()} & reservasi online:\n${url}\n\n📍 ${address}`.trim()
 
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(shareText)
@@ -95,23 +97,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   }
 
   const activePromos = vouchers.filter(v => v.isActive).slice(0, 3)
-
-  const upcomingEvents: EventTicketItem[] = [
-    {
-      id: 'EVT-JAZZ-01', title: '🎷 Friday Night Live Acoustic Jazz', category: 'music_event',
-      date: 'Setiap Jumat', time: '19:30 - 22:00 WIB', location: '🌿 Outdoor Garden & Stage',
-      price: 150000, quotaTotal: 40, quotaRemaining: 14,
-      description: 'Penampilan jazz akustik santai, termasuk Welcome Drink Signature Mocktail.',
-      includedBenefits: ['Welcome Drink', 'Free Seating Stage View']
-    },
-    {
-      id: 'EVT-WORKSHOP-02', title: '☕ Barista Cupping & Manual Brew Masterclass', category: 'workshop_class',
-      date: 'Sabtu, 29 Agustus', time: '10:00 - 13:00 WIB', location: '❄️ VIP Roastery Room',
-      price: 250000, quotaTotal: 12, quotaRemaining: 4, instructorName: 'Head Roaster Dimas',
-      description: 'Workshop seduh V60 & cupping 5 single-origin nusantara + Sertifikat & Biji Kopi 200g.',
-      includedBenefits: ['Sertifikat Workshop', 'Beans 200g', 'Cupping Kit']
-    }
-  ]
+  const facilities = storefrontConfig.facilities || []
+  const upcomingEvents = storefrontConfig.events || []
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 theme-customer-container overflow-y-auto overscroll-contain">
@@ -155,7 +142,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             type="button"
             onClick={() => setShowSpotlightModal(true)}
             className="p-2 text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-all cursor-pointer"
-            title="Cari Menu atau Info (⌘K)"
+            title={t.landing.searchActionTitle}
           >
             <Search className="w-4 h-4" />
           </button>
@@ -163,7 +150,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             type="button"
             onClick={handleCopyShareInfo}
             className="p-2 text-slate-500 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-all cursor-pointer"
-            title="Salin Tautan & Info Kafe"
+            title={t.landing.shareActionTitle}
           >
             {copiedShareInfo ? (
               <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -193,7 +180,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {copiedShareInfo && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 animate-fadeIn border border-amber-500/50 backdrop-blur">
           <Check className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
-          <span>Tautan & ringkasan etalase berhasil disalin!</span>
+          <span>{t.landing.copySuccessToast}</span>
         </div>
       )}
 
@@ -344,41 +331,39 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       )}
 
       {/* ✨ FACILITY & AMBIANCE CARDS (2x2 MOBILE, 4-COL DESKTOP) */}
-      <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
-        isMobile ? 'px-4' : 'px-4 sm:px-8'
-      }`}>
-        <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.facilitiesTitle}
-        </h3>
+      {facilities.length > 0 && (
+        <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+          isMobile ? 'px-4' : 'px-4 sm:px-8'
+        }`}>
+          <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.facilitiesTitle}
+          </h3>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-          {[
-            { icon: '🍃', title: 'Outdoor Garden', desc: 'Area outdoor asri & smoking area' },
-            { icon: '❄️', title: 'VIP AC Room', desc: 'Ruang privat meeting 12 pax' },
-            { icon: '📶', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
-            { icon: '🅿️', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
-          ].map((fac, idx) => (
-            <div key={idx} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-1 shadow-xs dark:shadow-lg">
-              <span className="text-xl sm:text-2xl">{fac.icon}</span>
-              <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1">{fac.title}</h4>
-              <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-tight">{fac.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+            {facilities.map((fac, idx) => (
+              <div key={idx} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-1 shadow-xs dark:shadow-lg">
+                <span className="text-xl sm:text-2xl">{fac.icon}</span>
+                <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1">{fac.title}</h4>
+                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-tight">{fac.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 🎉 UPCOMING EVENTS & COMMUNITY CALENDAR */}
-      <section id="events-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
-        isMobile ? 'px-4' : 'px-4 sm:px-8'
-      }`}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
-            <Music className="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" /> Jadwal Event & Hiburan
-          </h3>
-          <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1 cursor-pointer">
-            RSVP Tempat <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-          </button>
-        </div>
+      {upcomingEvents.length > 0 && (
+        <section id="events-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+          isMobile ? 'px-4' : 'px-4 sm:px-8'
+        }`}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
+              <Music className="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" /> {t.landing.eventsTitle}
+            </h3>
+            <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1 cursor-pointer">
+              RSVP Tempat <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+            </button>
+          </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {upcomingEvents.map((evt) => (
@@ -420,6 +405,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           ))}
         </div>
       </section>
+      )}
 
       {/* FOOTER & ADDRESS */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-8 py-6 text-center flex flex-col gap-2">

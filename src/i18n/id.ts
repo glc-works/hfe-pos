@@ -339,6 +339,12 @@ export const idTranslations: TranslationDictionary = {
     oneTruthStep3Desc: 'Pesanan langsung dikirim ke dapur dan siap diantar ke meja Anda.',
     merchantCtaBadge: '✨ Buka Etalase & Sistem Kasir untuk Bisnismu',
     merchantCtaButton: 'Daftar Merchant Baru di POS.Hfeit ➔',
+    copySuccessToast: 'Tautan & ringkasan etalase berhasil disalin!',
+    eventsTitle: 'Jadwal Event & Hiburan',
+    defaultAddressFallback: 'Lokasi Utama Outlet',
+    defaultTaglineFallback: 'Produk Berkualitas & Layanan Unggulan',
+    shareActionTitle: 'Salin Tautan & Info Etalase',
+    searchActionTitle: 'Cari Produk atau Informasi (⌘K)',
   },
   truth: {
     liveLabel: 'LIVE • Terverifikasi CORE',

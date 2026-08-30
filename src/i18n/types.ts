@@ -339,6 +339,12 @@ export interface TranslationDictionary {
     oneTruthStep3Desc: string
     merchantCtaBadge: string
     merchantCtaButton: string
+    copySuccessToast: string
+    eventsTitle: string
+    defaultAddressFallback: string
+    defaultTaglineFallback: string
+    shareActionTitle: string
+    searchActionTitle: string
   }
   truth: {
     liveLabel: string

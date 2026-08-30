@@ -334,6 +334,9 @@ export interface StorefrontCustomizationConfig {
   operatingHoursText: string
   socialLinks: StorefrontSocialLinks
   channels?: StorefrontChannelToggles
+  facilities?: { icon: string; title: string; desc: string }[]
+  events?: EventTicketItem[]
+  businessVertical?: 'fnb' | 'service' | 'barber' | 'salon' | 'retail' | 'space' | string
 
   // 2. QR Order Customer Space Studio
   greetingMessage: string

@@ -339,6 +339,12 @@ export const enTranslations: TranslationDictionary = {
     oneTruthStep3Desc: 'Your order goes straight to the kitchen and is served to your table.',
     merchantCtaBadge: '✨ Launch Storefront & POS for Your Business',
     merchantCtaButton: 'Register New Merchant on POS.Hfeit ➔',
+    copySuccessToast: 'Storefront link & summary successfully copied!',
+    eventsTitle: 'Events & Workshop Schedule',
+    defaultAddressFallback: 'Main Outlet Location',
+    defaultTaglineFallback: 'Quality Products & Exceptional Service',
+    shareActionTitle: 'Copy Storefront Link & Info',
+    searchActionTitle: 'Search Products or Information (⌘K)',
   },
   truth: {
     liveLabel: 'LIVE • Verified Core',
