@@ -324,7 +324,9 @@ export interface TranslationDictionary {
     reserveTableCta: string
     facilitiesTitle: string
     featuredMenuTitle: string
+    menuTitle: string
     promosTitle: string
+    defaultHeadlineFallback: string
     viewAllCatalog: string
     hours: string
     loginRegister: string

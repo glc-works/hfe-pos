@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { Sparkles, Trees, Car, Wifi, Zap, Wind, Coffee, Check, Music, CalendarCheck, PawPrint, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Sparkles, Trees, Car, Wifi, Zap, Wind, Coffee, Check, Music, CalendarCheck, PawPrint, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { AmenityTagId } from '../../types/pos'
 import { STANDARD_AMENITIES_CATALOG, DEFAULT_MERCHANT_AMENITY_TAGS } from '../../data/amenityCatalog'
 import { useTranslation } from '../../context/LanguageContext'
@@ -15,6 +15,7 @@ export interface LandingFacilitiesSectionProps {
   facilities: FacilityItem[]
   amenityTags?: AmenityTagId[]
   title: string
+  onViewAllFacilities?: () => void
   isMobile: boolean
 }
 
@@ -22,6 +23,7 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
   facilities,
   amenityTags = DEFAULT_MERCHANT_AMENITY_TAGS,
   title,
+  onViewAllFacilities,
   isMobile
 }) => {
   const { language } = useTranslation()
@@ -71,32 +73,44 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
     <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
       isMobile ? 'px-4' : 'px-4 sm:px-8'
     }`}>
-      {/* SECTION HEADER WITH CAROUSEL CONTROLS */}
+      {/* SECTION HEADER WITH CAROUSEL CONTROLS & DEDICATED LINK */}
       <div className="flex items-center justify-between">
         <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {title}
         </h3>
 
-        {facilities.length > 3 && (
-          <div className="hidden sm:flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
+          {facilities.length > 3 && (
+            <div className="hidden sm:flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => scroll('left')}
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
+                title="Geser Kiri"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll('right')}
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
+                title="Geser Kanan"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          {onViewAllFacilities && (
             <button
               type="button"
-              onClick={() => scroll('left')}
-              className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
-              title="Geser Kiri"
+              onClick={onViewAllFacilities}
+              className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <span>Detail Fasilitas</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
-            <button
-              type="button"
-              onClick={() => scroll('right')}
-              className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
-              title="Geser Kanan"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* HORIZONTAL SNAP CAROUSEL GALLERY */}

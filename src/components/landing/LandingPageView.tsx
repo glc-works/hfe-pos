@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { HfeCompanyProfile, MenuItem, ViewportModeType, EventTicketItem } from '../../types/pos'
 import {
   Coffee, CalendarCheck, Sparkles, ChevronRight,
-  Ticket, Copy, Check, Music, MapPin, MessageCircle, Tag, Search, ShoppingBag, Instagram, Share2,
-  Trees, Car, Wifi, Zap, Wind
+  Ticket, Search, ShoppingBag, Instagram, Share2, MessageCircle, MapPin, Check, ArrowRight
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
@@ -11,6 +10,11 @@ import { useViewport } from '../../context/ViewportContext'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
 import { LandingFacilitiesSection } from './LandingFacilitiesSection'
+import { LandingPromosSection } from './LandingPromosSection'
+import { LandingEventsSection } from './LandingEventsSection'
+import { LandingDedicatedSectionView } from './LandingDedicatedSectionView'
+import { LandingBreadcrumbs, LandingSectionId } from './LandingBreadcrumbs'
+import { OneTransactionOneTruthSection } from './OneTransactionOneTruthSection'
 
 interface LandingPageViewProps {
   hfeCompanyProfile: HfeCompanyProfile
@@ -31,12 +35,14 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const isMobile = viewportMode === 'mobile' || isContextMobile
   const { t, formatPrice } = useTranslation()
   const { vouchers, setActiveApp, storefrontConfig } = useMerchantConfig()
+
+  const [activeSection, setActiveSection] = useState<LandingSectionId>('overview')
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [copiedShareInfo, setCopiedShareInfo] = useState(false)
   const [selectedEventForTicket, setSelectedEventForTicket] = useState<EventTicketItem | null>(null)
   const [showSpotlightModal, setShowSpotlightModal] = useState(false)
 
-  // Dynamic Industry Archetype Taxonomy Resolver (F&B vs Service/Barber vs Retail vs Space)
+  // Dynamic Industry Archetype Taxonomy Resolver
   const vertical = (storefrontConfig as any).businessVertical || (hfeCompanyProfile as any).businessType || 'fnb'
   const isService = ['service', 'barber', 'salon', 'clinic'].includes(vertical)
   const isRetail = ['retail', 'boutique', 'pharmacy'].includes(vertical)
@@ -98,47 +104,65 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
     setTimeout(() => setCopiedCode(null), 2500)
   }
 
-  const activePromos = vouchers.filter(v => v.isActive).slice(0, 3)
+  const activePromos = vouchers.filter(v => v.isActive).map(v => ({
+    id: v.code,
+    code: v.code,
+    title: v.title,
+    desc: v.description,
+    minSpend: v.minSpend
+  }))
   const facilities = storefrontConfig.facilities || []
   const upcomingEvents = storefrontConfig.events || []
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 theme-customer-container overflow-y-auto overscroll-contain">
-      {/* 📢 TOP PROMOTIONAL ANNOUNCEMENT BAR (MERCHANT CUSTOMIZABLE) */}
+      {/* 📢 TOP PROMOTIONAL ANNOUNCEMENT BAR */}
       {storefrontConfig.announcementBarActive && (
-        <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-3 py-1.5 text-center text-[10px] sm:text-xs font-black tracking-wide flex items-center justify-center gap-1.5 shadow-sm">
+        <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 px-3 py-1.5 text-center text-[10px] sm:text-xs font-black tracking-wide flex items-center justify-center gap-1.5 shadow-xs">
           <Sparkles className="w-3.5 h-3.5 shrink-0" />
           <span>{storefrontConfig.announcementBarText}</span>
         </div>
       )}
 
-      {/* LANDING PAGE NAVBAR (WORLD-CLASS MERCHANT STANDARD) */}
-      <header className={`border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between gap-4 shadow-xs dark:shadow-md transition-all ${
+      {/* LANDING PAGE NAVBAR WITH DYNAMIC BREADCRUMBS */}
+      <header className={`border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between gap-3 shadow-xs dark:shadow-md transition-all ${
         isMobile ? 'px-4 pt-[max(env(safe-area-inset-top,10px),10px)] pb-3' : 'px-6 sm:px-8 py-3.5'
       }`}>
-        {/* KIRI: Logo & Nama Brand Bersih */}
+        {/* KIRI: Logo / Breadcrumbs */}
         <div className="flex items-center gap-2.5 min-w-0">
-          {hfeCompanyProfile.logoUrl ? (
-            <img src={hfeCompanyProfile.logoUrl} alt={hfeCompanyProfile.brandName} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-amber-500/40 shadow-xs shrink-0" />
+          {activeSection === 'overview' ? (
+            <>
+              {hfeCompanyProfile.logoUrl ? (
+                <img src={hfeCompanyProfile.logoUrl} alt={hfeCompanyProfile.brandName} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-amber-500/40 shadow-xs shrink-0" />
+              ) : (
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                  <Coffee className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950" />
+                </div>
+              )}
+              <span className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                {hfeCompanyProfile.brandName}
+              </span>
+            </>
           ) : (
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500 flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
-              <Coffee className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950" />
-            </div>
+            <LandingBreadcrumbs
+              activeSection={activeSection}
+              onSelectSection={setActiveSection}
+              isMobile={isMobile}
+            />
           )}
-          <span className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight leading-tight truncate">
-            {hfeCompanyProfile.brandName}
-          </span>
         </div>
 
-        {/* TENGAH: Tautan Navigasi Halus (Desktop Only) */}
-        <nav className="hidden lg:flex items-center gap-8 text-xs font-bold text-slate-600 dark:text-slate-200">
-          <a href="#featured-menu" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">{catalogNavLabel}</a>
-          <a href="#promos-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Promo</a>
-          <a href="#facilities-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Fasilitas</a>
-          <a href="#events-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Event</a>
-        </nav>
+        {/* TENGAH: Tautan Navigasi Cepat (Desktop Overview Only) */}
+        {activeSection === 'overview' && (
+          <nav className="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-600 dark:text-slate-200">
+            <button type="button" onClick={() => setActiveSection('menu')} className="hover:text-amber-500 transition-colors cursor-pointer">{catalogNavLabel}</button>
+            <button type="button" onClick={() => setActiveSection('promos')} className="hover:text-amber-500 transition-colors cursor-pointer">Promo</button>
+            <button type="button" onClick={() => setActiveSection('facilities')} className="hover:text-amber-500 transition-colors cursor-pointer">Fasilitas</button>
+            <button type="button" onClick={() => setActiveSection('events')} className="hover:text-amber-500 transition-colors cursor-pointer">Event</button>
+          </nav>
+        )}
 
-        {/* KANAN: Search Minimalis + Share Info + Masuk + CTA Reservasi */}
+        {/* KANAN: Search + Share + Masuk + CTA Reservasi */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           <button
             type="button"
@@ -163,260 +187,168 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveApp('customer-portal')}
-            className="hidden sm:inline-flex text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer"
+            className="text-xs font-bold px-3 py-1.5 rounded-full text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer hidden sm:inline-flex items-center"
           >
-            {t.landing.loginRegister}
+            {t.landing.loginRegister || 'Masuk / Daftar'}
           </button>
           <button
             type="button"
             onClick={onOpenReservationModal}
-            className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+            className="text-xs font-bold px-3.5 py-1.5 sm:py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm flex items-center gap-1.5 transition-all transform active:scale-95 cursor-pointer"
           >
-            <CalendarCheck className="w-3.5 h-3.5 shrink-0" />
-            <span>{effectiveReserveCta}</span>
+            <CalendarCheck className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{effectiveReserveCta}</span>
+            <span className="sm:hidden">Reservasi</span>
           </button>
         </div>
       </header>
 
-      {/* FLOATING TOAST FEEDBACK FOR COPY SHARE */}
-      {copiedShareInfo && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 animate-fadeIn border border-amber-500/50 backdrop-blur">
-          <Check className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
-          <span>{t.landing.copySuccessToast}</span>
-        </div>
-      )}
-
-      {/* HERO SHOWCASE (MERCHANT CUSTOMIZED) */}
-      <section className={`relative max-w-6xl mx-auto w-full flex justify-between gap-6 sm:gap-8 ${
-        isMobile ? 'flex-col px-4 py-6' : 'flex-col md:flex-row items-center px-4 sm:px-8 py-10 sm:py-16'
-      }`}>
-        <div className="flex-1 flex flex-col gap-3.5 sm:gap-4 min-w-0">
-          <h2 className={`font-black text-slate-900 dark:text-white tracking-tight leading-tight ${
-            isMobile ? 'text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
-          }`}>
-            {storefrontConfig.heroHeadline || t.landing.heroTitle}
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            {storefrontConfig.heroTagline || t.landing.heroSubtitle}
-          </p>
-
-          {/* MOBILE HERO IMAGE */}
-          {isMobile && (
-            <div className="w-full relative my-1">
-              <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/30 to-indigo-500/30 rounded-3xl blur-md"></div>
-              <img
-                src={storefrontConfig.heroBannerUrl}
-                alt="Store Banner"
-                className="relative rounded-2xl object-cover border border-slate-200 dark:border-slate-800 shadow-xl w-full h-48"
-              />
-            </div>
-          )}
-
-          {/* DUAL ACTION BUTTONS (PESAN ONLINE & RESERVASI MEJA) */}
-          <div className={`pt-2 flex ${isMobile ? 'flex-col gap-2.5 w-full' : 'flex-row items-center gap-3'}`}>
-            <button
-              type="button"
-              onClick={onSwitchToCustomerApp}
-              className={`theme-customer-btn-primary text-xs font-bold px-5 py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transform hover:scale-[1.02] transition-all text-center ${
-                isMobile ? 'w-full' : ''
-              }`}
-            >
-              <ShoppingBag className="w-4 h-4 text-slate-950 shrink-0" /> {effectiveOrderCta}
-            </button>
-            <button
-              type="button"
-              onClick={onOpenReservationModal}
-              className={`bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 text-center transition-all ${
-                isMobile ? 'w-full' : ''
-              }`}
-            >
-              <CalendarCheck className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" /> {effectiveReserveCta}
-            </button>
-          </div>
-        </div>
-
-        {/* DESKTOP HERO IMAGE */}
-        {!isMobile && (
-          <div className="w-full md:w-1/2 relative shrink-0">
-            <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-indigo-500 rounded-3xl blur-lg opacity-30"></div>
-            <img
-              src={storefrontConfig.heroBannerUrl}
-              alt="Store Banner"
-              className="relative rounded-3xl object-cover border border-slate-200 dark:border-slate-800 shadow-2xl w-full h-64 sm:h-80"
-            />
-          </div>
-        )}
-      </section>
-
-      {/* ☕ FEATURED SPECIALTY MENU / SERVICES */}
-      <section id="featured-menu" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
-        isMobile ? 'px-4' : 'px-4 sm:px-8'
-      }`}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {catalogNavLabel}
-          </h3>
-          <button type="button" onClick={onSwitchToCustomerApp} className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer">
-            {t.landing.viewAllCatalog} <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {productCatalog.slice(0, 6).map(item => (
-            <div key={item.id} className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex gap-3 shadow-xs dark:shadow-xl hover:border-amber-500/40 transition-all">
-              <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
-              <div className="flex-1 flex flex-col justify-between min-w-0">
-                <div>
-                  <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{item.name}</h4>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-300 line-clamp-2 mt-0.5">{item.description}</p>
-                </div>
-                <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-1">{formatPrice(item.price)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 🎟️ PROMOS & CLAIMABLE COUPONS SECTION */}
-      {activePromos.length > 0 && (
-        <section id="promos-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
-          isMobile ? 'px-4' : 'px-4 sm:px-8'
-        }`}>
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.promosTitle}
-            </h3>
-            <span className="text-[11px] text-slate-500 dark:text-slate-300 font-mono">{t.landing.promoSubtitle}</span>
-          </div>
-
-          <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-3 pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
-            {activePromos.map((voucher) => (
-              <div key={voucher.code} className="min-w-[270px] max-w-[290px] snap-center shrink-0 sm:min-w-0 sm:max-w-none bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 border border-amber-500/30 rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-xs dark:shadow-lg relative overflow-hidden">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                      {voucher.code}
-                    </span>
-                    <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1.5">{voucher.title}</h4>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-300 mt-0.5">{voucher.description || 'Gunakan saat pemesanan online / QR meja'}</p>
-                  </div>
-                  <Tag className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0 opacity-70" />
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-300 font-mono">Min. {formatPrice(voucher.minSpend || 0)}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyVoucher(voucher.code)}
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1 transition-all cursor-pointer"
-                  >
-                    {copiedCode === voucher.code ? (
-                      <>
-                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                        <span>Tersalin!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3 h-3" />
-                        <span>Salin Kupon</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 🏢 VISUAL CARD GALLERY & AMENITIES */}
-      <LandingFacilitiesSection
-        facilities={facilities}
-        amenityTags={storefrontConfig.amenityTags}
-        title={t.landing.facilitiesTitle}
-        isMobile={isMobile}
-      />
-
-      {/* 🎉 UPCOMING EVENTS & COMMUNITY CALENDAR */}
-      {upcomingEvents.length > 0 && (
-        <section id="events-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
-          isMobile ? 'px-4' : 'px-4 sm:px-8'
-        }`}>
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Music className="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" /> {t.landing.eventsTitle}
-            </h3>
-            <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1 cursor-pointer">
-              RSVP Tempat <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-            </button>
-          </div>
-
-        <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-3.5 pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0">
-          {upcomingEvents.map((evt) => (
-            <div
-              key={evt.id}
-              className="min-w-[280px] max-w-[320px] snap-center shrink-0 sm:min-w-0 sm:max-w-none bg-white dark:bg-slate-900/90 border border-purple-500/25 rounded-2xl overflow-hidden flex flex-col justify-between shadow-xs dark:shadow-xl hover:border-purple-500/50 transition-all"
-            >
-              {/* EVENT BANNER PHOTO */}
-              {evt.bannerUrl && (
-                <div className="relative h-32 sm:h-36 w-full bg-slate-950 overflow-hidden shrink-0">
-                  <img
-                    src={evt.bannerUrl}
-                    alt={evt.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent flex items-end p-3">
-                    <span className="text-[10px] font-bold text-purple-200 bg-purple-900/80 backdrop-blur-xs px-2.5 py-0.5 rounded-full border border-purple-400/40 font-mono uppercase">
-                      {evt.category.replace('_', ' ')}
-                    </span>
-                  </div>
-                </div>
+      {/* DEDICATED FULL VIEW (IF ACTIVE SECTION IS NOT OVERVIEW) */}
+      {activeSection !== 'overview' ? (
+        <main className={`flex-1 max-w-6xl mx-auto w-full py-6 sm:py-8 ${isMobile ? 'px-4' : 'px-4 sm:px-8'}`}>
+          <LandingDedicatedSectionView
+            section={activeSection}
+            productCatalog={productCatalog}
+            promos={activePromos}
+            facilities={facilities}
+            amenityTags={storefrontConfig.amenityTags}
+            events={upcomingEvents}
+            onSelectEvent={setSelectedEventForTicket}
+            onCopyPromo={handleCopyVoucher}
+            copiedPromoCode={copiedCode}
+            onSwitchToCustomerApp={onSwitchToCustomerApp}
+            onOpenReservationModal={onOpenReservationModal}
+            isMobile={isMobile}
+          />
+        </main>
+      ) : (
+        /* OVERVIEW HUB (HERO + CAROUSELS) */
+        <main className="flex-1 flex flex-col">
+          {/* HERO BANNER SECTION */}
+          <section className="relative overflow-hidden border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-900 text-white min-h-[360px] sm:min-h-[420px] flex items-center">
+            <div className="absolute inset-0 z-0">
+              {storefrontConfig.heroBannerUrl ? (
+                <img src={storefrontConfig.heroBannerUrl} alt="Storefront Banner" className="w-full h-full object-cover opacity-35 dark:opacity-25" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-900 via-slate-950 to-amber-950 opacity-90" />
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+            </div>
 
-              <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    {!evt.bannerUrl && (
-                      <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-500/10 dark:bg-purple-500/20 px-2.5 py-0.5 rounded-full border border-purple-500/30 font-mono uppercase">
-                        {evt.category.replace('_', ' ')}
-                      </span>
-                    )}
-                    <span className="text-[10px] text-slate-500 dark:text-slate-300 font-mono ml-auto">
-                      Sisa Kuota: <strong className="text-amber-600 dark:text-amber-400">{evt.quotaRemaining}</strong>/{evt.quotaTotal}
-                    </span>
-                  </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white mt-1.5">{evt.title}</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">{evt.description}</p>
-                  <div className="flex items-center gap-2 text-[10px] text-purple-600 dark:text-purple-300 mt-2 font-mono">
-                    <MapPin className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400 shrink-0" />
-                    <span>{evt.location}</span>
-                  </div>
-                </div>
+            <div className={`relative z-10 max-w-4xl mx-auto w-full py-10 sm:py-16 text-center flex flex-col items-center gap-4 sm:gap-6 ${
+              isMobile ? 'px-4' : 'px-6 sm:px-8'
+            }`}>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold tracking-wide uppercase">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{hfeCompanyProfile.brandName}</span>
+              </span>
 
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                  <div>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-300 font-mono block">Harga Tiket:</span>
-                    <span className="text-xs font-mono font-black text-amber-600 dark:text-amber-400">
-                      {formatPrice(evt.price)}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEventForTicket(evt)}
-                    className="text-xs font-bold px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-md flex items-center gap-1.5 transition-all transform active:scale-95 cursor-pointer"
-                  >
-                    <Ticket className="w-3.5 h-3.5" />
-                    <span>{evt.category === 'workshop_class' ? 'Booking Kelas' : 'Beli Tiket'}</span>
-                  </button>
-                </div>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight max-w-3xl">
+                {storefrontConfig.heroHeadline || t.landing.defaultHeadlineFallback}
+              </h1>
+
+              <p className="text-xs sm:text-base text-slate-300 max-w-2xl font-medium leading-relaxed">
+                {storefrontConfig.heroTagline || (hfeCompanyProfile as any).tagline || t.landing.defaultTaglineFallback}
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={onSwitchToCustomerApp}
+                  className="px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl flex items-center gap-2 transition-all transform active:scale-95 cursor-pointer"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>{effectiveOrderCta}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenReservationModal}
+                  className="px-5 py-3 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer"
+                >
+                  {effectiveReserveCta}
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+
+          {/* 🏷️ SEKSI 1: PROMO CAROUSEL */}
+          <LandingPromosSection
+            promos={activePromos}
+            copiedPromoCode={copiedCode}
+            onCopyPromo={handleCopyVoucher}
+            onViewAllPromos={() => setActiveSection('promos')}
+            isMobile={isMobile}
+          />
+
+          {/* ☕ SEKSI 2: MENU & KATALOG UNGGULAN (FEATURED REEL) */}
+          <section id="featured-menu" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+            isMobile ? 'px-4' : 'px-4 sm:px-8'
+          }`}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {catalogSectionTitle}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveSection('menu')}
+                className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer"
+              >
+                <span>Lihat Semua Menu</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {productCatalog.slice(0, 6).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={onSwitchToCustomerApp}
+                  className="group bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-2.5 flex flex-col justify-between shadow-xs hover:border-amber-500/50 transition-all cursor-pointer"
+                >
+                  <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2 relative">
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Coffee className="w-6 h-6 text-amber-500 opacity-40" />
+                      </div>
+                    )}
+                  </div>
+                  <h4 className="font-bold text-xs text-slate-900 dark:text-white line-clamp-1 group-hover:text-amber-500 transition-colors">
+                    {item.name}
+                  </h4>
+                  <span className="font-mono font-bold text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    {formatPrice(item.price)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ✨ SEKSI 3: FASILITAS SNAP CAROUSEL */}
+          <LandingFacilitiesSection
+            facilities={facilities}
+            amenityTags={storefrontConfig.amenityTags}
+            title={t.landing.facilitiesTitle}
+            onViewAllFacilities={() => setActiveSection('facilities')}
+            isMobile={isMobile}
+          />
+
+          {/* 🎵 SEKSI 4: EVENT & WORKSHOP CAROUSEL */}
+          <LandingEventsSection
+            events={upcomingEvents}
+            onSelectEvent={setSelectedEventForTicket}
+            onViewAllEvents={() => setActiveSection('events')}
+            isMobile={isMobile}
+          />
+
+          {/* 📱 SEKSI 5: CARA PESAN */}
+          <OneTransactionOneTruthSection />
+        </main>
       )}
 
-      {/* FOOTER & ADDRESS */}
+      {/* FOOTER */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-8 py-6 text-center flex flex-col gap-2">
         <div className="text-xs text-slate-500">
           <p className="font-bold text-slate-800 dark:text-slate-200">{hfeCompanyProfile.brandName} • {hfeCompanyProfile.ptLegalName}</p>
@@ -447,7 +379,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <a
             href="https://pos.hfeit.com"
             target="_blank"
-            rel="noopener noreferrer" 
+            rel="noopener noreferrer"
             className="text-amber-500 hover:text-amber-400 font-bold underline underline-offset-2"
           >
             {t.landing.merchantCtaButton}
@@ -455,28 +387,21 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </p>
       </footer>
 
-      {/* 🎟️ EVENT TICKET & WORKSHOP BOOKING MODAL */}
+      {/* SPOTLIGHT SEARCH MODAL */}
+      <SpotlightOmniSearchModal
+        isOpen={showSpotlightModal}
+        onClose={() => setShowSpotlightModal(false)}
+        onNavigateApp={(appId) => {
+          setShowSpotlightModal(false)
+          setActiveApp(appId as any)
+        }}
+      />
+
+      {/* EVENT TICKET PURCHASE MODAL */}
       <EventTicketPurchaseModal
         show={Boolean(selectedEventForTicket)}
         event={selectedEventForTicket}
         onClose={() => setSelectedEventForTicket(null)}
-        onPurchaseSuccess={(tkt) => {
-          alert(`🎉 Pembelian Tiket Berhasil!\nKode: ${tkt.ticketCode}\nTotal: ${formatPrice(tkt.totalAmountPaid)}\nE-Ticket siap ditunjukkan saat masuk.`)
-        }}
-      />
-
-      {/* 🔍 PUBLIC SPOTLIGHT OMNI-SEARCH MODAL */}
-      <SpotlightOmniSearchModal
-        isOpen={showSpotlightModal}
-        onClose={() => setShowSpotlightModal(false)}
-        onSelectProduct={() => { setShowSpotlightModal(false); onSwitchToCustomerApp() }}
-        onSelectTable={() => { setShowSpotlightModal(false); onSwitchToCustomerApp() }}
-        onNavigateApp={(appId) => {
-          setShowSpotlightModal(false)
-          if (['customer-portal', 'customer', 'landing', 'cafe'].includes(appId)) {
-            setActiveApp(appId as any)
-          }
-        }}
       />
     </div>
   )
