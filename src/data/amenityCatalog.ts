@@ -2,7 +2,7 @@ import { AmenityTagId } from '../types/pos'
 
 export interface StandardAmenityDefinition {
   id: AmenityTagId
-  icon: 'wifi' | 'zap' | 'wind' | 'trees' | 'car' | 'sparkles' | 'check' | 'music' | 'calendar'
+  icon: 'wifi' | 'zap' | 'wind' | 'trees' | 'car' | 'sparkles' | 'check' | 'music' | 'calendar' | 'paw'
   labelId: string
   labelEn: string
   category: 'connectivity' | 'comfort' | 'parking' | 'facilities' | 'dietary' | 'services'
@@ -137,7 +137,7 @@ export const STANDARD_AMENITIES_CATALOG: StandardAmenityDefinition[] = [
   },
   {
     id: 'pet_friendly',
-    icon: 'trees',
+    icon: 'paw',
     labelId: 'Pet Friendly',
     labelEn: 'Pet Friendly',
     category: 'facilities'
