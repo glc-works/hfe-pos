@@ -319,7 +319,7 @@ export const idTranslations: TranslationDictionary = {
     heroTag: '✨ OFFICIAL CAFE & ARTISAN ROASTERY',
     heroTitle: 'Nikmati Pengalaman Kuliner & Kopi Specialty Terbaik di Senopati',
     heroSubtitle: 'Menyajikan biji kopi houseblend Arabica pilihan, artisan matcha Uji Jepang, hangatnya pastry mentega Prancis, dan suasana tempat yang hangat untuk meeting maupun berkumpul.',
-    orderOnlineCta: '🛵 Pesan Online (Antar & Ambil) ➔',
+    orderOnlineCta: '📖 Buka Menu & Pesan ➔',
     reserveTable: 'Reservasi Meja',
     reserveTableCta: '📅 Reservasi Meja Sekarang',
     facilitiesTitle: 'Fasilitas & Kenyamanan Outlet Kafe',

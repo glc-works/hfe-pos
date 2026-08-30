@@ -319,7 +319,7 @@ export const enTranslations: TranslationDictionary = {
     heroTag: '✨ OFFICIAL CAFE & ARTISAN ROASTERY',
     heroTitle: 'Experience the Finest Specialty Coffee & Culinary Atmosphere in Senopati',
     heroSubtitle: 'Serving artisanal house blend Arabica, Kyoto matcha, warm French butter pastries, and a cozy ambience for productive meetings and gatherings.',
-    orderOnlineCta: '🛵 Order Online (Delivery & Pickup) ➔',
+    orderOnlineCta: '📖 View Menu & Order ➔',
     reserveTable: 'Table Reservation',
     reserveTableCta: '📅 Reserve a Table Now',
     facilitiesTitle: 'Cafe Outlets & Amenities',
