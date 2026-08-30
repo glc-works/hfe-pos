@@ -122,92 +122,90 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
 
   return (
     <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y p-3 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-4 sm:gap-6">
-      {/* UNIFIED HEADER & MODE TOGGLE */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shrink-0">
-        <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl ${isFineDiningActive ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400'}`}>
-            {isFineDiningActive ? <Flame className="w-6 h-6 animate-pulse" /> : <ChefHat className="w-6 h-6" />}
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white flex items-center gap-2">
-              Unified Kitchen Display System (KDS)
-              {isFineDiningActive && (
-                <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold rounded-full">
-                  Fine Dining Mode
-                </span>
-              )}
-            </h1>
-            <p className="text-xs text-slate-400">
-              {isFineDiningActive
-                ? 'Manajemen Chef Course Firing & Pacing Hidangan Tasting Menu'
-                : 'Kanban, Work Order & Station Filtering Realtime Dapur & Barista'}
-            </p>
-          </div>
-        </div>
-
-        {/* MODE SWITCHER TAB */}
-        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto no-scrollbar gap-1">
-          <button
-            type="button"
-            onClick={() => setIsFineDiningActive(false)}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all touch-manipulation cursor-pointer ${
-              !isFineDiningActive ? 'bg-indigo-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Utensils className="w-3.5 h-3.5" /> Dapur Regular
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsFineDiningActive(true)}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all touch-manipulation cursor-pointer ${
-              isFineDiningActive ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Flame className="w-3.5 h-3.5" /> Chef Course Firing
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveStaffSurface('checker-qc')}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-teal-300 hover:bg-slate-850 transition-all touch-manipulation cursor-pointer"
-          >
-            <BadgeCheck className="w-3.5 h-3.5 text-teal-400" /> Checker QC
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveStaffSurface('server-waiter')}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-purple-300 hover:bg-slate-850 transition-all touch-manipulation cursor-pointer"
-          >
-            <Footprints className="w-3.5 h-3.5 text-purple-400" /> Server Runner
-          </button>
-        </div>
-      </div>
-
-      {/* FINE DINING COURSE FIRING MATRIX OR REGULAR KDS */}
-      {isFineDiningActive ? (
-        <FineDiningCourseMatrix courseOrders={courseOrders} setCourseOrders={setCourseOrders} />
-      ) : (
-        <div className="space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <Filter className="w-4 h-4 text-indigo-400" /> Kitchen Stations
-              </h2>
-              <button
-                onClick={() => setActiveStaffSurface('cafe-config')}
-                className="bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-300 flex items-center gap-1.5"
-              >
-                <Settings className="w-3.5 h-3.5 text-indigo-400" /> Station Config
-              </button>
+      {/* CONSOLIDATED UNIFIED KDS HEADER */}
+      <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-lg shrink-0">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          {/* Identity & Current Station */}
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl ${isFineDiningActive ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400'}`}>
+              {isFineDiningActive ? <Flame className="w-5 h-5 animate-pulse" /> : <ChefHat className="w-5 h-5" />}
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {stations.map(station => (
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm sm:text-base font-bold text-white">
+                  Kitchen Display System
+                </h1>
+                <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-mono font-bold">
+                  {currentStation.name}
+                </span>
+                {isFineDiningActive && (
+                  <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold rounded-full">
+                    Course Firing
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                {isFineDiningActive
+                  ? 'Manajemen Chef Course Firing & Pacing Hidangan Tasting Menu'
+                  : 'Work Order & Station Routing Realtime Dapur'}
+              </p>
+            </div>
+          </div>
+
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1 w-full md:w-auto overflow-x-auto no-scrollbar">
+            <button
+              type="button"
+              onClick={() => setIsFineDiningActive(false)}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                !isFineDiningActive ? 'bg-indigo-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Utensils className="w-3.5 h-3.5" /> Dapur Regular
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFineDiningActive(true)}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                isFineDiningActive ? 'bg-amber-500 text-slate-950 shadow' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5" /> Course Firing
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStaffSurface('checker-qc')}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-teal-300 transition-all"
+            >
+              <BadgeCheck className="w-3.5 h-3.5 text-teal-400" /> QC
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveStaffSurface('server-waiter')}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-purple-300 transition-all"
+            >
+              <Footprints className="w-3.5 h-3.5 text-purple-400" /> Runner
+            </button>
+          </div>
+        </div>
+
+        {/* Station Filter & View Switcher Strip */}
+        {!isFineDiningActive && (
+          <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+            {/* Station Filter Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-1 flex items-center gap-1">
+                <Filter className="w-3 h-3 text-indigo-400" /> Station:
+              </span>
+              {stations.map((station) => (
                 <button
                   key={station.id}
+                  type="button"
                   onClick={() => setActiveStationId(station.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
                     activeStationId === station.id
-                      ? 'bg-indigo-500 text-white border-indigo-500 shadow-md'
-                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                      ? 'bg-indigo-500 text-white border-indigo-500 shadow-sm'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
                   }`}
                 >
                   <span>{station.icon}</span>
@@ -215,49 +213,52 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
                 </button>
               ))}
             </div>
-          </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <span className="text-[10px] font-bold uppercase text-indigo-400 font-mono">Station: {currentStation.name}</span>
-              <p className="text-[11px] sm:text-xs text-slate-400">Pilih Mode Tampilan Dapur & Barista</p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs w-full sm:w-auto justify-between sm:justify-end">
-              <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+            {/* View Mode & Sort */}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex items-center bg-slate-950 p-0.5 rounded-xl border border-slate-800">
                 <button
+                  type="button"
                   onClick={() => setKdsViewMode('kanban')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    kdsViewMode === 'kanban' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    kdsViewMode === 'kanban' ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  📋 Kanban
+                  <Kanban className="w-3 h-3" /> Kanban
                 </button>
-
                 <button
+                  type="button"
                   onClick={() => setKdsViewMode('workorder')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    kdsViewMode === 'workorder' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    kdsViewMode === 'workorder' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  📄 Work Order List
+                  <List className="w-3 h-3" /> List
                 </button>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800">
+              <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800">
                 <SlidersHorizontal className="w-3 h-3 text-indigo-400" />
                 <select
                   value={kdsSortBy}
                   onChange={(e) => setKdsSortBy(e.target.value as any)}
-                  className="bg-transparent text-indigo-400 font-bold focus:outline-none text-xs"
+                  className="bg-transparent text-indigo-400 font-bold focus:outline-none text-xs cursor-pointer"
                 >
-                  <option value="time-desc">Terlama (Priority)</option>
+                  <option value="time-desc">Terlama</option>
                   <option value="time-asc">Terbaru</option>
                   <option value="category">Kategori</option>
                 </select>
               </div>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* FINE DINING COURSE FIRING MATRIX OR REGULAR KDS */}
+      {isFineDiningActive ? (
+        <FineDiningCourseMatrix courseOrders={courseOrders} setCourseOrders={setCourseOrders} />
+      ) : (
+        <div className="space-y-4">
 
           {/* WORK ORDER VIEW */}
           {kdsViewMode === 'workorder' && (
