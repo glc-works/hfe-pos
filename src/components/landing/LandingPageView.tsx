@@ -332,6 +332,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* 🏢 VISUAL CARD GALLERY & AMENITIES */}
       <LandingFacilitiesSection
         facilities={facilities}
+        amenityTags={storefrontConfig.amenityTags}
         title={t.landing.facilitiesTitle}
         isMobile={isMobile}
       />

@@ -315,6 +315,22 @@ export interface StorefrontChannelToggles {
   isEmergencyBusyMode: boolean
 }
 
+export type AmenityTagId =
+  | 'wifi_high_speed'
+  | 'power_outlets'
+  | 'ac_indoor'
+  | 'outdoor_garden'
+  | 'dedicated_smoking'
+  | 'free_parking'
+  | 'valet_parking'
+  | 'ev_charging'
+  | 'wheelchair_access'
+  | 'prayer_room'
+  | 'clean_restrooms'
+  | 'baby_high_chair'
+  | 'pet_friendly'
+  | 'cashless_only'
+
 export interface StorefrontCustomizationConfig {
   // 1. Landing Page Studio
   storeName?: string
@@ -335,6 +351,7 @@ export interface StorefrontCustomizationConfig {
   socialLinks: StorefrontSocialLinks
   channels?: StorefrontChannelToggles
   facilities?: { icon: string; title: string; desc?: string; image?: string }[]
+  amenityTags?: AmenityTagId[]
   events?: EventTicketItem[]
   businessVertical?: 'fnb' | 'service' | 'barber' | 'salon' | 'retail' | 'space' | string
 

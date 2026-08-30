@@ -1,4 +1,5 @@
 import { StorefrontCustomizationConfig } from '../types/pos'
+import { DEFAULT_MERCHANT_AMENITY_TAGS } from './amenityCatalog'
 
 export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
   // 1. Landing Page Studio
@@ -46,6 +47,7 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
       image: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&q=80'
     }
   ],
+  amenityTags: DEFAULT_MERCHANT_AMENITY_TAGS,
   events: [
     {
       id: 'EVT-JAZZ-01', title: 'Friday Night Live Acoustic Jazz', category: 'music_event',
