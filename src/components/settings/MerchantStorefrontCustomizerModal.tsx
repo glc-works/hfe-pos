@@ -7,6 +7,7 @@ import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { BANNER_PRESETS, CONCEPT_THEME_TEMPLATES } from '../../data/defaultStorefrontCustomization'
 import { StorefrontCustomizationConfig, WifiAccessPolicy, QrMenuLayoutMode } from '../../types/pos'
 import { MerchantAmenitySelectorSection } from './MerchantAmenitySelectorSection'
+import { MerchantMenuDisplayPolicySection } from './MerchantMenuDisplayPolicySection'
 
 interface MerchantStorefrontCustomizerModalProps {
   isOpen: boolean
@@ -278,44 +279,25 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 mb-1.5">Gaya Tata Letak Katalog Menu QR</label>
                   <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, qrMenuLayout: 'grid_2col' })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                        formData.qrMenuLayout === 'grid_2col'
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                      <span>Grid 2-Kolom</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, qrMenuLayout: 'list_compact' })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                        formData.qrMenuLayout === 'list_compact'
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <List className="w-4 h-4" />
-                      <span>Daftar Ramping</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, qrMenuLayout: 'story_cards' })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                        formData.qrMenuLayout === 'story_cards'
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>Kartu Visual</span>
-                    </button>
+                    {[
+                      { mode: 'grid_2col' as QrMenuLayoutMode, label: 'Grid 2-Kolom', Icon: LayoutGrid },
+                      { mode: 'list_compact' as QrMenuLayoutMode, label: 'Daftar Ramping', Icon: List },
+                      { mode: 'story_cards' as QrMenuLayoutMode, label: 'Kartu Visual', Icon: Sparkles }
+                    ].map(({ mode, label, Icon }) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, qrMenuLayout: mode })}
+                        className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                          formData.qrMenuLayout === mode
+                            ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{label}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -342,6 +324,12 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
                   />
                 </div>
               </div>
+
+              {/* 🛡️ MENU DISPLAY & PRIVACY POLICY SECTION */}
+              <MerchantMenuDisplayPolicySection
+                policy={formData.menuDisplayPolicy}
+                onChange={(newPolicy) => setFormData({ ...formData, menuDisplayPolicy: newPolicy })}
+              />
             </div>
           )}
 

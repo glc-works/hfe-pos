@@ -329,6 +329,14 @@ export type AmenityTagId =
   | 'prayer_room' | 'clean_restrooms' | 'baby_high_chair' | 'nursing_room' | 'pet_friendly'
   | 'halal_certified' | 'vegetarian_friendly' | 'live_music' | 'cashless_accepted' | 'reservations_welcome'
 
+export interface MenuDisplayPolicy {
+  showPublicIngredients?: boolean // default: false (protects proprietary kitchen BoM recipes)
+  showTastingNotes?: boolean      // default: true
+  showCuratedStory?: boolean      // default: true
+  showDietaryBadges?: boolean     // default: true
+  showOriginInfo?: boolean        // default: true
+}
+
 export interface StorefrontCustomizationConfig {
   // 1. Landing Page Studio
   storeName?: string
@@ -361,6 +369,7 @@ export interface StorefrontCustomizationConfig {
   enableAllergenBadges: boolean
   enableDigitalReceiptSharing: boolean
   receiptCustomFooter: string
+  menuDisplayPolicy?: MenuDisplayPolicy
 }
 
 // --- STORE ONBOARDING & PRESET POLICY TYPES ---

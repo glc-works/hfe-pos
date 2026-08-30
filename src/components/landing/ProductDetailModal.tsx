@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react'
 import { X, Coffee, ShoppingBag, ChevronRight, Check } from 'lucide-react'
-import { MenuItem } from '../../types/pos'
+import { MenuItem, MenuDisplayPolicy } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
+import { MerchantConfigContext } from '../../context/MerchantConfigContext'
 import { getBadgeMeta } from '../shared/ProductCard'
 
 export interface ProductDetailModalProps {
   show: boolean
   product: MenuItem | null
+  displayPolicy?: MenuDisplayPolicy
   onClose: () => void
   onOrderNow: (product: MenuItem) => void
 }
@@ -14,11 +16,22 @@ export interface ProductDetailModalProps {
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   show,
   product,
+  displayPolicy,
   onClose,
   onOrderNow
 }) => {
   const { formatPrice } = useTranslation()
+  const merchantCtx = React.useContext(MerchantConfigContext)
+  const storefrontConfig = merchantCtx?.storefrontConfig
   const badgeMeta = product ? getBadgeMeta(product.badge) : null
+
+  const activePolicy: MenuDisplayPolicy = displayPolicy || storefrontConfig?.menuDisplayPolicy || {
+    showPublicIngredients: false, // Default: false (protects secret kitchen BoM)
+    showTastingNotes: true,
+    showCuratedStory: true,
+    showDietaryBadges: true,
+    showOriginInfo: true
+  }
 
   // Keyboard shortcut: close on Escape key
   useEffect(() => {
@@ -113,7 +126,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </div>
 
               {/* CURATED BADGE STORY CARD */}
-              {product.badgeStory && (
+              {activePolicy.showCuratedStory !== false && product.badgeStory && (
                 <div className={`p-3 rounded-2xl border flex items-start gap-2.5 ${badgeMeta?.className || 'bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-200'}`}>
                   <span className="text-base shrink-0">{badgeMeta?.glyph || '✨'}</span>
                   <div className="flex-1 min-w-0">
@@ -135,7 +148,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </p>
 
                 {/* TASTING NOTES */}
-                {product.tastingNotes && product.tastingNotes.length > 0 && (
+                {activePolicy.showTastingNotes !== false && product.tastingNotes && product.tastingNotes.length > 0 && (
                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5 font-mono">
                       Profil Rasa (Tasting Notes):
@@ -155,18 +168,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 )}
 
                 {/* ORIGIN & HARVEST */}
-                {product.originInfo && (
+                {activePolicy.showOriginInfo !== false && product.originInfo && (
                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/80 flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300">
                     <span className="font-bold text-slate-500 dark:text-slate-400 font-mono text-[10px]">ASAL BAHAN:</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">{product.originInfo}</span>
                   </div>
                 )}
 
-                {/* BOM INGREDIENTS */}
-                {product.bomIngredients && product.bomIngredients.length > 0 && (
+                {/* BOM INGREDIENTS (PROTECTED SECRET RECIPE / PUBLIC TRANSPARENCY TOGGLE) */}
+                {activePolicy.showPublicIngredients === true && product.bomIngredients && product.bomIngredients.length > 0 && (
                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1 font-mono">
-                      Komposisi Utama:
+                      Komposisi Bahan:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {product.bomIngredients.map((bom, idx) => (
@@ -183,7 +196,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </div>
 
               {/* DIETARY & SAFETY BADGES */}
-              {product.dietaryTags && product.dietaryTags.length > 0 && (
+              {activePolicy.showDietaryBadges !== false && product.dietaryTags && product.dietaryTags.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                   {product.dietaryTags.includes('vegan') && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-[10px]">

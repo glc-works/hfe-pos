@@ -77,7 +77,7 @@ export interface MerchantConfigContextType {
   setOnResetMockState: (fn: () => void) => void
 }
 
-const MerchantConfigContext = createContext<MerchantConfigContextType | undefined>(undefined)
+export const MerchantConfigContext = createContext<MerchantConfigContextType | undefined>(undefined)
 
 export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // 1. Payment & Financial Policy
