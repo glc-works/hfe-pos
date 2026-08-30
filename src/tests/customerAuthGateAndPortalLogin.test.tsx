@@ -46,6 +46,6 @@ describe('Customer Auth Gate & Member Portal Login Flow', () => {
     expect(html).toContain('Senopati Roastery • Member Pass')
     expect(html).toContain('+62')
     expect(html).toContain('812-3456-7890')
-    expect(html).toContain('Masuk / Lanjut')
+    expect(html).toContain('Kirim Kode OTP via WhatsApp')
   })
 })
