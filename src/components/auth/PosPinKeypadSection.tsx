@@ -7,14 +7,15 @@ export interface StaffProfile {
   role: string
   roleLabel: string
   avatar: string
+  branchIds: string[]
 }
 
 export const DEFAULT_STAFF_PROFILES: StaffProfile[] = [
-  { id: 'USR-DEMO-BARISTA-01', name: 'Siti Barista', role: 'barista', roleLabel: 'Barista / Kasir', avatar: '👩‍🍳' },
-  { id: 'STF-01', name: 'Alexander Raden', role: 'owner', roleLabel: 'Owner / Pemilik', avatar: '👔' },
-  { id: 'STF-02', name: 'Bambang Sudarsono', role: 'store_manager', roleLabel: 'Store Manager', avatar: '👨‍💼' },
-  { id: 'STF-04', name: 'Dimas Barista', role: 'barista', roleLabel: 'Barista / Chef', avatar: '🧑‍🍳' },
-  { id: 'STF-05', name: 'Rian Server', role: 'waiter', roleLabel: 'Server / Waiter', avatar: '🏃‍♂️' },
+  { id: 'USR-DEMO-BARISTA-01', name: 'Siti Barista', role: 'barista', roleLabel: 'Barista / Kasir', avatar: '👩‍🍳', branchIds: ['BRANCH-HQ-01'] },
+  { id: 'STF-01', name: 'Alexander Raden', role: 'owner', roleLabel: 'Owner / Pemilik', avatar: '👔', branchIds: ['ALL'] },
+  { id: 'STF-02', name: 'Bambang Sudarsono', role: 'store_manager', roleLabel: 'Store Manager', avatar: '👨‍💼', branchIds: ['BRANCH-HQ-01'] },
+  { id: 'STF-04', name: 'Dimas Barista', role: 'barista', roleLabel: 'Barista / Chef', avatar: '🧑‍🍳', branchIds: ['BRANCH-SENOPATI-02'] },
+  { id: 'STF-05', name: 'Rian Server', role: 'waiter', roleLabel: 'Server / Waiter', avatar: '🏃‍♂️', branchIds: ['BRANCH-BANDUNG-03'] },
 ]
 
 export interface PosPinKeypadSectionProps {
@@ -44,7 +45,11 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
   errorMessage,
   successMessage
 }) => {
-  const [selectedStaff, setSelectedStaff] = useState<StaffProfile>(DEFAULT_STAFF_PROFILES[0])
+  const visibleStaff = DEFAULT_STAFF_PROFILES.filter(
+    s => s.branchIds.includes('ALL') || s.branchIds.includes(activeBranchId)
+  )
+  const [selectedStaffId, setSelectedStaffId] = useState<string>(visibleStaff[0]?.id || DEFAULT_STAFF_PROFILES[0].id)
+  const selectedStaff = visibleStaff.find(s => s.id === selectedStaffId) || visibleStaff[0] || DEFAULT_STAFF_PROFILES[0]
 
   return (
     <form onSubmit={onLoginSubmit} className="flex flex-col gap-4">
@@ -56,7 +61,10 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
         </label>
         <select
           value={activeBranchId}
-          onChange={(e) => setActiveBranchId(e.target.value)}
+          onChange={(e) => {
+            setActiveBranchId(e.target.value)
+            onKeypadPress('CLR')
+          }}
           className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-amber-500"
         >
           {branches.map(b => (
@@ -65,21 +73,21 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
         </select>
       </div>
 
-      {/* 2. LAPTOP-STYLE STAFF PROFILE PICKER (SELECT USER FIRST) */}
+      {/* 2. LAPTOP-STYLE STAFF PROFILE PICKER (BRANCH-SCOPED) */}
       <div className="flex flex-col gap-1.5">
         <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
           <UserCheck className="w-3.5 h-3.5 text-amber-500" />
-          <span>Pilih Profil Staf yang Bertugas:</span>
+          <span>Staf Bertugas di Cabang Ini ({visibleStaff.length}):</span>
         </span>
         <div className="flex items-center gap-2 overflow-x-auto py-1 px-0.5 custom-scrollbar">
-          {DEFAULT_STAFF_PROFILES.map((staff) => {
+          {visibleStaff.map((staff) => {
             const isSelected = selectedStaff.id === staff.id
             return (
               <button
                 key={staff.id}
                 type="button"
                 onClick={() => {
-                  setSelectedStaff(staff)
+                  setSelectedStaffId(staff.id)
                   onKeypadPress('CLR')
                 }}
                 className={`flex flex-col items-center gap-1 p-2 rounded-2xl border transition-all cursor-pointer shrink-0 min-w-[76px] ${
