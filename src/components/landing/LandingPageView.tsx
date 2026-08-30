@@ -9,6 +9,7 @@ import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useTheme } from '../../context/ThemeContext'
 import { useViewport } from '../../context/ViewportContext'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
+import { ProductDetailModal } from './ProductDetailModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
 import { LandingFacilitiesSection } from './LandingFacilitiesSection'
 import { LandingPromosSection } from './LandingPromosSection'
@@ -44,6 +45,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const [activeSection, setActiveSection] = useState<LandingSectionId>('overview')
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [copiedShareInfo, setCopiedShareInfo] = useState(false)
+  const [selectedProductForDetail, setSelectedProductForDetail] = useState<MenuItem | null>(null)
   const [selectedEventForTicket, setSelectedEventForTicket] = useState<EventTicketItem | null>(null)
   const [showSpotlightModal, setShowSpotlightModal] = useState(false)
 
@@ -311,7 +313,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               {productCatalog.slice(0, 6).map((item) => (
                 <div
                   key={item.id}
-                  onClick={onSwitchToCustomerApp}
+                  onClick={() => setSelectedProductForDetail(item)}
                   className="group bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-2.5 flex flex-col justify-between shadow-xs hover:border-amber-500/50 transition-all cursor-pointer"
                 >
                   <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2 relative">
@@ -418,6 +420,14 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         show={Boolean(selectedEventForTicket)}
         event={selectedEventForTicket}
         onClose={() => setSelectedEventForTicket(null)}
+      />
+
+      {/* PRODUCT QUICK-PEEK DETAIL MODAL */}
+      <ProductDetailModal
+        show={Boolean(selectedProductForDetail)}
+        product={selectedProductForDetail}
+        onClose={() => setSelectedProductForDetail(null)}
+        onOrderNow={onSwitchToCustomerApp}
       />
     </div>
   )

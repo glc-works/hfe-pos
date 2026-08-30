@@ -8,6 +8,7 @@ import { STANDARD_AMENITIES_CATALOG, DEFAULT_MERCHANT_AMENITY_TAGS } from '../..
 import { useTranslation } from '../../context/LanguageContext'
 import { FacilityItem } from './LandingFacilitiesSection'
 import { PromoItem } from './LandingPromosSection'
+import { ProductDetailModal } from './ProductDetailModal'
 
 interface LandingDedicatedSectionViewProps {
   section: 'menu' | 'promos' | 'facilities' | 'events'
@@ -41,6 +42,7 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
   const { language, t, formatPrice } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedProductForDetail, setSelectedProductForDetail] = useState<MenuItem | null>(null)
 
   const renderAmenityIcon = (iconName: string) => {
     switch (iconName) {
@@ -358,7 +360,7 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
         {filteredProducts.map((prod) => (
           <div
             key={prod.id}
-            onClick={onSwitchToCustomerApp}
+            onClick={() => setSelectedProductForDetail(prod)}
             className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden p-3 flex flex-col justify-between shadow-xs hover:border-amber-500/60 hover:shadow-md transition-all cursor-pointer"
           >
             <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2.5 relative">
@@ -383,12 +385,20 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
                 {formatPrice(prod.price)}
               </span>
               <span className="text-[11px] font-bold text-amber-500 flex items-center gap-0.5">
-                Pesan <ArrowRight className="w-3 h-3" />
+                Lihat <ArrowRight className="w-3 h-3" />
               </span>
             </div>
           </div>
         ))}
       </div>
+
+      {/* PRODUCT QUICK-PEEK DETAIL MODAL */}
+      <ProductDetailModal
+        show={Boolean(selectedProductForDetail)}
+        product={selectedProductForDetail}
+        onClose={() => setSelectedProductForDetail(null)}
+        onOrderNow={onSwitchToCustomerApp}
+      />
     </div>
   )
 }
