@@ -270,17 +270,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </div>
           </section>
 
-          {/* 🏷️ SEKSI 1: PROMO CAROUSEL */}
-          <LandingPromosSection
-            promos={activePromos}
-            copiedPromoCode={copiedCode}
-            onCopyPromo={handleCopyVoucher}
-            onViewAllPromos={() => setActiveSection('promos')}
-            isMobile={isMobile}
-          />
-
-          {/* ☕ SEKSI 2: MENU & KATALOG UNGGULAN (FEATURED REEL) */}
-          <section id="featured-menu" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+          {/* ☕ SEKSI 1: MENU & KATALOG UNGGULAN (FEATURED REEL) */}
+          <section id="featured-menu" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 ${
             isMobile ? 'px-4' : 'px-4 sm:px-8'
           }`}>
             <div className="flex items-center justify-between">
@@ -331,6 +322,17 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               ))}
             </div>
           </section>
+
+          {/* 🏷️ SEKSI 2: PROMO CAROUSEL */}
+          <div className="border-t border-slate-200 dark:border-slate-800/80">
+            <LandingPromosSection
+              promos={activePromos}
+              copiedPromoCode={copiedCode}
+              onCopyPromo={handleCopyVoucher}
+              onViewAllPromos={() => setActiveSection('promos')}
+              isMobile={isMobile}
+            />
+          </div>
 
           {/* ✨ SEKSI 3: FASILITAS SNAP CAROUSEL */}
           <LandingFacilitiesSection
