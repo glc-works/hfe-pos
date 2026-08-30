@@ -110,14 +110,14 @@ jobs:
         run: npm run guard:first-party-build && npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=main
 
       - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -176,14 +176,14 @@ jobs:
         run: npm run guard:first-party-build && npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=production
 
       - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
