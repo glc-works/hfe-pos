@@ -189,9 +189,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         isMobile ? 'flex-col px-4 py-6' : 'flex-col md:flex-row items-center px-4 sm:px-8 py-10 sm:py-16'
       }`}>
         <div className="flex-1 flex flex-col gap-3.5 sm:gap-4 min-w-0">
-          <span className="text-[11px] sm:text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 w-fit">
-            {t.landing.heroTag}
-          </span>
           <h2 className={`font-black text-slate-900 dark:text-white tracking-tight leading-tight ${
             isMobile ? 'text-2xl' : 'text-2xl sm:text-3xl md:text-4xl'
           }`}>
@@ -330,21 +327,28 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </section>
       )}
 
-      {/* ✨ FACILITY & AMBIANCE CARDS (2x2 MOBILE, 4-COL DESKTOP) */}
+      {/* 🏢 FACILITY & AMENITIES STRIP (GOOGLE MAPS & AIRBNB MINIMALIST STANDARD) */}
       {facilities.length > 0 && (
-        <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+        <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-3.5 border-t border-slate-200 dark:border-slate-800/80 ${
           isMobile ? 'px-4' : 'px-4 sm:px-8'
         }`}>
           <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.facilitiesTitle}
           </h3>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-2.5">
             {facilities.map((fac, idx) => (
-              <div key={idx} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-1 shadow-xs dark:shadow-lg">
-                <span className="text-xl sm:text-2xl">{fac.icon}</span>
-                <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1">{fac.title}</h4>
-                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-tight">{fac.desc}</p>
+              <div
+                key={idx}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-amber-500/40 transition-all text-xs font-medium text-slate-800 dark:text-slate-200"
+              >
+                <span className="text-sm shrink-0 opacity-90">{fac.icon}</span>
+                <span className="font-semibold">{fac.title}</span>
+                {fac.desc && (
+                  <span className="text-[11px] text-slate-500 dark:text-slate-300 font-normal border-l border-slate-200 dark:border-slate-800 pl-2 ml-0.5 hidden sm:inline">
+                    {fac.desc}
+                  </span>
+                )}
               </div>
             ))}
           </div>
