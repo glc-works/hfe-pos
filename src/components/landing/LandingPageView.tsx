@@ -228,7 +228,36 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         )}
       </section>
 
-      {/* 🎟️ PROMOS & CLAIMABLE COUPONS SECTION */}
+      {/* ☕ FEATURED SPECIALTY MENU (MOVED TO TOP HOOK) */}
+      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+        isMobile ? 'px-4' : 'px-4 sm:px-8'
+      }`}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
+            <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.featuredMenuTitle}
+          </h3>
+          <button type="button" onClick={onSwitchToCustomerApp} className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer">
+            {t.landing.viewAllCatalog} <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {productCatalog.slice(0, 6).map(item => (
+            <div key={item.id} className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex gap-3 shadow-xs dark:shadow-xl hover:border-amber-500/40 transition-all">
+              <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
+              <div className="flex-1 flex flex-col justify-between min-w-0">
+                <div>
+                  <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{item.name}</h4>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
+                </div>
+                <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-1">{formatPrice(item.price)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 🎟️ PROMOS & CLAIMABLE COUPONS SECTION (RESPONSIVE SNAP ON MOBILE) */}
       {activePromos.length > 0 && (
         <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
           isMobile ? 'px-4' : 'px-4 sm:px-8'
@@ -240,9 +269,9 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{t.landing.promoSubtitle}</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-3 pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
             {activePromos.map((voucher) => (
-              <div key={voucher.code} className="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 border border-amber-500/30 rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-xs dark:shadow-lg relative overflow-hidden">
+              <div key={voucher.code} className="min-w-[270px] max-w-[290px] snap-center shrink-0 sm:min-w-0 sm:max-w-none bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 border border-amber-500/30 rounded-2xl p-3.5 flex flex-col justify-between gap-3 shadow-xs dark:shadow-lg relative overflow-hidden">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
@@ -259,7 +288,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleCopyVoucher(voucher.code)}
-                    className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1 transition-all"
+                    className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1 transition-all cursor-pointer"
                   >
                     {copiedCode === voucher.code ? (
                       <>
@@ -280,6 +309,33 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </section>
       )}
 
+      {/* ✨ FACILITY & AMBIANCE CARDS (2x2 MOBILE, 4-COL DESKTOP) */}
+      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
+        isMobile ? 'px-4' : 'px-4 sm:px-8'
+      }`}>
+        <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.facilitiesTitle}
+        </h3>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+          {[
+            { icon: '🍃', title: 'Outdoor Garden', desc: 'Area outdoor asri & smoking area' },
+            { icon: '❄️', title: 'VIP AC Room', desc: 'Ruang privat meeting 12 pax' },
+            { icon: '📶', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
+            { icon: '🅿️', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
+          ].map((fac, idx) => (
+            <div key={idx} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-1 shadow-xs dark:shadow-lg">
+              <span className="text-xl sm:text-2xl">{fac.icon}</span>
+              <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1">{fac.title}</h4>
+              <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">{fac.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ⚡ HOW TO ORDER (3-STEP SIMPLE FLOW) */}
+      <OneTransactionOneTruthSection />
+
       {/* 🎉 UPCOMING EVENTS & COMMUNITY CALENDAR */}
       <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
         isMobile ? 'px-4' : 'px-4 sm:px-8'
@@ -288,12 +344,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <h3 className="text-xs sm:text-sm font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2">
             <Music className="w-4 h-4 text-purple-500 dark:text-purple-400 shrink-0" /> Jadwal Event & Hiburan
           </h3>
-          <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1">
+          <button type="button" onClick={onOpenReservationModal} className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1 cursor-pointer">
             RSVP Tempat <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {upcomingEvents.map((evt) => (
             <div key={evt.id} className="bg-white dark:bg-slate-900/90 border border-purple-500/25 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-xs dark:shadow-xl">
               <div>
@@ -333,62 +389,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           ))}
         </div>
       </section>
-
-      {/* FACILITY & AMBIANCE CARDS */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
-        isMobile ? 'px-4' : 'px-4 sm:px-8'
-      }`}>
-        <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.facilitiesTitle}
-        </h3>
-
-        <div className={`grid gap-2.5 sm:gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'}`}>
-          {[
-            { icon: '🍃', title: 'Outdoor Garden', desc: 'Area outdoor asri & smoking area' },
-            { icon: '❄️', title: 'VIP AC Room', desc: 'Ruang privat meeting 12 pax' },
-            { icon: '📶', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
-            { icon: '🅿️', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
-          ].map((fac, idx) => (
-            <div key={idx} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-1 shadow-xs dark:shadow-lg">
-              <span className="text-xl sm:text-2xl">{fac.icon}</span>
-              <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1">{fac.title}</h4>
-              <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight">{fac.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FEATURED SPECIALTY MENU */}
-      <section className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
-        isMobile ? 'px-4' : 'px-4 sm:px-8'
-      }`}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.featuredMenuTitle}
-          </h3>
-          <button type="button" onClick={onSwitchToCustomerApp} className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 cursor-pointer">
-            {t.landing.viewAllCatalog} <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-          </button>
-        </div>
-
-        <div className={`grid gap-3 sm:gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-3'}`}>
-          {productCatalog.slice(0, 6).map(item => (
-            <div key={item.id} className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex gap-3 shadow-xs dark:shadow-xl">
-              <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
-              <div className="flex-1 flex flex-col justify-between min-w-0">
-                <div>
-                  <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{item.name}</h4>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
-                </div>
-                <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-1">{formatPrice(item.price)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ⚡ ONE TRANSACTION. ONE TRUTH. FLOW SECTION */}
-      <OneTransactionOneTruthSection />
 
       {/* FOOTER & ADDRESS */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-8 py-6 text-center flex flex-col gap-2">
