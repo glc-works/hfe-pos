@@ -113,3 +113,52 @@ export const BANNER_PRESETS = [
     url: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1200&q=80'
   }
 ]
+
+export interface ConceptThemeTemplate {
+  id: string
+  name: string
+  accentColor: string
+  mode: 'light' | 'dark'
+  desc: string
+  bannerUrl: string
+  icon: string
+}
+
+export const CONCEPT_THEME_TEMPLATES: ConceptThemeTemplate[] = [
+  {
+    id: 'roastery',
+    name: 'Artisan Roastery',
+    accentColor: '#f59e0b',
+    mode: 'dark',
+    desc: 'Nuansa kayu hangat & kopi espresso dark roast',
+    bannerUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&q=80',
+    icon: '☕'
+  },
+  {
+    id: 'matcha',
+    name: 'Matcha & Bakery',
+    accentColor: '#10b981',
+    mode: 'light',
+    desc: 'Estetika zen minimalis & botani teh hijau',
+    bannerUrl: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=1200&q=80',
+    icon: '🍵'
+  },
+  {
+    id: 'bistro',
+    name: 'Modern Bistro & Lounge',
+    accentColor: '#8b5cf6',
+    mode: 'dark',
+    desc: 'Lounge malam, dining elegan & cocktail bar',
+    bannerUrl: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80',
+    icon: '🍷'
+  },
+  {
+    id: 'brunch',
+    name: 'Sunlit Pastry Cafe',
+    accentColor: '#f97316',
+    mode: 'light',
+    desc: 'Sinar pagi, croissant hangat & sourdough bakery',
+    bannerUrl: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=1200&q=80',
+    icon: '🥐'
+  }
+]
