@@ -11,7 +11,7 @@ describe('Google Maps Standardized Amenity Taxonomy', () => {
       expect(amenity.icon).toBeDefined()
       expect(amenity.labelId.length).toBeGreaterThan(0)
       expect(amenity.labelEn.length).toBeGreaterThan(0)
-      expect(['connectivity', 'comfort', 'parking', 'facilities', 'services']).toContain(amenity.category)
+      expect(['connectivity', 'comfort', 'parking', 'facilities', 'dietary', 'services']).toContain(amenity.category)
     })
   })
 

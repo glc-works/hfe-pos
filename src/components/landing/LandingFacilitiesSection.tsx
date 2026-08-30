@@ -1,5 +1,5 @@
 import React from 'react'
-import { Sparkles, Trees, Car, Wifi, Zap, Wind, Coffee, Check } from 'lucide-react'
+import { Sparkles, Trees, Car, Wifi, Zap, Wind, Coffee, Check, Music, CalendarCheck } from 'lucide-react'
 import { AmenityTagId } from '../../types/pos'
 import { STANDARD_AMENITIES_CATALOG, DEFAULT_MERCHANT_AMENITY_TAGS } from '../../data/amenityCatalog'
 import { useTranslation } from '../../context/LanguageContext'
@@ -48,6 +48,10 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
         return <Car className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
       case 'sparkles':
         return <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+      case 'music':
+        return <Music className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+      case 'calendar':
+        return <CalendarCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
       default:
         return <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />
     }

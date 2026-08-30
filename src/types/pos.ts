@@ -316,20 +316,11 @@ export interface StorefrontChannelToggles {
 }
 
 export type AmenityTagId =
-  | 'wifi_high_speed'
-  | 'power_outlets'
-  | 'ac_indoor'
-  | 'outdoor_garden'
-  | 'dedicated_smoking'
-  | 'free_parking'
-  | 'valet_parking'
-  | 'ev_charging'
-  | 'wheelchair_access'
-  | 'prayer_room'
-  | 'clean_restrooms'
-  | 'baby_high_chair'
-  | 'pet_friendly'
-  | 'cashless_only'
+  | 'wifi_free' | 'wifi_high_speed' | 'power_outlets' | 'meeting_room'
+  | 'ac_indoor' | 'outdoor_garden' | 'dedicated_smoking' | 'non_smoking_only' | 'rooftop_view'
+  | 'free_parking' | 'valet_parking' | 'ev_charging' | 'wheelchair_access'
+  | 'prayer_room' | 'clean_restrooms' | 'baby_high_chair' | 'nursing_room' | 'pet_friendly'
+  | 'halal_certified' | 'vegetarian_friendly' | 'live_music' | 'cashless_accepted' | 'reservations_welcome'
 
 export interface StorefrontCustomizationConfig {
   // 1. Landing Page Studio

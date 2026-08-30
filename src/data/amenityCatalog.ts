@@ -2,26 +2,40 @@ import { AmenityTagId } from '../types/pos'
 
 export interface StandardAmenityDefinition {
   id: AmenityTagId
-  icon: string
+  icon: 'wifi' | 'zap' | 'wind' | 'trees' | 'car' | 'sparkles' | 'check' | 'music' | 'calendar'
   labelId: string
   labelEn: string
-  category: 'connectivity' | 'comfort' | 'parking' | 'facilities' | 'services'
+  category: 'connectivity' | 'comfort' | 'parking' | 'facilities' | 'dietary' | 'services'
 }
 
 export const STANDARD_AMENITIES_CATALOG: StandardAmenityDefinition[] = [
   // 1. Connectivity & Power
   {
+    id: 'wifi_free',
+    icon: 'wifi',
+    labelId: 'WiFi Gratis',
+    labelEn: 'Free WiFi',
+    category: 'connectivity'
+  },
+  {
     id: 'wifi_high_speed',
     icon: 'wifi',
-    labelId: 'WiFi 300 Mbps',
-    labelEn: 'High-Speed WiFi (300 Mbps)',
+    labelId: 'WiFi Cepat',
+    labelEn: 'Fast WiFi',
     category: 'connectivity'
   },
   {
     id: 'power_outlets',
     icon: 'zap',
-    labelId: 'Stopkontak di Meja',
-    labelEn: 'Power Outlets at Tables',
+    labelId: 'Stopkontak',
+    labelEn: 'Power Outlets',
+    category: 'connectivity'
+  },
+  {
+    id: 'meeting_room',
+    icon: 'sparkles',
+    labelId: 'Ruang Meeting',
+    labelEn: 'Meeting Room',
     category: 'connectivity'
   },
 
@@ -29,22 +43,36 @@ export const STANDARD_AMENITIES_CATALOG: StandardAmenityDefinition[] = [
   {
     id: 'ac_indoor',
     icon: 'wind',
-    labelId: 'Ruangan Full AC',
-    labelEn: 'Air Conditioned Indoor',
+    labelId: 'Full AC',
+    labelEn: 'Air Conditioned',
     category: 'comfort'
   },
   {
     id: 'outdoor_garden',
     icon: 'trees',
-    labelId: 'Taman & Outdoor',
-    labelEn: 'Outdoor Garden & Patio',
+    labelId: 'Outdoor',
+    labelEn: 'Outdoor',
     category: 'comfort'
   },
   {
     id: 'dedicated_smoking',
     icon: 'wind',
-    labelId: 'Area Merokok Terpisah',
-    labelEn: 'Dedicated Smoking Area',
+    labelId: 'Smoking Area',
+    labelEn: 'Smoking Area',
+    category: 'comfort'
+  },
+  {
+    id: 'non_smoking_only',
+    icon: 'wind',
+    labelId: 'Non-Smoking',
+    labelEn: 'Non-Smoking',
+    category: 'comfort'
+  },
+  {
+    id: 'rooftop_view',
+    icon: 'sparkles',
+    labelId: 'Rooftop',
+    labelEn: 'Rooftop',
     category: 'comfort'
   },
 
@@ -52,68 +80,105 @@ export const STANDARD_AMENITIES_CATALOG: StandardAmenityDefinition[] = [
   {
     id: 'free_parking',
     icon: 'car',
-    labelId: 'Parkir Gratis Luas',
-    labelEn: 'Spacious Free Parking',
+    labelId: 'Parkir Luas',
+    labelEn: 'Free Parking',
     category: 'parking'
   },
   {
     id: 'valet_parking',
     icon: 'car',
-    labelId: 'Layanan Valet',
-    labelEn: 'Valet Parking Service',
+    labelId: 'Valet Parking',
+    labelEn: 'Valet Parking',
     category: 'parking'
   },
   {
     id: 'ev_charging',
     icon: 'zap',
-    labelId: 'Stasiun Cas Mobil Listrik (EV)',
-    labelEn: 'EV Charging Station',
+    labelId: 'Cas EV',
+    labelEn: 'EV Charger',
     category: 'parking'
   },
   {
     id: 'wheelchair_access',
     icon: 'check',
-    labelId: 'Akses Kursi Roda',
-    labelEn: 'Wheelchair Accessible',
+    labelId: 'Akses Difabel',
+    labelEn: 'Accessible',
     category: 'parking'
   },
 
-  // 4. General Facilities & Family
+  // 4. Sanitation & Facilities
   {
     id: 'prayer_room',
     icon: 'sparkles',
-    labelId: 'Musholla Bersih',
-    labelEn: 'Clean Prayer Room (Musholla)',
+    labelId: 'Musholla',
+    labelEn: 'Prayer Room',
     category: 'facilities'
   },
   {
     id: 'clean_restrooms',
     icon: 'sparkles',
-    labelId: 'Toilet Bersih & Higienis',
-    labelEn: 'Hygienic Restrooms',
+    labelId: 'Toilet Bersih',
+    labelEn: 'Restrooms',
     category: 'facilities'
   },
   {
     id: 'baby_high_chair',
     icon: 'check',
-    labelId: 'Kursi Bayi (High Chair)',
-    labelEn: 'Baby High Chairs',
+    labelId: 'Kursi Bayi',
+    labelEn: 'High Chairs',
+    category: 'facilities'
+  },
+  {
+    id: 'nursing_room',
+    icon: 'sparkles',
+    labelId: 'Ruang Laktasi',
+    labelEn: 'Nursing Room',
     category: 'facilities'
   },
   {
     id: 'pet_friendly',
     icon: 'trees',
-    labelId: 'Ramah Hewan Peliharaan',
-    labelEn: 'Pet Friendly Area',
+    labelId: 'Pet Friendly',
+    labelEn: 'Pet Friendly',
     category: 'facilities'
   },
 
-  // 5. Payment & Services
+  // 5. Dietary & Entertainment
   {
-    id: 'cashless_only',
+    id: 'halal_certified',
     icon: 'check',
-    labelId: 'Pembayaran Non-Tunai / QRIS',
-    labelEn: 'QRIS & Cashless Accepted',
+    labelId: 'Halal MUI',
+    labelEn: 'Halal',
+    category: 'dietary'
+  },
+  {
+    id: 'vegetarian_friendly',
+    icon: 'trees',
+    labelId: 'Vegetarian',
+    labelEn: 'Vegetarian',
+    category: 'dietary'
+  },
+  {
+    id: 'live_music',
+    icon: 'music',
+    labelId: 'Live Music',
+    labelEn: 'Live Music',
+    category: 'dietary'
+  },
+
+  // 6. Services & Payment
+  {
+    id: 'cashless_accepted',
+    icon: 'check',
+    labelId: 'Non-Tunai',
+    labelEn: 'Cashless',
+    category: 'services'
+  },
+  {
+    id: 'reservations_welcome',
+    icon: 'calendar',
+    labelId: 'Bisa Reservasi',
+    labelEn: 'Reservations',
     category: 'services'
   }
 ]
