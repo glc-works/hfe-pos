@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { HfeCompanyProfile, MenuItem, ViewportModeType } from '../../types/pos'
+import { HfeCompanyProfile, MenuItem, ViewportModeType, EventTicketItem } from '../../types/pos'
 import {
-  Coffee, Building, CalendarCheck, Sparkles, ChevronRight,
-  Ticket, Copy, Check, Music, MapPin, MessageCircle, Tag, Search, ShoppingBag, LogIn, Instagram
+  Coffee, CalendarCheck, Sparkles, ChevronRight,
+  Ticket, Copy, Check, Music, MapPin, MessageCircle, Tag, Search, ShoppingBag, Instagram, Share2
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useViewport } from '../../context/ViewportContext'
-import { EventTicketItem, PurchasedEventTicket } from '../../types/pos'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
 import { OneTransactionOneTruthSection } from './OneTransactionOneTruthSection'
@@ -32,8 +31,23 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const { t, formatPrice } = useTranslation()
   const { vouchers, setActiveApp, storefrontConfig } = useMerchantConfig()
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [copiedShareInfo, setCopiedShareInfo] = useState(false)
   const [selectedEventForTicket, setSelectedEventForTicket] = useState<EventTicketItem | null>(null)
   const [showSpotlightModal, setShowSpotlightModal] = useState(false)
+
+  const handleCopyShareInfo = () => {
+    const url = typeof window !== 'undefined' ? window.location.href : 'https://pos.hfeit.com'
+    const promoSnippet = storefrontConfig.announcementBarActive && storefrontConfig.announcementBarText
+      ? `\n✨ Promo: ${storefrontConfig.announcementBarText}`
+      : ''
+    const shareText = `☕ *${hfeCompanyProfile.brandName}*\n${storefrontConfig.heroTagline || hfeCompanyProfile.tagline || 'Specialty Coffee & Artisan Pastry'}${promoSnippet}\n\n👉 Buka menu & reservasi online:\n${url}\n\n📍 ${hfeCompanyProfile.address || 'Senopati, Jakarta Selatan'}`.trim()
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(shareText)
+    }
+    setCopiedShareInfo(true)
+    setTimeout(() => setCopiedShareInfo(false), 2500)
+  }
 
   // Public Spotlight Keyboard Listener (⌘K, Ctrl+K, /)
   useEffect(() => {
@@ -136,8 +150,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <a href="#events-section" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">Event & Jadwal</a>
         </nav>
 
-        {/* KANAN: Search Minimalis + Masuk + CTA Reservasi */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* KANAN: Search Minimalis + Share Info + Masuk + CTA Reservasi */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           <button
             type="button"
             onClick={() => setShowSpotlightModal(true)}
@@ -145,6 +159,18 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             title="Cari Menu atau Info (⌘K)"
           >
             <Search className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleCopyShareInfo}
+            className="p-2 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-all cursor-pointer"
+            title="Salin Tautan & Info Kafe"
+          >
+            {copiedShareInfo ? (
+              <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
           </button>
           <button
             type="button"
@@ -163,6 +189,14 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </button>
         </div>
       </header>
+
+      {/* FLOATING TOAST FEEDBACK FOR COPY SHARE */}
+      {copiedShareInfo && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 animate-fadeIn border border-amber-500/50 backdrop-blur">
+          <Check className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
+          <span>Tautan & ringkasan etalase berhasil disalin!</span>
+        </div>
+      )}
 
       {/* HERO SHOWCASE (MERCHANT CUSTOMIZED) */}
       <section className={`relative max-w-6xl mx-auto w-full flex justify-between gap-6 sm:gap-8 ${
@@ -444,17 +478,11 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       <SpotlightOmniSearchModal
         isOpen={showSpotlightModal}
         onClose={() => setShowSpotlightModal(false)}
-        onSelectProduct={(_item) => {
-          setShowSpotlightModal(false)
-          onSwitchToCustomerApp()
-        }}
-        onSelectTable={(_tableId) => {
-          setShowSpotlightModal(false)
-          onSwitchToCustomerApp()
-        }}
+        onSelectProduct={() => { setShowSpotlightModal(false); onSwitchToCustomerApp() }}
+        onSelectTable={() => { setShowSpotlightModal(false); onSwitchToCustomerApp() }}
         onNavigateApp={(appId) => {
           setShowSpotlightModal(false)
-          if (appId === 'customer-portal' || appId === 'customer' || appId === 'landing' || appId === 'cafe') {
+          if (['customer-portal', 'customer', 'landing', 'cafe'].includes(appId)) {
             setActiveApp(appId as any)
           }
         }}
