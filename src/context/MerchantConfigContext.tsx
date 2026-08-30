@@ -241,9 +241,12 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
   // 6. Runtime App & Viewport
   const [activeApp, setActiveApp] = useState<PrimaryDomainApp | 'cfd'>(() => {
     if (typeof window !== 'undefined') {
-      const p = new URLSearchParams(window.location.search).get('app') as PrimaryDomainApp
+      const p = new URLSearchParams(window.location.search).get('app')
       if (p && ['landing', 'customer', 'cafe', 'cfd', 'design-system', 'customer-portal', 'gallery'].includes(p)) {
-        return p
+        return p as PrimaryDomainApp
+      }
+      if (p && ['hub', 'admin', 'admin-hub', 'kds', 'kitchen', 'book', 'ledger', 'pos', 'branch', 'warehouse'].includes(p)) {
+        return 'cafe'
       }
       const surfaceParam = new URLSearchParams(window.location.search).get('surface')
       if (surfaceParam === 'gallery') return 'gallery'
