@@ -7,7 +7,7 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
   heroBannerUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&q=80',
   announcementBarText: 'Gunakan kupon "SENOPATI20" untuk diskon 20% saat order di meja!',
   announcementBarActive: true,
-  ctaOrderText: 'Pesan Online (Antar & Ambil)',
+  ctaOrderText: 'Buka Menu & Pesan',
   ctaReserveText: 'Reservasi Meja',
   brandStoryText: 'Didirikan pada tahun 2021 di jantung Senopati, Jakarta Selatan, Kopitiam Senopati memadukan tradisi kedai kopi peranakan dengan teknologi pemanggangan specialty modern.',
   operatingHoursText: 'Buka Setiap Hari: 07:00 - 23:00 WIB',
