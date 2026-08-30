@@ -48,80 +48,100 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
   const visibleStaff = DEFAULT_STAFF_PROFILES.filter(
     s => s.branchIds.includes('ALL') || s.branchIds.includes(activeBranchId)
   )
-  const [selectedStaffId, setSelectedStaffId] = useState<string>(visibleStaff[0]?.id || DEFAULT_STAFF_PROFILES[0].id)
-  const selectedStaff = visibleStaff.find(s => s.id === selectedStaffId) || visibleStaff[0] || DEFAULT_STAFF_PROFILES[0]
+  const [authStep, setAuthStep] = useState<'select-user' | 'enter-pin'>('select-user')
+  const [selectedStaff, setSelectedStaff] = useState<StaffProfile>(visibleStaff[0] || DEFAULT_STAFF_PROFILES[0])
 
-  return (
-    <form onSubmit={onLoginSubmit} className="flex flex-col gap-4">
-      {/* 1. BRANCH SELECTOR */}
-      <div className="flex flex-col gap-1">
-        <label className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-amber-500" />
-          <span>Lokasi Outlet / Cabang:</span>
-        </label>
-        <select
-          value={activeBranchId}
-          onChange={(e) => {
-            setActiveBranchId(e.target.value)
-            onKeypadPress('CLR')
-          }}
-          className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-amber-500"
-        >
-          {branches.map(b => (
-            <option key={b.id} value={b.id}>{b.name}</option>
-          ))}
-        </select>
-      </div>
+  // STATE 1: SELECT USER / STAFF PROFILE GRID
+  if (authStep === 'select-user') {
+    return (
+      <div className="flex flex-col gap-4">
+        {/* BRANCH SELECTOR */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-amber-500" />
+            <span>Lokasi Outlet / Cabang:</span>
+          </label>
+          <select
+            value={activeBranchId}
+            onChange={(e) => {
+              setActiveBranchId(e.target.value)
+              onKeypadPress('CLR')
+            }}
+            className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:border-amber-500"
+          >
+            {branches.map(b => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+        </div>
 
-      {/* 2. LAPTOP-STYLE STAFF PROFILE PICKER (BRANCH-SCOPED) */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
-          <UserCheck className="w-3.5 h-3.5 text-amber-500" />
-          <span>Staf Bertugas di Cabang Ini ({visibleStaff.length}):</span>
-        </span>
-        <div className="flex items-center gap-2 overflow-x-auto py-1 px-0.5 custom-scrollbar">
-          {visibleStaff.map((staff) => {
-            const isSelected = selectedStaff.id === staff.id
-            return (
+        {/* STAFF USER SELECTION CARDS */}
+        <div className="flex flex-col gap-2">
+          <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+            <UserCheck className="w-3.5 h-3.5 text-amber-500" />
+            <span>Pilih Profil Staf yang Bertugas:</span>
+          </span>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            {visibleStaff.map((staff) => (
               <button
                 key={staff.id}
                 type="button"
                 onClick={() => {
-                  setSelectedStaffId(staff.id)
+                  setSelectedStaff(staff)
                   onKeypadPress('CLR')
+                  setAuthStep('enter-pin')
                 }}
-                className={`flex flex-col items-center gap-1 p-2 rounded-2xl border transition-all cursor-pointer shrink-0 min-w-[76px] ${
-                  isSelected
-                    ? 'bg-amber-500/15 border-amber-500 shadow-md scale-105'
-                    : 'bg-muted/40 border-border hover:bg-muted/70 opacity-70 hover:opacity-100'
-                }`}
+                className="flex flex-col items-center gap-2 p-3.5 rounded-2xl bg-muted/30 hover:bg-amber-500/10 border border-border hover:border-amber-500/50 transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-98 group text-center"
               >
-                <span className="text-xl">{staff.avatar}</span>
-                <span className="text-[10px] font-bold text-foreground truncate max-w-[70px]">
-                  {staff.name.split(' ')[0]}
-                </span>
-                <span className={`text-[8px] font-mono font-black uppercase px-1.5 py-0.2 rounded-full border ${
-                  isSelected ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-background text-muted-foreground border-border'
-                }`}>
+                <span className="text-3xl group-hover:scale-110 transition-transform">{staff.avatar}</span>
+                <div className="flex flex-col items-center min-w-0">
+                  <span className="text-xs font-black text-foreground truncate w-full">{staff.name}</span>
+                  <span className="text-[10px] text-muted-foreground font-bold">{staff.roleLabel}</span>
+                </div>
+                <span className="text-[8px] font-mono font-black uppercase px-2 py-0.5 rounded-full bg-background border border-border text-muted-foreground group-hover:border-amber-500/40 group-hover:text-amber-500">
                   {staff.role}
                 </span>
               </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* 3. ACTIVE USER SPOTLIGHT & 6-DIGIT PIN DISPLAY */}
-      <div className="flex flex-col items-center gap-2 pt-1 pb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{selectedStaff.avatar}</span>
-          <div className="flex flex-col">
-            <span className="text-xs font-black text-foreground">{selectedStaff.name}</span>
-            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">{selectedStaff.roleLabel}</span>
+            ))}
           </div>
         </div>
+      </div>
+    )
+  }
 
-        <div className="flex gap-3 py-1">
+  // STATE 2: ENTER PIN KEYPAD FOR SELECTED USER
+  return (
+    <form onSubmit={onLoginSubmit} className="flex flex-col gap-4 animate-scaleUp">
+      {/* HEADER: BACK TO USER SELECTOR */}
+      <div className="flex items-center justify-between pb-1 border-b border-border">
+        <button
+          type="button"
+          onClick={() => {
+            setAuthStep('select-user')
+            onKeypadPress('CLR')
+          }}
+          className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
+        >
+          <span>← Ganti Staf</span>
+        </button>
+        <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 truncate max-w-[160px]">
+          {branches.find(b => b.id === activeBranchId)?.name.split('(')[0] || 'Cabang'}
+        </span>
+      </div>
+
+      {/* ACTIVE USER SPOTLIGHT */}
+      <div className="flex flex-col items-center gap-1 py-1">
+        <div className="w-14 h-14 rounded-full bg-amber-500/15 border-2 border-amber-500 flex items-center justify-center text-3xl shadow-md">
+          {selectedStaff.avatar}
+        </div>
+        <h3 className="text-sm font-black text-foreground">{selectedStaff.name}</h3>
+        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">{selectedStaff.roleLabel}</span>
+      </div>
+
+      {/* PIN DOTS DISPLAY */}
+      <div className="flex flex-col items-center gap-2 py-1">
+        <div className="flex gap-3">
           {[0, 1, 2, 3, 4, 5].map((idx) => (
             <div
               key={idx}
@@ -152,7 +172,7 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
         </div>
       )}
 
-      {/* 4. NUMPAD GRID */}
+      {/* NUMPAD GRID */}
       <div className="grid grid-cols-3 gap-2">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'CLR', '0', 'DEL'].map((btn) => (
           <button
