@@ -1,17 +1,21 @@
 import React, { useState } from 'react'
 import { 
   CreditCard, Receipt, Ticket, Tag, Sliders, ChevronLeft, Coffee,
-  Sparkles, Award, QrCode, ArrowLeft, Store, LogOut, CheckCircle2
+  Sparkles, LogOut
 } from 'lucide-react'
-import { HfeCompanyProfile, CustomerProfile, DigitalMemberCardData, CustomerPreferences } from '../types/pos'
+import { HfeCompanyProfile, CustomerPreferences } from '../types/pos'
 import { HfeCardIdentityPassbook } from '../components/customer-portal/HfeCardIdentityPassbook'
 import { CustomerOrdersHistoryTab } from '../components/customer-portal/CustomerOrdersHistoryTab'
 import { CustomerTicketsWalletTab } from '../components/customer-portal/CustomerTicketsWalletTab'
 import { CustomerVouchersTab } from '../components/customer-portal/CustomerVouchersTab'
 import { CustomerPreferencesTab } from '../components/customer-portal/CustomerPreferencesTab'
+import { CustomerAuthGate } from '../components/customer-portal/CustomerAuthGate'
 
 export interface CustomerPortalViewProps {
   hfeCompanyProfile: HfeCompanyProfile
+  isCustomerSessionActive?: boolean
+  onLoginSuccess?: (phone: string, name?: string) => void
+  onLogout?: () => void
   onBackToMenu?: () => void
   onBackToLanding?: () => void
 }
@@ -20,11 +24,15 @@ type PortalTab = 'card' | 'orders' | 'tickets' | 'vouchers' | 'preferences'
 
 export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
   hfeCompanyProfile,
+  isCustomerSessionActive = false,
+  onLoginSuccess,
+  onLogout,
   onBackToMenu,
   onBackToLanding
 }) => {
   const [activeTab, setActiveTab] = useState<PortalTab>('card')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [localLoggedIn, setLocalLoggedIn] = useState(isCustomerSessionActive)
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
@@ -48,6 +56,54 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
     showToast('🎉 Preferensi & data akun berhasil diperbarui!')
   }
 
+  const handleAuthSuccess = (phone: string, name?: string) => {
+    setLocalLoggedIn(true)
+    if (onLoginSuccess) {
+      onLoginSuccess(phone, name)
+    }
+    showToast(`🎉 Selamat Datang${name ? `, ${name}` : ''}! Member Aktif.`)
+  }
+
+  const handleLogout = () => {
+    setLocalLoggedIn(false)
+    if (onLogout) {
+      onLogout()
+    }
+    showToast('🚪 Berhasil keluar dari sesi member.')
+  }
+
+  // If user is not authenticated, render authentic Member Login/Register Gate
+  if (!isCustomerSessionActive && !localLoggedIn) {
+    return (
+      <div className="h-[100dvh] w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans select-none relative overflow-hidden">
+        {/* TOP HEADER */}
+        <header className="shrink-0 z-30 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl px-4 pt-[max(env(safe-area-inset-top,12px),12px)] pb-3 flex items-center justify-between gap-3 shadow-xs">
+          <button
+            type="button"
+            onClick={onBackToLanding || onBackToMenu}
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all active:scale-95 cursor-pointer"
+            title="Kembali"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="font-mono text-xs font-bold text-slate-600 dark:text-slate-400">
+            {hfeCompanyProfile.brandName}
+          </span>
+          <div className="w-8" />
+        </header>
+
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex items-center justify-center p-4">
+          <CustomerAuthGate
+            brandName={hfeCompanyProfile.brandName}
+            onLoginSuccess={handleAuthSuccess}
+            onBackToLanding={onBackToLanding}
+            onBackToMenu={onBackToMenu}
+          />
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="h-[100dvh] w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans select-none relative overflow-hidden">
       {/* FLOATING TOAST */}
@@ -59,7 +115,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
       )}
 
       {/* TOP STICKY APP HEADER */}
-      <header className="shrink-0 z-30 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl px-4 pt-[max(env(safe-area-inset-top,12px),12px)] pb-3 flex items-center justify-between gap-3 shadow-sm">
+      <header className="shrink-0 z-30 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl px-4 pt-[max(env(safe-area-inset-top,12px),12px)] pb-3 flex items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
@@ -80,18 +136,27 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
           </div>
         </div>
 
-        {/* QUICK NAVIGATION BUTTONS */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* QUICK NAVIGATION & LOGOUT BUTTONS */}
+        <div className="flex items-center gap-2 shrink-0">
           {onBackToMenu && (
             <button
               type="button"
               onClick={onBackToMenu}
-              className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 shadow flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.97]"
+              className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-[0.97]"
             >
               <Coffee className="w-3.5 h-3.5" />
-              <span>Buka Menu</span>
+              <span className="hidden sm:inline">Buka Menu</span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="p-2 rounded-xl bg-slate-100 hover:bg-rose-500/15 dark:bg-slate-800 dark:hover:bg-rose-500/20 text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+            title="Keluar / Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </header>
 
@@ -113,7 +178,7 @@ export const CustomerPortalView: React.FC<CustomerPortalViewProps> = ({
               onClick={() => setActiveTab(tab.id as PortalTab)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border cursor-pointer active:scale-[0.97] ${
                 isActive
-                  ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-300 dark:border-amber-500/60 text-amber-900 dark:text-amber-300 shadow-sm font-black'
+                  ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-300 dark:border-amber-500/60 text-amber-900 dark:text-amber-300 shadow-xs font-black'
                   : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >

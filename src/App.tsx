@@ -79,13 +79,20 @@ function AppMain() {
     setQrStepView('catalog')
   }
 
-  const handleJoinMembershipAtCheckout = (phone: string) => {
+  const handleCustomerLogin = (phone: string, name?: string) => {
     setIsCustomerSessionActive(true)
     cart.setLoginType('phone')
     cart.setCustomerPhone(phone)
-    cart.setGuestName('Member HP')
-    cart.setLoyaltyPoints(100)
+    if (name) cart.setGuestName(name)
+    cart.setLoyaltyPoints((prev) => prev || 100)
     showToast('🎉 Selamat Datang! Keanggotaan Aktif & Poin Tersimpan')
+  }
+
+  const handleCustomerLogout = () => {
+    setIsCustomerSessionActive(false)
+    cart.setLoginType('guest-name')
+    cart.setCustomerPhone('')
+    cart.setGuestName('Tamu')
   }
 
   const sync = useHfeSync()
@@ -123,12 +130,8 @@ function AppMain() {
   useEffect(() => {
     config.setOnResetMockState(() => {
       table.setTablesGrid((prev) => prev.map((t, idx) => ({
-        ...t,
-        status: idx === 3 ? 'occupied' : 'free',
-        customerName: idx === 3 ? 'Aldi Pratama' : undefined,
-        totalBill: idx === 3 ? 58300 : 0,
-        orderCount: idx === 3 ? 2 : 0,
-        orderIds: idx === 3 ? ['ORD-8801'] : []
+        ...t, status: idx === 3 ? 'occupied' : 'free', customerName: idx === 3 ? 'Aldi Pratama' : undefined,
+        totalBill: idx === 3 ? 58300 : 0, orderCount: idx === 3 ? 2 : 0, orderIds: idx === 3 ? ['ORD-8801'] : []
       })))
       setOrders(runtimeInitialOrders)
       showToast('🔄 Status meja dan pesanan berhasil di-reset!')
@@ -271,7 +274,7 @@ function AppMain() {
             handleUpdateQty={cart.handleUpdateQty} handleApplyPromo={cart.handleApplyPromo}
             handleSubmitOrder={() => cart.handleSubmitOrder(table.selectedTable, setQrStepView)}
             onSettleOpenTab={handleSettleOpenTab}
-            onJoinMembership={handleJoinMembershipAtCheckout}
+            onJoinMembership={handleCustomerLogin}
             onResetGuestSession={resetCanonicalGuestSession}
             onSwitchToLandingPage={() => config.setActiveApp('landing')}
             onSwitchToPos={() => config.setActiveApp('cafe')}
@@ -441,6 +444,9 @@ function AppMain() {
         {config.activeApp === 'customer-portal' && (
           <CustomerPortalView
             hfeCompanyProfile={sync.hfeCompanyProfile}
+            isCustomerSessionActive={isCustomerSessionActive}
+            onLoginSuccess={handleCustomerLogin}
+            onLogout={handleCustomerLogout}
             onBackToMenu={() => config.setActiveApp('customer')}
             onBackToLanding={() => config.setActiveApp('landing')}
           />
