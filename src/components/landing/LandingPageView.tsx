@@ -14,7 +14,6 @@ import { LandingPromosSection } from './LandingPromosSection'
 import { LandingEventsSection } from './LandingEventsSection'
 import { LandingDedicatedSectionView } from './LandingDedicatedSectionView'
 import { LandingBreadcrumbs, LandingSectionId } from './LandingBreadcrumbs'
-import { OneTransactionOneTruthSection } from './OneTransactionOneTruthSection'
 import { useDynamicFavicon } from '../../hooks/useDynamicFavicon'
 
 interface LandingPageViewProps {
@@ -242,11 +241,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <div className={`relative z-10 max-w-4xl mx-auto w-full py-10 sm:py-16 text-center flex flex-col items-center gap-4 sm:gap-6 ${
               isMobile ? 'px-4' : 'px-6 sm:px-8'
             }`}>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold tracking-wide uppercase">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{hfeCompanyProfile.brandName}</span>
-              </span>
-
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight max-w-3xl">
                 {storefrontConfig.heroHeadline || t.landing.defaultHeadlineFallback}
               </h1>
@@ -354,9 +348,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             onViewAllEvents={() => setActiveSection('events')}
             isMobile={isMobile}
           />
-
-          {/* 📱 SEKSI 5: CARA PESAN */}
-          <OneTransactionOneTruthSection />
         </main>
       )}
 
