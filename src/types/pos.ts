@@ -28,62 +28,25 @@ export interface CardTenderMetadata {
 }
 
 export interface TableReservation {
-  id: string
-  customerName: string
-  phone: string
-  tableArea: string
-  paxCount: number
-  reservationDate: string
-  timeSlot: string
-  dpAmount: number
-  dpStatus: 'unpaid' | 'paid_qris'
-  approvalPolicy: 'instant' | 'manual_review'
-  status: 'pending' | 'confirmed' | 'seated' | 'cancelled'
-  specialNotes?: string
-  preOrderItems?: { name: string; qty: number; price: number }[]
-  totalPreOrderAmount?: number
-  createdAt: string
+  id: string; customerName: string; phone: string; tableArea: string; paxCount: number
+  reservationDate: string; timeSlot: string; dpAmount: number; dpStatus: 'unpaid' | 'paid_qris'
+  approvalPolicy: 'instant' | 'manual_review'; status: 'pending' | 'confirmed' | 'seated' | 'cancelled'
+  specialNotes?: string; preOrderItems?: { name: string; qty: number; price: number }[]; totalPreOrderAmount?: number; createdAt: string
 }
 
 export type WifiAccessPolicy = 'always_visible' | 'after_payment' | 'disabled'
 export type BusinessOperatingArchetype = 'quick-service-stall' | 'casual-dine-in' | 'full-service-resto'
 
 export interface PosWorkflowToggles {
-  enableMenuCatalog: boolean
-  enableTableFloorPlan: boolean
-  enableBookingReservations: boolean
-  defaultPosMode: 'catalog' | 'tables' | 'booking'
+  enableMenuCatalog: boolean; enableTableFloorPlan: boolean; enableBookingReservations: boolean; defaultPosMode: 'catalog' | 'tables' | 'booking'
 }
 
 export interface HfeCompanyProfile {
-  companyBookId: string
-  ptLegalName: string
-  brandName: string
-  logoUrl: string
-  taxIdNpwp: string
-  nibPermit: string
-  address: string
-  hfeLedgerApiEndpoint: string
-  isLiveHfeSynced?: boolean
-  lastSyncedAt?: string
-  operatingArchetype?: BusinessOperatingArchetype
+  companyBookId: string; ptLegalName: string; brandName: string; logoUrl: string; taxIdNpwp: string; nibPermit: string; address: string
+  hfeLedgerApiEndpoint: string; isLiveHfeSynced?: boolean; lastSyncedAt?: string; operatingArchetype?: BusinessOperatingArchetype
   workflowToggles?: PosWorkflowToggles
-  socialMedia?: {
-    instagram?: string
-    tiktok?: string
-    whatsappOrder?: string
-    googleMapsUrl?: string
-    websiteUrl?: string
-  }
-  storefrontInfo?: {
-    tagline?: string
-    storyDescription?: string
-    operatingHours?: string
-    wifiSsid?: string
-    wifiPassword?: string
-    wifiAccessPolicy?: WifiAccessPolicy
-    heroBannerUrl?: string
-  }
+  socialMedia?: { instagram?: string; tiktok?: string; whatsappOrder?: string; googleMapsUrl?: string; websiteUrl?: string }
+  storefrontInfo?: { tagline?: string; storyDescription?: string; operatingHours?: string; wifiSsid?: string; wifiPassword?: string; wifiAccessPolicy?: WifiAccessPolicy; heroBannerUrl?: string }
 }
 
 export interface BomIngredient {
@@ -94,6 +57,20 @@ export interface BomIngredient {
 }
 
 export type ModifierPolicy = 'always' | 'never' | 'inherit_category'
+
+export interface ModifierOption {
+  id: string
+  name: string
+  priceDelta: number
+  bomDelta?: string
+}
+
+export interface ModifierGroup {
+  id: string
+  name: string
+  selectionType: 'single' | 'multiple'
+  options: ModifierOption[]
+}
 
 export interface CategoryEtalaseConfig {
   id: string
@@ -114,12 +91,14 @@ export interface MenuItem {
   description: string
   hasModifiers?: boolean
   modifierPolicy?: ModifierPolicy
+  modifierGroups?: ModifierGroup[]
   allowCustomNotes?: boolean
   temperature?: 'Iced' | 'Hot'
   sugarLevel?: '0%' | '50%' | '100%'
   milkOption?: 'Whole Milk' | 'Fresh Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)' | string
   bomIngredients?: BomIngredient[]
   preparationSteps?: string[]
+  kdsStation?: string
   wholesalePrice?: number
   wholesaleMinQty?: number
   barcode?: string
@@ -136,6 +115,13 @@ export interface SeatCustomerContact {
   allergenAlert?: string
 }
 
+export interface SelectedModifier {
+  groupId: string
+  optionId: string
+  name: string
+  priceDelta: number
+}
+
 export interface CartItem extends MenuItem {
   quantity: number
   seatNumber?: string // Tagging Kursi (Seat 1-4)
@@ -143,6 +129,7 @@ export interface CartItem extends MenuItem {
   customNotes?: string
   allergenNotes?: string
   served?: boolean
+  selectedModifiers?: SelectedModifier[]
 }
 
 export interface OrderTicket {

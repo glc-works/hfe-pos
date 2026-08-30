@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
-import { X, DollarSign, ArrowUpRight, Calculator, Printer, CheckCircle2, AlertTriangle, ShieldCheck, Lock, Banknote, Coins } from 'lucide-react'
+import { X, DollarSign, ArrowUpRight, Calculator, Printer, CheckCircle2, AlertTriangle, ShieldCheck, Lock, Banknote, Coins, FlaskConical } from 'lucide-react'
 import { reconcileShift, ReconcileShiftResponse } from '../../services/hfeWorkflowsApi'
+import { ShiftClosingBomSummary } from './ShiftClosingBomSummary'
 
 interface ShiftDrawerModalProps {
   isOpen: boolean
@@ -14,12 +15,9 @@ interface ShiftDrawerModalProps {
 }
 
 const DENOMINATIONS = [
-  { val: 100000, label: 'Rp 100.000', color: 'text-rose-500' },
-  { val: 50000, label: 'Rp 50.000', color: 'text-blue-500' },
-  { val: 20000, label: 'Rp 20.000', color: 'text-emerald-500' },
-  { val: 10000, label: 'Rp 10.000', color: 'text-purple-500' },
-  { val: 5000, label: 'Rp 5.000', color: 'text-amber-500' },
-  { val: 2000, label: 'Rp 2.000', color: 'text-slate-500' },
+  { val: 100000, label: 'Rp 100.000', color: 'text-rose-500' }, { val: 50000, label: 'Rp 50.000', color: 'text-blue-500' },
+  { val: 20000, label: 'Rp 20.000', color: 'text-emerald-500' }, { val: 10000, label: 'Rp 10.000', color: 'text-purple-500' },
+  { val: 5000, label: 'Rp 5.000', color: 'text-amber-500' }, { val: 2000, label: 'Rp 2.000', color: 'text-slate-500' },
   { val: 1000, label: 'Rp 1.000', color: 'text-cyan-500' },
 ]
 
@@ -33,7 +31,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
   userRole = 'owner',
   onReconciled,
 }) => {
-  const [activeTab, setActiveTab] = useState<'float' | 'cash_out' | 'reconcile'>('reconcile')
+  const [activeTab, setActiveTab] = useState<'float' | 'cash_out' | 'reconcile' | 'bom_margin'>('reconcile')
   const [currentMode, setCurrentMode] = useState<'solo' | 'team'>(
     userRole === 'cashier' || userRole === 'barista' ? 'team' : operationalMode
   )
@@ -149,59 +147,19 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
           </div>
 
           {/* Operational Scale Mode Pill */}
+          {/* Operational Scale Mode Pill */}
           <div className="hidden sm:flex bg-muted/80 p-0.5 rounded-xl border border-border text-[11px] font-bold">
-            <button
-              type="button"
-              onClick={() => setCurrentMode('solo')}
-              className={`px-2 py-1 rounded-lg transition-all ${
-                isSoloMode ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Mode 1 Orang: Langsung Selesai & Posting Jurnal Instan"
-            >
-              👤 Solo
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentMode('team')}
-              className={`px-2 py-1 rounded-lg transition-all ${
-                !isSoloMode ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Mode Tim: Kasir Submit & SPV Review di Backoffice"
-            >
-              👥 Tim
-            </button>
+            <button type="button" onClick={() => setCurrentMode('solo')} className={`px-2 py-1 rounded-lg transition-all ${isSoloMode ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-muted-foreground hover:text-foreground'}`} title="Mode 1 Orang: Langsung Selesai & Posting Jurnal Instan">👤 Solo</button>
+            <button type="button" onClick={() => setCurrentMode('team')} className={`px-2 py-1 rounded-lg transition-all ${!isSoloMode ? 'bg-amber-500 text-slate-950 font-black shadow-sm' : 'text-muted-foreground hover:text-foreground'}`} title="Mode Tim: Kasir Submit & SPV Review di Backoffice">👥 Tim</button>
           </div>
         </div>
 
         {/* TAB NAVIGATION */}
-        <div className="grid grid-cols-3 bg-muted p-1 rounded-xl border border-border text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveTab('float')}
-            className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'float' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Float Shift
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('cash_out')}
-            className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'cash_out' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Kas Kecil ({cashOutList.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('reconcile')}
-            className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'reconcile' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Z-Report Kasir
-          </button>
+        <div className="grid grid-cols-4 bg-muted p-1 rounded-xl border border-border text-[11px] font-semibold">
+          <button type="button" onClick={() => setActiveTab('float')} className={`py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === 'float' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Float</button>
+          <button type="button" onClick={() => setActiveTab('cash_out')} className={`py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === 'cash_out' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Kas Kecil ({cashOutList.length})</button>
+          <button type="button" onClick={() => setActiveTab('reconcile')} className={`py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === 'reconcile' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Z-Report</button>
+          <button type="button" onClick={() => setActiveTab('bom_margin')} className={`py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${activeTab === 'bom_margin' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}><FlaskConical className="w-3 h-3" /> BoM &amp; Margin</button>
         </div>
 
         {/* TAB 1: FLOAT AWAL */}
@@ -274,9 +232,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
                     <span className="text-foreground font-medium">{item.reason}</span>
                     <span className="text-[10px] text-muted-foreground block">{item.time}</span>
                   </div>
-                  <span className="font-mono font-bold text-rose-500">
-                    -Rp {item.amount.toLocaleString('id-ID')}
-                  </span>
+                  <span className="font-mono font-bold text-rose-500">-Rp {item.amount.toLocaleString('id-ID')}</span>
                 </div>
               ))}
             </div>
@@ -291,7 +247,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
                 FORM-OPS-03
               </span>
               <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Calculator className="w-4 h-4 text-amber-500" /> Rekonsiliasi Kasir & Z-Report Penutupan
+                <Calculator className="w-4 h-4 text-amber-500" /> Rekonsiliasi Kasir &amp; Z-Report Penutupan
               </label>
             </div>
             {/* Shift Summary Box */}
@@ -431,7 +387,32 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Realtime BoM Preview Quick Link */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('bom_margin')}
+              className="p-2 bg-muted/40 hover:bg-muted/70 border border-border/80 rounded-2xl flex items-center justify-between text-xs transition-colors cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-2">
+                <FlaskConical className="w-4 h-4 text-amber-500 shrink-0" />
+                <div>
+                  <span className="font-bold text-[11px] text-foreground block">🧪 Cek Estimasi HPP BoM &amp; Margin Laba</span>
+                  <span className="text-[10px] text-muted-foreground">Hitung konsumsi bahan baku teoritis &amp; komisi ojol 20%</span>
+                </div>
+              </div>
+              <span className="text-[11px] font-bold text-amber-500 shrink-0">Buka ➔</span>
+            </button>
           </div>
+        )}
+
+        {/* TAB 4: BOM & MARGIN SUMMARY */}
+        {activeTab === 'bom_margin' && (
+          <ShiftClosingBomSummary
+            cashVariance={numericPhysicalCount > 0 ? variance : 0}
+            totalGrossSales={totalCashSales + 398000}
+            cashSales={totalCashSales}
+          />
         )}
 
         {reconcileResult && (

@@ -83,6 +83,7 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
   }, [filteredCatalog])
 
   const shouldOpenItemModifierModal = (item: MenuItem) => {
+    if (item.modifierGroups && item.modifierGroups.length > 0) return true
     if (item.category === 'Pastry' || item.category === 'Snack' || item.category === 'Retail') return false
     return item.hasModifiers || item.modifierPolicy === 'always'
   }

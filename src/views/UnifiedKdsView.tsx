@@ -74,8 +74,9 @@ export interface UnifiedKdsViewProps {
 export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
   stations = [
     { id: 'all', name: 'Semua Station', icon: '🍳', categories: [] },
-    { id: 'st-barista', name: 'Barista Espresso', icon: '☕', categories: ['Coffee', 'Non-Coffee'] },
-    { id: 'st-kitchen', name: 'Kitchen Hot Food', icon: '🍔', categories: ['Snack', 'Pastry'] }
+    { id: 'st-barista', name: 'Barista Station', icon: '☕', categories: ['Coffee', 'Non-Coffee'] },
+    { id: 'st-kitchen', name: 'Kitchen Station', icon: '🍔', categories: ['Snack', 'Pastry', 'Food'] },
+    { id: 'st-retail', name: 'Retail Station', icon: '🛍️', categories: ['Retail', 'Merchandise'] }
   ],
   activeStationId = 'all',
   setActiveStationId = () => {},
@@ -99,7 +100,12 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
 
   const stationFilteredOrders = orders.map(order => {
     if (activeStationId === 'all') return order
-    const filteredItems = order.items.filter(item => currentStation.categories.includes(item.category))
+    const filteredItems = order.items.filter(item => {
+      if (item.kdsStation) {
+        return item.kdsStation === currentStation.id || item.kdsStation === currentStation.name
+      }
+      return currentStation.categories.includes(item.category)
+    })
     if (filteredItems.length === 0) return null
     return { ...order, items: filteredItems }
   }).filter(Boolean) as OrderTicket[]

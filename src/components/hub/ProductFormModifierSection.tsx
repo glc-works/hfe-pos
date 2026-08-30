@@ -1,20 +1,9 @@
 import React from 'react'
 import { Button, TextInput } from '../../ui'
 import { Plus, Trash2 } from 'lucide-react'
+import { ModifierGroup, ModifierOption } from '../../types/pos'
 
-export interface ModifierOption {
-  id: string
-  name: string
-  priceDelta: number
-  bomDelta?: string
-}
-
-export interface ModifierGroup {
-  id: string
-  name: string
-  selectionType: 'single' | 'multiple'
-  options: ModifierOption[]
-}
+export type { ModifierGroup, ModifierOption }
 
 export interface MatrixVariant {
   sku: string
@@ -108,7 +97,7 @@ export const ProductFormModifierSection: React.FC<ProductFormModifierSectionProp
       {customizationType === 'modifiers_fnb' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-foreground">Grup Modifier &amp; Racikan Minuman:</span>
+            <span className="text-xs font-bold text-foreground">Grup Modifier &amp; Komposisi BoM:</span>
             <Button
               type="button"
               variant="outline"
