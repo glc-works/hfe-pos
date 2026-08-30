@@ -33,13 +33,14 @@ export interface UnifiedPosViewProps {
   setPosPayMethod: (method: PosPayMethod) => void; setPosCashGiven: (val: string) => void
   handlePOSCheckoutTable: () => void; handleMoveStatus: (orderId: string, targetStatus: OrderTicket['status']) => void
   financialPort: HfePosFinancialPort; organizationId: string; companyBookId: string; authorityContext: string; cashierId: string
+  onLockTerminal?: () => void
 }
 
 export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   activeStaffSurface = 'barista-pos', setActiveStaffSurface, tablesGrid, selectedPOSTable, productCatalog,
   posPayMethod, posCashGiven, orders, enableTableFloorPlan = true, viewportMode = 'responsive', cashDrawerFloat = 500000,
   setSelectedPOSTable, setTablesGrid, setPosPayMethod, setPosCashGiven, handlePOSCheckoutTable, handleMoveStatus,
-  financialPort, organizationId, companyBookId, authorityContext, cashierId,
+  financialPort, organizationId, companyBookId, authorityContext, cashierId, onLockTerminal,
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
@@ -237,7 +238,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               onOpenAppDrawer={() => setIsAppDrawerOpen(true)} onOpenGuestBinding={() => setShowTableGuestBindingDrawer(true)}
               onOpenScanner={() => setShowCameraScanner(true)} onOpenTableOps={() => setShowTableOpsModal(true)}
               onOpenNotifications={() => setShowNotificationCenter(true)} onOpenSpotlight={() => setShowSpotlightModal(true)}
-              onOpenShiftDrawer={() => setShowShiftDrawerModal(true)}
+              onOpenShiftDrawer={() => setShowShiftDrawerModal(true)} onLockTerminal={onLockTerminal}
               propertyZones={PROPERTY_ZONES} activeZoneId={selectedZoneId} onSelectZone={setSelectedZoneId}
               tableStatusFilter={tableStatusFilter} setTableStatusFilter={setTableStatusFilter}
               unpaidCount={unpaidCount} availableCount={availableCount} tablesGrid={tablesGrid}
@@ -486,6 +487,10 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         openingFloat={cashDrawerFloat || 500000}
         totalCashSales={1250000}
         bookId={companyBookId || 'BOOK-CAFE-HQ-88'}
+        onReconciled={() => {
+          setShowShiftDrawerModal(false)
+          if (onLockTerminal) onLockTerminal()
+        }}
       />
     </div>
   )

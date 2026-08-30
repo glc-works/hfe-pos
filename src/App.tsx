@@ -324,6 +324,7 @@ function AppMain() {
                 authorityContext={auth.currentStaffUser.authority_context_id || ''}
                 cashierId={auth.currentStaffUser.user_id}
                 handleMoveStatus={handleMoveStatus}
+                onLockTerminal={auth.logout}
               />
             )}
 
