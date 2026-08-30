@@ -15,6 +15,7 @@ import { LandingEventsSection } from './LandingEventsSection'
 import { LandingDedicatedSectionView } from './LandingDedicatedSectionView'
 import { LandingBreadcrumbs, LandingSectionId } from './LandingBreadcrumbs'
 import { OneTransactionOneTruthSection } from './OneTransactionOneTruthSection'
+import { useDynamicFavicon } from '../../hooks/useDynamicFavicon'
 
 interface LandingPageViewProps {
   hfeCompanyProfile: HfeCompanyProfile
@@ -35,6 +36,9 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const isMobile = viewportMode === 'mobile' || isContextMobile
   const { t, formatPrice } = useTranslation()
   const { vouchers, setActiveApp, storefrontConfig } = useMerchantConfig()
+
+  // Dynamically synchronize browser tab favicon with merchant logo (fallback to POS favicon)
+  useDynamicFavicon(hfeCompanyProfile?.logoUrl, hfeCompanyProfile?.brandName)
 
   const [activeSection, setActiveSection] = useState<LandingSectionId>('overview')
   const [copiedCode, setCopiedCode] = useState<string | null>(null)

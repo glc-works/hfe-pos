@@ -5,6 +5,7 @@ import { GlobalModals } from './components/modals/GlobalModals'
 import { useHfeSync } from './hooks/useHfeSync'
 import { useTableState } from './hooks/useTableState'
 import { useCart } from './hooks/useCart'
+import { useDynamicFavicon } from './hooks/useDynamicFavicon'
 import { LandingView } from './views/LandingView'
 import { CustomerMobileView } from './views/CustomerMobileView'
 import { lazy, Suspense } from 'react'
@@ -88,6 +89,10 @@ function AppMain() {
   }
 
   const sync = useHfeSync()
+
+  // Dynamically synchronize browser tab favicon with merchant logo (fallback to POS favicon)
+  useDynamicFavicon(sync.hfeCompanyProfile?.logoUrl, sync.hfeCompanyProfile?.brandName)
+
   const [orders, setOrders] = useState<OrderTicket[]>(runtimeInitialOrders)
   const table = useTableState({ orders, setOrders, hfeCompanyProfile: sync.hfeCompanyProfile })
 
