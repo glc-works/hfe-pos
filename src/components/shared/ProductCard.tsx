@@ -53,6 +53,7 @@ export interface ProductCardProps {
   variant?: ProductCardVariant
   showSku?: boolean
   onAddToCart?: (item: MenuItem) => void
+  onOpenDetail?: (item: MenuItem) => void
   onUpdateQty?: (newQty: number) => void
   onOpenModifiers?: (item: MenuItem) => void
   isImageUrl?: (url?: string) => boolean
@@ -73,6 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   variant = 'pos-list',
   showSku,
   onAddToCart,
+  onOpenDetail,
   onUpdateQty,
   onOpenModifiers,
   isImageUrl = (url) => typeof url === 'string' && (url.startsWith('http') || url.startsWith('/')),
@@ -95,7 +97,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const shouldShowSku = showSku !== undefined ? showSku : variant.startsWith('pos-')
 
   const handleCardClick = () => {
-    if (onAddToCart) {
+    if (onOpenDetail) {
+      onOpenDetail(product)
+    } else if (onAddToCart) {
       onAddToCart(product)
     }
   }

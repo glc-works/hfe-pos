@@ -3,6 +3,7 @@ import { Search, X, Sparkles } from 'lucide-react'
 import { MenuItem, CafeThemeConfig, HfeCompanyProfile, CartItem, OrderTicket } from '../../types/pos'
 import { getCategoryIcon } from './CustomerHeader'
 import { ProductCard } from '../shared/ProductCard'
+import { ProductDetailModal } from '../landing/ProductDetailModal'
 
 export interface CustomerCatalogViewProps {
   productCatalog: MenuItem[]
@@ -43,6 +44,7 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
   categoryRefs
 }) => {
   const [selectedBadge, setSelectedBadge] = React.useState<string>('all')
+  const [selectedProductForDetail, setSelectedProductForDetail] = React.useState<MenuItem | null>(null)
   const hasPreviousOrders = previousOrders && previousOrders.length > 0
   const isLight = activeTheme.mode === 'light'
   const textColor = activeTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
@@ -132,6 +134,7 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
             quantityInCart={cartQty}
             variant="customer-card"
             showSku={false}
+            onOpenDetail={(prod) => setSelectedProductForDetail(prod)}
             onAddToCart={() => {
               if (shouldOpenItemModifierModal(item) && onOpenModifierSheet) {
                 onOpenModifierSheet(item)
@@ -332,6 +335,21 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
           Powered by HFE Engine
         </span>
       </div>
+
+      {/* PRODUCT QUICK-PEEK DETAIL & STORY MODAL */}
+      <ProductDetailModal
+        show={Boolean(selectedProductForDetail)}
+        product={selectedProductForDetail}
+        onClose={() => setSelectedProductForDetail(null)}
+        onOrderNow={(prod) => {
+          setSelectedProductForDetail(null)
+          if (shouldOpenItemModifierModal(prod) && onOpenModifierSheet) {
+            onOpenModifierSheet(prod)
+          } else {
+            handleAddToCart(prod)
+          }
+        }}
+      />
     </>
   )
 }
