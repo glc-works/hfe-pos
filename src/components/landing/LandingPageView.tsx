@@ -9,7 +9,6 @@ import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { useViewport } from '../../context/ViewportContext'
 import { EventTicketPurchaseModal } from './EventTicketPurchaseModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
-import { OneTransactionOneTruthSection } from './OneTransactionOneTruthSection'
 
 interface LandingPageViewProps {
   hfeCompanyProfile: HfeCompanyProfile
@@ -367,9 +366,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           ))}
         </div>
       </section>
-
-      {/* ⚡ HOW TO ORDER (3-STEP SIMPLE FLOW) */}
-      <OneTransactionOneTruthSection />
 
       {/* 🎉 UPCOMING EVENTS & COMMUNITY CALENDAR */}
       <section id="events-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${

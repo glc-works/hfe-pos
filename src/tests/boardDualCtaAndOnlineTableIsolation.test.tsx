@@ -28,7 +28,7 @@ describe('L2-POS-101: BOARD Dual-CTA & Online Table State Isolation', () => {
       </LanguageProvider>
     )
 
-    expect(html).toContain('Pesan Online')
+    expect(html).toContain('Buka Menu &amp; Pesan')
     expect(html).toContain('Reservasi Meja')
   })
 
