@@ -322,14 +322,12 @@ export interface TranslationDictionary {
     orderOnlineCta: string
     reserveTable: string
     reserveTableCta: string
-    menuAndQr: string
-    scanQrOrder: string
-    onlineOrderHeaderBadge: string
-    sittingAtTablePrompt: string
     facilitiesTitle: string
     featuredMenuTitle: string
     viewAllCatalog: string
     hours: string
+    loginRegister: string
+    promoSubtitle: string
     oneTruthTag: string
     oneTruthTitle: string
     oneTruthSubtitle: string
@@ -339,13 +337,7 @@ export interface TranslationDictionary {
     oneTruthStep2Desc: string
     oneTruthStep3Title: string
     oneTruthStep3Desc: string
-    oneTruthStep4Title: string
-    oneTruthStep4Desc: string
-    oneTruthStep5Title: string
-    oneTruthStep5Desc: string
     merchantCtaBadge: string
-    merchantCtaTitle: string
-    merchantCtaDesc: string
     merchantCtaButton: string
   }
   truth: {

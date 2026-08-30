@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { HfeCompanyProfile, MenuItem, ViewportModeType } from '../../types/pos'
 import {
-  Coffee, Building, CalendarCheck, QrCode, Sparkles, ChevronRight,
-  Smartphone, Ticket, Copy, Check, Calendar, Music, MapPin, MessageCircle, Tag, CreditCard, Search, ShoppingBag
+  Coffee, Building, CalendarCheck, Sparkles, ChevronRight,
+  Ticket, Copy, Check, Music, MapPin, MessageCircle, Tag, Search, ShoppingBag, LogIn, Instagram
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
@@ -149,8 +149,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             onClick={() => setActiveApp('customer-portal')}
             className="hidden md:flex bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-amber-500/40 items-center gap-1.5 whitespace-nowrap shadow-xs hover:border-amber-500 cursor-pointer"
           >
-            <CreditCard className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
-            <span>Kartu Member</span>
+            <LogIn className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
+            <span>{t.landing.loginRegister}</span>
           </button>
           <button
             type="button"
@@ -159,14 +159,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           >
             <CalendarCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span>{t.landing.reserveTable}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onSwitchToCustomerApp}
-            className="theme-customer-btn-primary text-[11px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl shadow flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
-          >
-            <ShoppingBag className="w-3.5 h-3.5 text-slate-950 shrink-0" />
-            <span>{isMobile ? 'Pesan' : t.landing.scanQrOrder}</span>
           </button>
         </div>
       </header>
@@ -245,7 +237,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <h3 className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2">
               <Ticket className="w-4 h-4 text-amber-500 shrink-0" /> Promo & Kupon Spesial
             </h3>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">Salin & pakai di menu QR</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{t.landing.promoSubtitle}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -380,7 +372,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
 
         <div className={`grid gap-3 sm:gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-3'}`}>
-          {productCatalog.slice(0, 3).map(item => (
+          {productCatalog.slice(0, 6).map(item => (
             <div key={item.id} className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex gap-3 shadow-xs dark:shadow-xl">
               <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
               <div className="flex-1 flex flex-col justify-between min-w-0">
@@ -398,36 +390,43 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* ⚡ ONE TRANSACTION. ONE TRUTH. FLOW SECTION */}
       <OneTransactionOneTruthSection />
 
-      {/* 🚀 MERCHANT ONBOARDING CTA BANNER (pos.hfeit.com) */}
-      <section className="px-4 sm:px-8 py-6">
-        <div className="max-w-4xl mx-auto p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 text-center space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
-            <span>{t.landing.merchantCtaBadge}</span>
-          </div>
-          <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-            {t.landing.merchantCtaTitle}
-          </h4>
-          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-            {t.landing.merchantCtaDesc}
-          </p>
-          <div className="pt-1">
-            <a
-              href="https://pos.hfeit.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-95"
-            >
-              <span>{t.landing.merchantCtaButton}</span>
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* FOOTER & ADDRESS */}
-      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-8 py-6 text-center text-xs text-slate-500 flex flex-col gap-2">
-        <p className="font-bold text-slate-800 dark:text-slate-300">{hfeCompanyProfile.brandName} • {hfeCompanyProfile.ptLegalName}</p>
-        <p className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 font-mono">NPWP: {hfeCompanyProfile.taxIdNpwp} • {hfeCompanyProfile.address}</p>
-        <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-600">{t.landing.hours}</p>
+      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-8 py-6 text-center flex flex-col gap-2">
+        <div className="text-xs text-slate-500">
+          <p className="font-bold text-slate-800 dark:text-slate-300">{hfeCompanyProfile.brandName} • {hfeCompanyProfile.ptLegalName}</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 font-mono">NPWP: {hfeCompanyProfile.taxIdNpwp} • {hfeCompanyProfile.address}</p>
+          <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-600">{t.landing.hours}</p>
+        </div>
+
+        <div className="flex items-center justify-center gap-3 pt-2">
+          {storefrontConfig.socialLinks?.instagram && (
+            <a href={`https://instagram.com/${storefrontConfig.socialLinks.instagram}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-500 transition-colors">
+              <Instagram className="w-4 h-4" />
+            </a>
+          )}
+          {storefrontConfig.socialLinks?.whatsapp && (
+            <a href={`https://wa.me/${storefrontConfig.socialLinks.whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-500 transition-colors">
+              <MessageCircle className="w-4 h-4" />
+            </a>
+          )}
+          {storefrontConfig.socialLinks?.googleMapsUrl && (
+            <a href={storefrontConfig.socialLinks.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-500 transition-colors">
+              <MapPin className="w-4 h-4" />
+            </a>
+          )}
+        </div>
+
+        <p className="text-[9px] text-slate-400 dark:text-slate-500 pt-2">
+          {t.landing.merchantCtaBadge} •{' '}
+          <a
+            href="https://pos.hfeit.com"
+            target="_blank"
+            rel="noopener noreferrer" 
+            className="text-amber-500 hover:text-amber-400 font-bold underline underline-offset-2"
+          >
+            {t.landing.merchantCtaButton}
+          </a>
+        </p>
       </footer>
 
       {/* 🎟️ EVENT TICKET & WORKSHOP BOOKING MODAL */}
