@@ -260,18 +260,28 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
                   <div>
-                    <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono block">Harga Tiket:</span>
-                    <span className="text-sm sm:text-base font-mono font-black text-amber-600 dark:text-amber-400">
-                      {formatPrice(evt.price)}
-                    </span>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono block">Akses Masuk:</span>
+                    {evt.price === 0 ? (
+                      <span className="text-sm sm:text-base font-mono font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
+                        Gratis / Free Entry
+                      </span>
+                    ) : (
+                      <span className="text-sm sm:text-base font-mono font-black text-amber-600 dark:text-amber-400">
+                        {formatPrice(evt.price)}
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"
                     onClick={() => onSelectEvent(evt)}
-                    className="text-xs font-bold px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-md flex items-center gap-1.5 transition-all transform active:scale-95 cursor-pointer"
+                    className={`text-xs font-bold px-4 py-2.5 rounded-xl text-white shadow-md flex items-center gap-1.5 transition-all transform active:scale-95 cursor-pointer ${
+                      evt.price === 0
+                        ? 'bg-emerald-600 hover:bg-emerald-500'
+                        : 'bg-purple-600 hover:bg-purple-500'
+                    }`}
                   >
-                    <Ticket className="w-4 h-4" />
-                    <span>{evt.category === 'workshop_class' ? 'Booking Kelas' : 'Beli Tiket'}</span>
+                    {evt.price === 0 ? <CalendarCheck className="w-4 h-4" /> : <Ticket className="w-4 h-4" />}
+                    <span>{evt.price === 0 ? 'RSVP Masuk' : evt.category === 'workshop_class' ? 'Booking Kelas' : 'Beli Tiket'}</span>
                   </button>
                 </div>
               </div>

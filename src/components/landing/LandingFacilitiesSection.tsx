@@ -73,33 +73,21 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
     <section id="facilities-section" className={`py-6 sm:py-8 max-w-6xl mx-auto w-full flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800/80 ${
       isMobile ? 'px-4' : 'px-4 sm:px-8'
     }`}>
-      {/* SECTION HEADER WITH CAROUSEL CONTROLS & DEDICATED LINK */}
+      {/* SECTION HEADER WITH CLICKABLE TITLE & CONTROLS AT FAR RIGHT */}
       <div className="flex items-center justify-between">
-        <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-500 shrink-0" /> {title}
-        </h3>
+        <button
+          type="button"
+          onClick={onViewAllFacilities}
+          className="group text-left cursor-pointer transition-transform active:scale-98"
+        >
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 group-hover:text-amber-500 transition-colors">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>{title}</span>
+            <ArrowRight className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all hidden sm:inline-block" />
+          </h3>
+        </button>
 
-        <div className="flex items-center gap-2">
-          {facilities.length > 3 && (
-            <div className="hidden sm:flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => scroll('left')}
-                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
-                title="Geser Kiri"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scroll('right')}
-                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
-                title="Geser Kanan"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+        <div className="flex items-center gap-2.5">
           {onViewAllFacilities && (
             <button
               type="button"
@@ -109,6 +97,27 @@ export const LandingFacilitiesSection: React.FC<LandingFacilitiesSectionProps> =
               <span>Detail Fasilitas</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
+          )}
+
+          {facilities.length > 3 && (
+            <div className="hidden sm:flex items-center gap-1 pl-1 border-l border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => scroll('left')}
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
+                title="Geser Kiri"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll('right')}
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-white hover:bg-amber-500 transition-all cursor-pointer"
+                title="Geser Kanan"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
         </div>
       </div>

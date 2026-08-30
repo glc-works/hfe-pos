@@ -70,6 +70,14 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
       bannerUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
       description: 'Workshop seduh V60 & cupping 5 single-origin nusantara + Sertifikat & Biji Kopi 200g.',
       includedBenefits: ['Sertifikat Workshop', 'Beans 200g', 'Cupping Kit']
+    },
+    {
+      id: 'EVT-COMMUNITY-03', title: 'Sunday Morning 5K Coffee & Runners Meetup', category: 'sports_class',
+      date: 'Setiap Minggu', time: '06:30 - 09:00 WIB', location: 'Outdoor Patio & Parkir',
+      price: 0, quotaTotal: 50, quotaRemaining: 28,
+      bannerUrl: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=600&q=80',
+      description: 'Lari pagi 5K santai bersama komunitas runners Senopati. Gratis air mineral & voucher sarapan.',
+      includedBenefits: ['Free Mineral Water', '15% Breakfast Voucher']
     }
   ],
 

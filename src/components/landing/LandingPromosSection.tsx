@@ -42,18 +42,35 @@ export const LandingPromosSection: React.FC<LandingPromosSectionProps> = ({
       isMobile ? 'px-4' : 'px-4 sm:px-8'
     }`}>
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <Tag className="w-4 h-4 text-amber-500 shrink-0" /> {t.landing.promosTitle}
+        {/* CLICKABLE TITLE TO OPEN DEDICATED VIEW */}
+        <button
+          type="button"
+          onClick={onViewAllPromos}
+          className="group text-left cursor-pointer transition-transform active:scale-98"
+        >
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 group-hover:text-amber-500 transition-colors">
+            <Tag className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>{t.landing.promosTitle}</span>
+            <ArrowRight className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all hidden sm:inline-block" />
           </h3>
           <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
             {t.landing.promoSubtitle || 'Salin & gunakan saat berkunjung'}
           </p>
-        </div>
+        </button>
 
-        <div className="flex items-center gap-2">
+        {/* RIGHT CONTROLS: [ LIHAT SEMUA ➔ ] THEN [ < ] [ > ] AT FAR RIGHT */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={onViewAllPromos}
+            className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer"
+          >
+            <span>Lihat Semua</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+
           {promos.length > 3 && (
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-1 pl-1 border-l border-slate-200 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => scroll('left')}
@@ -72,14 +89,6 @@ export const LandingPromosSection: React.FC<LandingPromosSectionProps> = ({
               </button>
             </div>
           )}
-          <button
-            type="button"
-            onClick={onViewAllPromos}
-            className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer"
-          >
-            <span>Lihat Semua</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
         </div>
       </div>
 

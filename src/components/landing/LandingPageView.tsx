@@ -286,9 +286,17 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             isMobile ? 'px-4' : 'px-4 sm:px-8'
           }`}>
             <div className="flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-amber-500 shrink-0" /> {catalogSectionTitle}
-              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveSection('menu')}
+                className="group text-left cursor-pointer transition-transform active:scale-98"
+              >
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 group-hover:text-amber-500 transition-colors">
+                  <Coffee className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>{catalogSectionTitle}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all hidden sm:inline-block" />
+                </h3>
+              </button>
               <button
                 type="button"
                 onClick={() => setActiveSection('menu')}
