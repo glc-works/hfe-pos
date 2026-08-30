@@ -71,5 +71,20 @@ describe('Theme Contrast & Parity Audit Suite (POS-ENG-STD-001 & GLC-FNB-AUDIT-0
     expect(content).toContain('backgroundColor:')
     expect(content).toContain('isLight')
   })
+
+  it('should enforce that ProductDetailModal and EventTicketPurchaseModal declare dual-theme adaptive background and text', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    
+    const productModalFile = path.resolve(__dirname, '../components/landing/ProductDetailModal.tsx')
+    const productContent = fs.readFileSync(productModalFile, 'utf-8')
+    expect(productContent).toContain('bg-white dark:bg-slate-900')
+    expect(productContent).toContain('text-slate-900 dark:text-white')
+
+    const ticketModalFile = path.resolve(__dirname, '../components/landing/EventTicketPurchaseModal.tsx')
+    const ticketContent = fs.readFileSync(ticketModalFile, 'utf-8')
+    expect(ticketContent).toContain('bg-white dark:bg-slate-900')
+    expect(ticketContent).toContain('text-slate-900 dark:text-white')
+  })
 })
 

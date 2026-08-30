@@ -282,6 +282,7 @@ Every component, token, widget, layout, and view in this codebase MUST strictly 
   - DO NOT use proportional standard fonts for monetary amounts (prevents layout jitter and digit clipping).
   - DO NOT use verbose multi-word labels on compact grids (e.g. avoid *"Kapasitas 4 Meja"* when `👥 4` is required).
   - DO NOT use odd/arbitrary pixel margins (e.g. `p-[13px]`, `gap-[7px]`) that cause sub-pixel antialiasing blur.
+  - DO NOT write unpaired dark text classes (e.g. `text-slate-900` without `dark:text-white`) or un-adaptive modal backgrounds (`bg-slate-900` without `bg-white dark:bg-slate-900`) that cause White-on-White contrast bugs in Day Mode. Enforced via `scripts/audit-theme-contrast.py`.
 
 ### 🔵 Tier 2: React Aria Atoms & Headless Primitives (`src/ui/`)
 - **✅ WHAT TO DO:**
