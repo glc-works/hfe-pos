@@ -128,8 +128,8 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
       <WifiAccessCelebrationBanner
         wifiAccessPolicy={hfeCompanyProfile?.storefrontInfo?.wifiAccessPolicy || 'after_payment'}
         hasPaidOrder={hasPaidOrder}
-        wifiSsid={hfeCompanyProfile?.storefrontInfo?.wifiSsid || 'Kopitiam_Senopati_Guest'}
-        wifiPassword={hfeCompanyProfile?.storefrontInfo?.wifiPassword || 'kopiuenak2026'}
+        wifiSsid={hfeCompanyProfile?.storefrontInfo?.wifiSsid || (hfeCompanyProfile?.brandName ? `${hfeCompanyProfile.brandName.replace(/[^a-zA-Z0-9]/g, '_')}_Guest` : 'Guest_WiFi')}
+        wifiPassword={hfeCompanyProfile?.storefrontInfo?.wifiPassword || 'guestwifi123'}
         isLight={isLight}
         textColor={textColor}
       />

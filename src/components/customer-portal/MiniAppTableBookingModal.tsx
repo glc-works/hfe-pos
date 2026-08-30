@@ -36,7 +36,7 @@ export const MiniAppTableBookingModal: React.FC<MiniAppTableBookingModalProps> =
             </div>
             <div>
               <h4 className="text-sm font-black text-white">📅 Reservasi Meja & Ruang VIP</h4>
-              <span className="text-[10px] font-mono text-amber-400">Kopitiam Senopati • Instant Booking Pass</span>
+              <span className="text-[10px] font-mono text-amber-400">Direct Pass • Instant Booking</span>
             </div>
           </div>
           <button

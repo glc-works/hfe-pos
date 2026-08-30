@@ -13,7 +13,7 @@ const DEFAULT_PREFERENCES: CustomerPreferences = {
   preferredSugar: '50%',
   dietaryNotes: 'Lebih dingin / less ice jika memungkinkan',
   vehiclePlateNumber: 'B 1234 XYZ',
-  deliveryAddress: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
+  deliveryAddress: 'Jl. Melati No. 12, Jakarta',
   allergens: ['lactose'],
   paperlessReceipts: true,
   ecoPointsEarned: 30

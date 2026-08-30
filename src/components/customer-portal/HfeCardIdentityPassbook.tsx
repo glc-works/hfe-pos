@@ -30,9 +30,9 @@ export interface MerchantPass {
 
 const SAMPLE_MERCHANT_PASSES: MerchantPass[] = [
   {
-    id: 'PASS-SENOPATI',
-    merchantName: 'Kopitiam Senopati & Roastery',
-    merchantSlug: 'kopitiam-senopati',
+    id: 'PASS-FLAGSHIP-01',
+    merchantName: 'Artisan Cafe & Roastery HQ',
+    merchantSlug: 'artisan-cafe',
     merchantLogo: '☕',
     themeColor: 'amber',
     memberTier: 'GOLD VIP',
@@ -40,7 +40,7 @@ const SAMPLE_MERCHANT_PASSES: MerchantPass[] = [
     stampsMax: 10,
     stampsLabel: 'Cups (2 lagi Free!)',
     vouchersCount: 2,
-    barcodeId: 'CUST-SEN-8829-VIP',
+    barcodeId: 'CUST-ART-8829-VIP',
     isHfeNetworkSharing: true
   },
   {
@@ -96,17 +96,17 @@ const WORK_IDENTITIES: HfeUserIdentity[] = [
     }
   },
   {
-    id: 'ID-WORK-SENOPATI',
+    id: 'ID-WORK-FLAGSHIP',
     type: 'work',
-    label: 'Senopati (Store Manager)',
+    label: 'Outlet Flagship (Store Manager)',
     icon: '☕',
     workConfig: {
-      companyName: 'PT Cafe Berkah Sentosa',
-      companyBookId: 'BOOK-SENOPATI-01',
-      branchName: 'Kopitiam Senopati (HQ)',
+      companyName: 'PT Artisan Kuliner Nusantara',
+      companyBookId: 'BOOK-FLAGSHIP-01',
+      branchName: 'Artisan Cafe Flagship HQ',
       role: 'store_manager',
-      employeeId: 'STF-SEN-002',
-      qrPassCode: 'PASS-SEN-MGR-8829',
+      employeeId: 'STF-ART-002',
+      qrPassCode: 'PASS-ART-MGR-8829',
       activeShift: {
         clockInTime: '08:15 WIB',
         shiftDuration: '4j 20m',
@@ -125,7 +125,7 @@ export const HfeCardIdentityPassbook: React.FC<HfeCardIdentityPassbookProps> = (
 }) => {
   const [personaMode, setPersonaMode] = useState<'life' | 'work'>('life')
   const [merchantPasses] = useState<MerchantPass[]>(SAMPLE_MERCHANT_PASSES)
-  const [activePassId, setActivePassId] = useState<string>('PASS-SENOPATI')
+  const [activePassId, setActivePassId] = useState<string>('PASS-FLAGSHIP-01')
   const [activeWorkId, setActiveWorkId] = useState<string>('ID-WORK-CILANDAK')
   const [copiedBarcode, setCopiedBarcode] = useState<boolean>(false)
 

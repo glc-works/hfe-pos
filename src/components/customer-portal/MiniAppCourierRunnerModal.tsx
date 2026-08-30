@@ -23,7 +23,7 @@ const INITIAL_DELIVERY_TASKS: EnhancedDeliveryTask[] = [
     orderId: 'ORD-8821',
     customerName: 'Dian Permata',
     customerPhone: '081298765432',
-    deliveryAddress: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
+    deliveryAddress: 'Jl. Melati No. 45, Kebayoran, Jakarta',
     itemsSummary: '2x Espresso Aren Latte (Oat Milk), 1x Truffle Fries',
     totalAmount: 98900,
     paymentStatus: 'PAID',
@@ -88,7 +88,7 @@ export const MiniAppCourierRunnerModal: React.FC<MiniAppCourierRunnerModalProps>
   const openWhatsAppCustomer = (phone: string, orderId: string, customerName: string) => {
     const cleanPhone = phone.replace(/^0/, '62')
     const msg = encodeURIComponent(
-      `Halo Kak ${customerName}! Saya kurir dari Kopitiam Senopati sedang mengantar pesanan ${orderId}. Mohon ditunggu ya kak!`
+      `Halo Kak ${customerName}! Saya kurir toko sedang mengantar pesanan ${orderId}. Mohon ditunggu ya kak!`
     )
     window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank')
   }

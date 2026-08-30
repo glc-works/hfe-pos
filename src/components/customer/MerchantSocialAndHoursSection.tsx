@@ -11,6 +11,8 @@ export interface MerchantSocialAndHoursSectionProps {
   textColor: string
   customerTheme: CafeThemeConfig
   isLight: boolean
+  address?: string
+  brandName?: string
   wifiAccessPolicy?: string
   wifiSsid: string
   wifiPassword: string
@@ -27,6 +29,8 @@ export const MerchantSocialAndHoursSection: React.FC<MerchantSocialAndHoursSecti
   textColor,
   customerTheme,
   isLight,
+  address,
+  brandName,
   wifiAccessPolicy,
   wifiSsid,
   wifiPassword,
@@ -92,7 +96,7 @@ export const MerchantSocialAndHoursSection: React.FC<MerchantSocialAndHoursSecti
       <div className="flex flex-col gap-1.5 text-xs" style={{ color: secondaryTextColor }}>
         <div className="flex items-center gap-2">
           <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <span style={{ color: textColor }}>Jl. Senopati Raya No. 42, Kebayoran Baru, Jakarta Selatan</span>
+          <span style={{ color: textColor }}>{address || 'Lokasi Utama Outlet'}</span>
         </div>
 
         {wifiAccessPolicy !== 'disabled' && (
@@ -145,7 +149,7 @@ export const MerchantSocialAndHoursSection: React.FC<MerchantSocialAndHoursSecti
           rel="noreferrer"
           className="border text-[11px] font-bold py-2 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-1 transition-all touch-manipulation active:scale-95 cursor-pointer"
           style={{ backgroundColor: modalBg, borderColor: subCardBorder, color: textColor }}
-          title="Chat WhatsApp Cafe"
+          title="Chat WhatsApp"
         >
           <MessageCircle className="w-4 h-4 text-emerald-500 shrink-0" />
           <span className="text-[10px]">WhatsApp</span>
@@ -153,7 +157,10 @@ export const MerchantSocialAndHoursSection: React.FC<MerchantSocialAndHoursSecti
 
         <button
           type="button"
-          onClick={() => alert('Membuka Google Maps lokasi Kopitiam Senopati...')}
+          onClick={() => {
+            const query = encodeURIComponent(address || brandName || 'Outlet')
+            window.open(`https://maps.google.com/?q=${query}`, '_blank')
+          }}
           className="border text-[11px] font-bold py-2 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-1 transition-all touch-manipulation active:scale-95 cursor-pointer"
           style={{ backgroundColor: modalBg, borderColor: subCardBorder, color: textColor }}
           title="Pin Lokasi Google Maps"

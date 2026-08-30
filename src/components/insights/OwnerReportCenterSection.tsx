@@ -15,8 +15,8 @@ export interface OwnerReportCenterSectionProps {
 
 export const OwnerReportCenterSection: React.FC<OwnerReportCenterSectionProps> = ({
   companyProfile = {
-    brandName: 'Kopitiam Senopati',
-    ptLegalName: 'PT Kopi Nusantara Abadi',
+    brandName: 'Artisan Cafe & Roastery HQ',
+    ptLegalName: 'PT Artisan Kuliner Nusantara',
     taxIdNpwp: '01.2026.889.2.100.000'
   } as any
 }) => {
