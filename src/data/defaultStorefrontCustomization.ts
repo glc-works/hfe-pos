@@ -27,22 +27,22 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
     isEmergencyBusyMode: false
   },
   facilities: [
-    { icon: '🍃', title: 'Outdoor Garden', desc: 'Area outdoor asri & smoking area' },
-    { icon: '❄️', title: 'VIP AC Room', desc: 'Ruang privat meeting 12 pax' },
-    { icon: '📶', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
-    { icon: '🅿️', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
+    { icon: 'trees', title: 'Outdoor Garden', desc: 'Area outdoor asri & smoking area' },
+    { icon: 'sparkles', title: 'VIP AC Room', desc: 'Ruang privat meeting 12 pax' },
+    { icon: 'wifi', title: 'WiFi 300 Mbps', desc: 'Koneksi cepat & colokan di tiap meja' },
+    { icon: 'car', title: 'Free Valet Parking', desc: 'Parkir luas & EV charging' }
   ],
   events: [
     {
-      id: 'EVT-JAZZ-01', title: '🎷 Friday Night Live Acoustic Jazz', category: 'music_event',
-      date: 'Setiap Jumat', time: '19:30 - 22:00 WIB', location: '🌿 Outdoor Garden & Stage',
+      id: 'EVT-JAZZ-01', title: 'Friday Night Live Acoustic Jazz', category: 'music_event',
+      date: 'Setiap Jumat', time: '19:30 - 22:00 WIB', location: 'Outdoor Garden & Stage',
       price: 150000, quotaTotal: 40, quotaRemaining: 14,
       description: 'Penampilan jazz akustik santai, termasuk Welcome Drink Signature Mocktail.',
       includedBenefits: ['Welcome Drink', 'Free Seating Stage View']
     },
     {
-      id: 'EVT-WORKSHOP-02', title: '☕ Barista Cupping & Manual Brew Masterclass', category: 'workshop_class',
-      date: 'Sabtu, 29 Agustus', time: '10:00 - 13:00 WIB', location: '❄️ VIP Roastery Room',
+      id: 'EVT-WORKSHOP-02', title: 'Barista Cupping & Manual Brew Masterclass', category: 'workshop_class',
+      date: 'Sabtu, 29 Agustus', time: '10:00 - 13:00 WIB', location: 'VIP Roastery Room',
       price: 250000, quotaTotal: 12, quotaRemaining: 4, instructorName: 'Head Roaster Dimas',
       description: 'Workshop seduh V60 & cupping 5 single-origin nusantara + Sertifikat & Biji Kopi 200g.',
       includedBenefits: ['Sertifikat Workshop', 'Beans 200g', 'Cupping Kit']
@@ -50,13 +50,13 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
   ],
 
   // 2. QR Order Customer Space Studio
-  greetingMessage: 'Selamat datang di Kopitiam Senopati! Silakan pilih menu dan nikmati waktu santai Anda.',
+  greetingMessage: 'Selamat datang! Silakan pilih menu dan nikmati waktu santai Anda.',
   qrBannerUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
   qrMenuLayout: 'grid_2col',
   wifiAccessPolicy: 'after_payment',
   enableAllergenBadges: true,
   enableDigitalReceiptSharing: true,
-  receiptCustomFooter: 'Terima kasih telah berkunjung! Follow IG @kopitiam_senopati untuk voucher & promo mingguan.'
+  receiptCustomFooter: 'Terima kasih telah berkunjung! Simpan e-receipt ini untuk klaim reward member.'
 }
 
 export const BANNER_PRESETS = [

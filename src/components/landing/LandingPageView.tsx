@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { HfeCompanyProfile, MenuItem, ViewportModeType, EventTicketItem } from '../../types/pos'
 import {
   Coffee, CalendarCheck, Sparkles, ChevronRight,
-  Ticket, Copy, Check, Music, MapPin, MessageCircle, Tag, Search, ShoppingBag, Instagram, Share2
+  Ticket, Copy, Check, Music, MapPin, MessageCircle, Tag, Search, ShoppingBag, Instagram, Share2,
+  Trees, Car, Wifi, Zap, Wind
 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
@@ -337,20 +338,37 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </h3>
 
           <div className="flex flex-wrap gap-2 sm:gap-2.5">
-            {facilities.map((fac, idx) => (
-              <div
-                key={idx}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-amber-500/40 transition-all text-xs font-medium text-slate-800 dark:text-slate-200"
-              >
-                <span className="text-sm shrink-0 opacity-90">{fac.icon}</span>
-                <span className="font-semibold">{fac.title}</span>
-                {fac.desc && (
-                  <span className="text-[11px] text-slate-500 dark:text-slate-300 font-normal border-l border-slate-200 dark:border-slate-800 pl-2 ml-0.5 hidden sm:inline">
-                    {fac.desc}
-                  </span>
-                )}
-              </div>
-            ))}
+            {facilities.map((fac, idx) => {
+              const k = (fac.icon || '').toLowerCase()
+              const iconElement = k.includes('wifi') || k.includes('internet') ? (
+                <Wifi className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+              ) : k.includes('trees') || k.includes('garden') || k.includes('outdoor') ? (
+                <Trees className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              ) : k.includes('car') || k.includes('park') || k.includes('valet') ? (
+                <Car className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              ) : k.includes('sparkles') || k.includes('room') || k.includes('vip') || k.includes('ac') ? (
+                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              ) : k.includes('zap') || k.includes('power') ? (
+                <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              ) : (
+                <Check className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              )
+
+              return (
+                <div
+                  key={idx}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-amber-500/40 transition-all text-xs font-medium text-slate-800 dark:text-slate-200"
+                >
+                  {iconElement}
+                  <span className="font-semibold">{fac.title}</span>
+                  {fac.desc && (
+                    <span className="text-[11px] text-slate-500 dark:text-slate-300 font-normal border-l border-slate-200 dark:border-slate-800 pl-2 ml-0.5 hidden sm:inline">
+                      {fac.desc}
+                    </span>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </section>
       )}
