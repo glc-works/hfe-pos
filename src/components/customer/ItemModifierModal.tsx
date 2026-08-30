@@ -152,14 +152,11 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
           </div>
 
           {/* PRODUCT DETAILS HEADER */}
-          <div className="px-4 pt-4 pb-4 border-b flex flex-col gap-1.5" style={{ borderColor: cardBorder }}>
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-base font-bold tracking-tight leading-snug line-clamp-2" style={{ color: textColor }}>{item.name}</h3>
-              <span className="text-sm font-mono font-bold shrink-0" style={{ color: customerTheme.primaryAccentHex }}>
-                Rp {item.price.toLocaleString('id-ID')}
-              </span>
-            </div>
-            <p className="text-xs leading-relaxed" style={{ color: secondaryTextColor }}>{item.description}</p>
+          <div className="px-4 pt-4 pb-3 border-b flex flex-col gap-1" style={{ borderColor: cardBorder }}>
+            <h3 className="text-base font-bold tracking-tight leading-snug" style={{ color: textColor }}>{item.name}</h3>
+            {item.description && (
+              <p className="text-xs leading-relaxed" style={{ color: secondaryTextColor }}>{item.description}</p>
+            )}
           </div>
 
           {/* MODIFIERS BODY */}
@@ -399,11 +396,10 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
             <button
               type="button"
               onClick={handleConfirm}
-              className="flex-1 font-bold text-sm py-3.5 rounded-xl shadow-lg flex items-center justify-between px-4 transition-all active:scale-95"
+              className="flex-1 font-bold text-sm h-12 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
               style={{ backgroundColor: customerTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}
             >
-              <span>Tambah ke Keranjang</span>
-              <span className="font-mono font-extrabold text-sm tracking-tight">• Rp {totalPrice.toLocaleString('id-ID')} ➔</span>
+              <span>+ Tambah ke Keranjang</span>
             </button>
           </div>
         </div>
