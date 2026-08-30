@@ -6,6 +6,7 @@ import {
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { BANNER_PRESETS } from '../../data/defaultStorefrontCustomization'
 import { StorefrontCustomizationConfig, WifiAccessPolicy, QrMenuLayoutMode } from '../../types/pos'
+import { MerchantAmenitySelectorSection } from './MerchantAmenitySelectorSection'
 
 interface MerchantStorefrontCustomizerModalProps {
   isOpen: boolean
@@ -254,6 +255,12 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
                   </div>
                 </div>
               </div>
+
+              {/* 🏢 STANDARDIZED GOOGLE MAPS AMENITY SELECTOR */}
+              <MerchantAmenitySelectorSection
+                selectedTags={formData.amenityTags}
+                onChange={(newTags) => setFormData({ ...formData, amenityTags: newTags })}
+              />
             </div>
           )}
 
