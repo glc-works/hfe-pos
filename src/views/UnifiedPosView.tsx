@@ -53,30 +53,29 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [cartItems, setCartItems] = useState<CartItem[]>([])
-
-  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false)
-  const [showCameraScanner, setShowCameraScanner] = useState(false)
   const [directQtyItem, setDirectQtyItem] = useState<{ item: CartItem; index: number } | null>(null)
-  const [showTableOpsModal, setShowTableOpsModal] = useState(false)
-  const [showRoomChargeModal, setShowRoomChargeModal] = useState(false)
-  const [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false)
-  const [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false)
-  const [showEditPinnedModal, setShowEditPinnedModal] = useState(false)
-  const [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false)
-  const [showNotificationCenter, setShowNotificationCenter] = useState(false)
-  const [showServiceTickets, setShowServiceTickets] = useState(false)
-  const [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false)
-  const [showSpotlightModal, setShowSpotlightModal] = useState(false)
+
+  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false), [showCameraScanner, setShowCameraScanner] = useState(false)
+  const [showTableOpsModal, setShowTableOpsModal] = useState(false), [showRoomChargeModal, setShowRoomChargeModal] = useState(false)
+  const [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false), [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false)
+  const [showEditPinnedModal, setShowEditPinnedModal] = useState(false), [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false)
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false), [showServiceTickets, setShowServiceTickets] = useState(false)
+  const [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false), [showSpotlightModal, setShowSpotlightModal] = useState(false)
   const [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false)
 
-  const [reassignFromTable, setReassignFromTable] = useState('OUT-04')
-  const [reassignTargetTable, setReassignTargetTable] = useState('IND-01')
+  const [reassignFromTable, setReassignFromTable] = useState<string>(() => selectedPOSTable?.name || tablesGrid[0]?.name || 'IND-01')
+  const [reassignTargetTable, setReassignTargetTable] = useState<string>(() => tablesGrid[1]?.name || tablesGrid[0]?.name || 'IND-02')
   const [viewMode, setViewMode] = useState<'grid' | 'compact' | 'list'>('grid')
   const [pinnedItemIds, setPinnedItemIds] = useState<string[]>(() => productCatalog.slice(0, 12).map((i) => i.id))
   const pinnedFavorites = useMemo(() => productCatalog.filter((item) => pinnedItemIds.includes(item.id)), [productCatalog, pinnedItemIds])
 
   const handleTableClick = (table: TableStatus) => {
     setSelectedPOSTable(table)
+    setReassignFromTable(table.name)
+    const freeTarget = tablesGrid.find((t) => t.status === 'free' && t.name !== table.name)
+    if (freeTarget) {
+      setReassignTargetTable(freeTarget.name)
+    }
     if (table.status === 'occupied' || table.status === 'open-tab') {
       setShowTableDetailDrawer(true)
     } else {
@@ -149,7 +148,6 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
     commitPaidState: handlePOSCheckoutTable,
     clearCart: () => { setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false) },
   })
-
 
   const handleCloseAllModals = () => {
     setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false); setShowRoomChargeModal(false)
