@@ -80,6 +80,8 @@ export interface CategoryEtalaseConfig {
   allowCustomNotesDefault: boolean
 }
 
+export type MenuItemBadge = 'seasonal' | 'chef_recommendation' | 'best_seller' | 'new_arrival' | 'signature'
+
 export interface MenuItem {
   id: string
   name: string
@@ -89,6 +91,11 @@ export interface MenuItem {
   price: number
   image: string
   description: string
+  badge?: MenuItemBadge
+  badgeStory?: string
+  tastingNotes?: string[]
+  dietaryTags?: ('vegan' | 'gluten_free' | 'dairy_free' | 'nut_free' | 'halal')[]
+  originInfo?: string
   hasModifiers?: boolean
   modifierPolicy?: ModifierPolicy
   modifierGroups?: ModifierGroup[]
@@ -468,19 +475,9 @@ export interface ServiceTicket {
 
 // --- ACTIVE OPERATIONS TRAY & PARKED TABS (L2-POS-TRAY) ---
 export interface ParkedOperationTab {
-  id: string
-  label: string
-  fulfillmentMode: OrderFulfillmentMode
-  tableName?: string
-  customerName?: string
-  customerPhone?: string
-  items: CartItem[]
-  rawSubtotal: number
-  packagingFee: number
-  totalAmount: number
-  parkedAt: string
-  elapsedMinutes?: number
-  notes?: string
+  id: string; label: string; fulfillmentMode: OrderFulfillmentMode; tableName?: string
+  customerName?: string; customerPhone?: string; items: CartItem[]; rawSubtotal: number
+  packagingFee: number; totalAmount: number; parkedAt: string; elapsedMinutes?: number; notes?: string
 }
 
 // --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---

@@ -5,6 +5,48 @@ import { useTranslation } from '../../context/LanguageContext'
 
 export type ProductCardVariant = 'pos-list' | 'pos-grid' | 'pos-compact' | 'customer-card' | 'speed-key'
 
+export const getBadgeMeta = (badge?: MenuItem['badge']) => {
+  switch (badge) {
+    case 'seasonal':
+      return {
+        label: '🍂 Menu Musiman',
+        shortLabel: '🍂 Musiman',
+        glyph: '🍂',
+        className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+      }
+    case 'chef_recommendation':
+      return {
+        label: '👨‍🍳 Pilihan Chef',
+        shortLabel: '👨‍🍳 Chef Pick',
+        glyph: '👨‍🍳',
+        className: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'
+      }
+    case 'best_seller':
+      return {
+        label: '🔥 Menu Terlaris',
+        shortLabel: '🔥 Terlaris',
+        glyph: '🔥',
+        className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+      }
+    case 'new_arrival':
+      return {
+        label: '✨ Menu Baru',
+        shortLabel: '✨ Baru',
+        glyph: '✨',
+        className: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'
+      }
+    case 'signature':
+      return {
+        label: '👑 Kreasi Signature',
+        shortLabel: '👑 Signature',
+        glyph: '👑',
+        className: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'
+      }
+    default:
+      return null
+  }
+}
+
 export interface ProductCardProps {
   product: MenuItem
   quantityInCart?: number
@@ -47,6 +89,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const { t, formatPrice } = useTranslation()
   const cartQty = quantityInCart
   const isLight = cardBgHex === '#ffffff' || (textColor ? textColor.toLowerCase() === '#1e293b' || textColor.toLowerCase() === '#0f172a' : false)
+  const badgeMeta = getBadgeMeta(product.badge)
 
   // Default SKU visibility: true for POS cashiers, false for Customers
   const shouldShowSku = showSku !== undefined ? showSku : variant.startsWith('pos-')
@@ -103,6 +146,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-slate-950 dark:group-hover:text-white">{product.name}</span>
+              {badgeMeta && (
+                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border shrink-0 ${badgeMeta.className}`} title={badgeMeta.label}>
+                  {badgeMeta.shortLabel}
+                </span>
+              )}
               {shouldShowSku && (
                 <span className="text-[9px] font-mono text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800 shrink-0">
                   {product.hfeCategoryCode || product.id}
@@ -251,6 +299,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         } rounded-xl p-2.5 flex flex-col items-center justify-between text-center transition-all hover:scale-[1.02] shadow-sm group min-h-[110px] select-none ${className}`}
         style={style}
       >
+        {badgeMeta && (
+          <span className={`absolute top-1.5 left-1.5 text-[9px] px-1 py-0.2 rounded border shadow-xs z-10 ${badgeMeta.className}`} title={badgeMeta.label}>
+            {badgeMeta.glyph}
+          </span>
+        )}
         {cartQty > 0 && (
           <span className="absolute top-1.5 right-1.5 bg-emerald-500 text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded-full shadow-md border border-emerald-300 animate-scaleIn z-10">
             {cartQty}x
@@ -296,9 +349,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           className="w-20 h-20 rounded-xl object-cover border shrink-0 shadow-inner"
           style={{ borderColor: cardBorderColor }}
         />
+        {badgeMeta && (
+          <span className={`absolute -top-1.5 -left-1 text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-md border shadow-xs flex items-center gap-0.5 z-10 ${badgeMeta.className}`}>
+            <span>{badgeMeta.shortLabel}</span>
+          </span>
+        )}
         {cartQty > 0 && (
           <span
-            className="absolute -top-1.5 -right-1.5 text-[10px] font-mono font-black px-2 py-0.5 rounded-full shadow-lg border animate-scaleIn flex items-center gap-0.5"
+            className="absolute -top-1.5 -right-1.5 text-[10px] font-mono font-black px-2 py-0.5 rounded-full shadow-lg border animate-scaleIn flex items-center gap-0.5 z-10"
             style={{
               backgroundColor: '#10b981',
               color: '#020617',
