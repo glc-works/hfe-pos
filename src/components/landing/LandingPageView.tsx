@@ -43,7 +43,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const catalogNavLabel = isService ? 'Layanan' : isRetail ? 'Katalog' : isSpace ? 'Ruangan' : 'Menu'
   const catalogSectionTitle = isService ? 'Layanan & Treatment' : isRetail ? 'Katalog Produk' : isSpace ? 'Daftar Ruangan' : t.landing.featuredMenuTitle
   const defaultOrderCta = isService ? 'Pilih Layanan & Booking' : isRetail ? 'Belanja Produk' : isSpace ? 'Cek Ruangan' : (t.landing.orderOnlineCta || 'Buka Menu & Pesan')
-  const defaultReserveCta = isService ? 'Pilih Stylist / Jadwal' : isRetail ? 'Cek Stok Cabang' : isSpace ? 'Reservasi Slot' : (t.landing.reserveTableCta || 'Reservasi Meja')
+  const defaultReserveCta = isService ? 'Pilih Stylist / Jadwal' : isRetail ? 'Cek Stok Cabang' : isSpace ? 'Reservasi Slot' : (t.landing.reserveTable || 'Reservasi Meja')
   const effectiveOrderCta = (storefrontConfig.ctaOrderText && storefrontConfig.ctaOrderText !== 'Buka Menu & Pesan') ? storefrontConfig.ctaOrderText : defaultOrderCta
   const effectiveReserveCta = (storefrontConfig.ctaReserveText && storefrontConfig.ctaReserveText !== 'Reservasi Meja') ? storefrontConfig.ctaReserveText : defaultReserveCta
 
