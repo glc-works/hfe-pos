@@ -1,5 +1,21 @@
-import React from 'react'
-import { Store, Lock, ShieldAlert, CheckCircle, MapPin } from 'lucide-react'
+import React, { useState } from 'react'
+import { Store, Lock, ShieldAlert, CheckCircle, MapPin, UserCheck } from 'lucide-react'
+
+export interface StaffProfile {
+  id: string
+  name: string
+  role: string
+  roleLabel: string
+  avatar: string
+}
+
+export const DEFAULT_STAFF_PROFILES: StaffProfile[] = [
+  { id: 'USR-DEMO-BARISTA-01', name: 'Siti Barista', role: 'barista', roleLabel: 'Barista / Kasir', avatar: '👩‍🍳' },
+  { id: 'STF-01', name: 'Alexander Raden', role: 'owner', roleLabel: 'Owner / Pemilik', avatar: '👔' },
+  { id: 'STF-02', name: 'Bambang Sudarsono', role: 'store_manager', roleLabel: 'Store Manager', avatar: '👨‍💼' },
+  { id: 'STF-04', name: 'Dimas Barista', role: 'barista', roleLabel: 'Barista / Chef', avatar: '🧑‍🍳' },
+  { id: 'STF-05', name: 'Rian Server', role: 'waiter', roleLabel: 'Server / Waiter', avatar: '🏃‍♂️' },
+]
 
 export interface PosPinKeypadSectionProps {
   pin: string
@@ -28,9 +44,11 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
   errorMessage,
   successMessage
 }) => {
+  const [selectedStaff, setSelectedStaff] = useState<StaffProfile>(DEFAULT_STAFF_PROFILES[0])
+
   return (
     <form onSubmit={onLoginSubmit} className="flex flex-col gap-4">
-      {/* BRANCH SELECTOR */}
+      {/* 1. BRANCH SELECTOR */}
       <div className="flex flex-col gap-1">
         <label className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-amber-500" />
@@ -47,9 +65,55 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
         </select>
       </div>
 
-      {/* PIN DISPLAY */}
-      <div className="flex flex-col items-center gap-2 py-2">
-        <div className="flex gap-3">
+      {/* 2. LAPTOP-STYLE STAFF PROFILE PICKER (SELECT USER FIRST) */}
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+          <UserCheck className="w-3.5 h-3.5 text-amber-500" />
+          <span>Pilih Profil Staf yang Bertugas:</span>
+        </span>
+        <div className="flex items-center gap-2 overflow-x-auto py-1 px-0.5 custom-scrollbar">
+          {DEFAULT_STAFF_PROFILES.map((staff) => {
+            const isSelected = selectedStaff.id === staff.id
+            return (
+              <button
+                key={staff.id}
+                type="button"
+                onClick={() => {
+                  setSelectedStaff(staff)
+                  onKeypadPress('CLR')
+                }}
+                className={`flex flex-col items-center gap-1 p-2 rounded-2xl border transition-all cursor-pointer shrink-0 min-w-[76px] ${
+                  isSelected
+                    ? 'bg-amber-500/15 border-amber-500 shadow-md scale-105'
+                    : 'bg-muted/40 border-border hover:bg-muted/70 opacity-70 hover:opacity-100'
+                }`}
+              >
+                <span className="text-xl">{staff.avatar}</span>
+                <span className="text-[10px] font-bold text-foreground truncate max-w-[70px]">
+                  {staff.name.split(' ')[0]}
+                </span>
+                <span className={`text-[8px] font-mono font-black uppercase px-1.5 py-0.2 rounded-full border ${
+                  isSelected ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-background text-muted-foreground border-border'
+                }`}>
+                  {staff.role}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 3. ACTIVE USER SPOTLIGHT & 6-DIGIT PIN DISPLAY */}
+      <div className="flex flex-col items-center gap-2 pt-1 pb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{selectedStaff.avatar}</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-foreground">{selectedStaff.name}</span>
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">{selectedStaff.roleLabel}</span>
+          </div>
+        </div>
+
+        <div className="flex gap-3 py-1">
           {[0, 1, 2, 3, 4, 5].map((idx) => (
             <div
               key={idx}
@@ -80,7 +144,7 @@ export const PosPinKeypadSection: React.FC<PosPinKeypadSectionProps> = ({
         </div>
       )}
 
-      {/* NUMPAD GRID */}
+      {/* 4. NUMPAD GRID */}
       <div className="grid grid-cols-3 gap-2">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'CLR', '0', 'DEL'].map((btn) => (
           <button
