@@ -66,14 +66,17 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
     }
   }
 
-  // Format 16 digits with spaces: "4556 3321 8899 9876"
-  const formatCardInputDisplay = (val: string) => {
-    const digits = val.replace(/\D/g, '')
-    const parts: string[] = []
-    for (let i = 0; i < digits.length; i += 4) {
-      parts.push(digits.slice(i, i + 4))
-    }
-    return parts.join(' ')
+  // Format 16 digits with middle masking: "4556 3321 •••• 9876"
+  const formatCardInputDisplay = (prefix: string, suffix: string) => {
+    const p1 = prefix.slice(0, 4)
+    const p2 = prefix.slice(4, 8)
+    const s = suffix.slice(0, 4)
+    if (!p1) return ''
+    if (p1.length < 4) return p1
+    if (!p2) return `${p1}`
+    if (p2.length < 4) return `${p1} ${p2}`
+    if (!s) return `${p1} ${p2} ••••`
+    return `${p1} ${p2} •••• ${s}`
   }
 
   return (
@@ -109,14 +112,14 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
           </span>
         </div>
 
-        {/* Card Center: Unified In-Situ Card Number Input */}
+        {/* Card Center: Unified In-Situ Card Number Input (16-Digit 4x4 Standard) */}
         <div className="flex flex-col gap-1 relative z-10">
           <div className="relative flex items-center">
             <CreditCard className="w-4 h-4 text-indigo-400 absolute left-3 pointer-events-none" />
             <input
               type="text"
               inputMode="numeric"
-              value={formatCardInputDisplay(fullNumberRaw)}
+              value={formatCardInputDisplay(cardPrefix, effectiveLast4)}
               onChange={(e) => handleFullNumberChange(e.target.value)}
               placeholder="4556 3321 •••• 9876"
               className="w-full bg-slate-950/60 border border-indigo-500/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/50 rounded-xl pl-9 pr-3 py-2 text-sm sm:text-base text-white font-mono text-center placeholder-slate-500 focus:outline-none shadow-inner tracking-widest font-bold"
