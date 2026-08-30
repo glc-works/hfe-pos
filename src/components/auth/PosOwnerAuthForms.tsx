@@ -1,7 +1,7 @@
 import React from 'react'
 import { Mail, Lock, Store, Eye, EyeOff, ShieldAlert, CheckCircle } from 'lucide-react'
-import type { ToGrowSocialProvider } from '../../services/toGrowSocialSignIn'
-import { ToGrowSocialProviderButtons } from './ToGrowSocialProviderButtons'
+import type { SocialAuthProvider } from '../../services/auth'
+import { AuthSocialProviderButtons } from './AuthSocialProviderButtons'
 
 export interface PosOwnerAuthFormsProps {
   activeTab: 'owner-login' | 'owner-register' | 'forgot-password'
@@ -36,8 +36,8 @@ export interface PosOwnerAuthFormsProps {
   onRequestResetSubmit: (e: React.FormEvent) => void
   onConfirmResetSubmit: (e: React.FormEvent) => void
   getPasswordStrength: (pwd: string) => number
-  socialProviders: ToGrowSocialProvider[]
-  onSocialSignIn: (provider: ToGrowSocialProvider) => void
+  socialProviders: SocialAuthProvider[]
+  onSocialSignIn: (provider: SocialAuthProvider) => void
 }
 
 export const PosOwnerAuthForms: React.FC<PosOwnerAuthFormsProps> = ({
@@ -95,7 +95,7 @@ export const PosOwnerAuthForms: React.FC<PosOwnerAuthFormsProps> = ({
       {/* 1. OWNER LOGIN FORM */}
       {activeTab === 'owner-login' && (
         <form onSubmit={onOwnerLoginSubmit} className="flex flex-col gap-3.5">
-          <ToGrowSocialProviderButtons
+          <AuthSocialProviderButtons
             providers={socialProviders}
             disabled={loading}
             onSelect={onSocialSignIn}

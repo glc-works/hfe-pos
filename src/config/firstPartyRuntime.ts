@@ -36,9 +36,13 @@ export function requiredRuntimeUuid(name: keyof ImportMetaEnv): string {
 
 /** Exact Hfeit IAM organization for the connected runtime or canonical synthetic local demo. */
 export function resolveHfeitOrganizationId(): string {
-  return isConnectedFirstPartyRuntime()
-    ? requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID')
-    : demoAccess.organizationId
+  if (!isConnectedFirstPartyRuntime()) return demoAccess.organizationId
+  const org =
+    import.meta.env.VITE_AUTH_ORGANIZATION_ID ||
+    import.meta.env.VITE_HFAUTH_ORGANIZATION_ID ||
+    import.meta.env.VITE_TOGROW_ORGANIZATION_ID
+  if (org && UUID_PATTERN.test(org.trim())) return org.trim()
+  return requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID')
 }
 
 export function resolveGovernedQuoteContext(): {
@@ -64,6 +68,8 @@ export function connectedRuntimeConfigurationError(): string | null {
   const connectedSignals = [
     import.meta.env.VITE_HFE_CORE_URL,
     import.meta.env.VITE_HFE_COMPANY_BOOK_URL,
+    import.meta.env.VITE_AUTH_ISSUER_URL,
+    import.meta.env.VITE_HFAUTH_URL,
     import.meta.env.VITE_TOGROW_URL,
     import.meta.env.VITE_HFE_BOOK_ID,
     import.meta.env.VITE_HFE_AUTHORITY_CONTEXT_ID,
@@ -80,11 +86,13 @@ export function connectedRuntimeConfigurationError(): string | null {
   }
 
   try {
-    requiredRuntimeValue('VITE_TOGROW_URL')
+    const authUrl = import.meta.env.VITE_AUTH_ISSUER_URL || import.meta.env.VITE_HFAUTH_URL || import.meta.env.VITE_TOGROW_URL
+    if (!authUrl) requiredRuntimeValue('VITE_TOGROW_URL')
     requiredRuntimeValue('VITE_HFE_CORE_URL')
     requiredRuntimeValue('VITE_HFE_COMPANY_BOOK_URL')
-    requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID')
-    requiredRuntimeValue('VITE_TOGROW_CLIENT_ID')
+    resolveHfeitOrganizationId()
+    const clientId = import.meta.env.VITE_AUTH_CLIENT_ID || import.meta.env.VITE_HFAUTH_CLIENT_ID || import.meta.env.VITE_TOGROW_CLIENT_ID
+    if (!clientId) requiredRuntimeValue('VITE_TOGROW_CLIENT_ID')
     requiredRuntimeUuid('VITE_HFE_BOOK_ID')
     requiredRuntimeUuid('VITE_HFE_AUTHORITY_CONTEXT_ID')
     requiredRuntimeValue('VITE_HFE_BRANCH_ID')

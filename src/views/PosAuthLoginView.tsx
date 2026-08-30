@@ -7,8 +7,8 @@ import { firstPartyAuthEntryPolicy } from '../config/firstPartyRuntime'
 import {
   configuredSocialProviders,
   startSocialSignIn,
-  type ToGrowSocialProvider,
 } from '../services/toGrowSocialSignIn'
+import type { SocialAuthProvider } from '../services/auth'
 
 export interface PosAuthLoginViewProps {
   auth: ReturnType<typeof usePosAuth>
@@ -89,7 +89,7 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
     }
   }
 
-  const handleSocialSignIn = (provider: ToGrowSocialProvider) => {
+  const handleSocialSignIn = (provider: SocialAuthProvider) => {
     setLoading(true)
     setErrorMessage(null)
     void startSocialSignIn(provider).catch((error) => {
