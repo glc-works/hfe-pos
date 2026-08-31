@@ -83,7 +83,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm ci
-          npm ci --prefix packages/storefront-astro
+          npm ci --prefix packages/storefront-astro --legacy-peer-deps
 
       - name: Build Astro Landing (Preview)
         env:
@@ -149,7 +149,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm ci
-          npm ci --prefix packages/storefront-astro
+          npm ci --prefix packages/storefront-astro --legacy-peer-deps
 
       - name: Build Astro Landing (Production)
         env:
