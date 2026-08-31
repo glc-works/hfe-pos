@@ -71,6 +71,7 @@ export interface UnifiedPosModalsClusterProps {
   setShowSpotlightModal: (show: boolean) => void
   handleAddToCart: (item: MenuItem) => void
   handleTableClick: (table: TableStatus) => void
+  staffRole?: string
 }
 
 export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = ({
@@ -120,7 +121,8 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
   showSpotlightModal,
   setShowSpotlightModal,
   handleAddToCart,
-  handleTableClick
+  handleTableClick,
+  staffRole
 }) => {
   const [showSupportModal, setShowSupportModal] = useState(false)
 
@@ -137,7 +139,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         itemName={directQtyItem?.item.name}
         currentQty={directQtyItem?.item.quantity || 1}
         onClose={() => setDirectQtyItem(null)}
-        onConfirmQty={(newQty) => {
+        onConfirmQty={(newQty: number) => {
           if (directQtyItem) {
             handleUpdateQty(directQtyItem.index, newQty)
             setDirectQtyItem(null)
@@ -153,7 +155,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         reassignTargetTable={reassignTargetTable}
         setReassignTargetTable={setReassignTargetTable}
         onClose={() => setShowTableOpsModal(false)}
-        onConfirmReassign={handleConfirmReassignWithReason}
+        onConfirmReassign={(reason) => handleConfirmReassignWithReason(reason)}
         onConfirmSplit={() => setShowTableOpsModal(false)}
         onConfirmJoin={() => setShowTableOpsModal(false)}
       />
@@ -221,6 +223,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
           setIsAppDrawerOpen(false)
           setActiveStaffSurface?.(surface)
         }}
+        staffRole={staffRole}
       />
 
       <NotificationCenterDrawer

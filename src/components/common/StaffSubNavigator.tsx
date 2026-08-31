@@ -20,6 +20,7 @@ import { UnifiedAttentionCenterPopOver } from './UnifiedAttentionCenterPopOver'
 export interface StaffSubNavigatorProps {
   activeStaffSurface: StaffSurfaceMode
   setActiveStaffSurface: (surface: StaffSurfaceMode) => void
+  staffRole?: string
 }
 
 const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; shortName: string; icon: React.ReactNode; color: string }> = {
@@ -46,7 +47,8 @@ const SURFACE_NAMES: Record<StaffSurfaceMode, { name: string; shortName: string;
 
 export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
   activeStaffSurface,
-  setActiveStaffSurface
+  setActiveStaffSurface,
+  staffRole
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
@@ -56,6 +58,10 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
     icon: <Users className="w-3.5 h-3.5" />,
     color: 'bg-amber-500'
   }
+
+  const role = staffRole?.toLowerCase()
+  const canAccessWarehouse = !role || role === 'owner' || role === 'manager'
+  const canAccessHub = !role || role === 'owner' || role === 'manager'
 
   return (
     <>
@@ -79,9 +85,9 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
           </div>
         </div>
 
-        {/* DESKTOP / TABLET VIEW (>= md): 6 DIRECT WORKSTATION TABS (ZERO FLANK DUPLICATES) */}
+        {/* DESKTOP / TABLET VIEW (>= md): DIRECT WORKSTATION TABS (ROLE GATED) */}
         <div className="hidden md:flex items-center justify-between w-full gap-2">
-          {/* LEFT: 4 UNIFIED ROLE PILLARS (ZERO CLUTTER) */}
+          {/* LEFT: ROLE PILLARS (ZERO CLUTTER) */}
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               type="button"
@@ -107,29 +113,33 @@ export const StaffSubNavigator: React.FC<StaffSubNavigatorProps> = ({
               <Kanban className="w-3.5 h-3.5" /> Dapur KDS
             </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveStaffSurface('warehouse-mgmt')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeStaffSurface === 'warehouse-mgmt' || activeStaffSurface === 'branch-mgmt'
-                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
-              }`}
-            >
-              <Warehouse className="w-3.5 h-3.5" /> Gudang & Logistik
-            </button>
+            {canAccessWarehouse && (
+              <button
+                type="button"
+                onClick={() => setActiveStaffSurface('warehouse-mgmt')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeStaffSurface === 'warehouse-mgmt' || activeStaffSurface === 'branch-mgmt'
+                    ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                }`}
+              >
+                <Warehouse className="w-3.5 h-3.5" /> Gudang & Logistik
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={() => setActiveStaffSurface('merchant-hub')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                ['merchant-hub', 'hfe-connect-hub', 'hfe-insights', 'hfe-company-book', 'cafe-config', 'admin-hub'].includes(activeStaffSurface)
-                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5" /> Merchant Hub (Backoffice)
-            </button>
+            {canAccessHub && (
+              <button
+                type="button"
+                onClick={() => setActiveStaffSurface('merchant-hub')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  ['merchant-hub', 'hfe-connect-hub', 'hfe-insights', 'hfe-company-book', 'cafe-config', 'admin-hub'].includes(activeStaffSurface)
+                    ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5" /> Merchant Hub (Backoffice)
+              </button>
+            )}
           </div>
 
           {/* RIGHT: ATTENTION CENTER & SHIFT STATUS */}

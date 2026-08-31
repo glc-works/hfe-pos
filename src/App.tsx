@@ -296,6 +296,7 @@ function AppMain() {
               <StaffSubNavigator
                 activeStaffSurface={activeStaffSurface}
                 setActiveStaffSurface={setActiveStaffSurface}
+                staffRole={auth.currentStaffUser?.role}
               />
             )}
 
@@ -325,6 +326,7 @@ function AppMain() {
                 cashierId={auth.currentStaffUser.user_id}
                 handleMoveStatus={handleMoveStatus}
                 onLockTerminal={auth.logout}
+                staffRole={auth.currentStaffUser?.role}
               />
             )}
 
@@ -430,7 +432,10 @@ function AppMain() {
                 <AdminMerchantUserView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
               )}
               {activeStaffSurface === 'merchant-hub' && (
-                <MerchantHomeHubView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
+                <MerchantHomeHubView 
+                  onBackToPos={() => setActiveStaffSurface('barista-pos')} 
+                  staffRole={auth.currentStaffUser?.role}
+                />
               )}
             </Suspense>
           </div>

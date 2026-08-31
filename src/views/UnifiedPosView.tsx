@@ -33,14 +33,14 @@ export interface UnifiedPosViewProps {
   setPosPayMethod: (method: PosPayMethod) => void; setPosCashGiven: (val: string) => void
   handlePOSCheckoutTable: () => void; handleMoveStatus: (orderId: string, targetStatus: OrderTicket['status']) => void
   financialPort: HfePosFinancialPort; organizationId: string; companyBookId: string; authorityContext: string; cashierId: string
-  onLockTerminal?: () => void
+  onLockTerminal?: () => void; staffRole?: string
 }
 
 export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   activeStaffSurface = 'barista-pos', setActiveStaffSurface, tablesGrid, selectedPOSTable, productCatalog,
   posPayMethod, posCashGiven, orders, enableTableFloorPlan = true, viewportMode = 'responsive', cashDrawerFloat = 500000,
   setSelectedPOSTable, setTablesGrid, setPosPayMethod, setPosCashGiven, handlePOSCheckoutTable, handleMoveStatus,
-  financialPort, organizationId, companyBookId, authorityContext, cashierId, onLockTerminal,
+  financialPort, organizationId, companyBookId, authorityContext, cashierId, onLockTerminal, staffRole,
 }) => {
   const { isMobile: isContextMobile } = useViewport()
   const isMobile = viewportMode === 'mobile' || isContextMobile
@@ -56,13 +56,10 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [directQtyItem, setDirectQtyItem] = useState<{ item: CartItem; index: number } | null>(null)
 
-  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false), [showCameraScanner, setShowCameraScanner] = useState(false)
-  const [showTableOpsModal, setShowTableOpsModal] = useState(false), [showRoomChargeModal, setShowRoomChargeModal] = useState(false)
-  const [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false), [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false)
-  const [showEditPinnedModal, setShowEditPinnedModal] = useState(false), [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false)
-  const [showNotificationCenter, setShowNotificationCenter] = useState(false), [showServiceTickets, setShowServiceTickets] = useState(false)
-  const [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false), [showSpotlightModal, setShowSpotlightModal] = useState(false)
-  const [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false)
+  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false), [showCameraScanner, setShowCameraScanner] = useState(false), [showTableOpsModal, setShowTableOpsModal] = useState(false)
+  const [showRoomChargeModal, setShowRoomChargeModal] = useState(false), [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false), [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false)
+  const [showEditPinnedModal, setShowEditPinnedModal] = useState(false), [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false), [showNotificationCenter, setShowNotificationCenter] = useState(false)
+  const [showServiceTickets, setShowServiceTickets] = useState(false), [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false), [showSpotlightModal, setShowSpotlightModal] = useState(false), [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false)
 
   const [reassignFromTable, setReassignFromTable] = useState<string>(() => selectedPOSTable?.name || tablesGrid[0]?.name || 'IND-01')
   const [reassignTargetTable, setReassignTargetTable] = useState<string>(() => tablesGrid[1]?.name || tablesGrid[0]?.name || 'IND-02')
@@ -479,6 +476,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         showEventTicketCheckIn={showEventTicketCheckIn} setShowEventTicketCheckIn={setShowEventTicketCheckIn}
         showSpotlightModal={showSpotlightModal} setShowSpotlightModal={setShowSpotlightModal}
         handleAddToCart={handleAddToCart} handleTableClick={handleTableClick}
+        staffRole={staffRole}
       />
 
       <ShiftDrawerModal
