@@ -48,23 +48,10 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const { workflowToggles, pb1TaxMode, takeawaySurcharge } = useMerchantConfig()
   const initialMode = workflowToggles?.defaultPosMode || (enableTableFloorPlan ? 'tables' : 'catalog')
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
-  const [fulfillmentMode, setFulfillmentMode] = useState<OrderFulfillmentMode>('dine_in')
-  const [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'unpaid' | 'paid' | 'available'>('all')
-  const [selectedZoneId, setSelectedZoneId] = useState<PropertyZoneId>('all')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState<string>('')
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [directQtyItem, setDirectQtyItem] = useState<{ item: CartItem; index: number } | null>(null)
-
-  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false), [showCameraScanner, setShowCameraScanner] = useState(false), [showTableOpsModal, setShowTableOpsModal] = useState(false)
-  const [showRoomChargeModal, setShowRoomChargeModal] = useState(false), [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false), [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false)
-  const [showEditPinnedModal, setShowEditPinnedModal] = useState(false), [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false), [showNotificationCenter, setShowNotificationCenter] = useState(false)
-  const [showServiceTickets, setShowServiceTickets] = useState(false), [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false), [showSpotlightModal, setShowSpotlightModal] = useState(false), [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false)
-
-  const [reassignFromTable, setReassignFromTable] = useState<string>(() => selectedPOSTable?.name || tablesGrid[0]?.name || 'IND-01')
-  const [reassignTargetTable, setReassignTargetTable] = useState<string>(() => tablesGrid[1]?.name || tablesGrid[0]?.name || 'IND-02')
-  const [viewMode, setViewMode] = useState<'grid' | 'compact' | 'list'>('grid')
-  const [pinnedItemIds, setPinnedItemIds] = useState<string[]>(() => productCatalog.slice(0, 12).map((i) => i.id))
+  const [fulfillmentMode, setFulfillmentMode] = useState<OrderFulfillmentMode>('dine_in'), [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'unpaid' | 'paid' | 'available'>('all'), [selectedZoneId, setSelectedZoneId] = useState<PropertyZoneId>('all'), [selectedCategory, setSelectedCategory] = useState<string>('all'), [searchQuery, setSearchQuery] = useState<string>('')
+  const [cartItems, setCartItems] = useState<CartItem[]>([]), [directQtyItem, setDirectQtyItem] = useState<{ item: CartItem; index: number } | null>(null)
+  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false), [showCameraScanner, setShowCameraScanner] = useState(false), [showTableOpsModal, setShowTableOpsModal] = useState(false), [showRoomChargeModal, setShowRoomChargeModal] = useState(false), [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false), [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false), [showEditPinnedModal, setShowEditPinnedModal] = useState(false), [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false), [showNotificationCenter, setShowNotificationCenter] = useState(false), [showServiceTickets, setShowServiceTickets] = useState(false), [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false), [showSpotlightModal, setShowSpotlightModal] = useState(false), [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false), [showPaymentSettlementModal, setShowPaymentSettlementModal] = useState(false)
+  const [reassignFromTable, setReassignFromTable] = useState<string>(() => selectedPOSTable?.name || tablesGrid[0]?.name || 'IND-01'), [reassignTargetTable, setReassignTargetTable] = useState<string>(() => tablesGrid[1]?.name || tablesGrid[0]?.name || 'IND-02'), [viewMode, setViewMode] = useState<'grid' | 'compact' | 'list'>('grid'), [pinnedItemIds, setPinnedItemIds] = useState<string[]>(() => productCatalog.slice(0, 12).map((i) => i.id))
   const pinnedFavorites = useMemo(() => productCatalog.filter((item) => pinnedItemIds.includes(item.id)), [productCatalog, pinnedItemIds])
 
   const handleTableClick = (table: TableStatus) => {
@@ -135,17 +122,32 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const paidCount = useMemo(() => tablesGrid.filter((t) => t.customerName?.includes('(Lunas)') || (t.status === 'occupied' && t.totalBill === 0)).length, [tablesGrid])
   const availableCount = useMemo(() => tablesGrid.filter((t) => t.status === 'free').length, [tablesGrid])
 
+  const handlePOSCheckoutTableWithClear = () => {
+    handlePOSCheckoutTable()
+    if (selectedPOSTable) {
+      setTablesGrid((prev) => prev.map((t) => (t.name === selectedPOSTable.name || t.id === selectedPOSTable.id ? { ...t, status: 'free', totalBill: 0, orderCount: 0, customerName: undefined } : t)))
+      setSelectedPOSTable(null)
+    }
+    setCartItems([]); setPosCashGiven(''); setShowPaymentSettlementModal(false); setShowMobileCartDrawer(false)
+  }
+
   const {
     financialStatus, financialNotice, financialFailureCode, postingTruthHref,
     pendingQrisPayment, canResumeFinancialAttempt, authoritativeQuote, checkoutPhase,
     dismissPendingQrisPayment, handleCheckout: handleCheckoutAction, resumeCheckout,
   } = useCafeSettlement({
-    financialPort, organizationId, companyBookId, authorityContext, cashierId,
-    selectedTable: selectedPOSTable, orders, items: activeTableCartItems,
-    fulfillmentMode, paymentMethod: posPayMethod, formatPrice,
-    commitPaidState: handlePOSCheckoutTable,
-    clearCart: () => { setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false) },
+    financialPort, organizationId, companyBookId, authorityContext, cashierId, selectedTable: selectedPOSTable, orders,
+    items: activeTableCartItems, fulfillmentMode, paymentMethod: posPayMethod, formatPrice, commitPaidState: handlePOSCheckoutTableWithClear,
+    clearCart: () => { setCartItems([]); setPosCashGiven(''); setShowMobileCartDrawer(false); setShowPaymentSettlementModal(false) },
   })
+
+  const handleOpenPaymentSettlement = () => {
+    if (activeTableCartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)) {
+      alert('Keranjang masih kosong! Silakan pilih menu atau meja terlebih dahulu.')
+      return
+    }
+    setShowPaymentSettlementModal(true)
+  }
 
   const handleCloseAllModals = () => {
     setShowSpotlightModal(false); setShowCameraScanner(false); setShowTableOpsModal(false); setShowRoomChargeModal(false)
@@ -154,14 +156,10 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   }
 
   useSpotlightShortcuts({
-    onOpenSpotlight: () => setShowSpotlightModal(true),
-    onCloseModals: handleCloseAllModals,
-    onFocusCatalog: () => setPosModeTab('catalog'),
+    onOpenSpotlight: () => setShowSpotlightModal(true), onCloseModals: handleCloseAllModals, onFocusCatalog: () => setPosModeTab('catalog'),
     onToggleFloorPlan: () => { if (enableTableFloorPlan) setPosModeTab((p) => (p === 'tables' ? 'catalog' : 'tables')) },
-    onQuickPayCash: () => { setPosPayMethod('cash'); handleCheckoutAction('cash') },
-    onQuickPayQris: () => { setPosPayMethod('qris'); handleCheckoutAction('qris') },
-    onSplitBill: () => setShowTableOpsModal(true),
-    onPrintReceipt: () => { if (activeTableCartItems.length > 0 || (selectedPOSTable && selectedPOSTable.totalBill > 0)) handleCheckoutAction() }
+    onQuickPayCash: () => { setPosPayMethod('cash'); handleCheckoutAction('cash') }, onQuickPayQris: () => { setPosPayMethod('qris'); handleCheckoutAction('qris') },
+    onSplitBill: () => setShowTableOpsModal(true), onPrintReceipt: () => { if (activeTableCartItems.length > 0 || (selectedPOSTable && selectedPOSTable.totalBill > 0)) handleCheckoutAction() }
   })
 
   const handleConfirmReassignWithReason = (_reason?: string) => {
@@ -323,24 +321,13 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         {!isMobile && (
           <div className="hidden md:flex md:col-span-5 lg:col-span-4 h-full min-h-0 flex-col overflow-hidden">
             <PosCartSection
-              cartItems={activeTableCartItems}
-              selectedPOSTable={selectedPOSTable}
-              posPayMethod={posPayMethod}
-              posCashGiven={posCashGiven}
-              subtotal={subtotal}
-              pb1Tax={pb1Tax}
-              grandTotal={grandTotal}
-              packagingFee={packagingFee}
-              fulfillmentMode={fulfillmentMode}
-              authoritativeQuote={authoritativeQuote}
-              checkoutPhase={checkoutPhase}
-              setPosPayMethod={setPosPayMethod}
-              setPosCashGiven={setPosCashGiven}
-              setFulfillmentMode={setFulfillmentMode}
-              onUpdateQty={handleUpdateQty}
-              onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
-              onCheckout={handleCheckoutAction}
-              onOpenSplitPayment={() => setShowTableOpsModal(true)}
+              cartItems={activeTableCartItems} selectedPOSTable={selectedPOSTable}
+              posPayMethod={posPayMethod} posCashGiven={posCashGiven} subtotal={subtotal}
+              pb1Tax={pb1Tax} grandTotal={grandTotal} packagingFee={packagingFee}
+              fulfillmentMode={fulfillmentMode} authoritativeQuote={authoritativeQuote} checkoutPhase={checkoutPhase}
+              setPosPayMethod={setPosPayMethod} setPosCashGiven={setPosCashGiven} setFulfillmentMode={setFulfillmentMode}
+              onUpdateQty={handleUpdateQty} onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
+              onCheckout={handleOpenPaymentSettlement} onOpenSplitPayment={() => setShowTableOpsModal(true)}
               onSwitchToCatalog={() => setPosModeTab('catalog')}
             />
           </div>
@@ -437,7 +424,6 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         hasActiveCartItems={activeTableCartItems.length > 0}
       />
 
-
       <PosMobileCartDrawer
         show={showMobileCartDrawer} cartItems={activeTableCartItems} selectedPOSTable={selectedPOSTable}
         posPayMethod={posPayMethod} posCashGiven={posCashGiven} subtotal={subtotal} pb1Tax={pb1Tax} grandTotal={grandTotal}
@@ -445,7 +431,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         checkoutPhase={checkoutPhase}
         setPosPayMethod={setPosPayMethod} setPosCashGiven={setPosCashGiven} setFulfillmentMode={setFulfillmentMode}
         onUpdateQty={handleUpdateQty} onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
-        onCheckout={handleCheckoutAction} onOpenSplitPayment={() => setShowTableOpsModal(true)}
+        onCheckout={handleOpenPaymentSettlement} onOpenSplitPayment={() => setShowTableOpsModal(true)}
         onToggleOrderMode={() => {
           if (selectedPOSTable) setSelectedPOSTable(null)
           else { setShowMobileCartDrawer(false); setPosModeTab('tables') }
@@ -477,6 +463,18 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         showSpotlightModal={showSpotlightModal} setShowSpotlightModal={setShowSpotlightModal}
         handleAddToCart={handleAddToCart} handleTableClick={handleTableClick}
         staffRole={staffRole}
+        showPaymentSettlementModal={showPaymentSettlementModal}
+        setShowPaymentSettlementModal={setShowPaymentSettlementModal}
+        cartItems={activeTableCartItems}
+        fulfillmentMode={fulfillmentMode}
+        posPayMethod={posPayMethod}
+        setPosPayMethod={setPosPayMethod}
+        posCashGiven={posCashGiven}
+        setPosCashGiven={setPosCashGiven}
+        packagingFee={packagingFee}
+        authoritativeQuote={authoritativeQuote}
+        checkoutPhase={checkoutPhase}
+        onConfirmSettlement={handleCheckoutAction}
       />
 
       <ShiftDrawerModal
