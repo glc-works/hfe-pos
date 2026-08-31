@@ -42,6 +42,7 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
   const [customNote, setCustomNote] = useState<string>('')
   
   const [selectedModifiers, setSelectedModifiers] = useState<Record<string, string[]>>({})
+  const [attemptedSubmit, setAttemptedSubmit] = useState<boolean>(false)
 
   // Reset state on item change
   useEffect(() => {
@@ -51,6 +52,7 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
       setMilkOption(item.name.toLowerCase().includes('oat') ? 'Oat Milk' : 'Fresh Milk')
       setQuantity(1)
       setCustomNote('')
+      setAttemptedSubmit(false)
       
       const initialModifiers: Record<string, string[]> = {}
       if (item.modifierGroups && item.modifierGroups.length > 0) {
@@ -81,6 +83,10 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
 
   const hasDynamicModifiers = item.modifierGroups && item.modifierGroups.length > 0
 
+  const missingRequiredGroup = hasDynamicModifiers
+    ? item.modifierGroups!.find(g => (g.minSelection && g.minSelection > 0) && (selectedModifiers[g.id] || []).length < g.minSelection)
+    : null
+
   let modifierPriceDelta = 0
   const finalSelectedModifiers: SelectedModifier[] = []
   
@@ -110,6 +116,10 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
   const totalPrice = unitPrice * quantity
 
   const handleConfirm = () => {
+    if (missingRequiredGroup) {
+      setAttemptedSubmit(true)
+      return
+    }
     const configuredItem: CartItem = {
       ...item,
       price: unitPrice,
@@ -165,14 +175,32 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
               // DYNAMIC MODIFIER GROUPS
               item.modifierGroups!.map(group => {
                 const selectedIds = selectedModifiers[group.id] || []
+                const isGroupMissing = attemptedSubmit && (group.minSelection && group.minSelection > 0) && selectedIds.length < group.minSelection
                 return (
-                  <div key={group.id} className="flex flex-col gap-2">
+                  <div
+                    key={group.id}
+                    className={`flex flex-col gap-2 p-2.5 rounded-2xl transition-all ${
+                      isGroupMissing ? 'border border-rose-500/60 bg-rose-500/5' : ''
+                    }`}
+                  >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs" style={{ color: textColor }}>{group.name}:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-xs" style={{ color: textColor }}>{group.name}:</span>
+                        {group.minSelection && group.minSelection > 0 ? (
+                          <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                            Wajib
+                          </span>
+                        ) : null}
+                      </div>
                       {group.selectionType === 'multiple' && (
                         <span className="text-[10px] uppercase font-bold" style={{ color: secondaryTextColor }}>(Pilih Banyak)</span>
                       )}
                     </div>
+                    {isGroupMissing && (
+                      <span className="text-[10px] font-bold text-rose-500">
+                        ⚠️ Wajib pilih minimal {group.minSelection} opsi
+                      </span>
+                    )}
                     <div className="grid grid-cols-2 gap-2">
                       {group.options.map(opt => {
                         const isSelected = selectedIds.includes(opt.id)

@@ -344,7 +344,7 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
                     {order.status === 'placed' && (
                       <button
                         onClick={() => handleMoveStatus(order.id, 'processing')}
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-2"
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
                       >
                         <ChefHat className="w-4 h-4" /> Mulai Kerjakan ➔
                       </button>
@@ -352,10 +352,27 @@ export const UnifiedKdsView: React.FC<UnifiedKdsViewProps> = ({
                     {order.status === 'processing' && (
                       <button
                         onClick={() => handleMoveStatus(order.id, 'ready')}
-                        className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-2"
+                        className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
                       >
-                        <CheckCircle2 className="w-4 h-4" /> Selesai ➔
+                        <CheckCircle2 className="w-4 h-4" /> Siap Saji ➔
                       </button>
+                    )}
+                    {order.status === 'ready' && (
+                      <div className="flex gap-2 w-full">
+                        <button
+                          onClick={() => handleMoveStatus(order.id, 'processing')}
+                          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-all active:scale-95"
+                          title="Kembalikan ke proses masak"
+                        >
+                          ↩️ Undo
+                        </button>
+                        <button
+                          onClick={() => handleMoveStatus(order.id, 'served' as any)}
+                          className="flex-1 bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition-all"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Selesai Diantar ➔
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -321,6 +321,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         checkoutPhase={checkoutPhase}
         onConfirmSettlement={onConfirmSettlement}
         onOpenRoomChargeModal={() => setShowRoomChargeModal(true)}
+        onOpenSplitPaymentModal={() => setShowTableOpsModal(true)}
       />
     </>
   )

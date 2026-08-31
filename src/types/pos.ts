@@ -69,6 +69,9 @@ export interface ModifierGroup {
   id: string
   name: string
   selectionType: 'single' | 'multiple'
+  minSelection?: number
+  maxSelection?: number
+  required?: boolean
   options: ModifierOption[]
 }
 
@@ -209,17 +212,10 @@ export interface TableStatus {
   customerName?: string
   totalBill: number
   orderCount: number
-  orderIds?: string[]
-  zoneId?: PropertyZoneId
-  seatedDurationMinutes?: number
-  minSpend?: number
-  pax?: number
-  seatedGuests?: number
-  maxCapacity?: number
+  orderIds?: string[]; zoneId?: PropertyZoneId; seatedDurationMinutes?: number; minSpend?: number; pax?: number; seatedGuests?: number; maxCapacity?: number
 }
 
 export type TableInfo = TableStatus
-
 export type MemberTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
 
 export interface CustomerPreferences {

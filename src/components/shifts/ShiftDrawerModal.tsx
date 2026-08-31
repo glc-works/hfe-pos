@@ -385,6 +385,20 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
                     className="bg-background border border-border rounded-xl px-3 py-1.5 text-xs text-foreground focus:border-amber-500 focus:outline-none"
                   />
                 </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {['Selisih Kembalian', 'Uang Rusak / Lusuh', 'Salah Hitung Kasir', 'Pembulatan Kasir'].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setNotes(tag)}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer active:scale-95 ${
+                        notes === tag ? 'bg-amber-500 text-slate-950 border-amber-500 font-extrabold' : 'bg-background border-border text-muted-foreground hover:border-amber-500'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 

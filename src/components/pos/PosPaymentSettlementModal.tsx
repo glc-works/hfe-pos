@@ -28,6 +28,7 @@ export interface PosPaymentSettlementModalProps {
   checkoutPhase?: GovernedCheckoutPhase
   onConfirmSettlement: () => Promise<void> | void
   onOpenRoomChargeModal?: () => void
+  onOpenSplitPaymentModal?: () => void
 }
 
 export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps> = ({
@@ -47,7 +48,8 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   authoritativeQuote,
   checkoutPhase,
   onConfirmSettlement,
-  onOpenRoomChargeModal
+  onOpenRoomChargeModal,
+  onOpenSplitPaymentModal
 }) => {
   const { t, formatPrice, language } = useTranslation()
 
@@ -250,6 +252,24 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
                   {isCashSufficient ? formatPrice(changeAmount) : 'Uang Kurang!'}
                 </span>
               </div>
+
+              {!isCashSufficient && cashGivenNum > 0 && (
+                <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-2 animate-fadeIn">
+                  <div className="text-[11px] text-rose-500 font-medium">
+                    Kurang <span className="font-bold font-mono">{formatPrice(payableAmount - cashGivenNum)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose()
+                      onOpenSplitPaymentModal?.()
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white text-[11px] font-bold transition-all shrink-0 cursor-pointer shadow-sm"
+                  >
+                    ✂️ Bayar Sebagian (Split) ➔
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
