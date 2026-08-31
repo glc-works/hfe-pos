@@ -431,4 +431,34 @@ export interface TranslationDictionary {
     sendProductFeedback: string
     thankYouFeedback: string
   }
+  support: {
+    modalTitle: string
+    modalSubtitle: string
+    categoryLabel: string
+    categoryBug: string
+    categoryFeature: string
+    categoryQuestion: string
+    categoryPraise: string
+    priorityLabel: string
+    priorityNormal: string
+    priorityUrgent: string
+    titleLabel: string
+    titlePlaceholder: string
+    descriptionLabel: string
+    descriptionPlaceholder: string
+    contactLabel: string
+    contactPlaceholder: string
+    diagnosticsLabel: string
+    diagnosticsApp: string
+    diagnosticsView: string
+    diagnosticsDevice: string
+    diagnosticsTimestamp: string
+    submitCta: string
+    submittingCta: string
+    successTitle: string
+    successSubtitle: string
+    ticketReferenceLabel: string
+    closeCta: string
+    triggerButtonLabel: string
+  }
 }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { TableStatus, MenuItem, StaffSurfaceMode, CartItem } from '../../types/pos'
 import { CashierCameraScannerModal } from './CashierCameraScannerModal'
 import { DirectQtyInputModal } from './DirectQtyInputModal'
@@ -12,6 +12,7 @@ import { NotificationCenterDrawer } from '../notifications/NotificationCenterDra
 import { ServiceTicketingDrawer } from '../notifications/ServiceTicketingDrawer'
 import { EventTicketCheckInModal } from '../notifications/EventTicketCheckInModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
+import { SupportFeedbackModal } from '../support/SupportFeedbackModal'
 
 export interface UnifiedPosModalsClusterProps {
   showCameraScanner: boolean
@@ -121,6 +122,8 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
   handleAddToCart,
   handleTableClick
 }) => {
+  const [showSupportModal, setShowSupportModal] = useState(false)
+
   return (
     <>
       <CashierCameraScannerModal
@@ -225,6 +228,13 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         onClose={() => setShowNotificationCenter(false)}
         onOpenServiceTickets={() => setShowServiceTickets(true)}
         onOpenTicketValidator={() => setShowEventTicketCheckIn(true)}
+        onOpenSupportTicket={() => setShowSupportModal(true)}
+      />
+
+      <SupportFeedbackModal
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+        activeViewName="Kasir POS"
       />
 
       <ServiceTicketingDrawer
