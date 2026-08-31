@@ -142,10 +142,8 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   })
 
   const handleOpenPaymentSettlement = () => {
-    if (activeTableCartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)) {
-      alert('Keranjang masih kosong! Silakan pilih menu atau meja terlebih dahulu.')
-      return
-    }
+    if (activeTableCartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)) return
+    setShowMobileCartDrawer(false)
     setShowPaymentSettlementModal(true)
   }
 

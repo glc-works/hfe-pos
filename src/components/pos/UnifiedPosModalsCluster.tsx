@@ -207,12 +207,12 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         }}
         onCheckoutTable={() => {
           setShowTableDetailDrawer(false)
-          setShowMobileCartDrawer(true)
+          setShowPaymentSettlementModal?.(true)
         }}
         onUnjoinTable={() => setShowTableDetailDrawer(false)}
         onPartialSeatCheckout={() => {
           setShowTableDetailDrawer(false)
-          setShowMobileCartDrawer(true)
+          setShowPaymentSettlementModal?.(true)
         }}
       />
 
