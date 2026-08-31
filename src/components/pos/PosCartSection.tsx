@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useState } from 'react'
-import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike } from 'lucide-react'
+import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
 import { SegmentedControl, Button } from '@/ui'
@@ -284,6 +284,18 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           </Suspense>
         )}
 
+        {reviewReady && (
+          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 animate-fadeIn">
+            <span className="flex items-center gap-1.5 font-bold">
+              <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Kuotasi PB1 Siap (Tahap 2/2)</span>
+            </span>
+            <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
+              {authoritativeQuote ? formatExactMinor(authoritativeQuote.amountDueMinor) : formatPrice(grandTotal)}
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center gap-2 pt-1">
           {onOpenSplitPayment && (
             <Button
@@ -303,15 +315,29 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             size="md"
             fullWidth
             onClick={() => onCheckout()}
-            disabled={cartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)}
-            icon={<CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />}
-            className="rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm"
+            disabled={checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting' || (cartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0))}
+            icon={
+              checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting' ? (
+                <Loader2 className="w-4 h-4 text-slate-950 shrink-0 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />
+              )
+            }
+            className={`rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm transition-all ${
+              reviewReady ? 'ring-2 ring-emerald-400 ring-offset-2 animate-pulse' : ''
+            }`}
           >
-            {reviewReady
-              ? t.cart.acceptReviewedCoreQuote
-              : fulfillmentMode === 'takeaway'
-                ? `${t.cart.takeawayModeLabel} • ${t.cart.reviewCoreQuote}`
-                : t.cart.reviewCoreQuote}
+            {checkoutPhase?.kind === 'quoting'
+              ? 'Menghitung Kuotasi PB1...'
+              : checkoutPhase?.kind === 'accepting'
+                ? 'Memproses Transaksi...'
+                : reviewReady
+                  ? `⚡ 2. Terima & Bayar Sekarang • ${authoritativeQuote ? formatExactMinor(authoritativeQuote.amountDueMinor) : formatPrice(grandTotal)} ➔`
+                  : awaitingCoreQuote
+                    ? t.cart.reviewCoreQuote
+                    : fulfillmentMode === 'takeaway'
+                      ? `${t.cart.takeawayModeLabel} • 🔍 Review Kuotasi (${formatPrice(grandTotal)})`
+                      : `🔍 1. Review Kuotasi PB1 • ${formatPrice(grandTotal)}`}
           </Button>
         </div>
       </div>
