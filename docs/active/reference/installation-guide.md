@@ -74,3 +74,20 @@ and bind it to the cb-client environment that shares the same Hfeit IAM organiza
 Company Book. The handoff carries `organizationId`, `companyBookId`, `postingId`, and POS `orderId`;
 cb-client must reject the read unless its active IAM session and observed HCB resource token match
 that originating organization.
+
+## 6. Cloudflare Pages deployment map
+
+Preview and production use separate Pages projects. A project must never own domains from both
+environments.
+
+| Environment | Surface | Pages project | Custom domain | Trigger |
+|---|---|---|---|---|
+| Preview | POS app | `pos-app-preview` | `prv-pos.hfeit.app` | Every green push to `main` |
+| Preview | Landing | `pos-landing-preview` | `prv-pos.hfeit.com` | Every green push to `main` |
+| Production | POS app | `pos-app-production` | `pos.hfeit.app` | Manual production dispatch from `main` |
+| Production | Landing | `pos-landing-production` | `pos.hfeit.com` | Manual production dispatch from `main` |
+
+All four projects use `main` as their Cloudflare production branch. Environment isolation comes
+from the project boundary, not from attaching preview and production domains to different branches
+of one project. The deployment isolation test rejects reused project names and branch drift before
+the workflow can ship.
