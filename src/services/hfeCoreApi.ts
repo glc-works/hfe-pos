@@ -1,4 +1,5 @@
 // --- HFE REST API TRANSPORT LAYER & OFFLINE BUFFER SERVICE (CORE) ---
+import type { QrisGenerateResponse } from '@hfe/sdk'
 import { MenuItem, TeamMember, InviteStaffPayload } from '../types/pos'
 
 const DEFAULT_BASE_URL = 'http://localhost:8080'
@@ -56,12 +57,13 @@ export interface SubmitTransactionResponse {
   idempotency_key: string
 }
 
-export interface QrisResponse {
-  payment_id: string
-  qris_string: string
-  qr_image_url: string
-  expires_at: string
-}
+/**
+ * QRIS generate response, consumed from the generated HCB OpenAPI SDK
+ * (`@hfe/sdk` QrisGenerateResponse — exact field-for-field match with the
+ * former hand-declared interface: payment_id, qris_string, qr_image_url,
+ * expires_at).
+ */
+export type QrisResponse = QrisGenerateResponse
 
 export interface BumpKdsOrderResponse {
   order_id: string
