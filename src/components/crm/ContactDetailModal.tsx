@@ -33,7 +33,7 @@ export const ContactDetailModal: React.FC<ContactDetailModalProps> = ({
 
   const handleSendWaAlert = () => {
     const msg = encodeURIComponent(
-      `Halo Kak ${contact.name}! Terima kasih telah menjadi pelanggan setia ${contact.tier.toUpperCase()} di Hfe POS Senopati. Cek voucher promo spesial Anda di order.kopitiam.com`
+      `Halo Kak ${contact.name}! Terima kasih telah menjadi pelanggan setia ${contact.tier.toUpperCase()} kami. Cek voucher promo spesial Anda di etalase kami.`
     )
     window.open(`https://wa.me/${contact.phone}?text=${msg}`, '_blank')
   }

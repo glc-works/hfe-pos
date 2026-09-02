@@ -319,14 +319,18 @@ export interface TranslationDictionary {
     heroTag: string
     heroTitle: string
     heroSubtitle: string
+    orderOnlineCta: string
     reserveTable: string
     reserveTableCta: string
-    menuAndQr: string
-    scanQrOrder: string
     facilitiesTitle: string
     featuredMenuTitle: string
+    menuTitle: string
+    promosTitle: string
+    defaultHeadlineFallback: string
     viewAllCatalog: string
     hours: string
+    loginRegister: string
+    promoSubtitle: string
     oneTruthTag: string
     oneTruthTitle: string
     oneTruthSubtitle: string
@@ -336,14 +340,14 @@ export interface TranslationDictionary {
     oneTruthStep2Desc: string
     oneTruthStep3Title: string
     oneTruthStep3Desc: string
-    oneTruthStep4Title: string
-    oneTruthStep4Desc: string
-    oneTruthStep5Title: string
-    oneTruthStep5Desc: string
     merchantCtaBadge: string
-    merchantCtaTitle: string
-    merchantCtaDesc: string
     merchantCtaButton: string
+    copySuccessToast: string
+    eventsTitle: string
+    defaultAddressFallback: string
+    defaultTaglineFallback: string
+    shareActionTitle: string
+    searchActionTitle: string
   }
   truth: {
     liveLabel: string
@@ -426,5 +430,35 @@ export interface TranslationDictionary {
     feedbackOptionalPlaceholder: string
     sendProductFeedback: string
     thankYouFeedback: string
+  }
+  support: {
+    modalTitle: string
+    modalSubtitle: string
+    categoryLabel: string
+    categoryBug: string
+    categoryFeature: string
+    categoryQuestion: string
+    categoryPraise: string
+    priorityLabel: string
+    priorityNormal: string
+    priorityUrgent: string
+    titleLabel: string
+    titlePlaceholder: string
+    descriptionLabel: string
+    descriptionPlaceholder: string
+    contactLabel: string
+    contactPlaceholder: string
+    diagnosticsLabel: string
+    diagnosticsApp: string
+    diagnosticsView: string
+    diagnosticsDevice: string
+    diagnosticsTimestamp: string
+    submitCta: string
+    submittingCta: string
+    successTitle: string
+    successSubtitle: string
+    ticketReferenceLabel: string
+    closeCta: string
+    triggerButtonLabel: string
   }
 }

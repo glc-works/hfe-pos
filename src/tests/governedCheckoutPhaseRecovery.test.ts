@@ -120,7 +120,7 @@ function accepted(tender: 'cash' | 'qris', provider?: string) {
     acceptance_idempotency_key: 'attempt-101:accept', accepted_at: '2026-08-28T10:00:01Z', order_id: 'ORDER-1',
     quote: {
       amount_due_minor: '30800', components: [], currency: 'IDR', digest_sha256: 'd'.repeat(64),
-      expires_at: '2026-08-28T10:15:00Z', lines: [], policies: [], preset_id: 'PRESET-1', preset_version: '1',
+      expires_at: new Date(Date.now() + 15 * 60_000).toISOString(), lines: [], policies: [], preset_id: 'PRESET-1', preset_version: '1',
       promotions: [], quote_id: 'QUOTE-1', revision: '1',
     },
     tender: {
@@ -175,7 +175,7 @@ describe('governed checkout durable phase recovery', () => {
     const durable = await durability()
     const context = makeContext(durable.port)
     const quote = quoteEvidence()
-    const qrisReceipt = { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: '2026-08-28T10:15:00Z' }
+    const qrisReceipt = { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: new Date(Date.now() + 15 * 60_000).toISOString() }
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(201, quote))
       .mockRejectedValueOnce(new Error('response lost'))
@@ -216,7 +216,7 @@ describe('governed checkout durable phase recovery', () => {
   it('reloads qris_intent_ready from durable quote and intent evidence without re-quoting or regenerating QRIS', async () => {
     const durable = await durability()
     const context = makeContext(durable.port)
-    const qrisReceipt = { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: '2026-08-28T10:15:00Z' }
+    const qrisReceipt = { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: new Date(Date.now() + 15 * 60_000).toISOString() }
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(201, quoteEvidence()))
       .mockResolvedValueOnce(response(201, accepted('qris', 'QRIS-1')))
@@ -282,7 +282,7 @@ describe('governed checkout durable phase recovery', () => {
     const durable = await durability({ phase: 'quote_ready', quote: quoteEvidence() })
     const context = makeContext(durable.port)
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(response(200, { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: '2026-08-28T10:15:00Z' }))
+      .mockResolvedValueOnce(response(200, { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: new Date(Date.now() + 15 * 60_000).toISOString() }))
       .mockRejectedValueOnce(new Error('accept response lost'))
       .mockResolvedValueOnce(response(200, accepted('qris', 'QRIS-1')))
       .mockResolvedValueOnce(response(200, {
@@ -364,7 +364,7 @@ describe('governed checkout durable phase recovery', () => {
     const durable = await durability({
       phase: 'accept_requested',
       quote: quoteEvidence(),
-      qrisIntent: { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: '2026-08-28T10:15:00Z' },
+      qrisIntent: { payment_id: 'QRIS-1', qris_string: '000201', qr_image_url: 'https://example.test/qr.png', expires_at: new Date(Date.now() + 15 * 60_000).toISOString() },
     })
     const receipt = { ...accepted('qris', 'QRIS-1'), ...patch }
     const fetchMock = vi.fn().mockResolvedValue(response(200, receipt))

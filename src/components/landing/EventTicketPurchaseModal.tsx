@@ -96,19 +96,19 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
         {/* MODAL HEADER */}
-        <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
               <Ticket className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-extrabold text-sm sm:text-base text-white truncate">
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white truncate">
                 {step === 'success' ? 'E-Ticket Berhasil Diterbitkan' : event.title}
               </h3>
-              <p className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5 truncate">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 truncate">
                 <span>{event.date}</span> • <span>{event.time}</span>
               </p>
             </div>
@@ -116,7 +116,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
           <button
             type="button"
             onClick={handleResetAndClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -129,40 +129,40 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
           {step === 'details' && (
             <form onSubmit={handleProceedToPayment} className="flex flex-col gap-4">
               {/* Event Summary Card */}
-              <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5 flex flex-col gap-2">
+              <div className="bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 font-mono">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 font-mono">
                     {event.category.replace('_', ' ').toUpperCase()}
                   </span>
-                  <span className="text-xs font-mono font-bold text-amber-400">
+                  <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
                     {event.price === 0 ? 'GRATIS / FREE' : `${formatPrice(event.price)} / Pax`}
                   </span>
                 </div>
-                <p className="text-xs text-slate-300">{event.description}</p>
-                <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
-                  <MapPin className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                <p className="text-xs text-slate-600 dark:text-slate-300">{event.description}</p>
+                <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-800/80">
+                  <MapPin className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
                   <span className="truncate">{event.location}</span>
                 </div>
               </div>
 
               {/* Quantity Selector */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800">
-                <span className="text-xs font-bold text-slate-200">Jumlah Tiket / Peserta:</span>
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Jumlah Tiket / Peserta:</span>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     disabled={quantity <= 1}
                     onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                    className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-30 font-bold text-white flex items-center justify-center text-sm"
+                    className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-30 font-bold text-slate-900 dark:text-white flex items-center justify-center text-sm cursor-pointer"
                   >
                     -
                   </button>
-                  <span className="font-mono font-black text-sm text-white w-6 text-center">{quantity}</span>
+                  <span className="font-mono font-black text-sm text-slate-900 dark:text-white w-6 text-center">{quantity}</span>
                   <button
                     type="button"
                     disabled={quantity >= event.quotaRemaining}
                     onClick={() => setQuantity(prev => Math.min(event.quotaRemaining, prev + 1))}
-                    className="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white flex items-center justify-center text-sm"
+                    className="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white flex items-center justify-center text-sm cursor-pointer"
                   >
                     +
                   </button>
@@ -172,8 +172,8 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
               {/* Participant Form */}
               <div className="flex flex-col gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-purple-400" /> Nama Lengkap Peserta *
+                  <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" /> Nama Lengkap Peserta *
                   </label>
                   <input
                     type="text"
@@ -181,13 +181,13 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                     value={participantName}
                     onChange={(e) => setParticipantName(e.target.value)}
                     placeholder="Contoh: Michael Chandra"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-medium"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-emerald-400" /> No. WhatsApp Aktif (Untuk E-Ticket) *
+                  <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> No. WhatsApp Aktif (Untuk E-Ticket) *
                   </label>
                   <input
                     type="tel"
@@ -195,33 +195,33 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                     value={participantPhone}
                     onChange={(e) => setParticipantPhone(e.target.value)}
                     placeholder="081234567890"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-mono font-bold"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-mono font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-blue-400" /> Email (Opsional)
+                  <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" /> Email (Opsional)
                   </label>
                   <input
                     type="email"
                     value={participantEmail}
                     onChange={(e) => setParticipantEmail(e.target.value)}
                     placeholder="michael@gmail.com"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-medium"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-purple-500 font-medium"
                   />
                 </div>
               </div>
 
               {/* Total & Submit Button */}
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-mono uppercase">Total Pembayaran</span>
-                  <p className="font-mono font-black text-base text-amber-400">{formatPrice(totalPrice)}</p>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono uppercase">Total Pembayaran</span>
+                  <p className="font-mono font-black text-base text-amber-600 dark:text-amber-400">{formatPrice(totalPrice)}</p>
                 </div>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-xs text-white shadow-lg flex items-center gap-1.5 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-xs text-white shadow-lg flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                 >
                   <span>Lanjut Pembayaran ➔</span>
                 </button>
@@ -232,23 +232,23 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
           {/* STEP 2: INSTANT PAYMENT METHOD */}
           {step === 'payment' && (
             <div className="flex flex-col gap-4 animate-fadeIn">
-              <div className="bg-slate-950 border border-purple-500/30 rounded-2xl p-4 flex flex-col gap-2">
+              <div className="bg-slate-50 dark:bg-slate-950 border border-purple-500/30 rounded-2xl p-4 flex flex-col gap-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Ringkasan Tiket:</span>
-                  <span className="font-bold text-white">{event.title} ({quantity} Pax)</span>
+                  <span className="text-slate-500 dark:text-slate-400">Ringkasan Tiket:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{event.title} ({quantity} Pax)</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Nama Peserta:</span>
-                  <span className="font-bold text-purple-300">{participantName}</span>
+                  <span className="text-slate-500 dark:text-slate-400">Nama Peserta:</span>
+                  <span className="font-bold text-purple-700 dark:text-purple-300">{participantName}</span>
                 </div>
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
-                  <span className="font-bold text-white">Total Tagihan:</span>
-                  <span className="font-mono font-black text-sm text-amber-400">{formatPrice(totalPrice)}</span>
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <span className="font-bold text-slate-900 dark:text-white">Total Tagihan:</span>
+                  <span className="font-mono font-black text-sm text-amber-600 dark:text-amber-400">{formatPrice(totalPrice)}</span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-300">Pilih Metode Pembayaran Instan:</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Pilih Metode Pembayaran Instan:</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: 'qris', label: 'QRIS Instan', badge: '⚡ Realtime' },
@@ -259,10 +259,10 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                       key={pm.id}
                       type="button"
                       onClick={() => setPaymentMethod(pm.id as any)}
-                      className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1 text-center transition-all ${
+                      className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1 text-center transition-all cursor-pointer ${
                         paymentMethod === pm.id
-                          ? 'bg-purple-600/20 border-purple-500 text-purple-300 shadow font-bold'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                          ? 'bg-purple-600/15 border-purple-500 text-purple-700 dark:text-purple-300 shadow-xs font-bold'
+                          : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       <span className="text-xs font-bold">{pm.label}</span>
@@ -277,7 +277,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                 <div className="w-36 h-36 bg-slate-100 rounded-xl border-2 border-slate-900 flex items-center justify-center p-2">
                   <QrCode className="w-28 h-28 text-slate-900" />
                 </div>
-                <span className="text-[10px] font-mono font-bold text-slate-800 uppercase tracking-wider">
+                <span className="text-[10px] font-mono font-bold text-slate-800 dark:text-slate-800 uppercase tracking-wider">
                   NMID: ID102026889210 • {paymentMethod.toUpperCase()}
                 </span>
               </div>
@@ -287,14 +287,14 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                 <button
                   type="button"
                   onClick={() => setStep('details')}
-                  className="text-xs font-bold text-slate-400 hover:text-white"
+                  className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                 >
                   ← Kembali
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmPayment}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg flex items-center gap-1.5 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Konfirmasi Pembayaran Lunas</span>
@@ -306,7 +306,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
           {/* STEP 3: E-TICKET SUCCESS & SHARE */}
           {step === 'success' && issuedTicket && (
             <div className="flex flex-col gap-4 animate-fadeIn">
-              <div className="bg-gradient-to-br from-purple-900/40 via-slate-900 to-slate-950 border-2 border-purple-500/50 rounded-3xl p-5 flex flex-col gap-3.5 shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-purple-900/90 via-slate-900 to-slate-950 border-2 border-purple-500/50 rounded-3xl p-5 flex flex-col gap-3.5 shadow-2xl relative overflow-hidden text-white">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold font-mono text-purple-300 bg-purple-500/20 px-2.5 py-1 rounded-full border border-purple-500/30">
                     VALID E-TICKET
@@ -333,7 +333,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
                   <button
                     type="button"
                     onClick={() => handleCopyCode(issuedTicket.ticketCode)}
-                    className="px-2.5 py-1.5 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-bold flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded-xl bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
                   >
                     {copiedCode ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedCode ? 'Tersalin' : 'Salin'}</span>
@@ -345,7 +345,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
               <button
                 type="button"
                 onClick={() => handleShareWhatsApp(issuedTicket)}
-                className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Kirim Tiket ke WhatsApp Peserta</span>
@@ -354,7 +354,7 @@ export const EventTicketPurchaseModal: React.FC<EventTicketPurchaseModalProps> =
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                className="w-full py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer"
               >
                 Tutup
               </button>

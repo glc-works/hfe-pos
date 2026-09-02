@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useState } from 'react'
-import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike } from 'lucide-react'
+import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
 import { SegmentedControl, Button } from '@/ui'
@@ -148,14 +148,14 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             {cartItems.map((item, idx) => (
               <div key={idx} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-xl p-2 flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{item.name}</h5>
+                  <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h5>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap shrink-0">{formatPrice(item.price)}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => onOpenDirectQtyModal(item, idx)}
-                    className="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono font-bold text-xs rounded-lg border border-slate-300 dark:border-slate-700 flex items-center gap-1 transition-all whitespace-nowrap shrink-0"
+                    className="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-mono font-bold text-xs rounded-lg border border-slate-300 dark:border-slate-700 flex items-center gap-1 transition-all whitespace-nowrap shrink-0"
                   >
                     <Calculator className="w-3 h-3 text-slate-500 dark:text-slate-400 shrink-0" /> {item.quantity}x
                   </button>
@@ -197,10 +197,9 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             {t.cart.awaitingCoreQuote}
           </p>
         ) : <div data-testid={!authoritativeQuote ? 'local-price-estimate' : undefined}>
-          {!authoritativeQuote && <p className="mb-1 text-[10px] font-bold text-amber-700 dark:text-amber-300">{t.cart.localPriceEstimate}</p>}
           <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{t.cart.subtotal}</span>
-            <span className="font-mono text-slate-800 dark:text-slate-200 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.subtotalMinor) : formatPrice(subtotal)}</span>
+            <span className="font-mono text-slate-900 dark:text-slate-100 whitespace-nowrap shrink-0">{authoritativeQuote ? formatExactMinor(authoritativeQuote.subtotalMinor) : formatPrice(subtotal)}</span>
           </div>
         {!authoritativeQuote && packagingFee > 0 && (
           <div className="flex justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
@@ -260,14 +259,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
         </div>
 
         {isCardEligible && (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
-          <Suspense fallback={<div className="min-h-[180px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
-          <div className="flex flex-col gap-2.5 bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5">
-              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 font-mono flex items-center gap-1">
-                <CreditCard className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                {t.cart.edcSectionTitle}
-              </span>
-            </div>
+          <Suspense fallback={<div className="min-h-[140px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
             <PosCardTenderForm
               posPayMethod={posPayMethod}
               internalCardType={internalCardType}
@@ -283,7 +275,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               onCardLast4Change={handleCardLast4Change}
               setApprovalCode={setApprovalCode}
             />
-          </div>
           </Suspense>
         )}
 
@@ -291,6 +282,18 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           <Suspense fallback={<div className="min-h-[180px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
             <PosCashTenderForm authoritativeQuote={authoritativeQuote} posCashGiven={posCashGiven} setPosCashGiven={setPosCashGiven} grandTotal={grandTotal} />
           </Suspense>
+        )}
+
+        {reviewReady && (
+          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 animate-fadeIn">
+            <span className="flex items-center gap-1.5 font-bold">
+              <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Kuotasi PB1 Siap (Tahap 2/2)</span>
+            </span>
+            <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
+              {authoritativeQuote ? formatExactMinor(authoritativeQuote.amountDueMinor) : formatPrice(grandTotal)}
+            </span>
+          </div>
         )}
 
         <div className="flex items-center gap-2 pt-1">
@@ -312,11 +315,29 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             size="md"
             fullWidth
             onClick={() => onCheckout()}
-            disabled={cartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0)}
-            icon={<CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />}
-            className="rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm"
+            disabled={checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting' || (cartItems.length === 0 && (!selectedPOSTable || selectedPOSTable.totalBill === 0))}
+            icon={
+              checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting' ? (
+                <Loader2 className="w-4 h-4 text-slate-950 shrink-0 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />
+              )
+            }
+            className={`rounded-2xl shadow-xl flex-1 font-black text-xs sm:text-sm transition-all ${
+              reviewReady ? 'ring-2 ring-emerald-400 ring-offset-2 animate-pulse' : ''
+            }`}
           >
-            {reviewReady ? t.cart.acceptReviewedCoreQuote : t.cart.reviewCoreQuote}
+            {checkoutPhase?.kind === 'quoting'
+              ? 'Menghitung Kuotasi PB1...'
+              : checkoutPhase?.kind === 'accepting'
+                ? 'Memproses Transaksi...'
+                : reviewReady
+                  ? `⚡ 2. Terima & Bayar Sekarang • ${authoritativeQuote ? formatExactMinor(authoritativeQuote.amountDueMinor) : formatPrice(grandTotal)} ➔`
+                  : awaitingCoreQuote
+                    ? t.cart.reviewCoreQuote
+                    : fulfillmentMode === 'takeaway'
+                      ? `${t.cart.takeawayModeLabel} • 🔍 Review Kuotasi (${formatPrice(grandTotal)})`
+                      : `🔍 1. Review Kuotasi PB1 • ${formatPrice(grandTotal)}`}
           </Button>
         </div>
       </div>

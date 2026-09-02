@@ -39,10 +39,10 @@ describe('Multi-View Header & Menu Switcher Sweeping Guard (POS, CARD, BOARD, OR
       const landingPagePath = path.join(rootDir, 'components/landing/LandingPageView.tsx')
       const content = fs.readFileSync(landingPagePath, 'utf-8')
 
-      // Secondary buttons must be hidden on mobile
-      expect(content).toContain('hidden sm:flex')
-      expect(content).toContain('hidden md:flex')
-      expect(content).toContain('max-w-[120px] sm:max-w-none')
+      // Secondary buttons and links must be hidden on mobile
+      expect(content).toContain('hidden lg:flex')
+      expect(content).toContain('hidden sm:inline-flex')
+      expect(content).toContain('truncate')
     })
 
     it('should ensure PosCommandHeader limits mobile right action buttons to 2 visible slots', () => {

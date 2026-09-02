@@ -26,7 +26,7 @@ const PERSONAL_VISITS_MOCK = [
     visitNo: 5,
     orderId: 'ORD-8821',
     date: 'Hari ini, 14:30',
-    venue: 'Kopitiam Senopati (Meja 04)',
+    venue: 'Outlet Pusat (Meja 04)',
     pointsEarned: 70,
     status: 'Selesai',
     items: [
@@ -39,7 +39,7 @@ const PERSONAL_VISITS_MOCK = [
     visitNo: 4,
     orderId: 'ORD-8710',
     date: '12 Agu 2026, 10:15',
-    venue: 'Kopitiam Senopati (Meja 02)',
+    venue: 'Outlet Pusat (Meja 02)',
     pointsEarned: 74,
     status: 'Selesai',
     items: [

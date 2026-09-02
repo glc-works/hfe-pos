@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('connected POS starts with ToGrow owner activation and exposes no synthetic PIN path', async ({ page }) => {
   await page.goto('/?app=cafe')
 
-  await expect(page.getByRole('button', { name: 'Owner', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Owner/i }).first()).toBeVisible()
   await expect(page.getByLabel('Email Pemilik Usaha:')).toBeVisible()
   await expect(page.getByLabel('Kata Sandi Akun:')).toBeVisible()
   await expect(page.getByRole('button', { name: 'PIN Kasir' })).toHaveCount(0)

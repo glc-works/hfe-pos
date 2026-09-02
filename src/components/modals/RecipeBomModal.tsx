@@ -44,7 +44,7 @@ export const RecipeBomModal: React.FC<RecipeBomModalProps> = ({
         {/* BOM INGREDIENTS LIST */}
         <div className="flex flex-col gap-2">
           <h4 className="text-xs font-bold text-amber-400 flex items-center justify-between">
-            <span className="flex items-center gap-1.5"><Layers className="w-4 h-4 text-amber-500" /> Bill of Materials (BOM Resep & Kode Inventori)</span>
+            <span className="flex items-center gap-1.5"><Layers className="w-4 h-4 text-amber-500" /> Komposisi BoM (Bill of Materials &amp; Kode Inventori)</span>
             <span className="text-[9px] font-mono text-indigo-400">STAFF ONLY</span>
           </h4>
           <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
@@ -58,7 +58,7 @@ export const RecipeBomModal: React.FC<RecipeBomModalProps> = ({
                 </div>
                 <span className="font-mono font-bold text-amber-400">{ing.amount}</span>
               </div>
-            )) || <p className="text-xs text-slate-500">Resep standar pabrikasi.</p>}
+            )) || <p className="text-xs text-slate-500">Komposisi BoM standar pabrikasi.</p>}
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export const RecipeBomModal: React.FC<RecipeBomModalProps> = ({
           onClick={onClose}
           className="w-full bg-amber-500 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg mt-1"
         >
-          Tutup Petunjuk Resep
+          Tutup Petunjuk Komposisi BoM
         </button>
       </div>
     </div>

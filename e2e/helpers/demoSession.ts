@@ -5,8 +5,15 @@ export { demoAccess }
 
 export async function loginAsCanonicalDemoStaff(page: Page): Promise<void> {
   await page.goto('/?app=cafe')
+  const branchSelect = page.locator('select').first()
+  if (await branchSelect.isVisible()) {
+    await branchSelect.selectOption(demoAccess.branchId)
+  }
+  const staffCard = page.locator('button:has-text("Siti")').first()
+  if (await staffCard.isVisible()) {
+    await staffCard.click()
+  }
   await expect(page.getByText('Masukkan 6 Digit PIN Kasir')).toBeVisible()
-  await page.locator('select').selectOption(demoAccess.branchId)
 
   for (const digit of demoAccess.staff.pin) {
     await page.getByRole('button', { name: digit, exact: true }).click()
@@ -36,5 +43,7 @@ export async function resetCanonicalDemoSession(page: Page): Promise<void> {
   })
   await page.context().clearCookies()
   await page.reload()
-  await expect(page.getByText('Masukkan 6 Digit PIN Kasir')).toBeVisible()
+  const staffPrompt = page.getByText('Pilih Profil Staf yang Bertugas')
+  const pinPrompt = page.getByText('Masukkan 6 Digit PIN Kasir')
+  await expect(staffPrompt.or(pinPrompt)).toBeVisible()
 }

@@ -9,5 +9,7 @@ pre-commit:
       run: python3 scripts/validate-connector.py
     biome-lint:
       run: npx biome lint src
+    contrast:
+      run: python3 scripts/audit-theme-contrast.py
     secretlint:
       run: npx secretlint "**/*"

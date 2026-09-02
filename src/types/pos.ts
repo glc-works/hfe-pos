@@ -9,6 +9,11 @@ export type PaymentPolicy = 'pay-first' | 'open-tab'
 export type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
 export type PosPayMethod = 'cash' | 'qris' | 'cc' | 'debit' | 'card'
 export type OrderFulfillmentMode = 'dine_in' | 'takeaway' | 'delivery'
+export type DeliveryDropOffOption = 'leave_at_lobby_guard' | 'meet_at_door' | 'meet_in_person'
+export interface DeliveryAddressInfo {
+  recipientName: string; phoneNumber: string; streetAddress: string; unitOrFloor: string
+  dropOffOption: DeliveryDropOffOption; driverNotes?: string; distanceKm: number
+}
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
 
 export interface CardTenderMetadata {
@@ -23,62 +28,25 @@ export interface CardTenderMetadata {
 }
 
 export interface TableReservation {
-  id: string
-  customerName: string
-  phone: string
-  tableArea: string
-  paxCount: number
-  reservationDate: string
-  timeSlot: string
-  dpAmount: number
-  dpStatus: 'unpaid' | 'paid_qris'
-  approvalPolicy: 'instant' | 'manual_review'
-  status: 'pending' | 'confirmed' | 'seated' | 'cancelled'
-  specialNotes?: string
-  preOrderItems?: { name: string; qty: number; price: number }[]
-  totalPreOrderAmount?: number
-  createdAt: string
+  id: string; customerName: string; phone: string; tableArea: string; paxCount: number
+  reservationDate: string; timeSlot: string; dpAmount: number; dpStatus: 'unpaid' | 'paid_qris'
+  approvalPolicy: 'instant' | 'manual_review'; status: 'pending' | 'confirmed' | 'seated' | 'cancelled'
+  specialNotes?: string; preOrderItems?: { name: string; qty: number; price: number }[]; totalPreOrderAmount?: number; createdAt: string
 }
 
 export type WifiAccessPolicy = 'always_visible' | 'after_payment' | 'disabled'
 export type BusinessOperatingArchetype = 'quick-service-stall' | 'casual-dine-in' | 'full-service-resto'
 
 export interface PosWorkflowToggles {
-  enableMenuCatalog: boolean
-  enableTableFloorPlan: boolean
-  enableBookingReservations: boolean
-  defaultPosMode: 'catalog' | 'tables' | 'booking'
+  enableMenuCatalog: boolean; enableTableFloorPlan: boolean; enableBookingReservations: boolean; defaultPosMode: 'catalog' | 'tables' | 'booking'
 }
 
 export interface HfeCompanyProfile {
-  companyBookId: string
-  ptLegalName: string
-  brandName: string
-  logoUrl: string
-  taxIdNpwp: string
-  nibPermit: string
-  address: string
-  hfeLedgerApiEndpoint: string
-  isLiveHfeSynced?: boolean
-  lastSyncedAt?: string
-  operatingArchetype?: BusinessOperatingArchetype
+  companyBookId: string; ptLegalName: string; brandName: string; logoUrl: string; taxIdNpwp: string; nibPermit: string; address: string
+  hfeLedgerApiEndpoint: string; isLiveHfeSynced?: boolean; lastSyncedAt?: string; operatingArchetype?: BusinessOperatingArchetype
   workflowToggles?: PosWorkflowToggles
-  socialMedia?: {
-    instagram?: string
-    tiktok?: string
-    whatsappOrder?: string
-    googleMapsUrl?: string
-    websiteUrl?: string
-  }
-  storefrontInfo?: {
-    tagline?: string
-    storyDescription?: string
-    operatingHours?: string
-    wifiSsid?: string
-    wifiPassword?: string
-    wifiAccessPolicy?: WifiAccessPolicy
-    heroBannerUrl?: string
-  }
+  socialMedia?: { instagram?: string; tiktok?: string; whatsappOrder?: string; googleMapsUrl?: string; websiteUrl?: string }
+  storefrontInfo?: { tagline?: string; storyDescription?: string; operatingHours?: string; wifiSsid?: string; wifiPassword?: string; wifiAccessPolicy?: WifiAccessPolicy; heroBannerUrl?: string }
 }
 
 export interface BomIngredient {
@@ -90,6 +58,23 @@ export interface BomIngredient {
 
 export type ModifierPolicy = 'always' | 'never' | 'inherit_category'
 
+export interface ModifierOption {
+  id: string
+  name: string
+  priceDelta: number
+  bomDelta?: string
+}
+
+export interface ModifierGroup {
+  id: string
+  name: string
+  selectionType: 'single' | 'multiple'
+  minSelection?: number
+  maxSelection?: number
+  required?: boolean
+  options: ModifierOption[]
+}
+
 export interface CategoryEtalaseConfig {
   id: string
   name: string
@@ -97,6 +82,8 @@ export interface CategoryEtalaseConfig {
   enableModifiersDefault: boolean
   allowCustomNotesDefault: boolean
 }
+
+export type MenuItemBadge = 'seasonal' | 'chef_recommendation' | 'best_seller' | 'new_arrival' | 'signature'
 
 export interface MenuItem {
   id: string
@@ -107,14 +94,21 @@ export interface MenuItem {
   price: number
   image: string
   description: string
+  badge?: MenuItemBadge
+  badgeStory?: string
+  tastingNotes?: string[]
+  dietaryTags?: ('vegan' | 'gluten_free' | 'dairy_free' | 'nut_free' | 'halal')[]
+  originInfo?: string
   hasModifiers?: boolean
   modifierPolicy?: ModifierPolicy
+  modifierGroups?: ModifierGroup[]
   allowCustomNotes?: boolean
   temperature?: 'Iced' | 'Hot'
   sugarLevel?: '0%' | '50%' | '100%'
   milkOption?: 'Whole Milk' | 'Fresh Milk' | 'Oat Milk (+Rp 5.000)' | 'Almond Milk (+Rp 5.000)' | string
   bomIngredients?: BomIngredient[]
   preparationSteps?: string[]
+  kdsStation?: string
   wholesalePrice?: number
   wholesaleMinQty?: number
   barcode?: string
@@ -131,6 +125,13 @@ export interface SeatCustomerContact {
   allergenAlert?: string
 }
 
+export interface SelectedModifier {
+  groupId: string
+  optionId: string
+  name: string
+  priceDelta: number
+}
+
 export interface CartItem extends MenuItem {
   quantity: number
   seatNumber?: string // Tagging Kursi (Seat 1-4)
@@ -138,6 +139,7 @@ export interface CartItem extends MenuItem {
   customNotes?: string
   allergenNotes?: string
   served?: boolean
+  selectedModifiers?: SelectedModifier[]
 }
 
 export interface OrderTicket {
@@ -210,17 +212,10 @@ export interface TableStatus {
   customerName?: string
   totalBill: number
   orderCount: number
-  orderIds?: string[]
-  zoneId?: PropertyZoneId
-  seatedDurationMinutes?: number
-  minSpend?: number
-  pax?: number
-  seatedGuests?: number
-  maxCapacity?: number
+  orderIds?: string[]; zoneId?: PropertyZoneId; seatedDurationMinutes?: number; minSpend?: number; pax?: number; seatedGuests?: number; maxCapacity?: number
 }
 
 export type TableInfo = TableStatus
-
 export type MemberTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
 
 export interface CustomerPreferences {
@@ -323,6 +318,21 @@ export interface StorefrontChannelToggles {
   isEmergencyBusyMode: boolean
 }
 
+export type AmenityTagId =
+  | 'wifi_free' | 'wifi_high_speed' | 'power_outlets' | 'meeting_room'
+  | 'ac_indoor' | 'outdoor_garden' | 'dedicated_smoking' | 'non_smoking_only' | 'rooftop_view'
+  | 'free_parking' | 'valet_parking' | 'ev_charging' | 'wheelchair_access'
+  | 'prayer_room' | 'clean_restrooms' | 'baby_high_chair' | 'nursing_room' | 'pet_friendly'
+  | 'halal_certified' | 'vegetarian_friendly' | 'live_music' | 'cashless_accepted' | 'reservations_welcome'
+
+export interface MenuDisplayPolicy {
+  showPublicIngredients?: boolean // default: false (protects proprietary kitchen BoM recipes)
+  showTastingNotes?: boolean      // default: true
+  showCuratedStory?: boolean      // default: true
+  showDietaryBadges?: boolean     // default: true
+  showOriginInfo?: boolean        // default: true
+}
+
 export interface StorefrontCustomizationConfig {
   // 1. Landing Page Studio
   storeName?: string
@@ -342,6 +352,10 @@ export interface StorefrontCustomizationConfig {
   operatingHoursText: string
   socialLinks: StorefrontSocialLinks
   channels?: StorefrontChannelToggles
+  facilities?: { icon: string; title: string; desc?: string; image?: string }[]
+  amenityTags?: AmenityTagId[]
+  events?: EventTicketItem[]
+  businessVertical?: 'fnb' | 'service' | 'barber' | 'salon' | 'retail' | 'space' | string
 
   // 2. QR Order Customer Space Studio
   greetingMessage: string
@@ -351,6 +365,7 @@ export interface StorefrontCustomizationConfig {
   enableAllergenBadges: boolean
   enableDigitalReceiptSharing: boolean
   receiptCustomFooter: string
+  menuDisplayPolicy?: MenuDisplayPolicy
 }
 
 // --- STORE ONBOARDING & PRESET POLICY TYPES ---
@@ -465,19 +480,9 @@ export interface ServiceTicket {
 
 // --- ACTIVE OPERATIONS TRAY & PARKED TABS (L2-POS-TRAY) ---
 export interface ParkedOperationTab {
-  id: string
-  label: string
-  fulfillmentMode: OrderFulfillmentMode
-  tableName?: string
-  customerName?: string
-  customerPhone?: string
-  items: CartItem[]
-  rawSubtotal: number
-  packagingFee: number
-  totalAmount: number
-  parkedAt: string
-  elapsedMinutes?: number
-  notes?: string
+  id: string; label: string; fulfillmentMode: OrderFulfillmentMode; tableName?: string
+  customerName?: string; customerPhone?: string; items: CartItem[]; rawSubtotal: number
+  packagingFee: number; totalAmount: number; parkedAt: string; elapsedMinutes?: number; notes?: string
 }
 
 // --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---

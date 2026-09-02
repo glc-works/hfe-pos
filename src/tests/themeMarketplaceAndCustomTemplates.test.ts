@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { MARKETPLACE_THEMES } from '../data/marketplaceThemesData'
+import { CONCEPT_THEME_TEMPLATES } from '../data/defaultStorefrontCustomization'
 
 describe('Theme Customization, Vault & Marketplace Suite (L2-POS-42)', () => {
   it('should verify marketplace themes have valid shadcn tokens, ratings and categories', () => {
@@ -12,6 +13,18 @@ describe('Theme Customization, Vault & Marketplace Suite (L2-POS-42)', () => {
       expect(item.theme.primaryAccentHex).toMatch(/^#[0-9a-fA-F]{6}$/)
       expect(item.theme.pageBgHex).toMatch(/^#[0-9a-fA-F]{6}$/)
       expect(item.theme.cardBgHex).toMatch(/^#[0-9a-fA-F]{6}$/)
+    })
+  })
+
+  it('should verify curated concept theme templates for storefront studio', () => {
+    expect(CONCEPT_THEME_TEMPLATES.length).toBeGreaterThanOrEqual(4)
+    CONCEPT_THEME_TEMPLATES.forEach((tmpl) => {
+      expect(tmpl.id).toBeDefined()
+      expect(tmpl.name).toBeDefined()
+      expect(tmpl.accentColor).toMatch(/^#[0-9a-fA-F]{6}$/)
+      expect(['light', 'dark']).toContain(tmpl.mode)
+      expect(tmpl.bannerUrl).toContain('https://')
+      expect(tmpl.icon).toBeDefined()
     })
   })
 

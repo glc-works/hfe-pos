@@ -33,17 +33,15 @@ describe('BOARD Merchant Storefront Footer Onboarding CTA', () => {
   it('renders merchant onboarding CTA with direct link to https://pos.hfeit.com', () => {
     const html = renderLanding()
     expect(html).toContain('https://pos.hfeit.com')
-    expect(html).toContain(idTranslations.landing.merchantCtaTitle)
+    expect(html).toContain(idTranslations.landing.merchantCtaBadge.replace('&', '&amp;'))
     expect(html).toContain(idTranslations.landing.merchantCtaButton)
   })
 
   it('contains complete i18n definitions for Indonesian and English', () => {
     expect(idTranslations.landing.merchantCtaBadge).toBeDefined()
-    expect(idTranslations.landing.merchantCtaTitle).toContain('Ingin punya website etalase')
     expect(idTranslations.landing.merchantCtaButton).toContain('Daftar Merchant Baru di POS.Hfeit')
 
     expect(enTranslations.landing.merchantCtaBadge).toBeDefined()
-    expect(enTranslations.landing.merchantCtaTitle).toContain('Want a public storefront')
     expect(enTranslations.landing.merchantCtaButton).toContain('Register New Merchant on POS.Hfeit')
   })
 })

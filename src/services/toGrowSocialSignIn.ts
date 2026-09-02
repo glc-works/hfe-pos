@@ -1,26 +1,32 @@
 import { isConnectedFirstPartyRuntime, requiredRuntimeValue } from '../config/firstPartyRuntime'
 import type { ToGrowLoginSession } from './hfeAuthApi'
+import type { SocialAuthProvider } from './auth'
 
-export type ToGrowSocialProvider = 'google' | 'apple'
+export type ToGrowSocialProvider = SocialAuthProvider
 
 export interface SocialSignInAttempt {
-  provider: ToGrowSocialProvider
+  provider: SocialAuthProvider
   verifier: string
   state: string
 }
 
 const ATTEMPT_KEY = 'hfe_pos_togrow_social_attempt'
-const SUPPORTED_PROVIDERS: readonly ToGrowSocialProvider[] = ['google', 'apple']
+const SUPPORTED_PROVIDERS: readonly SocialAuthProvider[] = ['google', 'apple', 'email', 'oidc', 'passkey']
 
-function isSupportedProvider(value: string): value is ToGrowSocialProvider {
-  return SUPPORTED_PROVIDERS.includes(value as ToGrowSocialProvider)
+function isSupportedProvider(value: string): value is SocialAuthProvider {
+  return SUPPORTED_PROVIDERS.includes(value as SocialAuthProvider)
 }
 
-export function configuredSocialProviders(): ToGrowSocialProvider[] {
+export function configuredSocialProviders(): SocialAuthProvider[] {
   if (!isConnectedFirstPartyRuntime()) return []
-  const configured = String(import.meta.env.VITE_TOGROW_SOCIAL_PROVIDERS || '').split(',')
+  const configured = String(
+    import.meta.env.VITE_AUTH_SOCIAL_PROVIDERS ||
+    import.meta.env.VITE_HFAUTH_SOCIAL_PROVIDERS ||
+    import.meta.env.VITE_TOGROW_SOCIAL_PROVIDERS ||
+    ''
+  ).split(',')
   const supported = configured.map(value => value.trim().toLowerCase()).filter(isSupportedProvider)
-  return [...new Set<ToGrowSocialProvider>(supported)]
+  return [...new Set<SocialAuthProvider>(supported)]
 }
 
 function base64url(bytes: Uint8Array): string {

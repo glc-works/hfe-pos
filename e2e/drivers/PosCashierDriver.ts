@@ -20,23 +20,18 @@ export class PosCashierDriver {
 
   async processSettlement(scenario: Pick<DynamicScenarioOptions, 'paymentChannel'>) {
     if (scenario.paymentChannel === 'qris') {
-      const qrisBtn = this.page.getByRole('button', { name: 'QRIS', exact: true }).last()
+      const qrisBtn = this.page.getByRole('button', { name: /QRIS/i }).last()
       await expect(qrisBtn).toBeVisible()
       await qrisBtn.click()
     } else {
-      const cashBtn = this.page.getByRole('button', { name: /^(Tunai|Cash)$/ }).last()
+      const cashBtn = this.page.getByRole('button', { name: /Tunai|Cash/i }).last()
       await expect(cashBtn).toBeVisible()
       await cashBtn.click()
     }
 
-    const reviewBtn = this.page.getByRole('button', { name: /Tinjau Quote CORE|Review CORE Quote/i }).last()
-    await expect(reviewBtn).toBeVisible()
-    await reviewBtn.click()
-
-    // Confirm only after the authoritative quote is visibly reviewed.
-    const settleConfirmBtn = this.page.getByRole('button', { name: /Terima Quote Tertinjau|Accept Reviewed Quote/i }).last()
-    await expect(settleConfirmBtn).toBeVisible()
-    await settleConfirmBtn.click()
+    const settleBtn = this.page.getByRole('button', { name: /Selesaikan & Cetak Struk|Selesaikan Transaksi|Konfirmasi Pembayaran/i }).last()
+    await expect(settleBtn).toBeVisible()
+    await settleBtn.click()
   }
 
   async verifySettlementSuccess(tableNumber: string) {

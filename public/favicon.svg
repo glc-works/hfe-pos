@@ -1,18 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#0f172a"/>
-  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#grad)" fill-opacity="0.15" stroke="#f59e0b" stroke-width="8"/>
   <defs>
     <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#f59e0b"/>
       <stop offset="100%" stop-color="#10b981"/>
     </linearGradient>
   </defs>
+  <!-- Circular Modern App Icon Background -->
+  <circle cx="256" cy="256" r="248" fill="#0f172a" stroke="#f59e0b" stroke-width="16"/>
+  <circle cx="256" cy="256" r="224" fill="url(#grad)" fill-opacity="0.12"/>
   <!-- Coffee Cup / POS Terminal Icon -->
-  <path d="M140 180 H320 V300 C320 344 284 380 240 380 H220 C176 380 140 344 140 300 Z" fill="#f59e0b"/>
-  <path d="M320 200 H360 C382 200 400 218 400 240 C400 262 382 280 360 280 H320 Z" fill="none" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
-  <path d="M120 420 H340" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <path d="M140 190 H320 V300 C320 344 284 380 240 380 H220 C176 380 140 344 140 300 Z" fill="#f59e0b"/>
+  <path d="M320 210 H360 C382 210 400 228 400 250 C400 272 382 290 360 290 H320 Z" fill="none" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <path d="M120 410 H340" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
   <!-- Steam Lines -->
-  <path d="M180 140 Q190 110 180 80" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round"/>
-  <path d="M230 140 Q240 100 230 70" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round"/>
-  <path d="M280 140 Q290 110 280 80" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round"/>
+  <path d="M180 150 Q190 120 180 90" fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="round"/>
+  <path d="M230 150 Q240 110 230 80" fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="round"/>
+  <path d="M280 150 Q290 120 280 90" fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="round"/>
 </svg>
