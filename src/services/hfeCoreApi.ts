@@ -1,6 +1,5 @@
 // --- HFE REST API TRANSPORT LAYER & OFFLINE BUFFER SERVICE (CORE) ---
 import { MenuItem, TeamMember, InviteStaffPayload } from '../types/pos'
-import { PRODUCT_CATALOG } from '../data/mockData'
 
 const DEFAULT_BASE_URL = 'http://localhost:8080'
 const DB_NAME = 'HfePosOfflineBufferDB'
@@ -163,14 +162,22 @@ export async function saveToOfflineBuffer(payload: SubmitTransactionPayload): Pr
 
 // --- REST CLIENT IMPLEMENTATIONS ---
 
-/** GET /v1/company-books/{book}/products */
-export async function fetchProductCatalog(bookId = 'BOOK-CAFE-HQ-88', baseUrl = DEFAULT_BASE_URL): Promise<MenuItem[]> {
+/**
+ * GET /v1/company-books/{book}/products
+ * The transport layer owns no demo data: in offline/demo contexts the caller
+ * supplies its own fallback catalog (e.g. PRODUCT_CATALOG from the UI layer).
+ */
+export async function fetchProductCatalog(
+  bookId = 'BOOK-CAFE-HQ-88',
+  baseUrl = DEFAULT_BASE_URL,
+  offlineFallbackCatalog?: MenuItem[]
+): Promise<MenuItem[]> {
   try {
     const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/products`)
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
-    return PRODUCT_CATALOG
+    return offlineFallbackCatalog ?? []
   }
 }
 
