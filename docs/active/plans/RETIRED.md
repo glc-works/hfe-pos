@@ -12,21 +12,24 @@ Product authority lives in Product Canon (`glc-works/hfeit-product`), which wins
 
 | Disposition | Count | Meaning |
 |---|---|---|
-| RETIRE | 99 | Truth now lives in code/tests, or the approach was abandoned (PR closed unmerged). |
-| SUPERSEDED | 15 | Durable product meaning moved to a named Product Canon successor. |
+| RETIRE | 97 | Truth now lives in code/tests, or the approach was abandoned (PR closed unmerged). |
+| SUPERSEDED | 17 | Durable product meaning moved to a named Product Canon successor (incl. both auth-starterkit plans — see CodeRabbit finding). |
 | **Total removed** | **114** | Of 129 audited plan files; 15 files remain active (see below). |
 
-Remaining active plan files: 4 EXTRACT-TO-CANON in `level-1/` (harvest-pending, banner-marked),
-7 in `level-2/` (3 EXTRACT-TO-CANON + 4 KEEP-AS-COORDINATION), and 1 UNCLEAR
-(`level-2/l2-pos-101-board-dual-cta-and-online-state-isolation.md`, fails closed).
+Remaining active plan files (15): 7 EXTRACT-TO-CANON (4 in `level-1/`: l1-27, l1-10,
+l1-15, l1-16; 3 in `level-2/`: l2-pos-46, l2-pos-12, l2-pos-18 — harvest-pending,
+banner-marked), 7 KEEP-AS-COORDINATION in `level-2/` (live issue bindings), and
+1 UNCLEAR (`level-2/l2-pos-101-board-dual-cta-and-online-state-isolation.md`, fails closed).
 Templates under `templates/` are scaffolding, outside the 129-file audit count.
 
-## SUPERSEDED (15) — successor canon
+## SUPERSEDED (17) — successor canon
 
 | removed file | successor / evidence (per DISPOSITION.md) |
 |---|---|
 | `level-0/000-hfex-master-experience-platform.md` | `product/level-0/current-product-system.md` + `product-relationship-classification.md` + `experience-surface-map.md` own surface meaning; already dispositioned STALE/HARVESTED at POS `eacd1ec2`; Product `#68` OPEN_DECISION on shipping selection. |
 | `level-0/hfe-pos-suite-master-plan.md` | Surface meaning → `experience-surface-map.md`/`experience-card-board-order.md`; loyalty/voucher semantics → `01.01.28-promotions-offers.md`; Product `#68` keeps shipping selection open. |
+| `level-1/l1-17-hfe-pos-auth-starterkit-sdk.md` | Identity canon (`first-party-identity` alignment, `#38`/`#40` closed) owns auth; POS-local auth-starterkit was never implemented. |
+| `level-2/l2-pos-20-hfe-pos-auth-starterkit-sdk-package.md` | Package twin of l1-17; same Identity-canon supersession. |
 | `level-1/l1-01-guest-login-mobile-qr-self-order.md` | Entry/guest semantics → `first-party-identity-sso-session.md` + `experience-card-board-order.md` §7; POS-local login must not re-own identity (see l2-pos-86). |
 | `level-1/l1-02-barista-touch-pos-table-engine.md` | POS surface meaning → `experience-surface-map.md`, `experience-card-board-order.md` §7. |
 | `level-1/l1-03-policy-based-payment-checkout.md` | Payment/settlement truth is CORE's (`01.05.05-settlement` family); ORDER mode mapping → `experience-card-board-order.md` §5. |
@@ -41,13 +44,12 @@ Templates under `templates/` are scaffolding, outside the 129-file audit count.
 | `level-1/l1-24-customer-contact-master-and-crm-suite.md` | Contact/party semantics → `01.01.02-contact.md` family; CRM view is implementation detail. |
 | `level-2/l2-pos-08-offline-indexeddb-resilience-buffer.md` | Same offline family row as l1-06 in the legacy matrix; `01.01.11-offline.md` owns semantics. |
 
-## RETIRE (99) — truth owned by code/tests
+## RETIRE (97) — truth owned by code/tests
 
 | removed file | evidence / successor (per DISPOSITION.md) |
 |---|---|
 | `level-1/l1-11-fine-dining-course-pacing-suite.md` | F&B-vertical implementation, not ecosystem meaning. |
 | `level-1/l1-14-operational-workflows-shift-void-stocktake.md` | Operational workflow detail; cash truth is CORE's. |
-| `level-1/l1-17-hfe-pos-auth-starterkit-sdk.md` | The auth-starterkit proposal is SUPERSEDED by Identity canon; do not implement. Contradicts Identity canon and l2-pos-86 alignment; POS-local auth was replaced by ToGrow alignment (`#38`/`#40` closed). Do not revive. |
 | `level-1/l1-18-multi-warehouse-operations-suite.md` | Inventory/warehouse semantics → `01.01.17-product-inventory.md`; plan is implementation detail. |
 | `level-1/l1-21-real-world-rl-operations-suite.md` | Mostly hardware/parsing implementation; consignment semantics, if wanted, belong under `01.01.17`. |
 | `level-1/l1-22-hfe-pos-insights-and-ux-purification-suite.md` | Analytics presentation detail; live-truth boundary for insights now tracked by `#85`-`#88`/`#126` and plan 94. |
@@ -70,7 +72,6 @@ Templates under `templates/` are scaffolding, outside the 129-file audit count.
 | `level-2/l2-pos-16-unified-simple-pos-login-screen.md` | Auth semantics now governed by l2-pos-86/Identity canon; residual `#115`. |
 | `level-2/l2-pos-17-shift-reconcile-void-refund-stocktake-engine.md` | Shipped. |
 | `level-2/l2-pos-19-awb-resi-and-thermal-receipt-engine.md` | Printing is implementation detail; resi semantics harvested via l1-16. |
-| `level-2/l2-pos-20-hfe-pos-auth-starterkit-sdk-package.md` | The auth-starterkit proposal is SUPERSEDED by Identity canon; do not implement. Same contradiction as l1-17; superseded by ToGrow identity alignment. Do not revive. |
 | `level-2/l2-pos-21-warehouse-management-view-transfer-spoilage-engine.md` | Shipped; inventory truth under `01.01.17`. |
 | `level-2/l2-pos-22-branch-management-view-outlet-switcher-engine.md` | Shipped. |
 | `level-2/l2-pos-23-eco-impact-dashboard-surplus-discount-tip-engine.md` | Unimplemented deltas, if wanted, route through `01.01.25-sustainability.md` (HCB `#932`), not this plan. |
@@ -101,7 +102,7 @@ Templates under `templates/` are scaffolding, outside the 129-file audit count.
 | `level-2/l2-pos-47-customer-card-and-member-portal.md` | Shipped; CARD meaning (Life & Work pass model, not loyalty-only) owned by `experience-card-board-order.md` §2. |
 | `level-2/l2-pos-49-notification-center-and-operations-ticketing.md` | Notification delivery semantics → `01.01.12.03-notification-delivery.md`; ticketing → `01.01.03-ticket.md`. |
 | `level-2/l2-pos-50-production-contract-cutover-and-sdk-adoption.md` | Defers correctly to CORE authority ("Authority References" section is deferential, not a claim); residual connected-mode breadth moved to plan 101. |
-| `level-2/l2-pos-51-unified-wave-upgrade-sdk-and-design-hierarchy.md` | Merged; front-matter status unreliable — see finding below. |
+| `level-2/l2-pos-51-unified-wave-upgrade-sdk-and-design-hierarchy.md` | Merged; front-matter status unreliable — shipped as SDK refactor — code/tests own the truth. |
 | `level-2/l2-pos-52-customer-touchpoints-and-order-channels.md` | Shipped. |
 | `level-2/l2-pos-53-operations-kds-and-backoffice-cutover.md` | Shipped. |
 | `level-2/l2-pos-55-master-product-wide-compliance-sweep-and-device-parity.md` | "100% Tier 2" claim in front matter is unevidenced; treat as provenance only. |
