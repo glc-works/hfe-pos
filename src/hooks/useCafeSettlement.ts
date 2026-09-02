@@ -249,10 +249,13 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
         setAuthoritativeQuote(quote)
         reviewedIntentFingerprint.current = checkoutIntentFingerprint(options, intendedPaymentMethod)
         setCheckoutPhase({ kind: 'review', quote, payloadFingerprint: attempt.payloadFingerprint })
+        return quote
       }
+      return null
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setCheckoutPhase({ kind: 'failed', message: msg })
+      return null
     } finally {
       quoteRequestInFlight.current = false
     }
@@ -340,14 +343,13 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
       }),
       idempotency_key: quoteIdempotencyKey.current ?? undefined,
     }
-    const reviewed = authoritativeQuote
+    let reviewed: ReviewedPosQuote | null = authoritativeQuote
     const intendedFingerprint = checkoutIntentFingerprint(options, intendedPaymentMethod)
     if (!resumeExisting && (!reviewed || checkoutPhase.kind !== 'review' || reviewedIntentFingerprint.current !== intendedFingerprint)) {
-      await requestQuote(intendedPaymentMethod)
-      return
+      reviewed = (await requestQuote(intendedPaymentMethod)) || null
+      if (!reviewed) return
     }
     setCanResumeFinancialAttempt(true)
-
     setFinancialStatus('pending')
     setPostingTruthHref(null)
     setFinancialNotice('submitting')
@@ -411,7 +413,7 @@ export function useCafeSettlement(options: UseCafeSettlementOptions) {
           return settleConfirmedPosted(checkoutKey, result.attempt.response, intendedPaymentMethod)
         }
         setPendingQrisPayment(result.attempt.response?.qris_payment || null)
-        setFinancialStatus('pending')
+        setFinancialStatus('error')
         setFinancialNotice('outcome_unknown')
         setFinancialFailureCode(classifyCheckoutFailure(result.attempt.lastError))
         void appendDeadLetterEntry({

@@ -38,6 +38,42 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 28000,
     image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=500&q=80',
     description: 'Espresso ganda Arabica kintamani dipadu gula aren alami dan susu segar.',
+    badge: 'best_seller',
+    badgeStory: 'Menu terlaris kami sejak 2020. Dipesan lebih dari 1.800 cangkir setiap bulannya oleh pelanggan setia.',
+    tastingNotes: ['Gula Aren', 'Caramel', 'Dark Chocolate'],
+    dietaryTags: ['halal'],
+    originInfo: 'Arabica Kintamani Bali & Aren Organik Banten',
+    hasModifiers: true,
+    modifierGroups: [
+      {
+        id: 'mod-temp',
+        name: 'Suhu Penyajian',
+        selectionType: 'single',
+        options: [
+          { id: 'opt-iced', name: 'Dingin (Iced)', priceDelta: 0 },
+          { id: 'opt-hot', name: 'Panas (Hot)', priceDelta: 0 }
+        ]
+      },
+      {
+        id: 'mod-sugar',
+        name: 'Tingkat Kemanisan (Sugar Level)',
+        selectionType: 'single',
+        options: [
+          { id: 'opt-sugar-100', name: 'Normal (100%)', priceDelta: 0 },
+          { id: 'opt-sugar-50', name: 'Less Sugar (50%)', priceDelta: 0 },
+          { id: 'opt-sugar-0', name: 'No Sugar (0%)', priceDelta: 0 }
+        ]
+      },
+      {
+        id: 'mod-milk-addons',
+        name: 'Tambahan & Topping (Add-ons)',
+        selectionType: 'multiple',
+        options: [
+          { id: 'opt-oat', name: 'Upgrade Susu Oat', priceDelta: 6000 },
+          { id: 'opt-shot', name: 'Extra Espresso Shot', priceDelta: 6000 }
+        ]
+      }
+    ],
     bomIngredients: [
       { itemCode: 'RAW-BEAN-01', name: 'Biji Kopi Arabica Kintamani', amount: '18g', unitCostEstimate: 4500 },
       { itemCode: 'RAW-MILK-01', name: 'Fresh Milk Pasteurisasi', amount: '150ml', unitCostEstimate: 2800 },
@@ -58,6 +94,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 35000,
     image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=500&q=80',
     description: 'Manual brew es metode drip V60 dengan notes buah peach & melati segar.',
+    badge: 'chef_recommendation',
+    badgeStory: 'Pilihan utama Head Roaster kami. Ekstraksi dingin tetes demi tetes selama 8 jam menghadirkan profil teh melati yang sangat bersih.',
+    tastingNotes: ['Peach', 'Melati', 'Citrus'],
+    dietaryTags: ['vegan', 'gluten_free', 'halal'],
+    originInfo: 'Single Origin Ethiopia Yirgacheffe Washed',
     bomIngredients: [
       { itemCode: 'RAW-BEAN-02', name: 'Biji Kopi Ethiopia Yirgacheffe', amount: '15g', unitCostEstimate: 7500 },
       { itemCode: 'RAW-ICE-01', name: 'Es Batu Filtered Water', amount: '120g', unitCostEstimate: 500 }
@@ -76,6 +117,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 34000,
     image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500&q=80',
     description: 'Bubuk ceremonial Uji Matcha Kyoto kocok bambu Chasen dengan susu gandum Oatside.',
+    badge: 'signature',
+    badgeStory: 'Matcha seremonial dipasok langsung dari perkebunan tertua di Uji, Kyoto. Dikocok tradisional menggunakan Chasen bambu.',
+    tastingNotes: ['Umami', 'Creamy Oat', 'Sweet Vegetal'],
+    dietaryTags: ['vegan', 'dairy_free', 'halal'],
+    originInfo: 'Uji Prefecture, Kyoto, Japan',
     bomIngredients: [
       { itemCode: 'RAW-MAT-01', name: 'Bubuk Ceremonial Uji Matcha Kyoto', amount: '4g', unitCostEstimate: 9000 },
       { itemCode: 'RAW-OAT-01', name: 'Susu Gandum Oatside Barista Edition', amount: '180ml', unitCostEstimate: 4200 }
@@ -94,6 +140,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 25000,
     image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&q=80',
     description: 'Pastry mentega Prancis dengan lapisan flaking krispi gurih.',
+    badge: 'best_seller',
+    badgeStory: 'Dipanggang fresh setiap pagi dengan 100% mentega fermentasi AOP Normandia Prancis.',
+    tastingNotes: ['Rich Butter', 'Flaky', 'Golden Crust'],
+    dietaryTags: ['halal'],
+    originInfo: 'Normandy Butter AOP',
     bomIngredients: [
       { itemCode: 'RAW-PAS-01', name: 'Croissant Dough Premium Butter', amount: '1 pcs', unitCostEstimate: 9500 }
     ],
@@ -110,6 +161,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 38000,
     image: 'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=500&q=80',
     description: 'Kentang goreng impor garing dilumuri minyak truffle asli dan keju parmesan parut.',
+    badge: 'signature',
+    badgeStory: 'Kentang goreng renyah diselimuti minyak black truffle murni dan parutan keju parmesan berumur 12 bulan.',
+    tastingNotes: ['Aromatic Truffle', 'Savory Cheese', 'Garlic Crunch'],
+    dietaryTags: ['halal'],
+    originInfo: 'Umbria Black Truffle Oil',
     bomIngredients: [
       { itemCode: 'RAW-POT-01', name: 'Kentang Shoestring French Fries', amount: '180g', unitCostEstimate: 6000 },
       { itemCode: 'RAW-TRF-01', name: 'Minyak Black Truffle Impor', amount: '5ml', unitCostEstimate: 5000 },
@@ -129,6 +185,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 36000,
     image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=500&q=80',
     description: 'Vanilla bean syrup, steamed milk velvety, espresso roast, dan saus karamel drizzle.',
+    badge: 'new_arrival',
+    badgeStory: 'Kreasi terbaru musim ini! Memadukan cold foam velvety dengan karamel mentega buatan sendiri.',
+    tastingNotes: ['Sweet Vanilla', 'Toffee', 'Silky Cloud'],
+    dietaryTags: ['halal'],
+    originInfo: 'Madagascar Vanilla Bean',
     bomIngredients: [],
     preparationSteps: ['1. Siapkan sirup vanilla dan susu.', '2. Drizzle caramel drizzle di atas froth.']
   },
@@ -140,6 +201,9 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 24000,
     image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&q=80',
     description: 'Double shot espresso murni dengan air dingin terfilter dan es batu bening.',
+    tastingNotes: ['Bold Cocoa', 'Nutty', 'Clean Finish'],
+    dietaryTags: ['vegan', 'gluten_free', 'halal'],
+    originInfo: 'Arabica Mandheling & Gayo Aceh',
     bomIngredients: [],
     preparationSteps: ['1. Double espresso over ice.']
   },
@@ -151,6 +215,9 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 30000,
     image: 'https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=500&q=80',
     description: 'Ristretto pekat dalam gelas kecil dengan microfoam susu lembut.',
+    tastingNotes: ['Intense Cocoa', 'Creamy Sweet'],
+    dietaryTags: ['halal'],
+    originInfo: 'Toraja Sapan Single Origin',
     bomIngredients: [],
     preparationSteps: ['1. Single ristretto with microfoam.']
   },
@@ -162,6 +229,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 32000,
     image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&q=80',
     description: 'Teh hijau sangrai aroma kayu manis alami dengan susu creamy.',
+    badge: 'seasonal',
+    badgeStory: '🍂 Edisi Spesial Musiman — Daun teh hijau musim gugur yang disangrai di atas arang tradisional Kyoto.',
+    tastingNotes: ['Toasty Smoky', 'Caramelized Tea', 'Warm Woody'],
+    dietaryTags: ['vegan', 'halal'],
+    originInfo: 'Shizuoka Autumn Harvest, Japan',
     bomIngredients: [],
     preparationSteps: ['1. Whisk hojicha powder with milk.']
   },
@@ -291,52 +363,8 @@ export const PROPERTY_ZONES: PropertyZoneConfig[] = [
   { id: 'rooftop-skybar', name: 'Rooftop Sky Bar', icon: '🍸', tablePrefix: 'ROOF', totalTables: 4, hasDedicatedServiceStaff: true }
 ]
 
-export const MOCK_HOTEL_GUEST_FOLIOS: HotelGuestFolio[] = [
-  {
-    roomNumber: '402',
-    guestName: 'Bambang Soeprapto',
-    checkInDate: '2026-08-14',
-    checkOutDate: '2026-08-18',
-    status: 'checked_in',
-    creditLimit: 5000000,
-    currentBalance: 1250000,
-    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
-    folioId: 'FOLIO-402-8821'
-  },
-  {
-    roomNumber: '305',
-    guestName: 'Jessica Tanuwidjaja',
-    checkInDate: '2026-08-15',
-    checkOutDate: '2026-08-19',
-    status: 'checked_in',
-    creditLimit: 3000000,
-    currentBalance: 450000,
-    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
-    folioId: 'FOLIO-305-7712'
-  },
-  {
-    roomNumber: '501',
-    guestName: 'Michael Alexander',
-    checkInDate: '2026-08-12',
-    checkOutDate: '2026-08-17',
-    status: 'checked_in',
-    creditLimit: 10000000,
-    currentBalance: 3200000,
-    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
-    folioId: 'FOLIO-501-9901'
-  },
-  {
-    roomNumber: '208',
-    guestName: 'Siti Rahmawati',
-    checkInDate: '2026-08-10',
-    checkOutDate: '2026-08-14',
-    status: 'checked_out',
-    creditLimit: 0,
-    currentBalance: 0,
-    glAccountReceivable: '1104 - Piutang Tamu Hotel (Guest Room Folio)',
-    folioId: 'FOLIO-208-6610'
-  }
-]
+export { MOCK_HOTEL_GUEST_FOLIOS, MOCK_TABLE_RESERVATIONS } from './mockHotelAndReservationsData'
+
 
 export const INITIAL_TABLES: TableInfo[] = [
   // 🌿 Outdoor Garden Zone (OUT-01 .. OUT-06)
@@ -455,35 +483,3 @@ export const OUTLET_BRANCHES = [
   { id: 'OUTLET-BDG-03', name: 'Kopitiam Bandung Dago', warehouse: 'WH-BDG-03' }
 ]
 
-export const MOCK_TABLE_RESERVATIONS: TableReservation[] = [
-  {
-    id: 'RSV-01',
-    customerName: 'Bpk. Alexander Pratama',
-    phone: '081299887711',
-    tableArea: '👑 VIP Room 01 (VIP-01)',
-    paxCount: 8,
-    reservationDate: '2026-08-20',
-    timeSlot: '19:00 WIB',
-    dpAmount: 500000,
-    dpStatus: 'paid_qris',
-    approvalPolicy: 'instant',
-    status: 'confirmed',
-    specialNotes: 'Ulang Tahun ke-40 • Min Spend Rp 2.500.000',
-    createdAt: '2026-08-20 10:30'
-  },
-  {
-    id: 'RSV-02',
-    customerName: 'Ibu Ratna Dewi (Corporate)',
-    phone: '081877665544',
-    tableArea: '🌿 Outdoor Garden (OUT-03)',
-    paxCount: 4,
-    reservationDate: '2026-08-20',
-    timeSlot: '19:30 WIB',
-    dpAmount: 200000,
-    dpStatus: 'paid_qris',
-    approvalPolicy: 'instant',
-    status: 'confirmed',
-    specialNotes: 'Meja dekat stopkontak laptop',
-    createdAt: '2026-08-20 14:15'
-  }
-]

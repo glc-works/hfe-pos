@@ -25,7 +25,7 @@ export function SegmentedControl<T extends string = string>({
   className = ''
 }: SegmentedControlProps<T>) {
   const containerSize = size === 'sm' ? 'p-0.5 rounded-xl' : 'p-1 rounded-2xl'
-  const itemSize = size === 'sm' ? 'py-1 px-2.5 text-xs' : 'py-2 px-3 text-xs sm:text-sm font-bold min-h-[38px]'
+  const itemSize = size === 'sm' ? 'py-1 px-1 text-[11px] font-bold tracking-tight' : 'py-2 px-3 text-xs sm:text-sm font-bold min-h-[38px]'
 
   return (
     <div

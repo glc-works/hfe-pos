@@ -134,7 +134,7 @@ export const DeliveryAddressModal: React.FC<DeliveryAddressModalProps> = ({
                 <MapPin className="w-3.5 h-3.5 text-rose-400" /> Alamat Lengkap Pengantaran:
               </label>
               <textarea
-                placeholder="Jl. Senopati No. 42, Kebayoran Baru, Jakarta Selatan..."
+                placeholder="Jl. Melati No. 42, Kelurahan, Kecamatan, Kota..."
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white h-20 focus:outline-none focus:border-indigo-500"

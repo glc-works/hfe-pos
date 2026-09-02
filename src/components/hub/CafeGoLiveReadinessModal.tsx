@@ -85,7 +85,7 @@ export const CafeGoLiveReadinessModal: React.FC<CafeGoLiveReadinessModalProps> =
   if (!isOpen) return null
 
   const handleTestPrint = async () => {
-    await printerService.printTestReceipt('Kopi Nusantara Senopati HQ')
+    await printerService.printTestReceipt('Artisan Cafe & Roastery HQ')
     setPrintTestSuccess(true)
     setTimeout(() => setPrintTestSuccess(false), 3000)
   }

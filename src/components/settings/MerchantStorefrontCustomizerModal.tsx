@@ -4,8 +4,10 @@ import {
   Check, Instagram, MessageCircle, MapPin, Wifi, FileText, LayoutGrid, List
 } from 'lucide-react'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
-import { BANNER_PRESETS } from '../../data/defaultStorefrontCustomization'
+import { BANNER_PRESETS, CONCEPT_THEME_TEMPLATES } from '../../data/defaultStorefrontCustomization'
 import { StorefrontCustomizationConfig, WifiAccessPolicy, QrMenuLayoutMode } from '../../types/pos'
+import { MerchantAmenitySelectorSection } from './MerchantAmenitySelectorSection'
+import { MerchantMenuDisplayPolicySection } from './MerchantMenuDisplayPolicySection'
 
 interface MerchantStorefrontCustomizerModalProps {
   isOpen: boolean
@@ -36,16 +38,9 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
 
   const handleSave = () => {
     updateStorefrontConfig(formData)
-    setCustomerTheme({
-      ...customerTheme,
-      primaryAccentHex: primaryColor,
-      mode: themeMode
-    })
+    setCustomerTheme({ ...customerTheme, primaryAccentHex: primaryColor, mode: themeMode })
     setIsSaved(true)
-    setTimeout(() => {
-      setIsSaved(false)
-      onClose()
-    }, 800)
+    setTimeout(() => { setIsSaved(false); onClose() }, 800)
   }
 
   const handleReset = () => {
@@ -254,6 +249,12 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
                   </div>
                 </div>
               </div>
+
+              {/* 🏢 STANDARDIZED GOOGLE MAPS AMENITY SELECTOR */}
+              <MerchantAmenitySelectorSection
+                selectedTags={formData.amenityTags}
+                onChange={(newTags) => setFormData({ ...formData, amenityTags: newTags })}
+              />
             </div>
           )}
 
@@ -278,44 +279,25 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 mb-1.5">Gaya Tata Letak Katalog Menu QR</label>
                   <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, qrMenuLayout: 'grid_2col' })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                        formData.qrMenuLayout === 'grid_2col'
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                      <span>Grid 2-Kolom</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, qrMenuLayout: 'list_compact' })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                        formData.qrMenuLayout === 'list_compact'
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <List className="w-4 h-4" />
-                      <span>Daftar Ramping</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, qrMenuLayout: 'story_cards' })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                        formData.qrMenuLayout === 'story_cards'
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>Kartu Visual</span>
-                    </button>
+                    {[
+                      { mode: 'grid_2col' as QrMenuLayoutMode, label: 'Grid 2-Kolom', Icon: LayoutGrid },
+                      { mode: 'list_compact' as QrMenuLayoutMode, label: 'Daftar Ramping', Icon: List },
+                      { mode: 'story_cards' as QrMenuLayoutMode, label: 'Kartu Visual', Icon: Sparkles }
+                    ].map(({ mode, label, Icon }) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, qrMenuLayout: mode })}
+                        className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                          formData.qrMenuLayout === mode
+                            ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{label}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -342,26 +324,75 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
                   />
                 </div>
               </div>
+
+              {/* 🛡️ MENU DISPLAY & PRIVACY POLICY SECTION */}
+              <MerchantMenuDisplayPolicySection
+                policy={formData.menuDisplayPolicy}
+                onChange={(newPolicy) => setFormData({ ...formData, menuDisplayPolicy: newPolicy })}
+              />
             </div>
           )}
 
           {/* TAB 3: BRAND THEME & COLOR PALETTE */}
           {activeTab === 'theme' && (
             <div className="space-y-4">
-              <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-3">
+              <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-4">
                 <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                  <Palette className="w-4 h-4 text-emerald-400" /> Warna Aksen & Mode Tampilan
+                  <Palette className="w-4 h-4 text-emerald-400" /> Warna Aksen & Template Konsep
                 </h4>
 
+                {/* 1. CONCEPT THEME TEMPLATES PRESETS */}
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1.5">Pilihan Warna Aksen Merek</label>
-                  <div className="flex items-center gap-3">
-                    {['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#ef4444'].map((color) => (
+                  <label className="block text-[11px] font-bold text-slate-400 mb-1.5">Template Konsep Usaha (1-Klik Terapkan)</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {CONCEPT_THEME_TEMPLATES.map((tmpl) => {
+                      const isSelected = primaryColor === tmpl.accentColor && themeMode === tmpl.mode
+                      return (
+                        <button
+                          key={tmpl.id}
+                          type="button"
+                          onClick={() => {
+                            setPrimaryColor(tmpl.accentColor)
+                            setThemeMode(tmpl.mode)
+                            setFormData(prev => ({ ...prev, heroBannerUrl: tmpl.bannerUrl }))
+                          }}
+                          className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1 ${
+                            isSelected
+                              ? 'bg-slate-900 border-amber-500 ring-2 ring-amber-500/20 shadow-md'
+                              : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-white flex items-center gap-1.5">
+                              <span>{tmpl.icon}</span>
+                              <span>{tmpl.name}</span>
+                            </span>
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-xs"
+                              style={{ backgroundColor: tmpl.accentColor }}
+                            />
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-snug">{tmpl.desc}</p>
+                          <div className="flex items-center gap-2 mt-0.5 text-[9px] font-mono text-slate-500">
+                            <span>{tmpl.mode === 'dark' ? '🌙 Dark Default' : '☀️ Light Default'}</span>
+                            {isSelected && <span className="text-amber-400 font-bold ml-auto flex items-center gap-0.5"><Check className="w-3 h-3" /> Terpilih</span>}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. CUSTOM ACCENT PALETTE */}
+                <div className="pt-2 border-t border-slate-850">
+                  <label className="block text-[11px] font-bold text-slate-400 mb-1.5">Penyesuaian Warna Aksen Manual</label>
+                  <div className="flex items-center gap-2.5">
+                    {['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#f97316', '#ef4444'].map((color) => (
                       <button
                         key={color}
                         type="button"
                         onClick={() => setPrimaryColor(color)}
-                        className={`w-8 h-8 rounded-xl border-2 transition-all cursor-pointer ${
+                        className={`w-7 h-7 rounded-xl border-2 transition-all cursor-pointer ${
                           primaryColor === color ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-70 hover:opacity-100'
                         }`}
                         style={{ backgroundColor: color }}
@@ -371,36 +402,37 @@ export const MerchantStorefrontCustomizerModal: React.FC<MerchantStorefrontCusto
                       type="color"
                       value={primaryColor}
                       onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-8 h-8 rounded-xl bg-transparent border border-slate-700 cursor-pointer"
+                      className="w-7 h-7 rounded-xl bg-transparent border border-slate-700 cursor-pointer"
                       title="Pilih warna custom"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1.5">Mode Tampilan Ruang Pelanggan</label>
+                {/* 3. DEFAULT MODE SELECTION */}
+                <div className="pt-2 border-t border-slate-850">
+                  <label className="block text-[11px] font-bold text-slate-400 mb-1.5">Mode Tampilan Bawaan Toko</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setThemeMode('dark')}
-                      className={`p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                         themeMode === 'dark'
                           ? 'bg-slate-950 border-amber-400 text-white shadow-md'
                           : 'bg-slate-900 border-slate-800 text-slate-400'
                       }`}
                     >
-                      <span>🌙 Dark Mode (OLED Premium)</span>
+                      <span>🌙 Dark Mode (OLED)</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setThemeMode('light')}
-                      className={`p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                         themeMode === 'light'
                           ? 'bg-white border-amber-500 text-slate-950 shadow-md font-extrabold'
                           : 'bg-slate-900 border-slate-800 text-slate-400'
                       }`}
                     >
-                      <span>☀️ Light Mode (Clean Warm)</span>
+                      <span>☀️ Light Mode (Clean)</span>
                     </button>
                   </div>
                 </div>

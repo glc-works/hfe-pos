@@ -62,6 +62,7 @@ def check_pillar_2_microcopy_and_experience_pillars():
 
     # 3. Check JSX files for forbidden patterns
     hardcoded_is_mobile = re.compile(r'const\s+isMobile\s*=\s*viewportMode\s*===\s*[\'"]mobile[\'"]')
+    forbidden_parentheses_checkout = re.compile(r'title:\s*[\'"][^\'"]*\([^\'"]+\)[\'"]')
 
     for tsx_file in SRC_DIR.rglob("*.tsx"):
         try:
@@ -71,6 +72,10 @@ def check_pillar_2_microcopy_and_experience_pillars():
             # Check for hardcoded isMobile checks bypassing useViewport
             if hardcoded_is_mobile.search(text) and "useViewport" not in text:
                 violations.append(f"Pillar II [Viewport SSOT]: '{rel_path}' hardcodes 'isMobile = viewportMode === mobile' without consuming 'useViewport()'.")
+
+            # Check for forbidden parentheses in customer checkout options
+            if "components/customer" in str(rel_path) and forbidden_parentheses_checkout.search(text):
+                violations.append(f"Pillar II [Microcopy HIG]: '{rel_path}' contains forbidden parentheses in option titles (Apple HIG Zero-Parentheses Invariant).")
 
         except Exception as e:
             violations.append(f"Error reading file '{tsx_file}': {e}")

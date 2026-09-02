@@ -6,11 +6,14 @@ import {
 import { useNotification } from '../../context/NotificationContext'
 import { NotificationCategory, HfeNotification } from '../../types/pos'
 
+import { useTranslation } from '../../context/LanguageContext'
+
 export interface NotificationCenterDrawerProps {
   isOpen: boolean
   onClose: () => void
   onOpenServiceTickets?: () => void
   onOpenTicketValidator?: () => void
+  onOpenSupportTicket?: () => void
 }
 
 type FilterTab = 'all' | NotificationCategory
@@ -27,7 +30,9 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
   isOpen,
   onClose,
   onOpenServiceTickets,
+  onOpenSupportTicket,
 }) => {
+  const { t } = useTranslation()
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAllNotifications, openServiceTicketsCount } = useNotification()
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
@@ -263,9 +268,22 @@ export const NotificationCenterDrawer: React.FC<NotificationCenterDrawerProps> =
           )}
         </div>
 
-        {/* 5. FOOTER */}
-        <div className="p-3 border-t border-slate-800 bg-slate-900/90 text-center shrink-0">
-          <p className="text-[10px] text-slate-400 font-mono">
+        {/* 5. FOOTER & SUPPORT TICKET TRIGGER */}
+        <div className="p-3 border-t border-slate-800 bg-slate-900/90 flex flex-col gap-2 shrink-0">
+          {onOpenSupportTicket && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose()
+                onOpenSupportTicket()
+              }}
+              className="w-full py-2 px-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>{t.support.triggerButtonLabel}</span>
+            </button>
+          )}
+          <p className="text-[10px] text-slate-400 font-mono text-center">
             Hfe Floor Operations & Service Dispatch (GLC-ENG-STD-001)
           </p>
         </div>

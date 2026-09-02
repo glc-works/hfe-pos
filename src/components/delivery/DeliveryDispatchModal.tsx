@@ -16,13 +16,13 @@ const MOCK_DELIVERIES: DeliveryQueueItem[] = [
     orderId: 'ORD-8801',
     customerName: 'Bambang Tri',
     phone: '6281299887766',
-    address: 'Jl. Senopati No. 42, Kebayoran Baru, Jakarta Selatan',
+    address: 'Jl. Melati No. 42, Jakarta',
     unitNotes: 'Lantai 3, Unit 302',
     distanceKm: 1.2,
     deliveryFee: 5000,
     status: 'pending',
     provider: 'internal_runner',
-    resiCode: 'RESI-SENOPATI-20260815-0042',
+    resiCode: 'RESI-EXP-20260815-0042',
     createdAt: new Date().toISOString(),
   },
   {
@@ -30,14 +30,14 @@ const MOCK_DELIVERIES: DeliveryQueueItem[] = [
     orderId: 'ORD-8805',
     customerName: 'Dewi Lestari',
     phone: '6281355443322',
-    address: 'Jl. Gunawarman No. 18, Jakarta Selatan',
+    address: 'Jl. Mawar No. 18, Jakarta',
     distanceKm: 2.1,
     deliveryFee: 5000,
     status: 'in_transit',
     runnerId: 'MEM-RUNNER-01',
     runnerName: 'Budi Santoso (Staff Runner)',
     provider: 'internal_runner',
-    resiCode: 'RESI-SENOPATI-20260815-0043',
+    resiCode: 'RESI-EXP-20260815-0043',
     createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
   },
 ]
@@ -98,9 +98,9 @@ export const DeliveryDispatchModal: React.FC<DeliveryDispatchModalProps> = ({
 
   const handleSendWaTracking = () => {
     if (!activeDelivery) return
-    const trackingUrl = `https://hfe.togrow.id/resi/${activeDelivery.resiCode || 'RESI-SENOPATI-20260815-0042'}`
+    const trackingUrl = `https://resi.hfeit.com/${activeDelivery.resiCode || 'RESI-EXP-20260815-0042'}`
     const text = encodeURIComponent(
-      `Halo Bpk/Ibu ${activeDelivery.customerName}, pesanan Hfe POS #${activeDelivery.orderId} sedang dikirim oleh kurir ${selectedRunnerName}. Lacak pengiriman secara live: ${trackingUrl}`
+      `Halo Bpk/Ibu ${activeDelivery.customerName}, pesanan #${activeDelivery.orderId} sedang dikirim oleh kurir ${selectedRunnerName}. Lacak pengiriman secara live: ${trackingUrl}`
     )
     window.open(`https://wa.me/${activeDelivery.phone}?text=${text}`, '_blank')
   }

@@ -37,7 +37,7 @@ export const MiniAppValetCallModal: React.FC<MiniAppValetCallModalProps> = ({
             </div>
             <div>
               <h4 className="text-sm font-black text-white">🚗 Panggil Mobil Valet</h4>
-              <span className="text-[10px] font-mono text-indigo-400">Kopitiam Senopati • Fast Valet Retrieval</span>
+              <span className="text-[10px] font-mono text-indigo-400">Fast Valet Retrieval</span>
             </div>
           </div>
           <button

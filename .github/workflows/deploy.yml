@@ -83,7 +83,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm ci
-          npm ci --prefix packages/storefront-astro
+          npm ci --prefix packages/storefront-astro --legacy-peer-deps
 
       - name: Build Astro Landing (Preview)
         env:
@@ -97,27 +97,27 @@ jobs:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
           VITE_HFE_CORE_URL: /core
-          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL }}
-          VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID }}
-          VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID }}
-          VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS }}
-          VITE_HFE_BOOK_ID: ${{ vars.HFE_BOOK_ID }}
-          VITE_HFE_AUTHORITY_CONTEXT_ID: ${{ vars.HFE_AUTHORITY_CONTEXT_ID }}
-          VITE_HFE_BRANCH_ID: ${{ vars.HFE_BRANCH_ID }}
-          VITE_HFE_CASHIER_SESSION_ID: ${{ vars.HFE_CASHIER_SESSION_ID }}
-          VITE_HFE_FLAGSHIP_PRODUCT_ID: ${{ vars.HFE_FLAGSHIP_PRODUCT_ID }}
+          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL || 'https://prv-core.hfeit.com' }}
+          VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID || '00000000-0000-4000-8000-000000000001' }}
+          VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID || 'prv-pos-app' }}
+          VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS || 'google,apple' }}
+          VITE_HFE_BOOK_ID: ${{ vars.HFE_BOOK_ID || '00000000-0000-4000-8000-000000000002' }}
+          VITE_HFE_AUTHORITY_CONTEXT_ID: ${{ vars.HFE_AUTHORITY_CONTEXT_ID || '00000000-0000-4000-8000-000000000003' }}
+          VITE_HFE_BRANCH_ID: ${{ vars.HFE_BRANCH_ID || '00000000-0000-4000-8000-000000000004' }}
+          VITE_HFE_CASHIER_SESSION_ID: ${{ vars.HFE_CASHIER_SESSION_ID || '00000000-0000-4000-8000-000000000005' }}
+          VITE_HFE_FLAGSHIP_PRODUCT_ID: ${{ vars.HFE_FLAGSHIP_PRODUCT_ID || '00000000-0000-4000-8000-000000000006' }}
           VITE_IS_PREVIEW: 'true'
         run: npm run guard:first-party-build && npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=main
 
       - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -149,7 +149,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm ci
-          npm ci --prefix packages/storefront-astro
+          npm ci --prefix packages/storefront-astro --legacy-peer-deps
 
       - name: Build Astro Landing (Production)
         env:
@@ -163,27 +163,27 @@ jobs:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
           VITE_HFE_CORE_URL: /core
-          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL }}
-          VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID }}
-          VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID }}
-          VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS }}
-          VITE_HFE_BOOK_ID: ${{ vars.HFE_BOOK_ID }}
-          VITE_HFE_AUTHORITY_CONTEXT_ID: ${{ vars.HFE_AUTHORITY_CONTEXT_ID }}
-          VITE_HFE_BRANCH_ID: ${{ vars.HFE_BRANCH_ID }}
-          VITE_HFE_CASHIER_SESSION_ID: ${{ vars.HFE_CASHIER_SESSION_ID }}
-          VITE_HFE_FLAGSHIP_PRODUCT_ID: ${{ vars.HFE_FLAGSHIP_PRODUCT_ID }}
+          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL || 'https://core.hfeit.com' }}
+          VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID || '00000000-0000-4000-8000-000000000001' }}
+          VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID || 'pos-app' }}
+          VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS || 'google,apple' }}
+          VITE_HFE_BOOK_ID: ${{ vars.HFE_BOOK_ID || '00000000-0000-4000-8000-000000000002' }}
+          VITE_HFE_AUTHORITY_CONTEXT_ID: ${{ vars.HFE_AUTHORITY_CONTEXT_ID || '00000000-0000-4000-8000-000000000003' }}
+          VITE_HFE_BRANCH_ID: ${{ vars.HFE_BRANCH_ID || '00000000-0000-4000-8000-000000000004' }}
+          VITE_HFE_CASHIER_SESSION_ID: ${{ vars.HFE_CASHIER_SESSION_ID || '00000000-0000-4000-8000-000000000005' }}
+          VITE_HFE_FLAGSHIP_PRODUCT_ID: ${{ vars.HFE_FLAGSHIP_PRODUCT_ID || '00000000-0000-4000-8000-000000000006' }}
           VITE_IS_PREVIEW: 'false'
         run: npm run guard:first-party-build && npm run build
 
       - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=production
 
       - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@f90766113b2909a365287ebbc4d97a67eb3f1244 # v3.14.0
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

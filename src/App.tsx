@@ -5,34 +5,36 @@ import { GlobalModals } from './components/modals/GlobalModals'
 import { useHfeSync } from './hooks/useHfeSync'
 import { useTableState } from './hooks/useTableState'
 import { useCart } from './hooks/useCart'
+import { useDynamicFavicon } from './hooks/useDynamicFavicon'
 import { LandingView } from './views/LandingView'
 import { CustomerMobileView } from './views/CustomerMobileView'
+import { lazy, Suspense } from 'react'
 import { UnifiedPosView } from './views/UnifiedPosView'
 import { StaffWorkstationView } from './views/StaffWorkstationView'
 import { UnifiedKdsView } from './views/UnifiedKdsView'
 import { CustomerFacingDisplayView } from './views/CustomerFacingDisplayView'
 import { CafeSettingsView } from './views/CafeSettingsView'
-import { WarehouseManagementView } from './views/WarehouseManagementView'
-import { BranchManagementView } from './views/BranchManagementView'
-import { ScanAndGoView } from './views/ScanAndGoView'
-import { SommelierView } from './views/SommelierView'
-import { MaitreDView } from './views/MaitreDView'
-import { CustomerContactsView } from './views/CustomerContactsView'
-import { ComponentShowcaseView } from './views/ComponentShowcaseView'
-import { NativeComponentGalleryView } from './views/NativeComponentGalleryView'
-import { HfeInsightsView } from './views/HfeInsightsView'
-import { ConnectHubAdminView } from './views/ConnectHubAdminView'
 import { CustomerPortalView } from './views/CustomerPortalView'
-import { CompanyBookView } from './views/CompanyBookView'
-import { AdminMerchantUserView } from './views/admin/AdminMerchantUserView'
-import { HfeitCorporateView } from './views/HfeitCorporateView'
-import { MerchantHomeHubView } from './views/MerchantHomeHubView'
 import { PosAuthLoginView } from './views/PosAuthLoginView'
+
+const WarehouseManagementView = lazy(() => import('./views/WarehouseManagementView').then(m => ({ default: m.WarehouseManagementView })))
+const BranchManagementView = lazy(() => import('./views/BranchManagementView').then(m => ({ default: m.BranchManagementView })))
+const ScanAndGoView = lazy(() => import('./views/ScanAndGoView').then(m => ({ default: m.ScanAndGoView })))
+const SommelierView = lazy(() => import('./views/SommelierView').then(m => ({ default: m.SommelierView })))
+const MaitreDView = lazy(() => import('./views/MaitreDView').then(m => ({ default: m.MaitreDView })))
+const CustomerContactsView = lazy(() => import('./views/CustomerContactsView').then(m => ({ default: m.CustomerContactsView })))
+const NativeComponentGalleryView = lazy(() => import('./views/NativeComponentGalleryView').then(m => ({ default: m.NativeComponentGalleryView })))
+const AdminMerchantUserView = lazy(() => import('./views/admin/AdminMerchantUserView').then(m => ({ default: m.AdminMerchantUserView })))
+const MerchantHomeHubView = lazy(() => import('./views/MerchantHomeHubView').then(m => ({ default: m.MerchantHomeHubView })))
+const HfeitCorporateView = lazy(() => import('./views/HfeitCorporateView').then(m => ({ default: m.HfeitCorporateView })))
+const HfeInsightsView = lazy(() => import('./views/HfeInsightsView').then(m => ({ default: m.HfeInsightsView })))
+const ConnectHubAdminView = lazy(() => import('./views/ConnectHubAdminView').then(m => ({ default: m.ConnectHubAdminView })))
+const CompanyBookView = lazy(() => import('./views/CompanyBookView').then(m => ({ default: m.CompanyBookView })))
 import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { createRuntimeInitialOrders } from './data/runtimeDemoData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 import { usePosAuth } from './hooks/usePosAuth'
-import { normalizeSurfaceHost } from './utils/surfaceHost'
+import { normalizeSurfaceHost, resolveInitialStaffSurface } from './utils/surfaceHost'
 import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
 import { AppProviders } from './components/app/AppProviders'
 import { ToGrowSocialCallbackView } from './components/auth/ToGrowSocialCallbackView'
@@ -46,13 +48,7 @@ function AppMain() {
   const runtimeInitialOrders = useMemo(createRuntimeInitialOrders, [])
   const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>(() => {
     if (typeof window !== 'undefined') {
-      const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
-      if (surfaceParam) return surfaceParam
-      const host = normalizeSurfaceHost(window.location.hostname)
-      if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'
-      if (host.startsWith('admin.') || host.startsWith('hub.')) return 'admin-hub'
-      if (host.startsWith('book.') || host.startsWith('ledger.')) return 'hfe-company-book'
-      if (host.startsWith('kds.') || host.startsWith('kitchen.')) return 'kds-screen'
+      return resolveInitialStaffSurface(window.location.search, window.location.hostname)
     }
     return 'barista-pos'
   })
@@ -77,16 +73,27 @@ function AppMain() {
     setQrStepView('catalog')
   }
 
-  const handleJoinMembershipAtCheckout = (phone: string) => {
+  const handleCustomerLogin = (phone: string, name?: string) => {
     setIsCustomerSessionActive(true)
     cart.setLoginType('phone')
     cart.setCustomerPhone(phone)
-    cart.setGuestName('Member HP')
-    cart.setLoyaltyPoints(100)
+    if (name) cart.setGuestName(name)
+    cart.setLoyaltyPoints((prev) => prev || 100)
     showToast('🎉 Selamat Datang! Keanggotaan Aktif & Poin Tersimpan')
   }
 
+  const handleCustomerLogout = () => {
+    setIsCustomerSessionActive(false)
+    cart.setLoginType('guest-name')
+    cart.setCustomerPhone('')
+    cart.setGuestName('Tamu')
+  }
+
   const sync = useHfeSync()
+
+  // Dynamically synchronize browser tab favicon with merchant logo (fallback to POS favicon)
+  useDynamicFavicon(sync.hfeCompanyProfile?.logoUrl, sync.hfeCompanyProfile?.brandName)
+
   const [orders, setOrders] = useState<OrderTicket[]>(runtimeInitialOrders)
   const table = useTableState({ orders, setOrders, hfeCompanyProfile: sync.hfeCompanyProfile })
 
@@ -117,12 +124,8 @@ function AppMain() {
   useEffect(() => {
     config.setOnResetMockState(() => {
       table.setTablesGrid((prev) => prev.map((t, idx) => ({
-        ...t,
-        status: idx === 3 ? 'occupied' : 'free',
-        customerName: idx === 3 ? 'Aldi Pratama' : undefined,
-        totalBill: idx === 3 ? 58300 : 0,
-        orderCount: idx === 3 ? 2 : 0,
-        orderIds: idx === 3 ? ['ORD-8801'] : []
+        ...t, status: idx === 3 ? 'occupied' : 'free', customerName: idx === 3 ? 'Aldi Pratama' : undefined,
+        totalBill: idx === 3 ? 58300 : 0, orderCount: idx === 3 ? 2 : 0, orderIds: idx === 3 ? ['ORD-8801'] : []
       })))
       setOrders(runtimeInitialOrders)
       showToast('🔄 Status meja dan pesanan berhasil di-reset!')
@@ -265,7 +268,7 @@ function AppMain() {
             handleUpdateQty={cart.handleUpdateQty} handleApplyPromo={cart.handleApplyPromo}
             handleSubmitOrder={() => cart.handleSubmitOrder(table.selectedTable, setQrStepView)}
             onSettleOpenTab={handleSettleOpenTab}
-            onJoinMembership={handleJoinMembershipAtCheckout}
+            onJoinMembership={handleCustomerLogin}
             onResetGuestSession={resetCanonicalGuestSession}
             onSwitchToLandingPage={() => config.setActiveApp('landing')}
             onSwitchToPos={() => config.setActiveApp('cafe')}
@@ -293,6 +296,7 @@ function AppMain() {
               <StaffSubNavigator
                 activeStaffSurface={activeStaffSurface}
                 setActiveStaffSurface={setActiveStaffSurface}
+                staffRole={auth.currentStaffUser?.role}
               />
             )}
 
@@ -321,6 +325,8 @@ function AppMain() {
                 authorityContext={auth.currentStaffUser.authority_context_id || ''}
                 cashierId={auth.currentStaffUser.user_id}
                 handleMoveStatus={handleMoveStatus}
+                onLockTerminal={auth.logout}
+                staffRole={auth.currentStaffUser?.role}
               />
             )}
 
@@ -352,20 +358,22 @@ function AppMain() {
               />
             )}
 
-            {activeStaffSurface === 'hfe-insights' && (
-              <HfeInsightsView
-                productCatalog={productCatalog}
-                orders={orders}
-                tablesGrid={table.tablesGrid}
-                cashDrawerFloat={cashDrawerFloat}
-              />
-            )}
+            <Suspense fallback={null}>
+              {activeStaffSurface === 'hfe-insights' && (
+                <HfeInsightsView
+                  productCatalog={productCatalog}
+                  orders={orders}
+                  tablesGrid={table.tablesGrid}
+                  cashDrawerFloat={cashDrawerFloat}
+                />
+              )}
 
-            {activeStaffSurface === 'hfe-connect-hub' && <ConnectHubAdminView />}
+              {activeStaffSurface === 'hfe-connect-hub' && <ConnectHubAdminView />}
 
-            {activeStaffSurface === 'hfe-company-book' && (
-              <CompanyBookView bookId={sync.hfeCompanyProfile.companyBookId} />
-            )}
+              {activeStaffSurface === 'hfe-company-book' && (
+                <CompanyBookView bookId={sync.hfeCompanyProfile.companyBookId} />
+              )}
+            </Suspense>
 
             {activeStaffSurface === 'cafe-config' && (
               <CafeSettingsView
@@ -409,45 +417,50 @@ function AppMain() {
               />
             )}
 
-            {activeStaffSurface === 'warehouse-mgmt' && (
-              <WarehouseManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
-            )}
-
-            {activeStaffSurface === 'branch-mgmt' && (
-              <BranchManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
-            )}
-
-            {activeStaffSurface === 'scan-go' && <ScanAndGoView />}
-
-            {activeStaffSurface === 'sommelier' && <SommelierView />}
-
-            {activeStaffSurface === 'maitre-d' && <MaitreDView />}
-
-            {activeStaffSurface === 'customer-crm' && <CustomerContactsView />}
-            {activeStaffSurface === 'admin-hub' && (
-              <AdminMerchantUserView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
-            )}
-            {activeStaffSurface === 'merchant-hub' && (
-              <MerchantHomeHubView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
-            )}
+            <Suspense fallback={null}>
+              {activeStaffSurface === 'warehouse-mgmt' && (
+                <WarehouseManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
+              )}
+              {activeStaffSurface === 'branch-mgmt' && (
+                <BranchManagementView bookId={sync.hfeCompanyProfile.companyBookId} />
+              )}
+              {activeStaffSurface === 'scan-go' && <ScanAndGoView />}
+              {activeStaffSurface === 'sommelier' && <SommelierView />}
+              {activeStaffSurface === 'maitre-d' && <MaitreDView />}
+              {activeStaffSurface === 'customer-crm' && <CustomerContactsView />}
+              {activeStaffSurface === 'admin-hub' && (
+                <AdminMerchantUserView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
+              )}
+              {activeStaffSurface === 'merchant-hub' && (
+                <MerchantHomeHubView 
+                  onBackToPos={() => setActiveStaffSurface('barista-pos')} 
+                  staffRole={auth.currentStaffUser?.role}
+                />
+              )}
+            </Suspense>
           </div>
         )}
 
         {config.activeApp === 'customer-portal' && (
           <CustomerPortalView
             hfeCompanyProfile={sync.hfeCompanyProfile}
+            isCustomerSessionActive={isCustomerSessionActive}
+            onLoginSuccess={handleCustomerLogin}
+            onLogout={handleCustomerLogout}
             onBackToMenu={() => config.setActiveApp('customer')}
             onBackToLanding={() => config.setActiveApp('landing')}
           />
         )}
 
-        {(config.activeApp === 'gallery' || activeStaffSurface === 'gallery' || config.activeApp === 'design-system') && (
-          <NativeComponentGalleryView />
-        )}
+        <Suspense fallback={null}>
+          {(config.activeApp === 'gallery' || activeStaffSurface === 'gallery' || config.activeApp === 'design-system') && (
+            <NativeComponentGalleryView />
+          )}
 
-        {config.activeApp === 'hfeit-corporate' && (
-          <HfeitCorporateView onNavigateToApp={(app: any) => config.setActiveApp(app)} />
-        )}
+          {config.activeApp === 'hfeit-corporate' && (
+            <HfeitCorporateView onNavigateToApp={(app: any) => config.setActiveApp(app)} />
+          )}
+        </Suspense>
       </div>
 
       {/* DEV-ONLY FLOATING QUICK SETTINGS (AUTOMATICALLY STRIPPED IN PROD) */}

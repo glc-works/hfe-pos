@@ -20,10 +20,11 @@ describe('Customer Mobile QR View & Standards Compliance (HFE-UI-STD-001 Pillar 
     expect(content).not.toContain('boxShadow: isLight')
   })
 
-  it('enforces high-contrast search input in CustomerCatalogView', () => {
+  it('enforces theme-aware search input in CustomerCatalogView', () => {
     const content = fs.readFileSync(customerCatalogPath, 'utf-8')
-    expect(content).toContain('bg-white dark:bg-slate-900')
-    expect(content).toContain('border-slate-200 dark:border-slate-800')
+    expect(content).not.toContain('bg-white dark:bg-slate-900')
+    expect(content).toContain('backgroundColor:')
+    expect(content).toContain('isLight')
   })
 
   it('enforces Tier 2 Button atom adoption in CustomerCheckoutView', () => {

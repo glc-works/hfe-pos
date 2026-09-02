@@ -18,8 +18,9 @@ echo "[Step 3/10] Validating Connector Manifest..."
 python3 scripts/validate-connector.py
 
 echo ""
-echo "[Step 4/10] Running HFE-UI-STD-001 Standards Auditor..."
+echo "[Step 4/10] Running HFE-UI-STD-001 Standards & Theme Contrast Auditor..."
 python3 scripts/audit-hfe-ui-standards.py
+python3 scripts/audit-theme-contrast.py
 
 echo ""
 echo "[Step 5/10] Running Typecheck (tsc)..."

@@ -293,6 +293,7 @@ Every component, token, widget, layout, and view in this codebase MUST strictly 
   - DO NOT use proportional standard fonts for monetary amounts (prevents layout jitter and digit clipping).
   - DO NOT use verbose multi-word labels on compact grids (e.g. avoid *"Kapasitas 4 Meja"* when `👥 4` is required).
   - DO NOT use odd/arbitrary pixel margins (e.g. `p-[13px]`, `gap-[7px]`) that cause sub-pixel antialiasing blur.
+  - DO NOT write unpaired dark text classes (e.g. `text-slate-900` without `dark:text-white`) or un-adaptive modal backgrounds (`bg-slate-900` without `bg-white dark:bg-slate-900`) that cause White-on-White contrast bugs in Day Mode. Enforced via `scripts/audit-theme-contrast.py`.
 
 ### 🔵 Tier 2: React Aria Atoms & Headless Primitives (`src/ui/`)
 - **✅ WHAT TO DO:**
@@ -344,3 +345,11 @@ Every component, token, widget, layout, and view in this codebase MUST strictly 
   - DO NOT trap the cashier in one view without quick access to KDS or Settings.
   - DO NOT rely solely on RAM/LocalStorage for financial transaction queues without IndexedDB persistence.
   - DO NOT leave raw hardcoded strings in JSX.
+
+29. **Universal `.no-scrollbar` & Touch Rail Invariant (Zero-Scrollbar-Collision).**
+    - *Rule Existence:* Every horizontal touch rail, category strip, and scrollspy tab bar MUST declare `.no-scrollbar` or `.scrollbar-none`.
+    - *CSS Guarantee:* `src/index.css` MUST declare physical `-ms-overflow-style: none`, `scrollbar-width: none`, and `::-webkit-scrollbar { display: none }` so browser native scroll-thumbs NEVER obstruct touch pills or button hitboxes on desktop, tablet, or mouse environments.
+
+30. **Single Theme Color Authority for Customer Space Inputs & Drawers (Zero Dark Box Clashing).**
+    - *Theme-Cohesive Input Styling:* All search bars, text fields, and drawer backgrounds in customer spaces (`CustomerCatalogView`, `CustomerMobileView`, `TableSessionDrawer`) MUST bind dynamically to `activeTheme` / semantic CSS tokens (`--bg-surface`, `--text-primary`, `isLight ? ... : ...`).
+    - *Anti-Dark-Box Rule:* Rigid hardcoded class pairs like `bg-white dark:bg-slate-900` or `dark:bg-slate-950` are STRICTLY PROHIBITED in customer QR views, preventing jarring black rectangle clashing when merchants configure light or cream shop themes.

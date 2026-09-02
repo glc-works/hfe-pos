@@ -40,8 +40,9 @@ export const ActiveOpenBillDrawer: React.FC<ActiveOpenBillDrawerProps> = ({
   const [waterCalled, setWaterCalled] = useState<boolean>(false)
   const [copiedWifi, setCopiedWifi] = useState<boolean>(false)
 
-  const wifiSsid = hfeCompanyProfile?.storefrontInfo?.wifiSsid || 'Kopitiam_Senopati_Guest'
-  const wifiPassword = hfeCompanyProfile?.storefrontInfo?.wifiPassword || 'kopiuenak2026'
+  const defaultSsid = hfeCompanyProfile?.brandName ? `${hfeCompanyProfile.brandName.replace(/[^a-zA-Z0-9]/g, '_')}_Guest` : 'Guest_WiFi'
+  const wifiSsid = hfeCompanyProfile?.storefrontInfo?.wifiSsid || defaultSsid
+  const wifiPassword = hfeCompanyProfile?.storefrontInfo?.wifiPassword || 'guestwifi123'
   const wifiAccessPolicy = hfeCompanyProfile?.storefrontInfo?.wifiAccessPolicy || 'after_payment'
 
   const handleCopyWifi = (pass: string) => {

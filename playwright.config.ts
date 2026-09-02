@@ -26,7 +26,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run preview -- --port 4173',
     url: 'http://localhost:4173',
-    reuseExistingServer: false,
+    reuseExistingServer: true,
     timeout: 120000,
     env: { ...process.env },
   },

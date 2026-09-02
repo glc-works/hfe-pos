@@ -59,33 +59,39 @@ export const WasteAdjustmentModal: React.FC<WasteAdjustmentModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-red-100 text-red-700 rounded-xl">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card text-foreground rounded-3xl max-w-md w-full p-6 shadow-2xl border border-border animate-in fade-in zoom-in duration-150">
+        <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 bg-rose-500/10 text-rose-500 rounded-2xl border border-rose-500/20">
               <Trash2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-base">Pencatatan Waste / Spoilage</h3>
-              <p className="text-xs text-slate-500">Jurnal beban barang tumpah / pecah / kadaluarsa</p>
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20 font-mono text-[10px] font-bold">
+                  FORM-LOG-04
+                </span>
+                <h3 className="font-bold text-foreground text-sm">Penyesuaian Waste / Spoilage</h3>
+              </div>
+              <p className="text-xs text-muted-foreground">Jurnal beban barang tumpah / pecah / kadaluarsa</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="p-1.5 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Lokasi Gudang</label>
+            <label className="block font-semibold text-muted-foreground mb-1">Lokasi Gudang</label>
             <select
               value={warehouseId}
               onChange={(e) => setWarehouseId(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-background border border-border text-foreground font-semibold rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
             >
               {warehouses.map((wh) => (
                 <option key={wh.id} value={wh.id}>
@@ -96,11 +102,11 @@ export const WasteAdjustmentModal: React.FC<WasteAdjustmentModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Bahan Baku Tumpah / Kadaluarsa</label>
+            <label className="block font-semibold text-muted-foreground mb-1">Bahan Baku Tumpah / Kadaluarsa</label>
             <select
               value={itemCode}
               onChange={(e) => setItemCode(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-background border border-border text-foreground font-medium rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
             >
               {stockItems.map((item) => (
                 <option key={item.id} value={item.sku}>
@@ -112,51 +118,50 @@ export const WasteAdjustmentModal: React.FC<WasteAdjustmentModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Jumlah Waste</label>
+              <label className="block font-semibold text-muted-foreground mb-1">Jumlah Waste (Qty)</label>
               <input
                 type="number"
                 min={1}
                 required
                 value={qty}
                 onChange={(e) => setQty(Number(e.target.value))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-background border border-border text-foreground font-mono font-bold rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Akun Jurnal Beban</label>
+              <label className="block font-semibold text-muted-foreground mb-1">Akun Jurnal Beban</label>
               <input
                 type="text"
-                required
                 value={expenseGlAccount}
                 onChange={(e) => setExpenseGlAccount(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-background border border-border text-foreground font-mono rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Alasan Penyesuaian Waste</label>
+            <label className="block font-semibold text-muted-foreground mb-1">Alasan Kerusakan / Spoilage</label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
             >
-              {REASON_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
+              {REASON_OPTIONS.map((r, i) => (
+                <option key={i} value={r}>
+                  {r}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Keterangan Tambahan</label>
+            <label className="block font-semibold text-muted-foreground mb-1">Catatan Tambahan</label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Opsional (cth: pecah saat bongkar muat)"
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              placeholder="cth: Susu tumpah tersenggol saat rush hour..."
+              className="w-full px-3 py-2 bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
             />
           </div>
 
@@ -164,16 +169,16 @@ export const WasteAdjustmentModal: React.FC<WasteAdjustmentModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 border border-slate-200 text-slate-600 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors"
+              className="flex-1 py-2.5 border border-border text-muted-foreground hover:text-foreground font-semibold rounded-xl hover:bg-muted transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-xl transition-all shadow-xs disabled:opacity-50"
+              className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer"
             >
-              {loading ? 'Menyimpan...' : 'Catat Waste Jurnal'}
+              {loading ? 'Menyimpan...' : 'Posting Jurnal Waste'}
             </button>
           </div>
         </form>

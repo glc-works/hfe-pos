@@ -36,7 +36,7 @@ const DEFAULT_PAST_ORDERS: PastOrderRecord[] = [
   {
     orderId: 'ORD-8821',
     date: 'Hari ini, 14:30 WIB',
-    venue: 'Kopitiam Senopati (HQ)',
+    venue: 'Outlet Pusat',
     table: 'Meja OUT-04',
     status: 'Lunas',
     paymentMethod: 'QRIS BCA',
@@ -54,7 +54,7 @@ const DEFAULT_PAST_ORDERS: PastOrderRecord[] = [
   {
     orderId: 'ORD-8710',
     date: '12 Agu 2026, 10:15 WIB',
-    venue: 'Kopitiam Senopati (HQ)',
+    venue: 'Outlet Pusat',
     table: 'Meja IND-02',
     status: 'Lunas',
     paymentMethod: 'Kartu Debit BCA',
@@ -72,7 +72,7 @@ const DEFAULT_PAST_ORDERS: PastOrderRecord[] = [
   {
     orderId: 'ORD-8605',
     date: '05 Agu 2026, 19:40 WIB',
-    venue: 'Kopitiam Senopati (HQ)',
+    venue: 'Outlet Pusat',
     table: 'Takeaway Express',
     status: 'Lunas',
     paymentMethod: 'QRIS GoPay',

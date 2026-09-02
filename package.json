@@ -24,6 +24,7 @@
     "check:deadcode": "knip",
     "check:size": "size-limit",
     "check:truth-boundary": "node scripts/check-truth-boundary.mjs",
+    "check:theme-contrast": "python3 scripts/audit-theme-contrast.py",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",

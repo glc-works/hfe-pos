@@ -6,12 +6,8 @@ const DEFAULT_BASE_URL = 'http://localhost:8080'
 const DEFAULT_IDENTITY_BASE_URL = '/id'
 
 function localDemoFallbackEnabled(baseUrl: string): boolean {
-  if (import.meta.env.MODE !== 'test' && import.meta.env.VITE_ENABLE_LOCAL_DEMO !== 'true') {
-    return false
-  }
-
   try {
-    const apiHost = new URL(baseUrl).hostname
+    const apiHost = new URL(baseUrl, typeof window !== 'undefined' ? window.location.href : 'http://localhost').hostname
     if (!['localhost', '127.0.0.1', '::1'].includes(apiHost)) return false
 
     if (typeof window === 'undefined') return true
@@ -161,14 +157,6 @@ export async function employeeLogin(
     bookId === demoAccess.bookId &&
     branchId === demoAccess.branchId &&
     pinCode === demoAccess.staff.pin
-
-  if (
-    import.meta.env.VITE_ENABLE_LOCAL_DEMO === 'true' &&
-    localDemoFallbackEnabled(baseUrl) &&
-    matchesCanonicalDemo
-  ) {
-    return createLocalDemoAuthResponse(branchId)
-  }
 
   let res: Response
   try {

@@ -9,7 +9,9 @@ import {
   PB1TaxMode,
   HfeCompanyProfile,
   CafeThemeConfig,
-  TableStatus
+  TableStatus,
+  OrderFulfillmentMode,
+  DeliveryAddressInfo
 } from '../types/pos'
 import { CustomerHeader } from '../components/customer/CustomerHeader'
 import { CustomerCatalogView } from '../components/customer/CustomerCatalogView'
@@ -66,56 +68,25 @@ export interface CustomerMobileViewProps {
   onJoinMembership?: (phone: string) => void
   onResetGuestSession?: () => void
   onSwitchToPos?: () => void
+  fulfillmentMode?: OrderFulfillmentMode
+  deliveryAddress?: DeliveryAddressInfo
+  onChangeDeliveryAddress?: (updated: Partial<DeliveryAddressInfo>) => void
+  deliveryFee?: number
+  packagingFee?: number
 }
 
 export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
-  hfeCompanyProfile,
-  activeTheme,
-  selectedTable,
-  scannedSeat,
-  isCustomerSessionActive,
-  loginType,
-  customerPhone,
-  guestName,
-  customerAvatar = '☕',
-  setCustomerAvatar,
-  loyaltyPoints,
-  productCatalog,
-  reservationPolicyMode,
-  priceVisibilityMode,
-  customerAppDisplayMode,
-  cart,
-  totalCartCount,
-  grandTotalBill,
-  previousOrders = [],
-  tablesGrid = [],
-  qrStepView,
-  promoCodeInput,
-  appliedPromo,
-  redeemedVoucher,
-  serviceFeeRate,
-  calculatedServiceFee,
-  taxPB1Mode,
-  calculatedPB1Tax,
-  selectedTipAmount,
-  paymentPolicy,
-  rawSubtotal,
-  setShowReservationModal,
-  setShowLoginModal,
-  setQrStepView,
-  setPromoCodeInput,
-  setSelectedTipAmount,
-  setPaymentPolicy,
-  handleReorderSameItem,
-  handleAddToCart,
-  handleUpdateQty,
-  handleApplyPromo,
-  handleSubmitOrder,
-  onSettleOpenTab,
-  onSwitchToLandingPage,
-  onJoinMembership,
-  onResetGuestSession,
-  onSwitchToPos
+  hfeCompanyProfile, activeTheme, selectedTable, scannedSeat, isCustomerSessionActive,
+  loginType, customerPhone, guestName, customerAvatar = '☕', setCustomerAvatar,
+  loyaltyPoints, productCatalog, reservationPolicyMode, priceVisibilityMode, customerAppDisplayMode,
+  cart, totalCartCount, grandTotalBill, previousOrders = [], tablesGrid = [], qrStepView,
+  promoCodeInput, appliedPromo, redeemedVoucher, serviceFeeRate, calculatedServiceFee,
+  taxPB1Mode, calculatedPB1Tax, selectedTipAmount, paymentPolicy, rawSubtotal,
+  setShowReservationModal, setShowLoginModal, setQrStepView, setPromoCodeInput,
+  setSelectedTipAmount, setPaymentPolicy, handleReorderSameItem, handleAddToCart,
+  handleUpdateQty, handleApplyPromo, handleSubmitOrder, onSettleOpenTab,
+  onSwitchToLandingPage, onJoinMembership, onResetGuestSession, onSwitchToPos,
+  fulfillmentMode, deliveryAddress, onChangeDeliveryAddress, deliveryFee, packagingFee
 }) => {
   const categoryRefsMap = useRef<Record<string, HTMLDivElement | null>>({})
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -128,11 +99,38 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
   const [showActiveOpenBillDrawer, setShowActiveOpenBillDrawer] = useState<boolean>(false)
   const [showOpenTabSettlementModal, setShowOpenTabSettlementModal] = useState<boolean>(false)
 
-  // Current Table Status & Running Orders
-  const currentTableData = tablesGrid.find(t => t.name === selectedTable)
-  const relevantTableOrders = previousOrders.filter(o => o.table === selectedTable && o.status !== 'cancelled')
+  // Persistent Saved Delivery Address for Express 1-Tap Checkout
+  const [savedAddress, setSavedAddress] = useState<DeliveryAddressInfo>(() => {
+    if (deliveryAddress) return deliveryAddress
+    try {
+      const stored = localStorage.getItem('hfe_pos_saved_delivery_address')
+      if (stored) return JSON.parse(stored)
+    } catch {}
+    return {
+      recipientName: guestName || 'Tamu',
+      phoneNumber: customerPhone || '081298765432',
+      streetAddress: 'Menara Mandiri, Jl. Jend. Sudirman Kav. 54-55',
+      unitOrFloor: 'Lantai 18, Ruang 1802',
+      dropOffOption: 'leave_at_lobby_guard',
+      driverNotes: 'Titip di meja resepsionis lobi utama',
+      distanceKm: 3.2
+    }
+  })
+
+  const handleUpdateAddress = (updated: Partial<DeliveryAddressInfo>) => {
+    const next = { ...savedAddress, ...updated }
+    setSavedAddress(next)
+    try {
+      localStorage.setItem('hfe_pos_saved_delivery_address', JSON.stringify(next))
+    } catch {}
+    if (onChangeDeliveryAddress) onChangeDeliveryAddress(updated)
+  }
+
+  // Current Table Status & Running Orders (Only for valid in-store tables)
+  const currentTableData = selectedTable ? tablesGrid.find(t => t.name === selectedTable) : null
+  const relevantTableOrders = selectedTable ? previousOrders.filter(o => o.table === selectedTable && o.status !== 'cancelled') : []
   
-  const hasActiveOpenBill = relevantTableOrders.length > 0 || (currentTableData?.totalBill || 0) > 0
+  const hasActiveOpenBill = Boolean(selectedTable) && (relevantTableOrders.length > 0 || (currentTableData?.totalBill || 0) > 0)
   const runningTableSubtotal = relevantTableOrders.reduce((sum, ord) => {
     return sum + ord.items.reduce((s, i) => s + (i.price * i.quantity), 0)
   }, currentTableData?.totalBill || 0)
@@ -226,8 +224,8 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
       <div
         className="w-full max-w-md flex flex-col h-full min-h-0 relative shadow-2xl border-x transition-colors theme-customer-container"
         style={{
-          backgroundColor: activeTheme.pageBgHex,
-          color: activeTheme.textColorHex,
+          backgroundColor: isLight ? '#ffffff' : activeTheme.pageBgHex,
+          color: isLight ? '#0f172a' : activeTheme.textColorHex,
           fontFamily: activeTheme.fontFamily,
           borderColor: cardBorderColor
         }}
@@ -358,33 +356,18 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
           {qrStepView === 'checkout' && (
             <div className="flex-1 flex flex-col animate-slideInRight">
               <CustomerCheckoutView
-                selectedTable={selectedTable}
-                scannedSeat={scannedSeat}
-                cart={cart}
-                hfeCompanyProfile={hfeCompanyProfile}
-                hasPaidOrder={hasActiveOpenBill || relevantTableOrders.length > 0}
-                activeTheme={activeTheme}
-                promoCodeInput={promoCodeInput}
-                setPromoCodeInput={setPromoCodeInput}
-                appliedPromo={appliedPromo}
-                redeemedVoucher={redeemedVoucher}
-                serviceFeeRate={serviceFeeRate}
-                calculatedServiceFee={calculatedServiceFee}
-                taxPB1Mode={taxPB1Mode}
-                calculatedPB1Tax={calculatedPB1Tax}
-                selectedTipAmount={selectedTipAmount}
-                setSelectedTipAmount={setSelectedTipAmount}
-                paymentPolicy={paymentPolicy}
-                setPaymentPolicy={setPaymentPolicy}
-                rawSubtotal={rawSubtotal}
-                grandTotalBill={grandTotalBill}
-                isCustomerSessionActive={isCustomerSessionActive}
-                onJoinMembership={onJoinMembership}
-                onResetGuestSession={onResetGuestSession}
-                setQrStepView={setQrStepView}
-                handleUpdateQty={handleUpdateQty}
-                handleApplyPromo={handleApplyPromo}
-                handleSubmitOrder={handleSubmitOrder}
+                selectedTable={selectedTable} scannedSeat={scannedSeat} cart={cart} hfeCompanyProfile={hfeCompanyProfile}
+                hasPaidOrder={hasActiveOpenBill || relevantTableOrders.length > 0} activeTheme={activeTheme}
+                promoCodeInput={promoCodeInput} setPromoCodeInput={setPromoCodeInput} appliedPromo={appliedPromo}
+                redeemedVoucher={redeemedVoucher} serviceFeeRate={serviceFeeRate} calculatedServiceFee={calculatedServiceFee}
+                taxPB1Mode={taxPB1Mode} calculatedPB1Tax={calculatedPB1Tax} selectedTipAmount={selectedTipAmount}
+                setSelectedTipAmount={setSelectedTipAmount} paymentPolicy={paymentPolicy} setPaymentPolicy={setPaymentPolicy}
+                rawSubtotal={rawSubtotal} grandTotalBill={grandTotalBill} isCustomerSessionActive={isCustomerSessionActive}
+                onJoinMembership={onJoinMembership} onResetGuestSession={onResetGuestSession} setQrStepView={setQrStepView}
+                handleUpdateQty={handleUpdateQty} handleApplyPromo={handleApplyPromo} handleSubmitOrder={handleSubmitOrder}
+                fulfillmentMode={fulfillmentMode || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('fulfillment') as OrderFulfillmentMode) || 'dine_in'}
+                deliveryAddress={deliveryAddress || savedAddress} onChangeDeliveryAddress={handleUpdateAddress}
+                deliveryFee={deliveryFee} packagingFee={packagingFee}
               />
             </div>
           )}
