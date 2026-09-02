@@ -7,6 +7,9 @@ tags: [development-plan, level-1, service-economy, booking, event-ticketing, uni
 status: Implemented
 ---
 
+> **AUTHORITY NOTE (2026-09-02):** Semantics here are pending extraction into Product Canon (glc-works/hfeit-product). Until extracted, Product Canon wins any conflict. This file is implementation coordination only.
+
+
 # Level 1 Strategic Plan: Universal Service Economy, Appointment Booking & Event Ticketing Suite (L1-27)
 
 ## 1. Executive Summary & Intent

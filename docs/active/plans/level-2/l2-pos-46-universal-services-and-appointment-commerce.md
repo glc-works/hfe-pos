@@ -9,6 +9,10 @@ github_issue: 46
 status: Implemented
 ---
 
+> **AUTHORITY NOTE (2026-09-02):** Semantics here are pending extraction into Product Canon (glc-works/hfeit-product). Until extracted, Product Canon wins any conflict. This file is implementation coordination only.
+> The "Outcome & Specification Authority" claim over other repositories (including headless-company-books) is withdrawn: CORE owns product truth; this file coordinates implementation only.
+
+
 # Level 2 Implementation Plan: Universal Service Economy, Appointment Booking & Event Ticketing Engine (L2-POS-46)
 
 ## 1. Outcome & Specification Authority
