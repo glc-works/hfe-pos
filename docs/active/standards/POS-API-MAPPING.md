@@ -355,5 +355,5 @@ This document binds all Level 2 implementation plans:
 - Cross-referenced in [`POS-ENG-STD-001.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/standards/POS-ENG-STD-001.md)
 - Cross-referenced in [`ARCHITECTURE.md`](file:///Users/aldi/claudefiles/hfe-pos/ARCHITECTURE.md)
 - Cross-referenced in [`HFE-POS-PENTA-EXPERIENCE.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/standards/HFE-POS-PENTA-EXPERIENCE.md)
-- Cross-referenced in [`l2-pos-47-customer-card-and-member-portal.md`](file:///Users/aldi/claudefiles/hfe-pos/docs/active/plans/level-2/l2-pos-47-customer-card-and-member-portal.md)
+- Formerly cross-referenced in `l2-pos-47-customer-card-and-member-portal.md` — retired 2026-09-02, see [`RETIRED.md`](../plans/RETIRED.md)
 
