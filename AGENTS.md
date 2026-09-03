@@ -4,6 +4,25 @@
 
 Read `ARCHITECTURE.md` first as the highest technical contract, `docs/active/standards/HFE-OMBOK-STD-001.md` for Operations Management & Agent Rigor, then `DEVELOPMENT.md` for delivery process authority. `CLAUDE.md` and this file are contributor entry points only.
 
+## Product authority — check this repo's product questions against Product Canon first
+
+Product meaning, specification, naming, and scope live in **Product Canon**:
+`glc-works/hfeit-product` — start at `product/level-0/current-product-system.md`,
+then the governing level-1/spec document, and `TBC.md` at that repo's root for
+anything still undecided.
+
+This repository IMPLEMENTS Canon — it never overrides it. Before building a
+feature, naming a concept, or resolving a product question here: check the
+Canon first. Conflicts lose against Canon. Open product questions are routed
+as issues in `glc-works/hfeit-product`, not answered locally.
+
+This section extends — it does not replace — the Product Canon first reading
+order in `START_HERE.md` (the #120 product-authority rule). The governing
+Canon text for the EXP.Hfeit surfaces this repository ships is
+`product/level-0/current-product-system.md` § EXP (extraction into full Canon
+specs in progress). Plan authority inside this repository remains
+`docs/active/plans/DISPOSITION.md`.
+
 ## Canonical local demo entry
 
 `fixtures/demo/access.json` is the single source of truth for the committed

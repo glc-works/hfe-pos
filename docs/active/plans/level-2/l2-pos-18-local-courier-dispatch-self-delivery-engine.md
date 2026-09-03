@@ -9,6 +9,9 @@ github_issue: 18
 status: Proposed
 ---
 
+> **AUTHORITY NOTE (2026-09-02):** Semantics here are pending extraction into Product Canon (glc-works/hfeit-product). Until extracted, Product Canon wins any conflict. This file is implementation coordination only.
+
+
 # Level 2 Implementation Plan: Local Courier Dispatcher, Address Pinpoint & Self-Delivery Order Lifecycle UI
 
 ## 1. Outcome
