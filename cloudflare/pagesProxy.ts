@@ -18,11 +18,11 @@ export async function proxyFirstPartyRequest(
     case 'https://account.togrow.id':
       origin = new URL('https://account.togrow.id')
       break
-    case 'https://prv-core.hfeit.com':
-      origin = new URL('https://prv-core.hfeit.com')
+    case 'https://prv-api.hfecore.com':
+      origin = new URL('https://prv-api.hfecore.com')
       break
-    case 'https://core.hfeit.com':
-      origin = new URL('https://core.hfeit.com')
+    case 'https://api.hfecore.com':
+      origin = new URL('https://api.hfecore.com')
       break
     default:
       return unavailable()
