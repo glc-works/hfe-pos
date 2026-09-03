@@ -42,7 +42,7 @@ describe("Cloudflare Pages first-party proxy", () => {
 	it("fails closed when the Pages binding is absent or not an HTTPS origin", async () => {
 		const request = new Request("https://prv-pos.hfeit.app/core/health");
 
-		const allowedOrigins = ["https://prv-core.hfeit.com"];
+		const allowedOrigins = ["https://prv-api.hfecore.com"];
 		expect(
 			(
 				await proxyFirstPartyRequest(
@@ -57,7 +57,7 @@ describe("Cloudflare Pages first-party proxy", () => {
 			(
 				await proxyFirstPartyRequest(
 					request,
-					"http://prv-core.hfeit.com",
+					"http://prv-api.hfecore.com",
 					["health"],
 					allowedOrigins,
 				)
@@ -108,9 +108,9 @@ describe("Cloudflare Pages first-party proxy", () => {
 
 		const response = await proxyFirstPartyRequest(
 			request,
-			"https://prv-core.hfeit.com",
+			"https://prv-api.hfecore.com",
 			["health"],
-			["https://prv-core.hfeit.com"],
+			["https://prv-api.hfecore.com"],
 		);
 
 		expect(response.status).toBe(302);
@@ -123,7 +123,7 @@ describe("Cloudflare Pages first-party proxy", () => {
 
 		const response = await proxyCoreRequest({
 			request: new Request("https://prv-pos.hfeit.app/core/health"),
-			env: { HFE_CORE_ORIGIN: "https://core.hfeit.com" },
+			env: { HFE_CORE_ORIGIN: "https://api.hfecore.com" },
 			params: { path: ["health"] },
 		});
 
@@ -131,12 +131,31 @@ describe("Cloudflare Pages first-party proxy", () => {
 		expect(fetchSpy).not.toHaveBeenCalled();
 	});
 
+	it.each([
+		["https://prv-pos.hfeit.app/core/health", "https://prv-api.hfecore.com/health"],
+		["https://pos.hfeit.app/core/health", "https://api.hfecore.com/health"],
+	])("routes each POS environment only to its canonical CORE API", async (requestUrl, upstreamUrl) => {
+		const fetchSpy = vi
+			.spyOn(globalThis, "fetch")
+			.mockResolvedValue(new Response("{}", { status: 200 }));
+
+		const response = await proxyCoreRequest({
+			request: new Request(requestUrl),
+			env: { HFE_CORE_ORIGIN: new URL(upstreamUrl).origin },
+			params: { path: ["health"] },
+		});
+
+		expect(response.status).toBe(200);
+		const forwarded = fetchSpy.mock.calls[0][0] as Request;
+		expect(forwarded.url).toBe(upstreamUrl);
+	});
+
 	it("rejects preview CORE when invoked from the production POS host", async () => {
 		const fetchSpy = vi.spyOn(globalThis, "fetch");
 
 		const response = await proxyCoreRequest({
 			request: new Request("https://pos.hfeit.app/core/health"),
-			env: { HFE_CORE_ORIGIN: "https://prv-core.hfeit.com" },
+			env: { HFE_CORE_ORIGIN: "https://prv-api.hfecore.com" },
 			params: { path: ["health"] },
 		});
 
