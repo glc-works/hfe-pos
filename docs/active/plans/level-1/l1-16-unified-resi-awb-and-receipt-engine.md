@@ -8,6 +8,9 @@ parent_level_0: hfe-pos-suite-master-plan
 status: Approved
 ---
 
+> **AUTHORITY NOTE (2026-09-02):** Semantics here are pending extraction into Product Canon (glc-works/hfeit-product). Until extracted, Product Canon wins any conflict. This file is implementation coordination only.
+
+
 # Level 1 Strategic Plan: Unified Resi Engine
 
 ## 1. Domain Outcome

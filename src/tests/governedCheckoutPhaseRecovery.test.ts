@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Int64String, PosSaleQuoteView } from '@hfe/sdk'
 import { HfeSdkAdapter } from '../services/financial/HfeSdkAdapter'
 import {
@@ -26,6 +26,7 @@ const payload = {
 } satisfies GovernedRetailCheckoutPayload
 
 const checkoutKey = 'BOOK-1:ORDER-1'
+const TEST_NOW = new Date('2026-08-28T10:05:00Z')
 const attemptScope = {
   organizationId: 'ORG-1', authorityContext: 'AUTH-1',
   cashierId: 'CASHIER-1', actorPrincipalId: 'CASHIER-1',
@@ -141,7 +142,16 @@ function quoteEvidence(): PosSaleQuoteView {
 }
 
 describe('governed checkout durable phase recovery', () => {
-  beforeEach(() => vi.restoreAllMocks())
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.useFakeTimers()
+    vi.setSystemTime(TEST_NOW)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
 
   it('replays a response-lost quote request with the same durable key and intent body', async () => {
     const durable = await durability()
