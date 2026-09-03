@@ -9,6 +9,9 @@ github_issue: 12
 status: Proposed
 ---
 
+> **AUTHORITY NOTE (2026-09-02):** Semantics here are pending extraction into Product Canon (glc-works/hfeit-product). Until extracted, Product Canon wins any conflict. This file is implementation coordination only.
+
+
 # Level 2 Implementation Plan: Barcode POS Cashier, Mobile Scan & Go, UOM Conversion & Kasbon Engine
 
 ## 1. Outcome
