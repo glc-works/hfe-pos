@@ -37,22 +37,132 @@ const ASSET_CATEGORIES: { id: AssetValuationCategory; label: string; glyph: stri
 export interface UniversalFinancialHealthGaugeProps {
   customSnapshot?: Partial<FinancialHealthSnapshot>
   isCoreConnected?: boolean
+  authoritativeSnapshot?: {
+    metrics: FinancialHealthSnapshot
+    bookId: string
+    periodStart: string
+    periodEnd: string
+    asOf: string
+    source: string
+  }
+  expectedBookId?: string
+  trustedSource?: string
+  maxReceiptAgeMs?: number
+}
+
+const FINANCIAL_METRIC_KEYS: (keyof FinancialHealthSnapshot)[] = [
+  'cashRunwayDays', 'quickRatio', 'grossMarginPercent', 'operatingMarginPercent',
+  'netMarginPercent', 'workingCapitalMinor', 'inventoryTurnoverDays',
+  'taxReserveFundMinor', 'taxObligationMinor', 'assetValuationMinor',
+  'assetTurnoverVelocityScore', 'dailyBurnRateMinor', 'liquidCashMinor',
+]
+
+function parseCanonicalReceiptDate(value: string, dateOnly: boolean): number | undefined {
+  const pattern = dateOnly
+    ? /^(\d{4})-(\d{2})-(\d{2})$/
+    : /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/
+  const match = pattern.exec(value)
+  if (!match) return undefined
+  if (!dateOnly) {
+    const [, , , , hour, minute, second, offsetHour, offsetMinute] = match
+    if (
+      Number(hour) > 23
+      || Number(minute) > 59
+      || Number(second) > 59
+      || (offsetHour !== undefined && Number(offsetHour) > 23)
+      || (offsetMinute !== undefined && Number(offsetMinute) > 59)
+    ) return undefined
+  }
+
+  const canonicalDay = `${match[1]}-${match[2]}-${match[3]}`
+  const midnight = Date.parse(`${canonicalDay}T00:00:00Z`)
+  if (!Number.isFinite(midnight) || new Date(midnight).toISOString().slice(0, 10) !== canonicalDay) {
+    return undefined
+  }
+
+  const parsed = Date.parse(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
+function isValidAuthoritativeReceipt(
+  receipt: UniversalFinancialHealthGaugeProps['authoritativeSnapshot'],
+  expectedBookId: string | undefined,
+  trustedSource: string | undefined,
+  maxAgeMs: number,
+): boolean {
+  if (!receipt || !expectedBookId || !trustedSource) return false
+  if (!Number.isFinite(maxAgeMs) || maxAgeMs < 0) return false
+  if (receipt.bookId !== expectedBookId || receipt.source !== trustedSource) return false
+  const periodStart = parseCanonicalReceiptDate(receipt.periodStart, true)
+  const periodEnd = parseCanonicalReceiptDate(receipt.periodEnd, true)
+  const asOf = parseCanonicalReceiptDate(receipt.asOf, false)
+  if (periodStart === undefined || periodEnd === undefined || asOf === undefined) return false
+  if (periodStart > periodEnd || asOf < periodEnd || asOf > Date.now() || Date.now() - asOf > maxAgeMs) return false
+  const metrics = receipt.metrics as Partial<FinancialHealthSnapshot> | undefined
+  if (!metrics || !FINANCIAL_METRIC_KEYS.every((key) => Number.isFinite(metrics[key]))) return false
+  if (
+    metrics.cashRunwayDays! < 0
+    || metrics.quickRatio! < 0
+    || metrics.inventoryTurnoverDays! < 0
+    || metrics.taxReserveFundMinor! < 0
+    || metrics.taxObligationMinor! < 0
+    || metrics.assetValuationMinor! < 0
+    || metrics.dailyBurnRateMinor! < 0
+    || metrics.liquidCashMinor! < 0
+    || metrics.assetTurnoverVelocityScore! < 0
+    || metrics.assetTurnoverVelocityScore! > 100
+  ) return false
+  if (!['healthy', 'warning', 'critical'].includes(String(metrics.cashRunwayStatus))) return false
+  if (!ASSET_CATEGORIES.some(({ id }) => id === metrics.assetCategory)) return false
+  const sufficient = metrics.taxReserveFundMinor! >= metrics.taxObligationMinor!
+  return metrics.taxReserveFundStatus === (sufficient ? 'sufficient' : 'deficit')
 }
 
 export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGaugeProps> = ({
   customSnapshot,
-  isCoreConnected: propIsCoreConnected
+  isCoreConnected: propIsCoreConnected,
+  authoritativeSnapshot,
+  expectedBookId,
+  trustedSource,
+  maxReceiptAgeMs = 24 * 60 * 60 * 1000
 }) => {
   const { channel } = useDataTruth()
-  const isCoreConnected = propIsCoreConnected ?? (channel === 'live-core')
+  const hasReportReceipt = isValidAuthoritativeReceipt(authoritativeSnapshot, expectedBookId, trustedSource, maxReceiptAgeMs)
+  const isCoreConnected = (propIsCoreConnected ?? (channel === 'live-core')) && hasReportReceipt
   const [selectedAssetCat, setSelectedAssetCat] = useState<AssetValuationCategory>('fnb_raw_ingredients')
 
-  const snapshot: FinancialHealthSnapshot = {
-    ...DEFAULT_SNAPSHOT,
-    ...customSnapshot
-  }
+  const snapshot: FinancialHealthSnapshot = isCoreConnected && authoritativeSnapshot
+    ? authoritativeSnapshot.metrics
+    : { ...DEFAULT_SNAPSHOT, ...customSnapshot }
 
-  const activeCategoryConfig = ASSET_CATEGORIES.find(c => c.id === selectedAssetCat) || ASSET_CATEGORIES[0]
+  const effectiveAssetCategory = isCoreConnected ? snapshot.assetCategory : selectedAssetCat
+  const activeCategoryConfig = ASSET_CATEGORIES.find(c => c.id === effectiveAssetCategory) || ASSET_CATEGORIES[0]
+  const taxCoveragePercent = snapshot.taxObligationMinor > 0
+    ? Math.min(100, Math.max(0, Math.round((snapshot.taxReserveFundMinor / snapshot.taxObligationMinor) * 100)))
+    : 100
+  const taxReserveIsSufficient = snapshot.taxReserveFundStatus === 'sufficient' && taxCoveragePercent >= 100
+  const taxShortfallMinor = Math.max(0, snapshot.taxObligationMinor - snapshot.taxReserveFundMinor)
+  const clampPercentage = (value: number) => Math.min(100, Math.max(0, value))
+  const netMarginBarPercent = clampPercentage(snapshot.netMarginPercent)
+  const operatingMarginBarPercent = clampPercentage(snapshot.operatingMarginPercent - Math.max(0, snapshot.netMarginPercent))
+  const cogsBarPercent = clampPercentage(100 - snapshot.grossMarginPercent)
+  const runwayStatusPresentation = {
+    healthy: {
+      label: 'Sehat',
+      badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+      barClass: 'bg-gradient-to-r from-emerald-500 to-teal-400',
+    },
+    warning: {
+      label: 'Perlu Perhatian',
+      badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
+      barClass: 'bg-gradient-to-r from-amber-500 to-orange-400',
+    },
+    critical: {
+      label: 'Kritis',
+      badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30',
+      barClass: 'bg-gradient-to-r from-rose-600 to-red-400',
+    },
+  }[snapshot.cashRunwayStatus]
 
   return (
     <div className="space-y-6 text-slate-800 dark:text-slate-100 font-sans">
@@ -78,7 +188,9 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-[11px] font-mono bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            {isCoreConnected ? 'Siklus: Real-time Hfe CORE' : 'Sample Snapshot: 2026-08-25 (Simulasi)'}
+            {isCoreConnected && authoritativeSnapshot
+              ? `CORE • as of ${authoritativeSnapshot.asOf}`
+              : 'Sample Snapshot: 2026-08-25 (Simulasi)'}
           </Badge>
         </div>
       </div>
@@ -93,8 +205,8 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
               <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                 <Landmark className="w-4 h-4" /> Ketahanan Kas (Runway)
               </span>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px]">
-                Aman &gt;90 Hari
+              <Badge variant="outline" className={`${runwayStatusPresentation.badgeClass} text-[9px]`}>
+                {runwayStatusPresentation.label}
               </Badge>
             </div>
 
@@ -107,7 +219,7 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+                className={`${runwayStatusPresentation.barClass} h-full rounded-full transition-all duration-500`}
                 style={{ width: `${Math.min(100, (snapshot.cashRunwayDays / 180) * 100)}%` }}
               />
             </div>
@@ -150,9 +262,9 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
             {/* SEGMENTED PROFIT STACK */}
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden flex">
-              <div className="bg-emerald-500 h-full" style={{ width: `${snapshot.netMarginPercent}%` }} title="Net Margin" />
-              <div className="bg-blue-400 h-full" style={{ width: `${snapshot.operatingMarginPercent - snapshot.netMarginPercent}%` }} title="Operating OpEx" />
-              <div className="bg-amber-400 h-full" style={{ width: `${100 - snapshot.grossMarginPercent}%` }} title="COGS/HPP" />
+              <div className="bg-emerald-500 h-full" style={{ width: `${netMarginBarPercent}%` }} title="Net Margin" />
+              <div className="bg-blue-400 h-full" style={{ width: `${operatingMarginBarPercent}%` }} title="Operating OpEx" />
+              <div className="bg-amber-400 h-full" style={{ width: `${cogsBarPercent}%` }} title="COGS/HPP" />
             </div>
           </div>
 
@@ -216,8 +328,10 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
               <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                 <ShieldCheck className="w-4 h-4" /> Cadangan Pajak PB1/PPN
               </span>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px]">
-                100% Siap
+              <Badge variant="outline" className={taxReserveIsSufficient
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px]'
+                : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30 text-[9px]'}>
+                {`${taxCoveragePercent}% Tersedia`}
               </Badge>
             </div>
 
@@ -229,8 +343,8 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
 
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
               <div 
-                className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: '100%' }}
+                className={`${taxReserveIsSufficient ? 'bg-emerald-500' : 'bg-rose-500'} h-full rounded-full transition-all duration-500`}
+                style={{ width: `${taxCoveragePercent}%` }}
               />
             </div>
           </div>
@@ -244,7 +358,11 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
             </div>
             <div className="flex justify-between">
               <span>Ring-Fence Fund:</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">Terproteksi 100%</span>
+              <span className={`${taxReserveIsSufficient ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} font-bold`}>
+                {taxReserveIsSufficient
+                  ? 'Terproteksi 100%'
+                  : `Defisit Rp ${(taxShortfallMinor / 100).toLocaleString('id-ID')}`}
+              </span>
             </div>
           </div>
         </Card>
@@ -270,9 +388,11 @@ export const UniversalFinancialHealthGauge: React.FC<UniversalFinancialHealthGau
           {ASSET_CATEGORIES.map(cat => (
             <button
               key={cat.id}
+              disabled={isCoreConnected}
+              aria-pressed={effectiveAssetCategory === cat.id}
               onClick={() => setSelectedAssetCat(cat.id)}
-              className={`px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all select-none shrink-0 ${
-                selectedAssetCat === cat.id
+              className={`px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all select-none shrink-0 disabled:cursor-default ${
+                effectiveAssetCategory === cat.id
                   ? 'bg-purple-600 text-white shadow-md shadow-purple-950/40'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
