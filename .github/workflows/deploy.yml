@@ -97,7 +97,7 @@ jobs:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
           VITE_HFE_CORE_URL: /core
-          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL || 'https://prv-core.hfeit.com' }}
+          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL || 'https://prv-companybook.hfeit.app' }}
           VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID || '00000000-0000-4000-8000-000000000001' }}
           VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID || 'prv-pos-app' }}
           VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS || 'google,apple' }}
@@ -109,19 +109,19 @@ jobs:
           VITE_IS_PREVIEW: 'true'
         run: npm run guard:first-party-build && npm run build
 
-      - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@v3
+      - name: Deploy Landing to isolated preview Pages project
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=main
+          command: pages deploy packages/storefront-astro/dist --project-name=pos-landing-preview --branch=main
 
-      - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@v3
+      - name: Deploy App to isolated preview Pages project
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=pos-app --branch=main
+          command: pages deploy dist --project-name=pos-app-preview --branch=main
 
       - name: Verify deployed first-party proxy bindings
         run: |
@@ -163,7 +163,7 @@ jobs:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
           VITE_HFE_CORE_URL: /core
-          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL || 'https://core.hfeit.com' }}
+          VITE_HFE_COMPANY_BOOK_URL: ${{ vars.HFE_COMPANY_BOOK_URL || 'https://book.hfeit.app' }}
           VITE_TOGROW_ORGANIZATION_ID: ${{ vars.TOGROW_ORGANIZATION_ID || '00000000-0000-4000-8000-000000000001' }}
           VITE_TOGROW_CLIENT_ID: ${{ vars.TOGROW_CLIENT_ID || 'pos-app' }}
           VITE_TOGROW_SOCIAL_PROVIDERS: ${{ vars.TOGROW_SOCIAL_PROVIDERS || 'google,apple' }}
@@ -175,19 +175,19 @@ jobs:
           VITE_IS_PREVIEW: 'false'
         run: npm run guard:first-party-build && npm run build
 
-      - name: Deploy Landing to Cloudflare Pages (pos-landing)
-        uses: cloudflare/wrangler-action@v3
+      - name: Deploy Landing to isolated production Pages project
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy packages/storefront-astro/dist --project-name=pos-landing --branch=production
+          command: pages deploy packages/storefront-astro/dist --project-name=pos-landing-production --branch=main
 
-      - name: Deploy App to Cloudflare Pages (pos-app)
-        uses: cloudflare/wrangler-action@v3
+      - name: Deploy App to isolated production Pages project
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=pos-app --branch=production
+          command: pages deploy dist --project-name=pos-app-production --branch=main
 
       - name: Verify deployed first-party proxy bindings
         run: |
