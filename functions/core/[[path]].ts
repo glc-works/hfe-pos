@@ -13,10 +13,10 @@ interface PagesContext {
 function allowedCoreOrigins(request: Request): string[] {
   const hostname = new URL(request.url).hostname
   if (hostname === 'prv-pos.hfeit.app' || hostname === 'prv-pos.hfeit.com') {
-    return ['https://prv-core.hfeit.com']
+    return ['https://prv-api.hfecore.com']
   }
   if (hostname === 'pos.hfeit.app' || hostname === 'pos.hfeit.com') {
-    return ['https://core.hfeit.com']
+    return ['https://api.hfecore.com']
   }
   return []
 }
