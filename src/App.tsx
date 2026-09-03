@@ -34,7 +34,7 @@ import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_CUSTOMER_PROFILES,
 import { createRuntimeInitialOrders } from './data/runtimeDemoData'
 import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
 import { usePosAuth } from './hooks/usePosAuth'
-import { normalizeSurfaceHost } from './utils/surfaceHost'
+import { normalizeSurfaceHost, resolveInitialStaffSurface } from './utils/surfaceHost'
 import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
 import { AppProviders } from './components/app/AppProviders'
 import { ToGrowSocialCallbackView } from './components/auth/ToGrowSocialCallbackView'
@@ -48,13 +48,7 @@ function AppMain() {
   const runtimeInitialOrders = useMemo(createRuntimeInitialOrders, [])
   const [activeStaffSurface, setActiveStaffSurface] = useState<StaffSurfaceMode>(() => {
     if (typeof window !== 'undefined') {
-      const surfaceParam = new URLSearchParams(window.location.search).get('surface') as StaffSurfaceMode
-      if (surfaceParam) return surfaceParam
-      const host = normalizeSurfaceHost(window.location.hostname)
-      if (host.startsWith('gallery.') || host.startsWith('design.')) return 'gallery'
-      if (host.startsWith('admin.') || host.startsWith('hub.')) return 'admin-hub'
-      if (host.startsWith('book.') || host.startsWith('ledger.')) return 'hfe-company-book'
-      if (host.startsWith('kds.') || host.startsWith('kitchen.')) return 'kds-screen'
+      return resolveInitialStaffSurface(window.location.search, window.location.hostname)
     }
     return 'barista-pos'
   })
@@ -302,6 +296,7 @@ function AppMain() {
               <StaffSubNavigator
                 activeStaffSurface={activeStaffSurface}
                 setActiveStaffSurface={setActiveStaffSurface}
+                staffRole={auth.currentStaffUser?.role}
               />
             )}
 
@@ -330,6 +325,8 @@ function AppMain() {
                 authorityContext={auth.currentStaffUser.authority_context_id || ''}
                 cashierId={auth.currentStaffUser.user_id}
                 handleMoveStatus={handleMoveStatus}
+                onLockTerminal={auth.logout}
+                staffRole={auth.currentStaffUser?.role}
               />
             )}
 
@@ -435,7 +432,10 @@ function AppMain() {
                 <AdminMerchantUserView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
               )}
               {activeStaffSurface === 'merchant-hub' && (
-                <MerchantHomeHubView onBackToPos={() => setActiveStaffSurface('barista-pos')} />
+                <MerchantHomeHubView 
+                  onBackToPos={() => setActiveStaffSurface('barista-pos')} 
+                  staffRole={auth.currentStaffUser?.role}
+                />
               )}
             </Suspense>
           </div>

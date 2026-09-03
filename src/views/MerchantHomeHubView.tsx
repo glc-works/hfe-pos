@@ -22,32 +22,38 @@ const TaxComplianceTab = lazy(() => import('../components/hub/TaxComplianceTab')
 
 export type HubTabKey = 'payouts' | 'insights' | 'products' | 'promotions' | 'events' | 'holding_entities' | 'print_qr' | 'domains' | 'team_pin' | 'tax_pb1'
 
-interface MerchantHomeHubViewProps {
+export interface MerchantHomeHubViewProps {
   onBackToPos?: () => void
   initialTab?: HubTabKey
   bypassPinForTesting?: boolean
+  staffRole?: string
 }
 
 export function MerchantHomeHubView({ 
   onBackToPos,
   initialTab = 'payouts',
-  bypassPinForTesting = false
+  bypassPinForTesting = false,
+  staffRole
 }: MerchantHomeHubViewProps) {
   const config = useMerchantConfig()
+  const role = staffRole?.toLowerCase()
+  const isOwnerOrManager = role === 'owner' || role === 'manager'
+  const isRestrictedRole = role === 'barista' || role === 'cashier'
+
   const [activeTab, setActiveTab] = useState<HubTabKey | null>(initialTab)
   const [isMobileDirectory, setIsMobileDirectory] = useState(false)
-  const [isPinAuthenticated, setIsPinAuthenticated] = useState<boolean>(() => bypassPinForTesting)
+  const [isPinAuthenticated, setIsPinAuthenticated] = useState<boolean>(() => bypassPinForTesting || isOwnerOrManager)
   const [ownerPinInput, setOwnerPinInput] = useState('')
   const [pinError, setPinError] = useState<string | null>(null)
   const [showGoLiveModal, setShowGoLiveModal] = useState(false)
 
   const handleVerifyOwnerPin = (e: React.FormEvent) => {
     e.preventDefault()
-    if (ownerPinInput === '8888' || ownerPinInput === '1234') {
+    if (ownerPinInput === '8888' || ownerPinInput === '1234' || ownerPinInput === '123456') {
       setIsPinAuthenticated(true)
       setPinError(null)
     } else {
-      setPinError('PIN Owner salah. Gunakan PIN 8888 untuk simulasi.')
+      setPinError('PIN Otorisasi salah. Gunakan PIN 8888.')
     }
   }
 
@@ -56,12 +62,16 @@ export function MerchantHomeHubView({
       <div className="h-full min-h-0 flex items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-sm p-6 space-y-4 border-border bg-card shadow-2xl text-center">
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mx-auto text-xl font-bold">
-            👑
+            {isRestrictedRole ? <ShieldAlert className="w-6 h-6 text-rose-500" /> : '👑'}
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">Merchant Hub (Owner Mode)</h3>
+            <h3 className="text-base font-bold text-foreground">
+              {isRestrictedRole ? 'Akses Terbatas: Butuh Izin Manajer' : 'Merchant Hub (Owner Mode)'}
+            </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Masukkan PIN Owner 4-digit untuk mengakses ruang kendali bisnis dan keuangan.
+              {isRestrictedRole
+                ? `Peran staf aktif (${staffRole}) tidak memiliki izin akses. Masukkan PIN Manajer untuk membuka otorisasi.`
+                : 'Masukkan PIN Owner untuk mengakses ruang kendali bisnis dan keuangan.'}
             </p>
           </div>
 
@@ -71,7 +81,7 @@ export function MerchantHomeHubView({
               maxLength={6}
               value={ownerPinInput}
               onChange={(e) => setOwnerPinInput(e.target.value)}
-              placeholder="••••"
+              placeholder="PIN (8888)"
               className="text-center font-mono text-lg tracking-widest bg-background border-border"
               autoFocus
             />
@@ -86,17 +96,17 @@ export function MerchantHomeHubView({
                   onClick={onBackToPos} 
                   className="flex-1 text-xs"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Kasir
+                  <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Kembali ke Kasir
                 </Button>
               )}
               <Button type="submit" className="flex-1 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold">
-                Buka Sesi
+                Masuk
               </Button>
             </div>
           </form>
 
           <div className="pt-2 border-t border-border/50 text-[11px] text-muted-foreground">
-            <span className="font-mono">Default Demo PIN: 8888 atau 1234</span>
+            <span className="font-mono">Default Demo PIN: 8888</span>
           </div>
         </Card>
       </div>

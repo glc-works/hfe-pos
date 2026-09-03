@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react'
-import { X, Coffee, ShoppingBag, Sparkles, ChevronRight, Check } from 'lucide-react'
-import { MenuItem } from '../../types/pos'
+import { X, Coffee, ShoppingBag, ChevronRight, Check } from 'lucide-react'
+import { MenuItem, MenuDisplayPolicy } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
+import { MerchantConfigContext } from '../../context/MerchantConfigContext'
+import { getBadgeMeta } from '../shared/ProductCard'
 
 export interface ProductDetailModalProps {
   show: boolean
   product: MenuItem | null
+  displayPolicy?: MenuDisplayPolicy
   onClose: () => void
   onOrderNow: (product: MenuItem) => void
 }
@@ -13,10 +16,22 @@ export interface ProductDetailModalProps {
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   show,
   product,
+  displayPolicy,
   onClose,
   onOrderNow
 }) => {
   const { formatPrice } = useTranslation()
+  const merchantCtx = React.useContext(MerchantConfigContext)
+  const storefrontConfig = merchantCtx?.storefrontConfig
+  const badgeMeta = product ? getBadgeMeta(product.badge) : null
+
+  const activePolicy: MenuDisplayPolicy = displayPolicy || storefrontConfig?.menuDisplayPolicy || {
+    showPublicIngredients: false, // Default: false (protects secret kitchen BoM)
+    showTastingNotes: true,
+    showCuratedStory: true,
+    showDietaryBadges: true,
+    showOriginInfo: true
+  }
 
   // Keyboard shortcut: close on Escape key
   useEffect(() => {
@@ -84,9 +99,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             {/* RIGHT / MAIN: DETAILS & DESCRIPTION */}
             <div className="sm:col-span-7 flex flex-col gap-3">
               <div>
-                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-[11px] font-bold uppercase tracking-wider mb-1">
-                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                  <span>Koleksi Unggulan Artisan</span>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  {badgeMeta && (
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono border shadow-xs flex items-center gap-1 ${badgeMeta.className}`}>
+                      <span>{badgeMeta.label}</span>
+                    </span>
+                  )}
+                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    {product.category}
+                  </span>
                 </div>
                 <h3
                   id="product-detail-title"
@@ -104,22 +125,67 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* DESCRIPTION & TASTING NOTES */}
-              <div className="bg-slate-50 dark:bg-slate-850/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-2">
+              {/* CURATED BADGE STORY CARD */}
+              {activePolicy.showCuratedStory !== false && product.badgeStory && (
+                <div className={`p-3 rounded-2xl border flex items-start gap-2.5 ${badgeMeta?.className || 'bg-amber-500/10 border-amber-500/20 text-amber-900 dark:text-amber-200'}`}>
+                  <span className="text-base shrink-0">{badgeMeta?.glyph || '✨'}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-bold uppercase tracking-wider block font-mono">
+                      {badgeMeta?.label || 'Catatan Kurasi Roaster'}
+                    </span>
+                    <p className="text-xs mt-0.5 leading-relaxed font-medium">
+                      {product.badgeStory}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* DESCRIPTION */}
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-3.5 space-y-2.5">
                 <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                   {product.description ||
                     'Diracik menggunakan bahan berkualitas tinggi pilihan roaster kami untuk menghadirkan cita rasa seimbang, aroma memikat, dan kesegaran terbaik.'}
                 </p>
-                {product.bomIngredients && product.bomIngredients.length > 0 && (
+
+                {/* TASTING NOTES */}
+                {activePolicy.showTastingNotes !== false && product.tastingNotes && product.tastingNotes.length > 0 && (
                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1">
-                      Komposisi Utama:
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5 font-mono">
+                      Profil Rasa (Tasting Notes):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.tastingNotes.map((note, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-850 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold flex items-center gap-1 shadow-2xs"
+                        >
+                          <span>🌸</span>
+                          <span>{note}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ORIGIN & HARVEST */}
+                {activePolicy.showOriginInfo !== false && product.originInfo && (
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/80 flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300">
+                    <span className="font-bold text-slate-500 dark:text-slate-400 font-mono text-[10px]">ASAL BAHAN:</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{product.originInfo}</span>
+                  </div>
+                )}
+
+                {/* BOM INGREDIENTS (PROTECTED SECRET RECIPE / PUBLIC TRANSPARENCY TOGGLE) */}
+                {activePolicy.showPublicIngredients === true && product.bomIngredients && product.bomIngredients.length > 0 && (
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1 font-mono">
+                      Komposisi Bahan:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {product.bomIngredients.map((bom, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-medium text-slate-700 dark:text-slate-300"
+                          className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-700 text-[10px] font-medium text-slate-700 dark:text-slate-300"
                         >
                           {bom.name} {bom.amount ? `(${bom.amount})` : ''}
                         </span>
@@ -129,15 +195,31 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 )}
               </div>
 
-              {/* HIGHLIGHT BADGES */}
-              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-                <span className="flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5 text-emerald-500" /> Disangrai Segar
-                </span>
-                <span className="flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5 text-emerald-500" /> Tersedia Dine-in & Takeaway
-                </span>
-              </div>
+              {/* DIETARY & SAFETY BADGES */}
+              {activePolicy.showDietaryBadges !== false && product.dietaryTags && product.dietaryTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                  {product.dietaryTags.includes('vegan') && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-[10px]">
+                      🌱 100% Vegan
+                    </span>
+                  )}
+                  {product.dietaryTags.includes('gluten_free') && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-[10px]">
+                      🌾 Bebas Gluten
+                    </span>
+                  )}
+                  {product.dietaryTags.includes('dairy_free') && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 text-[10px]">
+                      🥛 Bebas Susu Sapi
+                    </span>
+                  )}
+                  {product.dietaryTags.includes('halal') && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-[10px]">
+                      <Check className="w-3 h-3 text-emerald-500" /> Halal Certified
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

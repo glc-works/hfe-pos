@@ -52,13 +52,13 @@ export function useTableState(options: UseTableStateOptions) {
   // Table Reassignment / Split / Join Modal State
   const [showTableReassignModal, setShowTableReassignModal] = useState<boolean>(false)
   const [tableOpMode, setTableOpMode] = useState<'move' | 'split' | 'join'>('move')
-  const [reassignFromTable, setReassignFromTable] = useState<string>('MEJA-04')
-  const [reassignTargetTable, setReassignTargetTable] = useState<string>('MEJA-08')
-  const [splitSourceTable, setSplitSourceTable] = useState<string>('MEJA-04')
-  const [splitTargetTable, setSplitTargetTable] = useState<string>('MEJA-05')
-  const [splitSelectedSeat, setSplitSelectedSeat] = useState<string>('Seat 2')
-  const [joinSourceTable, setJoinSourceTable] = useState<string>('MEJA-12')
-  const [joinTargetTable, setJoinTargetTable] = useState<string>('MEJA-04')
+  const [reassignFromTable, setReassignFromTable] = useState<string>(() => tablesGrid[0]?.name || 'IND-01')
+  const [reassignTargetTable, setReassignTargetTable] = useState<string>(() => tablesGrid[1]?.name || 'IND-02')
+  const [splitSourceTable, setSplitSourceTable] = useState<string>(() => tablesGrid[0]?.name || 'IND-01')
+  const [splitTargetTable, setSplitTargetTable] = useState<string>(() => tablesGrid[1]?.name || 'IND-02')
+  const [splitSelectedSeat, setSplitSelectedSeat] = useState<string>('Kursi 2')
+  const [joinSourceTable, setJoinSourceTable] = useState<string>(() => tablesGrid[2]?.name || 'OUT-01')
+  const [joinTargetTable, setJoinTargetTable] = useState<string>(() => tablesGrid[0]?.name || 'IND-01')
 
   // Reservation Engine State
   const [reservationPolicyMode, setReservationPolicyMode] = useState<'instant' | 'manual_review'>('manual_review')

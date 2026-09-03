@@ -19,12 +19,13 @@ const mockProduct: MenuItem = {
 }
 
 describe('BOARD Product Quick-Peek Detail Modal Suite', () => {
-  it('should render product name, formatted price, category, and tasting notes', () => {
+  it('should render product name, formatted price, category, and description', () => {
     const html = renderToString(
       <LanguageProvider>
         <ProductDetailModal
           show={true}
           product={mockProduct}
+          displayPolicy={{ showPublicIngredients: true }}
           onClose={vi.fn()}
           onOrderNow={vi.fn()}
         />
@@ -37,6 +38,23 @@ describe('BOARD Product Quick-Peek Detail Modal Suite', () => {
     expect(html).toContain('Ekstraksi 1:2 dari biji kopi Gayo')
     expect(html).toContain('Pesan Menu Ini')
     expect(html).toContain('28.000')
+  })
+
+  it('should hide proprietary BoM ingredients when showPublicIngredients is false (secret recipe guard)', () => {
+    const html = renderToString(
+      <LanguageProvider>
+        <ProductDetailModal
+          show={true}
+          product={mockProduct}
+          displayPolicy={{ showPublicIngredients: false }}
+          onClose={vi.fn()}
+          onOrderNow={vi.fn()}
+        />
+      </LanguageProvider>
+    )
+
+    expect(html).toContain('Espresso Single Origin Senopati')
+    expect(html).not.toContain('Biji Kopi Gayo') // Secret recipe protected!
   })
 
   it('should render null when show is false or product is null', () => {

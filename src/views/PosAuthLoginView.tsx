@@ -7,8 +7,8 @@ import { firstPartyAuthEntryPolicy } from '../config/firstPartyRuntime'
 import {
   configuredSocialProviders,
   startSocialSignIn,
-  type ToGrowSocialProvider,
 } from '../services/toGrowSocialSignIn'
+import type { SocialAuthProvider } from '../services/auth'
 
 export interface PosAuthLoginViewProps {
   auth: ReturnType<typeof usePosAuth>
@@ -89,7 +89,7 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
     }
   }
 
-  const handleSocialSignIn = (provider: ToGrowSocialProvider) => {
+  const handleSocialSignIn = (provider: SocialAuthProvider) => {
     setLoading(true)
     setErrorMessage(null)
     void startSocialSignIn(provider).catch((error) => {
@@ -147,60 +147,87 @@ export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
   return (
     <div className="flex items-center justify-center min-h-[100dvh] bg-background p-4 font-sans text-foreground">
       <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl flex flex-col gap-5 animate-scaleUp">
-        {/* BRAND LOGO */}
-        <div className="flex flex-col items-center gap-1.5 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-md">
-            <Store className="w-6 h-6" />
+        {/* BRAND / MODE HEADER */}
+        {activeTab === 'pin' ? (
+          <div className="flex flex-col items-center gap-1.5 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-md">
+              <Store className="w-6 h-6" />
+            </div>
+            <h2 className="text-lg font-black text-foreground">Hfe POS Terminal</h2>
+            <span className="text-xs text-muted-foreground">Pilih Profil Staf & Masukkan PIN Kasir</span>
           </div>
-          <h2 className="text-lg font-black text-foreground">Hfe POS Terminal</h2>
-          <span className="text-xs text-muted-foreground">Point of Sale & Backoffice Authentication</span>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between pb-1 border-b border-border">
+            <button
+              type="button"
+              onClick={() => { setActiveTab('pin'); setErrorMessage(null); setSuccessMessage(null) }}
+              className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <span>← Kembali ke Terminal Kasir</span>
+            </button>
+            <span className="text-[11px] font-mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+              Portal Owner / HQ
+            </span>
+          </div>
+        )}
 
-        {/* TAB SELECTOR */}
-        <div className="grid grid-cols-4 gap-1 p-1 bg-muted/60 rounded-2xl border border-border">
-          {[
-            { id: 'pin', label: 'PIN Kasir', icon: Keyboard },
-            { id: 'owner-login', label: 'Owner', icon: UserCheck },
-            { id: 'owner-register', label: 'Daftar', icon: UserPlus },
-            { id: 'forgot-password', label: 'Bantuan', icon: HelpCircle }
-          ].filter(t => (
-            (t.id !== 'pin' || authPolicy.allowSyntheticStaffPin)
-            && (t.id !== 'owner-register' || authPolicy.allowLocalRegistration)
-          )).map(t => {
-            const Icon = t.icon
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => { setActiveTab(t.id as AuthTab); setErrorMessage(null); setSuccessMessage(null) }}
-                className={`py-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                  activeTab === t.id
-                    ? 'bg-amber-500 text-slate-950 font-black shadow'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{t.label}</span>
-              </button>
-            )
-          })}
-        </div>
+        {/* OWNER PORTAL SECONDARY TAB SELECTOR (ONLY SHOWN INSIDE OWNER PORTAL) */}
+        {activeTab !== 'pin' && (
+          <div className="grid grid-cols-3 gap-1 p-1 bg-muted/60 rounded-2xl border border-border">
+            {[
+              { id: 'owner-login', label: 'Owner Login', icon: UserCheck },
+              { id: 'owner-register', label: 'Daftar Baru', icon: UserPlus },
+              { id: 'forgot-password', label: 'Bantuan', icon: HelpCircle }
+            ].filter(t => t.id !== 'owner-register' || authPolicy.allowLocalRegistration).map(t => {
+              const Icon = t.icon
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => { setActiveTab(t.id as AuthTab); setErrorMessage(null); setSuccessMessage(null) }}
+                  className={`py-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                    activeTab === t.id
+                      ? 'bg-amber-500 text-slate-950 font-black shadow'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{t.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* ACTIVE FORM RENDERER */}
         {activeTab === 'pin' ? (
-          <PosPinKeypadSection
-            pin={pin}
-            onKeypadPress={handleKeypadPress}
-            onLoginSubmit={handlePinSubmit}
-            loading={loading}
-            isCooldownActive={isCooldownActive}
-            cooldownSeconds={cooldownSeconds}
-            activeBranchId={activeBranchId}
-            setActiveBranchId={setActiveBranchId}
-            branches={BRANCHES}
-            errorMessage={errorMessage}
-            successMessage={successMessage}
-          />
+          <>
+            <PosPinKeypadSection
+              pin={pin}
+              onKeypadPress={handleKeypadPress}
+              onLoginSubmit={handlePinSubmit}
+              loading={loading}
+              isCooldownActive={isCooldownActive}
+              cooldownSeconds={cooldownSeconds}
+              activeBranchId={activeBranchId}
+              setActiveBranchId={setActiveBranchId}
+              branches={BRANCHES}
+              errorMessage={errorMessage}
+              successMessage={successMessage}
+            />
+
+            {/* SEPARATE OWNER LOGIN ACCESS LINK */}
+            <div className="pt-2 border-t border-border flex justify-center">
+              <button
+                type="button"
+                onClick={() => { setActiveTab('owner-login'); setErrorMessage(null); setSuccessMessage(null) }}
+                className="text-xs text-muted-foreground hover:text-amber-500 font-bold transition-colors flex items-center gap-1.5 cursor-pointer py-1"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-amber-500" />
+                <span>Masuk sebagai Owner / Web Backoffice ➔</span>
+              </button>
+            </div>
+          </>
         ) : (
           <PosOwnerAuthForms
             activeTab={activeTab}

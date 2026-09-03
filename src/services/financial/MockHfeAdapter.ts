@@ -174,15 +174,28 @@ export class MockHfeAdapter implements HfePosFinancialPort {
   async postGovernedRetailOrder(
     payload: GovernedRetailCheckoutPayload,
     _context: RetailPostingContext,
-    reviewedQuote: ReviewedPosQuote,
+    reviewedQuote?: ReviewedPosQuote,
   ): Promise<SubmitRetailTransactionResponse> {
+    const txId = `ORDER-SIM-${payload.idempotency_key || 'DEFAULT'}`
+    const postingId = `POSTING-SIM-${payload.idempotency_key || 'DEFAULT'}`
     return Promise.resolve({
-      tx_id: `ORDER-SIM-${Date.now()}`,
+      tx_id: txId,
       status: 'posted',
+      posting_id: postingId,
+      ledger_journal_id: postingId,
       created_at: new Date().toISOString(),
-      grand_total: reviewedQuote.amountDueMinor,
+      grand_total: reviewedQuote?.amountDueMinor || '0',
       idempotency_key: payload.idempotency_key || `IDEMP-SIM-${Date.now()}`,
       isSimulated: true,
+      readback_validation: {
+        isValid: true,
+        isApplied: true,
+        isMismatch: false,
+        finality: 'applied',
+        source_capability: 'governed_retail_order',
+        source_object_id: txId,
+        balanced: true,
+      } as any,
     })
   }
 
@@ -231,9 +244,9 @@ export class MockHfeAdapter implements HfePosFinancialPort {
     _providerIntentReference?: string
   ): Promise<GovernedAcceptedTenderEvidence> {
     return Promise.resolve({
-      orderId: `ORDER-SIM-${Date.now()}`,
+      orderId: `ORDER-SIM-${payload.idempotency_key || 'DEFAULT'}`,
       acceptedAt: new Date().toISOString(),
-      tenderId: `TENDER-SIM-${Date.now()}`,
+      tenderId: `TENDER-SIM-${payload.idempotency_key || 'DEFAULT'}`,
       acceptanceEffectKey: 'a'.repeat(64),
       tenderType: payload.payment_method as any,
       amountMinor: reviewed.amountDueMinor,

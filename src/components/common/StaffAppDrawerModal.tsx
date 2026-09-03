@@ -119,13 +119,22 @@ export interface StaffAppDrawerModalProps {
   onClose: () => void
   activeStaffSurface: StaffSurfaceMode
   onSelectSurface: (surface: StaffSurfaceMode) => void
+  staffRole?: string
+}
+
+const ROLE_ALLOWED_APPS: Record<string, StaffSurfaceMode[]> = {
+  barista: ['barista-pos', 'kds-screen'],
+  cashier: ['barista-pos', 'kds-screen'],
+  manager: ['barista-pos', 'kds-screen', 'warehouse-mgmt', 'cafe-config', 'merchant-hub', 'hfe-insights'],
+  owner: ['barista-pos', 'kds-screen', 'hfe-insights', 'hfe-company-book', 'hfe-connect-hub', 'warehouse-mgmt', 'cafe-config', 'admin-hub', 'merchant-hub']
 }
 
 export const StaffAppDrawerModal: React.FC<StaffAppDrawerModalProps> = ({
   isOpen,
   onClose,
   activeStaffSurface,
-  onSelectSurface
+  onSelectSurface,
+  staffRole
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [showInstallModal, setShowInstallModal] = useState(false)
@@ -140,12 +149,16 @@ export const StaffAppDrawerModal: React.FC<StaffAppDrawerModalProps> = ({
 
   if (!isOpen) return null
 
-  const filteredApps = FIVE_CORE_APPS.filter(
-    (app) =>
+  const roleAllowed = staffRole ? ROLE_ALLOWED_APPS[staffRole.toLowerCase()] : null
+
+  const filteredApps = FIVE_CORE_APPS.filter((app) => {
+    if (roleAllowed && !roleAllowed.includes(app.id)) return false
+    return (
       app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.features.some((f) => f.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+    )
+  })
 
   return (
     <>

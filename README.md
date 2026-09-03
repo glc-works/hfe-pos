@@ -139,10 +139,11 @@ npm run build
 hfe-pos/
 ├── docs/
 │   └── active/
-│       ├── plans/            # Level 0, 1, and 2 Strategic & Development Plans
-│       │   ├── level-0/
+│       ├── plans/            # Level 1 and 2 Development Plans (level-0 retired, see plans/RETIRED.md)
 │       │   ├── level-1/
 │       │   ├── level-2/
+│       │   ├── DISPOSITION.md
+│       │   ├── RETIRED.md    # Retirement marker for the 114 removed legacy plan files
 │       │   └── templates/    # OKF 0.2 Plan Templates
 │       └── standards/        # Technical Engineering Standards (POS-ENG-STD-001.md)
 ├── scripts/                  # Guard Scripts (modularity, connector schema, ci-local)

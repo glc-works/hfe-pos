@@ -9,6 +9,7 @@ import { useTranslation } from '../../context/LanguageContext'
 import { FacilityItem } from './LandingFacilitiesSection'
 import { PromoItem } from './LandingPromosSection'
 import { ProductDetailModal } from './ProductDetailModal'
+import { getBadgeMeta } from '../shared/ProductCard'
 
 interface LandingDedicatedSectionViewProps {
   section: 'menu' | 'promos' | 'facilities' | 'events'
@@ -298,8 +299,22 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
   const categories = ['all', ...Array.from(new Set(productCatalog.map(p => p.category)))]
   const filteredProducts = productCatalog.filter(p => {
     const matchesCat = selectedCategory === 'all' || p.category === selectedCategory
-    const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCat && matchesSearch
+    if (!matchesCat) return false
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase().trim()
+    const nameMatch = p.name.toLowerCase().includes(q)
+    const descMatch = Boolean(p.description && p.description.toLowerCase().includes(q))
+    const notesMatch = Boolean(p.tastingNotes && p.tastingNotes.some(n => n.toLowerCase().includes(q)))
+    const originMatch = Boolean(p.originInfo && p.originInfo.toLowerCase().includes(q))
+    const badgeMatch = Boolean(p.badge && (
+      p.badge.toLowerCase().includes(q) ||
+      (p.badge === 'seasonal' && (q.includes('musim') || q.includes('season'))) ||
+      (p.badge === 'chef_recommendation' && (q.includes('chef') || q.includes('rekomendasi') || q.includes('pilihan'))) ||
+      (p.badge === 'best_seller' && (q.includes('favorit') || q.includes('laris') || q.includes('best') || q.includes('top'))) ||
+      (p.badge === 'new_arrival' && (q.includes('baru') || q.includes('new'))) ||
+      (p.badge === 'signature' && (q.includes('signature') || q.includes('khas')))
+    ))
+    return nameMatch || descMatch || notesMatch || originMatch || badgeMatch
   })
 
   return (
@@ -332,7 +347,7 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari menu favorit..."
+            placeholder="Cari menu, kopi, atau 'musiman'..."
             className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-amber-400"
           />
         </div>
@@ -357,21 +372,28 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
 
       {/* PRODUCTS GRID */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {filteredProducts.map((prod) => (
-          <div
-            key={prod.id}
-            onClick={() => setSelectedProductForDetail(prod)}
-            className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden p-3 flex flex-col justify-between shadow-xs hover:border-amber-500/60 hover:shadow-md transition-all cursor-pointer"
-          >
-            <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2.5 relative">
-              {prod.image ? (
-                <img src={prod.image} alt={prod.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Coffee className="w-8 h-8 text-amber-500/40" />
-                </div>
-              )}
-            </div>
+        {filteredProducts.map((prod) => {
+          const badgeMeta = getBadgeMeta(prod.badge)
+          return (
+            <div
+              key={prod.id}
+              onClick={() => setSelectedProductForDetail(prod)}
+              className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden p-3 flex flex-col justify-between shadow-xs hover:border-amber-500/60 hover:shadow-md transition-all cursor-pointer"
+            >
+              <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2.5 relative">
+                {prod.image ? (
+                  <img src={prod.image} alt={prod.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Coffee className="w-8 h-8 text-amber-500/40" />
+                  </div>
+                )}
+                {badgeMeta && (
+                  <span className={`absolute top-1.5 left-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-md border shadow-xs flex items-center gap-0.5 z-10 ${badgeMeta.className}`}>
+                    <span>{badgeMeta.shortLabel}</span>
+                  </span>
+                )}
+              </div>
 
             <div>
               <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 uppercase block">{prod.category}</span>
@@ -389,8 +411,9 @@ export const LandingDedicatedSectionView: React.FC<LandingDedicatedSectionViewPr
               </span>
             </div>
           </div>
-        ))}
-      </div>
+        )
+      })}
+    </div>
 
       {/* PRODUCT QUICK-PEEK DETAIL MODAL */}
       <ProductDetailModal

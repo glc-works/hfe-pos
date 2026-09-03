@@ -38,6 +38,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 28000,
     image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=500&q=80',
     description: 'Espresso ganda Arabica kintamani dipadu gula aren alami dan susu segar.',
+    badge: 'best_seller',
+    badgeStory: 'Menu terlaris kami sejak 2020. Dipesan lebih dari 1.800 cangkir setiap bulannya oleh pelanggan setia.',
+    tastingNotes: ['Gula Aren', 'Caramel', 'Dark Chocolate'],
+    dietaryTags: ['halal'],
+    originInfo: 'Arabica Kintamani Bali & Aren Organik Banten',
     hasModifiers: true,
     modifierGroups: [
       {
@@ -89,6 +94,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 35000,
     image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=500&q=80',
     description: 'Manual brew es metode drip V60 dengan notes buah peach & melati segar.',
+    badge: 'chef_recommendation',
+    badgeStory: 'Pilihan utama Head Roaster kami. Ekstraksi dingin tetes demi tetes selama 8 jam menghadirkan profil teh melati yang sangat bersih.',
+    tastingNotes: ['Peach', 'Melati', 'Citrus'],
+    dietaryTags: ['vegan', 'gluten_free', 'halal'],
+    originInfo: 'Single Origin Ethiopia Yirgacheffe Washed',
     bomIngredients: [
       { itemCode: 'RAW-BEAN-02', name: 'Biji Kopi Ethiopia Yirgacheffe', amount: '15g', unitCostEstimate: 7500 },
       { itemCode: 'RAW-ICE-01', name: 'Es Batu Filtered Water', amount: '120g', unitCostEstimate: 500 }
@@ -107,6 +117,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 34000,
     image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500&q=80',
     description: 'Bubuk ceremonial Uji Matcha Kyoto kocok bambu Chasen dengan susu gandum Oatside.',
+    badge: 'signature',
+    badgeStory: 'Matcha seremonial dipasok langsung dari perkebunan tertua di Uji, Kyoto. Dikocok tradisional menggunakan Chasen bambu.',
+    tastingNotes: ['Umami', 'Creamy Oat', 'Sweet Vegetal'],
+    dietaryTags: ['vegan', 'dairy_free', 'halal'],
+    originInfo: 'Uji Prefecture, Kyoto, Japan',
     bomIngredients: [
       { itemCode: 'RAW-MAT-01', name: 'Bubuk Ceremonial Uji Matcha Kyoto', amount: '4g', unitCostEstimate: 9000 },
       { itemCode: 'RAW-OAT-01', name: 'Susu Gandum Oatside Barista Edition', amount: '180ml', unitCostEstimate: 4200 }
@@ -125,6 +140,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 25000,
     image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&q=80',
     description: 'Pastry mentega Prancis dengan lapisan flaking krispi gurih.',
+    badge: 'best_seller',
+    badgeStory: 'Dipanggang fresh setiap pagi dengan 100% mentega fermentasi AOP Normandia Prancis.',
+    tastingNotes: ['Rich Butter', 'Flaky', 'Golden Crust'],
+    dietaryTags: ['halal'],
+    originInfo: 'Normandy Butter AOP',
     bomIngredients: [
       { itemCode: 'RAW-PAS-01', name: 'Croissant Dough Premium Butter', amount: '1 pcs', unitCostEstimate: 9500 }
     ],
@@ -141,6 +161,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 38000,
     image: 'https://images.unsplash.com/photo-1576107232684-1279f390859f?w=500&q=80',
     description: 'Kentang goreng impor garing dilumuri minyak truffle asli dan keju parmesan parut.',
+    badge: 'signature',
+    badgeStory: 'Kentang goreng renyah diselimuti minyak black truffle murni dan parutan keju parmesan berumur 12 bulan.',
+    tastingNotes: ['Aromatic Truffle', 'Savory Cheese', 'Garlic Crunch'],
+    dietaryTags: ['halal'],
+    originInfo: 'Umbria Black Truffle Oil',
     bomIngredients: [
       { itemCode: 'RAW-POT-01', name: 'Kentang Shoestring French Fries', amount: '180g', unitCostEstimate: 6000 },
       { itemCode: 'RAW-TRF-01', name: 'Minyak Black Truffle Impor', amount: '5ml', unitCostEstimate: 5000 },
@@ -160,6 +185,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 36000,
     image: 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=500&q=80',
     description: 'Vanilla bean syrup, steamed milk velvety, espresso roast, dan saus karamel drizzle.',
+    badge: 'new_arrival',
+    badgeStory: 'Kreasi terbaru musim ini! Memadukan cold foam velvety dengan karamel mentega buatan sendiri.',
+    tastingNotes: ['Sweet Vanilla', 'Toffee', 'Silky Cloud'],
+    dietaryTags: ['halal'],
+    originInfo: 'Madagascar Vanilla Bean',
     bomIngredients: [],
     preparationSteps: ['1. Siapkan sirup vanilla dan susu.', '2. Drizzle caramel drizzle di atas froth.']
   },
@@ -171,6 +201,9 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 24000,
     image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&q=80',
     description: 'Double shot espresso murni dengan air dingin terfilter dan es batu bening.',
+    tastingNotes: ['Bold Cocoa', 'Nutty', 'Clean Finish'],
+    dietaryTags: ['vegan', 'gluten_free', 'halal'],
+    originInfo: 'Arabica Mandheling & Gayo Aceh',
     bomIngredients: [],
     preparationSteps: ['1. Double espresso over ice.']
   },
@@ -182,6 +215,9 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 30000,
     image: 'https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=500&q=80',
     description: 'Ristretto pekat dalam gelas kecil dengan microfoam susu lembut.',
+    tastingNotes: ['Intense Cocoa', 'Creamy Sweet'],
+    dietaryTags: ['halal'],
+    originInfo: 'Toraja Sapan Single Origin',
     bomIngredients: [],
     preparationSteps: ['1. Single ristretto with microfoam.']
   },
@@ -193,6 +229,11 @@ export const PRODUCT_CATALOG: MenuItem[] = [
     price: 32000,
     image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&q=80',
     description: 'Teh hijau sangrai aroma kayu manis alami dengan susu creamy.',
+    badge: 'seasonal',
+    badgeStory: '🍂 Edisi Spesial Musiman — Daun teh hijau musim gugur yang disangrai di atas arang tradisional Kyoto.',
+    tastingNotes: ['Toasty Smoky', 'Caramelized Tea', 'Warm Woody'],
+    dietaryTags: ['vegan', 'halal'],
+    originInfo: 'Shizuoka Autumn Harvest, Japan',
     bomIngredients: [],
     preparationSteps: ['1. Whisk hojicha powder with milk.']
   },

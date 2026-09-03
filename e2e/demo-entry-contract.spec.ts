@@ -13,5 +13,7 @@ test('documented synthetic staff can enter and reset the local demo in a clean b
 
   await resetCanonicalDemoSession(page)
 
-  await expect(page.getByText('Masukkan 6 Digit PIN Kasir')).toBeVisible()
+  const staffPrompt = page.getByText('Pilih Profil Staf yang Bertugas')
+  const pinPrompt = page.getByText('Masukkan 6 Digit PIN Kasir')
+  await expect(staffPrompt.or(pinPrompt)).toBeVisible()
 })

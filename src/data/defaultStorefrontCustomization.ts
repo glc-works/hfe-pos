@@ -88,7 +88,14 @@ export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
   wifiAccessPolicy: 'after_payment',
   enableAllergenBadges: true,
   enableDigitalReceiptSharing: true,
-  receiptCustomFooter: 'Terima kasih telah berkunjung! Simpan e-receipt ini untuk klaim reward member.'
+  receiptCustomFooter: 'Terima kasih telah berkunjung! Simpan e-receipt ini untuk klaim reward member.',
+  menuDisplayPolicy: {
+    showPublicIngredients: false, // Default: false (protect proprietary kitchen recipes/BoM)
+    showTastingNotes: true,
+    showCuratedStory: true,
+    showDietaryBadges: true,
+    showOriginInfo: true
+  }
 }
 
 export const BANNER_PRESETS = [

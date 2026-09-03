@@ -3,6 +3,7 @@ import { Search, X, Sparkles } from 'lucide-react'
 import { MenuItem, CafeThemeConfig, HfeCompanyProfile, CartItem, OrderTicket } from '../../types/pos'
 import { getCategoryIcon } from './CustomerHeader'
 import { ProductCard } from '../shared/ProductCard'
+import { ProductDetailModal } from '../landing/ProductDetailModal'
 
 export interface CustomerCatalogViewProps {
   productCatalog: MenuItem[]
@@ -42,23 +43,53 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
   onOpenModifierSheet,
   categoryRefs
 }) => {
+  const [selectedBadge, setSelectedBadge] = React.useState<string>('all')
+  const [selectedProductForDetail, setSelectedProductForDetail] = React.useState<MenuItem | null>(null)
   const hasPreviousOrders = previousOrders && previousOrders.length > 0
   const isLight = activeTheme.mode === 'light'
   const textColor = activeTheme.textColorHex || (isLight ? '#0f172a' : '#f8fafc')
   const secondaryTextColor = activeTheme.secondaryTextColorHex || (isLight ? '#475569' : '#cbd5e1')
   const cardBorderColor = isLight ? '#e2e8f0' : '#334155'
 
+  // Badge counts
+  const seasonalCount = productCatalog.filter(p => p.badge === 'seasonal').length
+  const chefCount = productCatalog.filter(p => p.badge === 'chef_recommendation').length
+  const bestSellerCount = productCatalog.filter(p => p.badge === 'best_seller').length
+  const newCount = productCatalog.filter(p => p.badge === 'new_arrival').length
+  const sigCount = productCatalog.filter(p => p.badge === 'signature').length
+
   // Instant reactive filter
   const filteredCatalog = useMemo(() => {
-    if (!searchQuery.trim()) return productCatalog
-    const q = searchQuery.toLowerCase().trim()
-    return productCatalog.filter(
-      item =>
-        item.name.toLowerCase().includes(q) ||
-        (item.description && item.description.toLowerCase().includes(q)) ||
-        item.category.toLowerCase().includes(q)
-    )
-  }, [productCatalog, searchQuery])
+    let list = productCatalog
+
+    // 1. Badge Filter
+    if (selectedBadge !== 'all') {
+      list = list.filter(item => item.badge === selectedBadge)
+    }
+
+    // 2. Search Query (Full spectrum: name, description, category, tasting notes, origin, and badge alias)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      list = list.filter(item => {
+        const nameMatch = item.name.toLowerCase().includes(q)
+        const descMatch = Boolean(item.description && item.description.toLowerCase().includes(q))
+        const catMatch = item.category.toLowerCase().includes(q)
+        const originMatch = Boolean(item.originInfo && item.originInfo.toLowerCase().includes(q))
+        const notesMatch = Boolean(item.tastingNotes && item.tastingNotes.some(n => n.toLowerCase().includes(q)))
+        const badgeMatch = Boolean(item.badge && (
+          item.badge.toLowerCase().includes(q) ||
+          (item.badge === 'seasonal' && (q.includes('musim') || q.includes('season'))) ||
+          (item.badge === 'chef_recommendation' && (q.includes('chef') || q.includes('rekomendasi') || q.includes('pilihan'))) ||
+          (item.badge === 'best_seller' && (q.includes('favorit') || q.includes('laris') || q.includes('best') || q.includes('top'))) ||
+          (item.badge === 'new_arrival' && (q.includes('baru') || q.includes('new'))) ||
+          (item.badge === 'signature' && (q.includes('signature') || q.includes('khas')))
+        ))
+        return nameMatch || descMatch || catMatch || originMatch || notesMatch || badgeMatch
+      })
+    }
+
+    return list
+  }, [productCatalog, selectedBadge, searchQuery])
 
   // Dynamic category grouping
   const categoryGroups = useMemo(() => {
@@ -103,6 +134,7 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
             quantityInCart={cartQty}
             variant="customer-card"
             showSku={false}
+            onOpenDetail={(prod) => setSelectedProductForDetail(prod)}
             onAddToCart={() => {
               if (shouldOpenItemModifierModal(item) && onOpenModifierSheet) {
                 onOpenModifierSheet(item)
@@ -154,10 +186,90 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="p-1 rounded-full hover:opacity-75 transition-all shrink-0 ml-1"
+              className="p-1 rounded-full hover:opacity-75 transition-all shrink-0 ml-1 cursor-pointer"
               style={{ color: secondaryTextColor }}
             >
               <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* QUICK FILTER CHIP STRIP */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setSelectedBadge('all')}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              selectedBadge === 'all'
+                ? 'bg-amber-500 text-slate-950 shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:border-amber-500/40'
+            }`}
+          >
+            ✨ Semua ({productCatalog.length})
+          </button>
+          {seasonalCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedBadge(selectedBadge === 'seasonal' ? 'all' : 'seasonal')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedBadge === 'seasonal'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs'
+                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/20'
+              }`}
+            >
+              🍂 Musiman ({seasonalCount})
+            </button>
+          )}
+          {chefCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedBadge(selectedBadge === 'chef_recommendation' ? 'all' : 'chef_recommendation')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedBadge === 'chef_recommendation'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/30 hover:bg-purple-500/20'
+              }`}
+            >
+              👨‍🍳 Pilihan Chef ({chefCount})
+            </button>
+          )}
+          {bestSellerCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedBadge(selectedBadge === 'best_seller' ? 'all' : 'best_seller')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedBadge === 'best_seller'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20'
+              }`}
+            >
+              🔥 Terlaris ({bestSellerCount})
+            </button>
+          )}
+          {newCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedBadge(selectedBadge === 'new_arrival' ? 'all' : 'new_arrival')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedBadge === 'new_arrival'
+                  ? 'bg-sky-600 text-white shadow-xs'
+                  : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/30 hover:bg-sky-500/20'
+              }`}
+            >
+              ✨ Menu Baru ({newCount})
+            </button>
+          )}
+          {sigCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedBadge(selectedBadge === 'signature' ? 'all' : 'signature')}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedBadge === 'signature'
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/30 hover:bg-rose-500/20'
+              }`}
+            >
+              👑 Signature ({sigCount})
             </button>
           )}
         </div>
@@ -223,6 +335,21 @@ export const CustomerCatalogView: React.FC<CustomerCatalogViewProps> = ({
           Powered by HFE Engine
         </span>
       </div>
+
+      {/* PRODUCT QUICK-PEEK DETAIL & STORY MODAL */}
+      <ProductDetailModal
+        show={Boolean(selectedProductForDetail)}
+        product={selectedProductForDetail}
+        onClose={() => setSelectedProductForDetail(null)}
+        onOrderNow={(prod) => {
+          setSelectedProductForDetail(null)
+          if (shouldOpenItemModifierModal(prod) && onOpenModifierSheet) {
+            onOpenModifierSheet(prod)
+          } else {
+            handleAddToCart(prod)
+          }
+        }}
+      />
     </>
   )
 }

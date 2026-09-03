@@ -1,5 +1,5 @@
-import React from 'react'
-import { TableStatus, MenuItem, StaffSurfaceMode, CartItem } from '../../types/pos'
+import React, { useState } from 'react'
+import { TableStatus, MenuItem, StaffSurfaceMode, CartItem, OrderFulfillmentMode, PosPayMethod } from '../../types/pos'
 import { CashierCameraScannerModal } from './CashierCameraScannerModal'
 import { DirectQtyInputModal } from './DirectQtyInputModal'
 import { TableOpsModal } from '../tables/TableOpsModal'
@@ -12,6 +12,10 @@ import { NotificationCenterDrawer } from '../notifications/NotificationCenterDra
 import { ServiceTicketingDrawer } from '../notifications/ServiceTicketingDrawer'
 import { EventTicketCheckInModal } from '../notifications/EventTicketCheckInModal'
 import { SpotlightOmniSearchModal } from '../common/SpotlightOmniSearchModal'
+import { SupportFeedbackModal } from '../support/SupportFeedbackModal'
+import { PosPaymentSettlementModal } from './PosPaymentSettlementModal'
+import type { ReviewedPosQuote } from '../../services/financial'
+import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 
 export interface UnifiedPosModalsClusterProps {
   showCameraScanner: boolean
@@ -70,6 +74,19 @@ export interface UnifiedPosModalsClusterProps {
   setShowSpotlightModal: (show: boolean) => void
   handleAddToCart: (item: MenuItem) => void
   handleTableClick: (table: TableStatus) => void
+  staffRole?: string
+  showPaymentSettlementModal?: boolean
+  setShowPaymentSettlementModal?: (show: boolean) => void
+  cartItems?: CartItem[]
+  fulfillmentMode?: OrderFulfillmentMode
+  posPayMethod?: PosPayMethod
+  setPosPayMethod?: (method: PosPayMethod) => void
+  posCashGiven?: string
+  setPosCashGiven?: (val: string) => void
+  packagingFee?: number
+  authoritativeQuote?: ReviewedPosQuote | null
+  checkoutPhase?: GovernedCheckoutPhase
+  onConfirmSettlement?: () => Promise<void> | void
 }
 
 export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = ({
@@ -119,8 +136,23 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
   showSpotlightModal,
   setShowSpotlightModal,
   handleAddToCart,
-  handleTableClick
+  handleTableClick,
+  staffRole,
+  showPaymentSettlementModal = false,
+  setShowPaymentSettlementModal,
+  cartItems = [],
+  fulfillmentMode = 'dine_in',
+  posPayMethod = 'cash',
+  setPosPayMethod = () => {},
+  posCashGiven = '',
+  setPosCashGiven = () => {},
+  packagingFee = 0,
+  authoritativeQuote,
+  checkoutPhase,
+  onConfirmSettlement = () => {}
 }) => {
+  const [showSupportModal, setShowSupportModal] = useState(false)
+
   return (
     <>
       <CashierCameraScannerModal
@@ -134,7 +166,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         itemName={directQtyItem?.item.name}
         currentQty={directQtyItem?.item.quantity || 1}
         onClose={() => setDirectQtyItem(null)}
-        onConfirmQty={(newQty) => {
+        onConfirmQty={(newQty: number) => {
           if (directQtyItem) {
             handleUpdateQty(directQtyItem.index, newQty)
             setDirectQtyItem(null)
@@ -150,7 +182,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         reassignTargetTable={reassignTargetTable}
         setReassignTargetTable={setReassignTargetTable}
         onClose={() => setShowTableOpsModal(false)}
-        onConfirmReassign={handleConfirmReassignWithReason}
+        onConfirmReassign={(reason) => handleConfirmReassignWithReason(reason)}
         onConfirmSplit={() => setShowTableOpsModal(false)}
         onConfirmJoin={() => setShowTableOpsModal(false)}
       />
@@ -175,12 +207,12 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         }}
         onCheckoutTable={() => {
           setShowTableDetailDrawer(false)
-          setShowMobileCartDrawer(true)
+          setShowPaymentSettlementModal?.(true)
         }}
         onUnjoinTable={() => setShowTableDetailDrawer(false)}
         onPartialSeatCheckout={() => {
           setShowTableDetailDrawer(false)
-          setShowMobileCartDrawer(true)
+          setShowPaymentSettlementModal?.(true)
         }}
       />
 
@@ -218,6 +250,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
           setIsAppDrawerOpen(false)
           setActiveStaffSurface?.(surface)
         }}
+        staffRole={staffRole}
       />
 
       <NotificationCenterDrawer
@@ -225,6 +258,13 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         onClose={() => setShowNotificationCenter(false)}
         onOpenServiceTickets={() => setShowServiceTickets(true)}
         onOpenTicketValidator={() => setShowEventTicketCheckIn(true)}
+        onOpenSupportTicket={() => setShowSupportModal(true)}
+      />
+
+      <SupportFeedbackModal
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+        activeViewName="Kasir POS"
       />
 
       <ServiceTicketingDrawer
@@ -261,6 +301,27 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
           else if (appId === 'customer-portal') setActiveStaffSurface?.('barista-pos')
           else if (setActiveStaffSurface) setActiveStaffSurface(appId as StaffSurfaceMode)
         }}
+      />
+
+      <PosPaymentSettlementModal
+        show={showPaymentSettlementModal}
+        onClose={() => setShowPaymentSettlementModal?.(false)}
+        items={cartItems}
+        selectedTable={selectedPOSTable}
+        subtotal={subtotal}
+        pb1Tax={pb1Tax}
+        packagingFee={packagingFee}
+        grandTotal={grandTotal}
+        fulfillmentMode={fulfillmentMode}
+        posPayMethod={posPayMethod}
+        setPosPayMethod={setPosPayMethod}
+        posCashGiven={posCashGiven}
+        setPosCashGiven={setPosCashGiven}
+        authoritativeQuote={authoritativeQuote}
+        checkoutPhase={checkoutPhase}
+        onConfirmSettlement={onConfirmSettlement}
+        onOpenRoomChargeModal={() => setShowRoomChargeModal(true)}
+        onOpenSplitPaymentModal={() => setShowTableOpsModal(true)}
       />
     </>
   )

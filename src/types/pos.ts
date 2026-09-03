@@ -69,6 +69,9 @@ export interface ModifierGroup {
   id: string
   name: string
   selectionType: 'single' | 'multiple'
+  minSelection?: number
+  maxSelection?: number
+  required?: boolean
   options: ModifierOption[]
 }
 
@@ -80,6 +83,8 @@ export interface CategoryEtalaseConfig {
   allowCustomNotesDefault: boolean
 }
 
+export type MenuItemBadge = 'seasonal' | 'chef_recommendation' | 'best_seller' | 'new_arrival' | 'signature'
+
 export interface MenuItem {
   id: string
   name: string
@@ -89,6 +94,11 @@ export interface MenuItem {
   price: number
   image: string
   description: string
+  badge?: MenuItemBadge
+  badgeStory?: string
+  tastingNotes?: string[]
+  dietaryTags?: ('vegan' | 'gluten_free' | 'dairy_free' | 'nut_free' | 'halal')[]
+  originInfo?: string
   hasModifiers?: boolean
   modifierPolicy?: ModifierPolicy
   modifierGroups?: ModifierGroup[]
@@ -202,17 +212,10 @@ export interface TableStatus {
   customerName?: string
   totalBill: number
   orderCount: number
-  orderIds?: string[]
-  zoneId?: PropertyZoneId
-  seatedDurationMinutes?: number
-  minSpend?: number
-  pax?: number
-  seatedGuests?: number
-  maxCapacity?: number
+  orderIds?: string[]; zoneId?: PropertyZoneId; seatedDurationMinutes?: number; minSpend?: number; pax?: number; seatedGuests?: number; maxCapacity?: number
 }
 
 export type TableInfo = TableStatus
-
 export type MemberTier = 'Bronze' | 'Silver' | 'Gold' | 'Platinum'
 
 export interface CustomerPreferences {
@@ -322,6 +325,14 @@ export type AmenityTagId =
   | 'prayer_room' | 'clean_restrooms' | 'baby_high_chair' | 'nursing_room' | 'pet_friendly'
   | 'halal_certified' | 'vegetarian_friendly' | 'live_music' | 'cashless_accepted' | 'reservations_welcome'
 
+export interface MenuDisplayPolicy {
+  showPublicIngredients?: boolean // default: false (protects proprietary kitchen BoM recipes)
+  showTastingNotes?: boolean      // default: true
+  showCuratedStory?: boolean      // default: true
+  showDietaryBadges?: boolean     // default: true
+  showOriginInfo?: boolean        // default: true
+}
+
 export interface StorefrontCustomizationConfig {
   // 1. Landing Page Studio
   storeName?: string
@@ -354,6 +365,7 @@ export interface StorefrontCustomizationConfig {
   enableAllergenBadges: boolean
   enableDigitalReceiptSharing: boolean
   receiptCustomFooter: string
+  menuDisplayPolicy?: MenuDisplayPolicy
 }
 
 // --- STORE ONBOARDING & PRESET POLICY TYPES ---
@@ -468,19 +480,9 @@ export interface ServiceTicket {
 
 // --- ACTIVE OPERATIONS TRAY & PARKED TABS (L2-POS-TRAY) ---
 export interface ParkedOperationTab {
-  id: string
-  label: string
-  fulfillmentMode: OrderFulfillmentMode
-  tableName?: string
-  customerName?: string
-  customerPhone?: string
-  items: CartItem[]
-  rawSubtotal: number
-  packagingFee: number
-  totalAmount: number
-  parkedAt: string
-  elapsedMinutes?: number
-  notes?: string
+  id: string; label: string; fulfillmentMode: OrderFulfillmentMode; tableName?: string
+  customerName?: string; customerPhone?: string; items: CartItem[]; rawSubtotal: number
+  packagingFee: number; totalAmount: number; parkedAt: string; elapsedMinutes?: number; notes?: string
 }
 
 // --- RE-EXPORT HFE CARD DUAL-PERSONA & MULTI-IDENTITY TYPES ---
