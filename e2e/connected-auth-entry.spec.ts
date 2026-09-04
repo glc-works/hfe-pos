@@ -1,75 +1,53 @@
 import { expect, test } from '@playwright/test'
 
-test('connected POS starts with ToGrow owner activation and exposes no synthetic PIN path', async ({ page }) => {
-  await page.goto('/?app=cafe')
+// Controlled BFF fixtures prove the consumer UI, not a live WorkOS/Core deployment.
+for (const width of [360, 768, 1280]) {
+  test(`person login remains separate from cashier authority at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 })
+    await page.route('**/auth/session', route => route.fulfill({
+      json: { authenticated: true, user: { displayName: 'Bpk. Alexander Raden Christopher III', email: 'owner@example.test', emailVerified: true }, csrfToken: 'fixture-csrf' },
+    }))
+    await page.goto('/auth')
+    await expect(page.getByRole('heading', { name: 'Masuk Hfe POS' })).toBeVisible()
+    await expect(page.getByText(/Akses operasional memerlukan sesi staf/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Keluar', exact: true })).toBeVisible()
+    await expect(page.getByText('Kasir POS', { exact: true })).toHaveCount(0)
+    expect(await page.locator('body').evaluate(element => element.scrollWidth <= window.innerWidth)).toBe(true)
+    expect(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) }))).toEqual({ local: [], session: [] })
+  })
+}
 
-  await expect(page.getByRole('button', { name: /Owner/i }).first()).toBeVisible()
-  await expect(page.getByLabel('Email Pemilik Usaha:')).toBeVisible()
-  await expect(page.getByLabel('Kata Sandi Akun:')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'PIN Kasir' })).toHaveCount(0)
-  await expect(page.getByText('Masukkan 6 Digit PIN Kasir')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Daftar' })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Lanjutkan dengan Google' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Lanjutkan dengan Apple' })).toBeVisible()
+test('anonymous entry uses hosted login and never collects passwords', async ({ page }) => {
+  await page.route('**/auth/session', route => route.fulfill({ json: { authenticated: false } }))
+  await page.goto('/auth')
+  await expect(page.getByRole('link', { name: 'Masuk', exact: true })).toHaveAttribute('href', '/auth/login')
+  await expect(page.locator('input[type=password]')).toHaveCount(0)
 })
 
-test('owner activation enters the POS without reloading the browser document', async ({ page }) => {
-  let loginRequests = 0
-  let tokenRequests = 0
+test('local logout leaves the protected person view and uses CSRF', async ({ page }) => {
+  await page.route('**/auth/session', route => route.fulfill({
+    json: { authenticated: true, user: { displayName: null, email: 'owner@example.test', emailVerified: true }, csrfToken: 'fixture-csrf' },
+  }))
+  await page.route('**/auth/logout', async route => {
+    expect(route.request().method()).toBe('POST')
+    expect(route.request().headers()['x-csrf-token']).toBe('fixture-csrf')
+    expect(route.request().postDataJSON()).toEqual({ scope: 'local' })
+    await route.fulfill({ json: { redirectTo: '/auth' } })
+  })
+  await page.goto('/auth')
+  await page.getByRole('button', { name: 'Keluar', exact: true }).click()
+  await expect(page.getByRole('link', { name: 'Masuk', exact: true })).toBeVisible()
+})
 
+test('session failure shows refusal and never restores a persisted owner', async ({ page }) => {
   await page.addInitScript(() => {
-    const loads = Number(window.sessionStorage.getItem('hfe_test_document_loads') || '0')
-    window.sessionStorage.setItem('hfe_test_document_loads', String(loads + 1))
+    localStorage.setItem('hfe_pos_auth_user', JSON.stringify({ role: 'owner', user_id: 'stale-owner' }))
+    localStorage.setItem('hfe_pos_auth_token', 'stale-bearer')
   })
-  await page.route('**/id/v1/auth/login', async (route) => {
-    loginRequests += 1
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        access_token: 'opaque-session-token',
-        refresh_token: 'opaque-refresh-token',
-        token_type: 'Bearer',
-        expires_at: '2099-08-25T02:00:00Z',
-        refresh_expires_at: '2099-09-01T02:00:00Z',
-        session_id: 'session-demo-1',
-        user: {
-          id: 'person-demo-1',
-          email: 'flagship.cafe@demo.hfeit.test',
-          display_name: 'Flagship Cafe Demo',
-        },
-      }),
-    })
-  })
-  await page.route('**/id/v1/auth/hcb-token', async (route) => {
-    tokenRequests += 1
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        access_token: 'signed-hcb-jwt',
-        token_type: 'Bearer',
-        expires_in: 900,
-      }),
-    })
-  })
-
-  await page.goto('/?app=cafe')
-  await page.getByPlaceholder('owner@cafe.id').fill('flagship.cafe@demo.hfeit.test')
-  await page.getByPlaceholder('••••••••').fill('synthetic-password')
-  await page.getByRole('button', { name: 'Masuk sebagai Owner ➔' }).click()
-
-  await expect(page.getByText('Kasir POS', { exact: true })).toBeVisible()
-  expect(loginRequests).toBe(1)
-  expect(tokenRequests).toBe(1)
-  await expect.poll(() => page.evaluate(() => (
-    window.sessionStorage.getItem('hfe_test_document_loads')
-  ))).toBe('1')
-})
-
-test('social callback removes the one-time code and state from browser history before exchange', async ({ page }) => {
-  await page.goto('/auth/callback?code=one-time-code&state=callback-state')
-
-  await expect(page).toHaveURL('http://localhost:4173/auth/callback')
-  await expect(page.getByRole('heading', { name: 'Login sosial gagal' })).toBeVisible()
+  await page.route('**/auth/session', route => route.fulfill({ status: 503, json: { error: 'unavailable' } }))
+  await page.goto('/auth')
+  await expect(page.getByRole('alert')).toBeVisible()
+  await expect(page.getByText('Kasir POS', { exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Coba lagi' })).toBeVisible()
+  expect(await page.evaluate(() => localStorage.getItem('hfe_pos_auth_token'))).toBeNull()
 })

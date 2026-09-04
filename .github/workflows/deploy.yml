@@ -46,7 +46,7 @@ jobs:
       - name: Verify flagship durable CORE contract fixture
         run: npm run test:flagship
 
-      - name: Verify connected owner and social callback entry
+      - name: Verify provider-neutral person login and refusal
         env:
           VITE_HFE_RUNTIME_MODE: connected
           VITE_TOGROW_URL: /id
@@ -125,7 +125,7 @@ jobs:
 
       - name: Verify deployed first-party proxy bindings
         run: |
-          curl --fail --silent --show-error https://prv-pos.hfeit.app/id/health >/dev/null
+          curl --fail --silent --show-error https://prv-pos.hfeit.app/auth/session >/dev/null
           curl --fail --silent --show-error https://prv-pos.hfeit.app/core/health >/dev/null
 
   deploy-production:
@@ -191,5 +191,5 @@ jobs:
 
       - name: Verify deployed first-party proxy bindings
         run: |
-          curl --fail --silent --show-error https://pos.hfeit.app/id/health >/dev/null
+          curl --fail --silent --show-error https://pos.hfeit.app/auth/session >/dev/null
           curl --fail --silent --show-error https://pos.hfeit.app/core/health >/dev/null
