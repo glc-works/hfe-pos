@@ -1,6 +1,8 @@
 import { proxyFirstPartyRequest } from '../../cloudflare/pagesProxy'
+import { proxyPersonCoreRequest } from '../../cloudflare/personCoreProxy'
+import type { AuthEnv } from '../../packages/hfe-person-auth/auth-bff'
 
-interface Env {
+interface Env extends AuthEnv {
   HFE_CORE_ORIGIN?: string
 }
 
@@ -22,8 +24,14 @@ function allowedCoreOrigins(request: Request): string[] {
 }
 
 export function onRequest(context: PagesContext): Promise<Response> {
+  if (context.params.path?.join('/') !== 'health') {
+    return proxyPersonCoreRequest(context.request, context.env, context.params.path || [], allowedCoreOrigins(context.request))
+  }
+  if (context.request.method !== 'GET' && context.request.method !== 'HEAD') {
+    return Promise.resolve(new Response(null, { status: 405 }))
+  }
   return proxyFirstPartyRequest(
-    context.request,
+    new Request(context.request.url, { method: context.request.method }),
     context.env.HFE_CORE_ORIGIN,
     context.params.path || [],
     allowedCoreOrigins(context.request),

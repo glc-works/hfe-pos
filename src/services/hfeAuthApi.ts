@@ -1,5 +1,9 @@
 import demoAccess from '../../fixtures/demo/access.json'
-import { requiredRuntimeUuid, requiredRuntimeValue } from '../config/firstPartyRuntime'
+import { isConnectedFirstPartyRuntime, requiredRuntimeUuid, requiredRuntimeValue } from '../config/firstPartyRuntime'
+
+function requireLegacyLocalLogin(): void {
+  if (isConnectedFirstPartyRuntime()) throw new Error('hosted_person_login_required')
+}
 
 // --- AUTHENTICATION & IDENTITY API ENDPOINTS ---
 const DEFAULT_BASE_URL = 'http://localhost:8080'
@@ -106,6 +110,7 @@ export async function establishFirstPartyAuth(
   session: ToGrowLoginSession,
   baseUrl: string = import.meta.env.VITE_TOGROW_URL || DEFAULT_IDENTITY_BASE_URL,
 ): Promise<AuthResponse> {
+  requireLegacyLocalLogin()
   const { authorityContextId, branchId } = resolveFirstPartyContext()
   const hcbToken = await mintHcbToken(session.access_token, baseUrl)
 
@@ -187,6 +192,7 @@ export async function ownerLogin(
   password: string,
   baseUrl: string = import.meta.env.VITE_TOGROW_URL || DEFAULT_IDENTITY_BASE_URL
 ): Promise<AuthResponse> {
+  requireLegacyLocalLogin()
   resolveFirstPartyContext()
   const sessionResponse = await fetch(`${baseUrl}/v1/auth/login`, {
     method: 'POST',
@@ -202,6 +208,7 @@ export async function renewFirstPartyAuth(
   current: FirstPartyIdentitySession,
   baseUrl: string = import.meta.env.VITE_TOGROW_URL || DEFAULT_IDENTITY_BASE_URL,
 ): Promise<Pick<AuthResponse, 'token' | 'firstPartySession'>> {
+  requireLegacyLocalLogin()
   let identity = current
   if (Date.parse(current.accessExpiresAt) <= Date.now() + 30_000) {
     const response = await fetch(`${baseUrl}/v1/auth/refresh`, {
@@ -239,6 +246,7 @@ export async function ownerRegister(
   password: string,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<AuthResponse> {
+  requireLegacyLocalLogin()
   try {
     const res = await fetch(`${baseUrl}/v1/auth/register`, {
       method: 'POST',
@@ -260,6 +268,7 @@ export async function forgotPassword(
   email: string,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<{ message: string }> {
+  requireLegacyLocalLogin()
   try {
     const res = await fetch(`${baseUrl}/v1/auth/forgot-password`, {
       method: 'POST',
@@ -281,6 +290,7 @@ export async function resetPassword(
   newPassword: string,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<{ message: string }> {
+  requireLegacyLocalLogin()
   try {
     const res = await fetch(`${baseUrl}/v1/auth/reset-password`, {
       method: 'POST',
@@ -325,6 +335,7 @@ export async function exchangeToGrowSession(
   sessionToken: string,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<ToGrowSessionResponse> {
+  requireLegacyLocalLogin()
   try {
     const res = await fetch(`${baseUrl}/v1/auth/togrow/session`, {
       method: 'POST',
