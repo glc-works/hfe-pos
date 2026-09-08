@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Coffee, Lock as LockIcon, ChevronRight } from 'lucide-react'
-import { HfeCompanyProfile, CafeThemeConfig } from '../../types/pos'
+import { HfeCompanyProfile, CafeThemeConfig, QrStepView } from '../../types/pos'
 import { CustomerProfileDrawer } from './CustomerProfileDrawer'
 import { MerchantDetailDrawer } from './MerchantDetailDrawer'
 
@@ -8,7 +8,7 @@ export interface CustomerHeaderProps {
   hfeCompanyProfile: HfeCompanyProfile
   selectedTable: string
   scannedSeat: string
-  hasPaidOrder?: boolean
+  hasPaidOrder: boolean
   activeTheme: CafeThemeConfig
   isCustomerSessionActive: boolean
   loginType: 'phone' | 'guest-name'
@@ -17,7 +17,7 @@ export interface CustomerHeaderProps {
   customerAvatar?: string
   setCustomerAvatar?: (v: string) => void
   loyaltyPoints: number
-  qrStepView?: 'catalog' | 'checkout'
+  qrStepView?: QrStepView
   activeCategory?: string
   categories?: string[]
   onBackToCatalog?: () => void
@@ -188,7 +188,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                 type="button"
                 onClick={() => setShowLoginModal(true)}
                 className="font-black text-xs px-3.5 py-2 rounded-xl shadow transition-all touch-manipulation"
-                style={{ backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#020617' : '#020617' }}
+                style={{ backgroundColor: activeTheme.primaryAccentHex, color: '#ffffff' }}
               >
                 Masuk
               </button>
@@ -217,7 +217,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                       ? activeTheme.primaryAccentHex 
                       : (isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)'),
                     color: isCatActive 
-                      ? (isLight ? '#020617' : '#020617') 
+                      ? '#ffffff' 
                       : textColor,
                     borderColor: isCatActive 
                       ? activeTheme.primaryAccentHex 

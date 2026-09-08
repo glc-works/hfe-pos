@@ -11,11 +11,14 @@ import {
   CafeThemeConfig,
   TableStatus,
   OrderFulfillmentMode,
-  DeliveryAddressInfo
+  DeliveryAddressInfo,
+  QrStepView
 } from '../types/pos'
 import { CustomerHeader } from '../components/customer/CustomerHeader'
 import { CustomerCatalogView } from '../components/customer/CustomerCatalogView'
 import { CustomerCheckoutView } from '../components/customer/CustomerCheckoutView'
+import { CustomerOrderSummaryView } from '../components/customer/CustomerOrderSummaryView'
+import { CustomerBottomNav } from '../components/customer/CustomerBottomNav'
 import { ItemModifierModal } from '../components/customer/ItemModifierModal'
 import { ActiveOpenBillDrawer } from '../components/customer/ActiveOpenBillDrawer'
 import { OpenTabSettlementModal } from '../components/customer/OpenTabSettlementModal'
@@ -41,7 +44,8 @@ export interface CustomerMobileViewProps {
   grandTotalBill: number
   previousOrders?: OrderTicket[]
   tablesGrid?: TableStatus[]
-  qrStepView: 'catalog' | 'checkout'
+  qrStepView: QrStepView
+  lastSubmittedOrder?: OrderTicket | null
   promoCodeInput: string
   appliedPromo: { code: string; discount: number } | null
   redeemedVoucher: any
@@ -54,7 +58,7 @@ export interface CustomerMobileViewProps {
   rawSubtotal: number
   setShowReservationModal: (show: boolean) => void
   setShowLoginModal: (show: boolean) => void
-  setQrStepView: (step: 'catalog' | 'checkout') => void
+  setQrStepView: (step: QrStepView) => void
   setPromoCodeInput: (code: string) => void
   setSelectedTipAmount: (tip: number) => void
   setPaymentPolicy: (policy: PaymentPolicy) => void
@@ -80,7 +84,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
   loginType, customerPhone, guestName, customerAvatar = '☕', setCustomerAvatar,
   loyaltyPoints, productCatalog, reservationPolicyMode, priceVisibilityMode, customerAppDisplayMode,
   cart, totalCartCount, grandTotalBill, previousOrders = [], tablesGrid = [], qrStepView,
-  promoCodeInput, appliedPromo, redeemedVoucher, serviceFeeRate, calculatedServiceFee,
+  lastSubmittedOrder, promoCodeInput, appliedPromo, redeemedVoucher, serviceFeeRate, calculatedServiceFee,
   taxPB1Mode, calculatedPB1Tax, selectedTipAmount, paymentPolicy, rawSubtotal,
   setShowReservationModal, setShowLoginModal, setQrStepView, setPromoCodeInput,
   setSelectedTipAmount, setPaymentPolicy, handleReorderSameItem, handleAddToCart,
@@ -330,25 +334,14 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
           {qrStepView === 'catalog' && (
             <div className="flex-1 flex flex-col animate-fadeIn">
               <CustomerCatalogView
-                productCatalog={productCatalog}
-                activeTheme={activeTheme}
-                hfeCompanyProfile={hfeCompanyProfile}
-                reservationPolicyMode={reservationPolicyMode}
-                priceVisibilityMode={priceVisibilityMode}
-                customerAppDisplayMode={customerAppDisplayMode}
-                cart={cart}
-                totalCartCount={totalCartCount}
-                grandTotalBill={grandTotalBill}
-                previousOrders={previousOrders}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                setShowReservationModal={setShowReservationModal}
-                handleReorderSameItem={handleReorderSameItem}
-                handleAddToCart={handleAddToCart}
-                handleUpdateQty={handleUpdateQty}
-                onOpenModifierSheet={(item) => setSelectedModifierItem(item)}
-                setQrStepView={setQrStepView}
-                categoryRefs={categoryRefsMap}
+                productCatalog={productCatalog} activeTheme={activeTheme} hfeCompanyProfile={hfeCompanyProfile}
+                reservationPolicyMode={reservationPolicyMode} priceVisibilityMode={priceVisibilityMode}
+                customerAppDisplayMode={customerAppDisplayMode} cart={cart} totalCartCount={totalCartCount}
+                grandTotalBill={grandTotalBill} previousOrders={previousOrders} searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery} setShowReservationModal={setShowReservationModal}
+                handleReorderSameItem={handleReorderSameItem} handleAddToCart={handleAddToCart}
+                handleUpdateQty={handleUpdateQty} onOpenModifierSheet={(item) => setSelectedModifierItem(item)}
+                setQrStepView={setQrStepView} categoryRefs={categoryRefsMap}
               />
             </div>
           )}
@@ -364,6 +357,10 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
                 setSelectedTipAmount={setSelectedTipAmount} paymentPolicy={paymentPolicy} setPaymentPolicy={setPaymentPolicy}
                 rawSubtotal={rawSubtotal} grandTotalBill={grandTotalBill} isCustomerSessionActive={isCustomerSessionActive}
                 onJoinMembership={onJoinMembership} onResetGuestSession={onResetGuestSession} setQrStepView={setQrStepView}
+                onOpenModifierModal={(cartItem) => {
+                  const found = productCatalog.find(p => p.id === cartItem.id || p.name === cartItem.name)
+                  if (found) setSelectedModifierItem(found)
+                }}
                 handleUpdateQty={handleUpdateQty} handleApplyPromo={handleApplyPromo} handleSubmitOrder={handleSubmitOrder}
                 fulfillmentMode={fulfillmentMode || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('fulfillment') as OrderFulfillmentMode) || 'dine_in'}
                 deliveryAddress={deliveryAddress || savedAddress} onChangeDeliveryAddress={handleUpdateAddress}
@@ -371,61 +368,68 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
               />
             </div>
           )}
+
+          {qrStepView === 'order_summary' && (
+            <div className="flex-1 flex flex-col animate-fadeIn">
+              <CustomerOrderSummaryView
+                order={lastSubmittedOrder || (relevantTableOrders.length > 0 ? relevantTableOrders[relevantTableOrders.length - 1] : null)}
+                tableOrders={relevantTableOrders}
+                selectedTable={selectedTable}
+                scannedSeat={scannedSeat}
+                activeTheme={activeTheme}
+                paymentPolicy={paymentPolicy}
+                hfeCompanyProfile={hfeCompanyProfile}
+                onAddMoreItems={() => setQrStepView('catalog')}
+                onPayOrderNow={() => setShowOpenTabSettlementModal(true)}
+                onPayTableSession={() => setShowOpenTabSettlementModal(true)}
+              />
+            </div>
+          )}
         </main>
 
-        {/* 3. PERSISTENT FLOATING BOTTOM CART DOCK (SHRINK-0 ALWAYS VISIBLE WHEN CART HAS ITEMS) */}
+        {/* 3. SLIM STICKY CHECKOUT BAR (ALA ESB: SNUG ABOVE BOTTOM NAV) */}
         {cart.length > 0 && customerAppDisplayMode === 'full_ordering' && qrStepView === 'catalog' && (
-          <div 
-            className="shrink-0 z-40 px-3.5 pt-6 pb-[max(env(safe-area-inset-bottom,16px),16px)] flex justify-center animate-slideUp absolute bottom-0 inset-x-0 pointer-events-none"
-            style={{
-              background: `linear-gradient(to top, ${activeTheme.pageBgHex} 60%, ${activeTheme.pageBgHex}D9 80%, transparent 100%)`
-            }}
-          >
+          <div className="shrink-0 z-30 px-3 pb-2 pt-1 bg-background/80 backdrop-blur-sm">
             <div 
               onClick={() => setQrStepView('checkout')}
-              className="w-full max-w-md backdrop-blur-xl border rounded-2xl px-4 py-3 shadow-2xl flex items-center justify-between font-bold cursor-pointer active:scale-[0.98] transition-all ring-1 ring-black/5 touch-manipulation min-h-[64px] pointer-events-auto"
-              style={{
-                backgroundColor: isLight ? 'rgba(255, 255, 255, 0.96)' : 'rgba(15, 23, 42, 0.96)',
-                borderColor: `${activeTheme.primaryAccentHex}50`,
-                color: activeTheme.textColorHex
-              }}
+              className="w-full rounded-2xl px-4 py-3 shadow-md flex items-center justify-between font-bold cursor-pointer active:scale-[0.98] transition-all text-white"
+              style={{ backgroundColor: activeTheme.primaryAccentHex || '#ea580c' }}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <div 
-                  className="w-10 h-10 rounded-xl flex items-center justify-center font-mono font-black text-xs relative shrink-0 shadow"
-                  style={{ backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}
-                >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-black/20 flex items-center justify-center font-mono font-black text-xs relative shrink-0">
                   <ShoppingCart className="w-4 h-4" />
-                  <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-sm">
-                    {totalCartCount}
-                  </span>
                 </div>
                 <div className="flex flex-col text-left leading-tight min-w-0">
-                  <span 
-                    className="text-[10px] uppercase font-bold tracking-wider truncate"
-                    style={{ color: activeTheme.secondaryTextColorHex }}
-                  >
-                    Keranjang ({totalCartCount} menu)
+                  <span className="text-[10px] text-white/80 font-medium uppercase tracking-wider">
+                    Total
                   </span>
-                  <h4 
-                    className="text-sm font-black font-mono whitespace-nowrap mt-0.5"
-                    style={{ color: activeTheme.primaryAccentHex }}
-                  >
+                  <h4 className="text-sm font-black font-mono whitespace-nowrap">
                     Rp {grandTotalBill.toLocaleString('id-ID')}
                   </h4>
                 </div>
               </div>
 
-              <div 
-                className="flex items-center gap-1.5 text-xs font-black px-4 py-2.5 rounded-xl shadow transition-all shrink-0 hover:opacity-90 active:scale-95"
-                style={{ backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}
-              >
-                <span>Checkout</span>
+              <div className="flex items-center gap-1.5 text-xs font-black tracking-wider uppercase px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-all shrink-0">
+                <span>Check Out ({totalCartCount})</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </div>
           </div>
         )}
+
+        {/* 3B. PERMANENT 2-TAB BOTTOM NAVIGATION BAR (ALA ESB) */}
+        <CustomerBottomNav
+          activeTab={qrStepView === 'order_summary' ? 'orders' : 'menu'}
+          onSelectTab={(tab) => {
+            if (tab === 'menu') {
+              setQrStepView('catalog')
+            } else {
+              setQrStepView('order_summary')
+            }
+          }}
+          activeOrderCount={relevantTableOrders.length > 0 ? relevantTableOrders.length : (lastSubmittedOrder ? 1 : 0)}
+          activeTheme={activeTheme}
+        />
 
         {/* 4. ACTIVE OPEN BILL DRAWER */}
         <ActiveOpenBillDrawer
@@ -454,9 +458,7 @@ export const CustomerMobileView: React.FC<CustomerMobileViewProps> = ({
           scannedSeat={scannedSeat}
           totalBill={runningTableSubtotal}
           tableOrders={relevantTableOrders}
-          onSettlementSuccess={(details) => {
-            onSettleOpenTab?.(selectedTable, details)
-          }}
+          onSettlementSuccess={(details) => onSettleOpenTab?.(selectedTable, details)}
         />
 
         {/* UBEREATS-BENCHMARK ITEM MODIFIER BOTTOM SHEET */}

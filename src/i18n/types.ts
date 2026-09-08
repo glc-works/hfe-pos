@@ -178,6 +178,24 @@ export interface TranslationDictionary {
     orderStatusBrewing: string
     orderStatusCooking: string
     orderStatusServed: string
+    orderedItemsHeader: string
+    addItemPill: string
+    editItemModifier: string
+    noNotesYet: string
+    otherFeesLabel: string
+    pbjtTaxLabel: string
+    serviceChargeLabel: string
+    roundingLabel: string
+    orderSummaryTitle: string
+    orderSuccessPayFirst: string
+    orderSuccessOpenTab: string
+    queueNumberBadge: string
+    roundNumberBadge: string
+    kdsPreparingStatus: string
+    payThisOrderOnly: string
+    payFullTableSession: string
+    addMoreItemsForNextRound: string
+    tableSessionTotalLabel: string
   }
   kds: {
     activeWorkOrders: string

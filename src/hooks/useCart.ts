@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CartItem, MenuItem, PaymentPolicy, PB1TaxMode, OrderTicket, CustomerProfile } from '../types/pos'
+import { CartItem, MenuItem, PaymentPolicy, PB1TaxMode, OrderTicket, CustomerProfile, QrStepView } from '../types/pos'
 
 export interface UseCartOptions {
   productCatalog: MenuItem[]
@@ -25,6 +25,7 @@ export function useCart(options: UseCartOptions) {
   // Cart & Policy State
   const [cart, setCart] = useState<CartItem[]>([])
   const [paymentPolicy, setPaymentPolicy] = useState<PaymentPolicy>('pay-first')
+  const [lastSubmittedOrder, setLastSubmittedOrder] = useState<OrderTicket | null>(null)
 
   // Modifier Modal State
   const [showModifierModal, setShowModifierModal] = useState<MenuItem | null>(null)
@@ -187,7 +188,7 @@ export function useCart(options: UseCartOptions) {
     }
   }
 
-  const handleSubmitOrder = (selectedTable: string, setQrStepView: (v: 'catalog' | 'checkout') => void) => {
+  const handleSubmitOrder = (selectedTable: string, setQrStepView: (v: QrStepView) => void) => {
     if (cart.length === 0) return
     if (paymentPolicy === 'pay-first') {
       setShowQRISModal(true)
@@ -205,16 +206,17 @@ export function useCart(options: UseCartOptions) {
         tipAmount: selectedTipAmount,
         status: 'placed',
         timeElapsedMinutes: 1,
-        createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        roundNumber: 1
       }
       onOrderSubmitted?.(newOrder)
+      setLastSubmittedOrder(newOrder)
       setCart([])
-      setQrStepView('catalog')
-      alert(`Pesanan Open Tab meja ${selectedTable} terkirim ke KDS Dapur (${hfeCompanyProfile.ptLegalName}).`)
+      setQrStepView('order_summary')
     }
   }
 
-  const handleCompletePayFirstQRIS = (selectedTable: string, setQrStepView: (v: 'catalog' | 'checkout') => void) => {
+  const handleCompletePayFirstQRIS = (selectedTable: string, setQrStepView: (v: QrStepView) => void) => {
     setShowQRISModal(false)
     const newOrder: OrderTicket = {
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -229,13 +231,14 @@ export function useCart(options: UseCartOptions) {
       tipAmount: selectedTipAmount,
       status: 'processing',
       timeElapsedMinutes: 1,
-      createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      queueNumber: Math.floor(10 + Math.random() * 90)
     }
     onOrderSubmitted?.(newOrder)
+    setLastSubmittedOrder(newOrder)
     setCart([])
-    setQrStepView('catalog')
+    setQrStepView('order_summary')
     setLoyaltyPoints(prev => prev + Math.floor(grandTotalBill / 10000))
-    alert(`Pembayaran QRIS Sukses! Pesanan meja ${selectedTable} masuk KDS Dapur (${hfeCompanyProfile.ptLegalName}).`)
   }
 
   const clearCart = () => setCart([])
@@ -305,6 +308,8 @@ export function useCart(options: UseCartOptions) {
     handleClaimReferral,
     handleSubmitOrder,
     handleCompletePayFirstQRIS,
-    clearCart
+    clearCart,
+    lastSubmittedOrder,
+    setLastSubmittedOrder
   }
 }

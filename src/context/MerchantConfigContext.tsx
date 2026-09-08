@@ -162,7 +162,7 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       const mode = (localStorage.getItem('hfe_theme_mode') as ThemeModeType) || 'light'
       return resolveThemeForMode(mode, stored, true)
     } catch {
-      return BUILTIN_THEMES[4] || BUILTIN_THEMES[0]
+      return BUILTIN_THEMES[0]
     }
   })
 

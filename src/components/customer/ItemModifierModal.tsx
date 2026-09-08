@@ -161,11 +161,14 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
             </button>
           </div>
 
-          {/* PRODUCT DETAILS HEADER */}
+          {/* PRODUCT DETAILS HEADER (ALA ESB: TITLE -> PRICE -> DESC) */}
           <div className="px-4 pt-4 pb-3 border-b flex flex-col gap-1" style={{ borderColor: cardBorder }}>
-            <h3 className="text-base font-bold tracking-tight leading-snug" style={{ color: textColor }}>{item.name}</h3>
+            <h3 className="text-base font-extrabold tracking-tight leading-snug" style={{ color: textColor }}>{item.name}</h3>
+            <span className="text-sm font-extrabold font-mono text-orange-600 dark:text-orange-400">
+              Rp {item.price.toLocaleString('id-ID')}
+            </span>
             {item.description && (
-              <p className="text-xs leading-relaxed" style={{ color: secondaryTextColor }}>{item.description}</p>
+              <p className="text-xs leading-relaxed text-slate-500 mt-0.5">{item.description}</p>
             )}
           </div>
 
@@ -420,14 +423,14 @@ export const ItemModifierModal: React.FC<ItemModifierModalProps> = ({
               </button>
             </div>
 
-            {/* CONFIRM BUTTON */}
+            {/* CONFIRM BUTTON (ALA ESB: ADD ORDERS - RPXX.XXX) */}
             <button
               type="button"
               onClick={handleConfirm}
               className="flex-1 font-bold text-sm h-12 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-              style={{ backgroundColor: customerTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}
+              style={{ backgroundColor: customerTheme.primaryAccentHex, color: '#ffffff' }}
             >
-              <span>+ Tambah ke Keranjang</span>
+              <span>+ Tambah Pesanan • Rp {((item.price + modifierPriceDelta) * quantity).toLocaleString('id-ID')}</span>
             </button>
           </div>
         </div>

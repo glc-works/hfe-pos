@@ -142,6 +142,8 @@ export interface CartItem extends MenuItem {
   selectedModifiers?: SelectedModifier[]
 }
 
+export type QrStepView = 'catalog' | 'checkout' | 'order_summary'
+
 export interface OrderTicket {
   id: string
   table: string
@@ -157,6 +159,8 @@ export interface OrderTicket {
   timeElapsedMinutes: number
   createdAt: string
   waiterCall?: string
+  queueNumber?: number
+  roundNumber?: number
 }
 
 export interface Order extends OrderTicket {
