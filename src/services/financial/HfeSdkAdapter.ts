@@ -10,11 +10,20 @@ import type {
   ReviewedPosQuote, GovernedAcceptedTenderEvidence, GovernedTenderOutcomeQuery,
 } from './HfePosFinancialPort'
 import { MenuItem } from '../../types/pos'
+import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
 import {
   HfePostingReadbackValidator,
   generateUUIDv4,
   assertCanonicalCashOrderPayload,
 } from './HfePostingReadbackValidator'
+
+function refuseLegacyPosRetailOrder(operation: 'postRetailOrder' | 'reconcileRetailOrder'): void {
+  if (isConnectedFirstPartyRuntime()) {
+    throw new Error(
+      `Connected first-party runtime refuses ${operation} (processPosRetailOrder). Use the governed quote path.`,
+    )
+  }
+}
 
 export class HfeNetworkError extends Error {
   constructor(message: string, public readonly cause?: unknown) {
@@ -161,6 +170,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     payload: SubmitRetailTransactionPayload,
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse> {
+    refuseLegacyPosRetailOrder('postRetailOrder')
     const targetBook = this.resolveTargetBook(context.companyBookId)
     assertCanonicalCashOrderPayload(payload, context, 'posting')
     const authorityHeaders = {
@@ -308,6 +318,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
     payload: SubmitRetailTransactionPayload,
     context: RetailPostingContext
   ): Promise<SubmitRetailTransactionResponse> {
+    refuseLegacyPosRetailOrder('reconcileRetailOrder')
     const targetBook = this.resolveTargetBook(context.companyBookId)
     assertCanonicalCashOrderPayload(payload, context, 'reconciliation')
 
