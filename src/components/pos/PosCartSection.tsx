@@ -327,17 +327,9 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               reviewReady ? 'ring-2 ring-emerald-400 ring-offset-2 animate-pulse' : ''
             }`}
           >
-            {checkoutPhase?.kind === 'quoting'
-              ? 'Menghitung Kuotasi PB1...'
-              : checkoutPhase?.kind === 'accepting'
-                ? 'Memproses Transaksi...'
-                : reviewReady
-                  ? `⚡ 2. Terima & Bayar Sekarang • ${authoritativeQuote ? formatExactMinor(authoritativeQuote.amountDueMinor) : formatPrice(grandTotal)} ➔`
-                  : awaitingCoreQuote
-                    ? t.cart.reviewCoreQuote
-                    : fulfillmentMode === 'takeaway'
-                      ? `${t.cart.takeawayModeLabel} • 🔍 Review Kuotasi (${formatPrice(grandTotal)})`
-                      : `🔍 1. Review Kuotasi PB1 • ${formatPrice(grandTotal)}`}
+            {checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting'
+              ? 'Memproses...'
+              : `${t.cart.payAction} ➔`}
           </Button>
         </div>
       </div>
