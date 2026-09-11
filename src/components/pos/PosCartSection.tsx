@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles, User, X, Crown } from 'lucide-react'
+import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles, User, X, Crown } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, QrisTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
 import { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'
@@ -73,12 +73,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   const reviewReady = checkoutPhase?.kind === 'review'
   const connectedRuntime = isConnectedFirstPartyRuntime()
   const awaitingCoreQuote = connectedRuntime && !authoritativeQuote
-  const isTenderEligible = (tenderType: 'cash' | 'qris') => !authoritativeQuote || (
-    authoritativeQuote.tenderEligibility.filter((entry) => entry.tenderType === tenderType).length === 1 &&
-    authoritativeQuote.tenderEligibility.some((entry) => entry.tenderType === tenderType && entry.eligible)
-  )
-  const isCardEligible = !connectedRuntime && !authoritativeQuote
-  const unavailableTenderClass = 'opacity-40 cursor-not-allowed'
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
@@ -252,42 +246,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             CORE {authoritativeQuote.quoteId} r{authoritativeQuote.revision} · {authoritativeQuote.source} · {authoritativeQuote.digestSha256.slice(0, 12)}
           </p>
         )}
-
-        <div className="grid grid-cols-3 gap-1.5 pt-1">
-          <button
-            data-testid="tender-cash"
-            type="button"
-            disabled={!isTenderEligible('cash')}
-            onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${!isTenderEligible('cash') ? unavailableTenderClass : posPayMethod === 'cash' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-          >
-            <Banknote className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCash}</span>
-          </button>
-          <button
-            data-testid="tender-qris"
-            type="button"
-            disabled={!isTenderEligible('qris')}
-            onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${!isTenderEligible('qris') ? unavailableTenderClass : posPayMethod === 'qris' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-          >
-            <QrCode className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payQris}</span>
-          </button>
-          <button
-            data-testid="tender-card"
-            type="button"
-            disabled={!isCardEligible}
-            onClick={() => isCardEligible && setPosPayMethod('card')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${
-              !isCardEligible
-                ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
-                : posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
-                  ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold'
-                  : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <CreditCard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCard}</span>
-          </button>
-        </div>
 
         {reviewReady && (
           <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 animate-fadeIn">

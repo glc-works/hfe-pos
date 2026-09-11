@@ -8,6 +8,7 @@ import { useTranslation } from '../../context/LanguageContext'
 import { Button, PriceTag } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
+import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
 import { PosQrisTenderForm } from './PosQrisTenderForm'
 import { PosCardTenderForm } from './PosCardTenderForm'
 import { PosCashTenderForm } from './PosCashTenderForm'
@@ -99,6 +100,13 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   const cashGivenNum = Number(posCashGiven.replace(/\D/g, '')) || 0
   const isCashSufficient = posPayMethod !== 'cash' || cashGivenNum >= payableAmount
 
+  const connectedRuntime = isConnectedFirstPartyRuntime()
+  const isTenderEligible = (tenderType: 'cash' | 'qris') => !authoritativeQuote || (
+    authoritativeQuote.tenderEligibility.filter((entry) => entry.tenderType === tenderType).length === 1 &&
+    authoritativeQuote.tenderEligibility.some((entry) => entry.tenderType === tenderType && entry.eligible)
+  )
+  const isCardEligible = !connectedRuntime && !authoritativeQuote
+
   const isSubmitting = checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting'
 
   return (
@@ -166,42 +174,54 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
             </label>
             <div className="grid grid-cols-4 gap-2">
               <button
+                data-testid="settlement-tender-cash"
                 type="button"
-                onClick={() => setPosPayMethod('cash')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer ${
-                  posPayMethod === 'cash'
-                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-sm ring-2 ring-emerald-500/20 font-black'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
+                disabled={!isTenderEligible('cash')}
+                onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
+                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                  !isTenderEligible('cash')
+                    ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                    : posPayMethod === 'cash'
+                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-sm ring-2 ring-emerald-500/20 font-black cursor-pointer'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
                 }`}
               >
                 <Banknote className="w-5 h-5 text-emerald-500" />
-                <span>💵 Tunai</span>
+                <span>Tunai</span>
               </button>
 
               <button
+                data-testid="settlement-tender-qris"
                 type="button"
-                onClick={() => setPosPayMethod('qris')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer ${
-                  posPayMethod === 'qris'
-                    ? 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm ring-2 ring-indigo-500/20 font-black'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
+                disabled={!isTenderEligible('qris')}
+                onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
+                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                  !isTenderEligible('qris')
+                    ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                    : posPayMethod === 'qris'
+                      ? 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm ring-2 ring-indigo-500/20 font-black cursor-pointer'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
                 }`}
               >
                 <QrCode className="w-5 h-5 text-indigo-500" />
-                <span>📱 QRIS</span>
+                <span>QRIS</span>
               </button>
 
               <button
+                data-testid="settlement-tender-card"
                 type="button"
-                onClick={() => setPosPayMethod('card')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer ${
-                  posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300 shadow-sm ring-2 ring-amber-500/20 font-black'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
+                disabled={!isCardEligible}
+                onClick={() => isCardEligible && setPosPayMethod('card')}
+                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                  !isCardEligible
+                    ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                    : posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
+                      ? 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300 shadow-sm ring-2 ring-amber-500/20 font-black cursor-pointer'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
                 }`}
               >
                 <CreditCard className="w-5 h-5 text-amber-500" />
-                <span>💳 Kartu EDC</span>
+                <span>Kartu EDC</span>
               </button>
 
               <button
@@ -213,7 +233,7 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
                 className="p-2.5 rounded-2xl border bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer"
               >
                 <Building2 className="w-5 h-5 text-purple-500" />
-                <span>🏨 Kamar Hotel</span>
+                <span>Kamar Hotel</span>
               </button>
             </div>
           </div>
