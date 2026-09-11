@@ -10,7 +10,7 @@ describe("Cloudflare Pages first-party proxy", () => {
 			.spyOn(globalThis, "fetch")
 			.mockResolvedValue(new Response("{}"));
 		const request = new Request(
-			"https://prv-pos.hfeit.app/id/v1/auth/hcb-token?trace=1",
+			"https://prv-pos.hfeit.app/core/v1/health?trace=1",
 			{
 				method: "POST",
 				headers: {
@@ -23,14 +23,14 @@ describe("Cloudflare Pages first-party proxy", () => {
 
 		await proxyFirstPartyRequest(
 			request,
-			"https://account.togrow.id",
-			["v1", "auth", "hcb-token"],
-			["https://account.togrow.id"],
+			"https://prv-api.hfecore.com",
+			["v1", "health"],
+			["https://prv-api.hfecore.com"],
 		);
 
 		const forwarded = fetchSpy.mock.calls[0][0] as Request;
 		expect(forwarded.url).toBe(
-			"https://account.togrow.id/v1/auth/hcb-token?trace=1",
+			"https://prv-api.hfecore.com/v1/health?trace=1",
 		);
 		expect(forwarded.method).toBe("POST");
 		expect(forwarded.headers.get("authorization")).toBe(
