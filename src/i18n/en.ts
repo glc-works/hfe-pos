@@ -1,6 +1,11 @@
 import { TranslationDictionary } from './types'
 
 export const enTranslations: TranslationDictionary = {
+  personLogin: {
+    title: 'Sign in to Hfe POS', signIn: 'Sign in', logout: 'Sign out', retry: 'Retry',
+    error: 'The login session could not be checked. Please retry.',
+    noStaffSession: 'Signed in. Operational access requires a staff session and Hfe CORE authorization. This login does not open the cashier or a shift.',
+  },
   common: {
     all: 'All',
     search: 'Search...',

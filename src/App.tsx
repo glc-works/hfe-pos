@@ -38,7 +38,9 @@ import { normalizeSurfaceHost, resolveInitialStaffSurface } from './utils/surfac
 import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
 import { AppProviders } from './components/app/AppProviders'
 import { ToGrowSocialCallbackView } from './components/auth/ToGrowSocialCallbackView'
-import { resolveHfeitOrganizationId } from './config/firstPartyRuntime'
+import { isConnectedFirstPartyRuntime, resolveHfeitOrganizationId } from './config/firstPartyRuntime'
+import { PersonLoginPanel } from './components/auth/PersonLoginPanel'
+import { LanguageProvider } from './context/LanguageContext'
 
 function AppMain() {
   const config = useMerchantConfig()
@@ -487,6 +489,9 @@ function SocialCallbackApp() {
 }
 
 export default function App() {
+  if (isConnectedFirstPartyRuntime() && typeof window !== 'undefined' && window.location.pathname.startsWith('/auth')) {
+    return <LanguageProvider><PersonLoginPanel /></LanguageProvider>
+  }
   if (typeof window !== 'undefined' && window.location.pathname === '/auth/callback') {
     return <AppProviders><SocialCallbackApp /></AppProviders>
   }

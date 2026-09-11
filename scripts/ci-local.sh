@@ -25,6 +25,7 @@ python3 scripts/audit-theme-contrast.py
 echo ""
 echo "[Step 5/10] Running Typecheck (tsc)..."
 npx tsc --noEmit
+npx tsc -p tsconfig.pages.json
 
 echo ""
 echo "[Step 6/10] Running Linter (Biome) & Repo-Wide Secret Scanner (Secretlint)..."

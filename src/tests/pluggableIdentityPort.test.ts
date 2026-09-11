@@ -58,7 +58,7 @@ describe('Pluggable Identity Port & Swappable Auth Provider Suite (OIDC Standard
     expect(prepared.attempt.state).toBeTruthy()
   })
 
-  it('should seamlessly allow swapping provider to WorkOS or custom enterprise OIDC without code changes', () => {
+  it('retains caller metadata without claiming provider protocol compatibility', () => {
     const workOsPort = createIdentityPort({
       providerId: 'workos',
       displayName: 'WorkOS Enterprise SSO',

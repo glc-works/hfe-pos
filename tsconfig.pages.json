@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "lib": ["ES2022", "DOM"],
+    "module": "ESNext", "moduleResolution": "bundler", "types": ["node"],
+    "strict": true, "skipLibCheck": true, "noEmit": true
+  },
+  "include": ["functions/**/*.ts", "cloudflare/**/*.ts", "packages/hfe-person-auth/**/*.ts"]
+}

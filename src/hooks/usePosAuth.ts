@@ -15,6 +15,7 @@ import {
   ToGrowAccountProfile,
 } from '../services/hfeAuthApi'
 import { completeSocialSignIn } from '../services/toGrowSocialSignIn'
+import { readLegacyPosSession } from '../services/auth/personSessionStorage'
 
 const AUTH_TOKEN_KEY = 'hfe_pos_auth_token'
 const AUTH_USER_KEY = 'hfe_pos_auth_user'
@@ -46,7 +47,7 @@ export function renewalDelayMs(session: FirstPartyIdentitySession, now: number =
 export function usePosAuth() {
   const [currentStaffUser, setCurrentStaffUser] = useState<StaffUserSession | null>(() => {
     if (typeof sessionStorage !== 'undefined') {
-      const saved = sessionStorage.getItem(AUTH_USER_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem(AUTH_USER_KEY) : null)
+      const saved = readLegacyPosSession(AUTH_USER_KEY, sessionStorage, typeof localStorage !== 'undefined' ? localStorage : undefined)
       if (saved) {
         try {
           return JSON.parse(saved)
@@ -60,7 +61,7 @@ export function usePosAuth() {
 
   const [toGrowUser, setToGrowUser] = useState<ToGrowAccountProfile | null>(() => {
     if (typeof sessionStorage !== 'undefined') {
-      const saved = sessionStorage.getItem(TOGROW_PROFILE_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem(TOGROW_PROFILE_KEY) : null)
+      const saved = readLegacyPosSession(TOGROW_PROFILE_KEY, sessionStorage, typeof localStorage !== 'undefined' ? localStorage : undefined)
       if (saved) {
         try {
           return JSON.parse(saved)
@@ -74,14 +75,14 @@ export function usePosAuth() {
 
   const [authToken, setAuthToken] = useState<string | null>(() => {
     if (typeof sessionStorage !== 'undefined') {
-      return sessionStorage.getItem(AUTH_TOKEN_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null)
+      return readLegacyPosSession(AUTH_TOKEN_KEY, sessionStorage, typeof localStorage !== 'undefined' ? localStorage : undefined)
     }
     return null
   })
 
   const [firstPartySession, setFirstPartySession] = useState<FirstPartyIdentitySession | null>(() => {
     if (typeof sessionStorage === 'undefined') return null
-    const saved = sessionStorage.getItem(FIRST_PARTY_SESSION_KEY)
+    const saved = readLegacyPosSession(FIRST_PARTY_SESSION_KEY, sessionStorage, typeof localStorage !== 'undefined' ? localStorage : undefined)
     if (!saved) return null
     return parseFirstPartyIdentitySession(saved)
   })

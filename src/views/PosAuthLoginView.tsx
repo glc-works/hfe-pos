@@ -3,7 +3,8 @@ import { usePosAuth } from '../hooks/usePosAuth'
 import { Keyboard, UserCheck, UserPlus, HelpCircle, Store } from 'lucide-react'
 import { PosPinKeypadSection } from '../components/auth/PosPinKeypadSection'
 import { PosOwnerAuthForms } from '../components/auth/PosOwnerAuthForms'
-import { firstPartyAuthEntryPolicy } from '../config/firstPartyRuntime'
+import { firstPartyAuthEntryPolicy, isConnectedFirstPartyRuntime } from '../config/firstPartyRuntime'
+import { PersonLoginPanel } from '../components/auth/PersonLoginPanel'
 import {
   configuredSocialProviders,
   startSocialSignIn,
@@ -23,6 +24,10 @@ const BRANCHES = [
 ]
 
 export const PosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
+  return isConnectedFirstPartyRuntime() ? <PersonLoginPanel /> : <LocalPosAuthLoginView auth={auth} />
+}
+
+const LocalPosAuthLoginView: React.FC<PosAuthLoginViewProps> = ({ auth }) => {
   const {
     activeBranchId, setActiveBranchId, cooldownSeconds, isCooldownActive,
     loginWithPin, loginWithOwner, registerOwner, requestPasswordReset, confirmPasswordReset

@@ -1,0 +1,19 @@
+{
+  "source_repo": "glc-works/cb-client",
+  "source_commit": "6632bd097e0c0d6d0f34f59ad13211b5a3fd6c3a",
+  "source_path": "worker",
+  "contract_version": "1.0.0",
+  "synced_at": "2026-09-04T17:10:09Z",
+  "digest_sha256": "6b42de631fc18c3d60beb4bfa3ca224d836d16dbbafd11eb24b9ed77de5e4f8f",
+  "digest_method": "SHA-256 of each files entry in listed order: filename, LF, then full file bytes",
+  "files": [
+    {
+      "path": "auth-bff.ts",
+      "sha256": "65515d34a9b89ab8753b99f082420796f8841a34a76498d494183510ba654ecb"
+    },
+    {
+      "path": "workos-provider.ts",
+      "sha256": "3eec1e6d6757fa50de4285f45a20a5e519a46febe418ba9b0a349f2af8aa4ba6"
+    }
+  ]
+}

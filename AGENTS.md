@@ -25,6 +25,19 @@ specs in progress). Plan authority inside this repository remains
 
 ## Canonical local demo entry
 
+### Connected person login boundary
+
+Connected person login uses the application-owned `/auth` BFF contract; WorkOS
+is its current server-side provider adapter, not Core identity or authorization.
+Follow Product #150 and POS #115. Never expose provider access/refresh credentials
+to browser code, restore connected authority from browser storage, or turn a
+provider profile into an owner role, Core principal UUID, membership, or cashier
+session. Cashier PIN/shift/device authority remains separate. A future provider
+change must preserve Core issuer/subject binding decisions explicitly; no email
+auto-linking. See `docs/active/plans/level-2/115-workos-person-login.md`.
+
+### Synthetic demo
+
 `fixtures/demo/access.json` is the single source of truth for the committed
 synthetic demo identity. Manual flows and Playwright automation must consume
 that contract through `e2e/helpers/demoSession.ts`; do not invent alternate

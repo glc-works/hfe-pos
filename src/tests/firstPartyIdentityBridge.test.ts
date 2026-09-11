@@ -70,8 +70,9 @@ describe('first-party ToGrow to Hfe CORE identity bridge', () => {
     })
   })
 
-  it('exchanges the opaque ToGrow session for the organization-scoped HCB JWT', async () => {
+  it('retains the legacy non-connected token exchange for local compatibility only', async () => {
     configureFlagshipRuntime()
+    vi.stubEnv('VITE_HFE_RUNTIME_MODE', '')
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(Response.json(SESSION_RESPONSE))
       .mockResolvedValueOnce(Response.json({
@@ -126,6 +127,7 @@ describe('first-party ToGrow to Hfe CORE identity bridge', () => {
 
   it('renews an HCB JWT from the retained opaque session without credentials', async () => {
     configureFlagshipRuntime()
+    vi.stubEnv('VITE_HFE_RUNTIME_MODE', '')
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({
       access_token: 'renewed-hcb-jwt',
       token_type: 'Bearer',
@@ -148,6 +150,7 @@ describe('first-party ToGrow to Hfe CORE identity bridge', () => {
 
   it('rotates an expired opaque session before minting a new HCB JWT', async () => {
     configureFlagshipRuntime()
+    vi.stubEnv('VITE_HFE_RUNTIME_MODE', '')
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(Response.json({
         ...SESSION_RESPONSE,
@@ -177,6 +180,7 @@ describe('first-party ToGrow to Hfe CORE identity bridge', () => {
 
   it('fails closed when the HCB JWT exchange is refused', async () => {
     configureFlagshipRuntime()
+    vi.stubEnv('VITE_HFE_RUNTIME_MODE', '')
     vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(Response.json(SESSION_RESPONSE))
       .mockResolvedValueOnce(new Response(null, { status: 403 }))

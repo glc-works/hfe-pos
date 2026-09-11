@@ -1,6 +1,7 @@
 /**
- * Universal OIDC PKCE Identity Adapter
- * Compatible with hfauth, ToGrow, WorkOS, Keycloak, Auth0, and generic OIDC IdPs.
+ * Legacy SPA PKCE adapter for HfAuth-shaped endpoints.
+ * Connected person login uses the server-side IdentityProvider contract instead.
+ * Setting provider metadata here does not implement another provider's protocol.
  */
 
 import type {

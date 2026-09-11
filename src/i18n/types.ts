@@ -1,6 +1,14 @@
 export type Language = 'id' | 'en'
 
 export interface TranslationDictionary {
+  personLogin: {
+    title: string
+    signIn: string
+    logout: string
+    retry: string
+    error: string
+    noStaffSession: string
+  }
   common: {
     all: string
     search: string

@@ -45,6 +45,8 @@ storybook-static/
 *.tar.gz
 *.tgz
 .worktrees/
+.wrangler/
+.dev.vars*
 
 # Local staging runtime artifacts (TigerBeetle data, binaries)
 .local-run/

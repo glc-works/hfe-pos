@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { readLegacyPosSession } from '../../services/auth/personSessionStorage'
+import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
 import {
   StaffUserSession,
   AuthResponse,
@@ -50,7 +52,7 @@ export const PosAuthProvider: React.FC<PosAuthProviderProps> = ({
 }) => {
   const [user, setUser] = useState<StaffUserSession | null>(() => {
     try {
-      const savedUser = localStorage.getItem(STORAGE_USER_KEY)
+      const savedUser = readLegacyPosSession(STORAGE_USER_KEY, undefined, localStorage)
       return savedUser ? JSON.parse(savedUser) : null
     } catch {
       return null
@@ -59,7 +61,7 @@ export const PosAuthProvider: React.FC<PosAuthProviderProps> = ({
 
   const [token, setToken] = useState<string | null>(() => {
     try {
-      return localStorage.getItem(STORAGE_TOKEN_KEY)
+      return readLegacyPosSession(STORAGE_TOKEN_KEY, undefined, localStorage)
     } catch {
       return null
     }
@@ -106,8 +108,10 @@ export const PosAuthProvider: React.FC<PosAuthProviderProps> = ({
     setToken(res.token)
     setRateLimitState({ failedAttempts: 0, isLocked: false, remainingCooldownSeconds: 0 })
     try {
-      localStorage.setItem(STORAGE_TOKEN_KEY, res.token)
-      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(res.user))
+      if (!isConnectedFirstPartyRuntime()) {
+        localStorage.setItem(STORAGE_TOKEN_KEY, res.token)
+        localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(res.user))
+      }
     } catch (err) {
       console.warn('[PosAuthProvider] Failed to save token to localStorage:', err)
     }

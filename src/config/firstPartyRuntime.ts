@@ -86,13 +86,9 @@ export function connectedRuntimeConfigurationError(): string | null {
   }
 
   try {
-    const authUrl = import.meta.env.VITE_AUTH_ISSUER_URL || import.meta.env.VITE_HFAUTH_URL || import.meta.env.VITE_TOGROW_URL
-    if (!authUrl) requiredRuntimeValue('VITE_TOGROW_URL')
     requiredRuntimeValue('VITE_HFE_CORE_URL')
     requiredRuntimeValue('VITE_HFE_COMPANY_BOOK_URL')
     resolveHfeitOrganizationId()
-    const clientId = import.meta.env.VITE_AUTH_CLIENT_ID || import.meta.env.VITE_HFAUTH_CLIENT_ID || import.meta.env.VITE_TOGROW_CLIENT_ID
-    if (!clientId) requiredRuntimeValue('VITE_TOGROW_CLIENT_ID')
     requiredRuntimeUuid('VITE_HFE_BOOK_ID')
     requiredRuntimeUuid('VITE_HFE_AUTHORITY_CONTEXT_ID')
     requiredRuntimeValue('VITE_HFE_BRANCH_ID')

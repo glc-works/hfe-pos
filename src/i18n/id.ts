@@ -1,6 +1,11 @@
 import { TranslationDictionary } from './types'
 
 export const idTranslations: TranslationDictionary = {
+  personLogin: {
+    title: 'Masuk Hfe POS', signIn: 'Masuk', logout: 'Keluar', retry: 'Coba lagi',
+    error: 'Sesi login tidak dapat diperiksa. Coba lagi.',
+    noStaffSession: 'Login berhasil. Akses operasional memerlukan sesi staf dan otorisasi Hfe CORE. Login ini tidak membuka kasir atau shift.',
+  },
   common: {
     all: 'Semua',
     search: 'Cari...',
