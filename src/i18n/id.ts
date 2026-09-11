@@ -286,8 +286,11 @@ export const idTranslations: TranslationDictionary = {
     enableCashTenderDesc: 'Terima pembayaran uang tunai fisik dan hitung kembalian kasir',
     enableQrisTender: 'QRIS Dinamis / Statis',
     enableQrisTenderDesc: 'Terima pembayaran scan QRIS multi-e-wallet & mobile banking',
-    enableCardTender: 'Kartu Debit / Kredit (EDC)',
-    enableCardTenderDesc: 'Terima kartu bank melalui mesin gesek/insert EDC outlet',
+    enableCardTender: 'Kartu Bank EDC (Debit / Kredit)',
+    enableCardTenderDesc: 'Terima pembayaran kartu via mesin EDC fisik bank di outlet kasir',
+    cardModeAll: 'Semua (Debit & Kredit)',
+    cardModeDebitOnly: 'Hanya Kartu Debit',
+    cardModeCreditOnly: 'Hanya Kartu Kredit',
     enableRoomChargeTender: 'Tagihan Kamar Hotel (Room Folio)',
     enableRoomChargeTenderDesc: 'Khusus outlet hotel/resort: bebankan transaksi ke tagihan kamar tamu',
 

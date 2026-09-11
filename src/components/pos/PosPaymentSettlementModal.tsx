@@ -11,6 +11,7 @@ import { Button } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
+import { identifyCardBin } from '../../utils/cardBinEngine'
 import { PosQrisTenderForm } from './PosQrisTenderForm'
 import { PosCardTenderForm } from './PosCardTenderForm'
 import { PosCashTenderForm } from './PosCashTenderForm'
@@ -70,10 +71,14 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
     : grandTotal
 
   const [selectedBank, setSelectedBank] = useState<string>('BCA')
-  const [cardPrefix, setCardPrefix] = useState<string>('45563321')
+  const [cardPrefix, setCardPrefix] = useState<string>(
+    enabledPaymentMethods.cardMode === 'credit_only' ? '47264700' : '45563321'
+  )
   const [cardLast4, setCardLast4] = useState<string>('9876')
   const [approvalCode, setApprovalCode] = useState<string>('APPR-8899')
-  const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>('cc')
+  const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>(
+    enabledPaymentMethods.cardMode === 'debit_only' ? 'debit' : 'cc'
+  )
   const [cardNetwork, setCardNetwork] = useState<'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'discover' | 'unionpay' | 'other'>('visa')
 
   const [qrisProvider, setQrisProvider] = useState<string>(qrisMetadata?.provider || 'BCA')
@@ -99,6 +104,29 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
       setPosCashGiven(payableAmount.toString())
     }
   }, [show, posPayMethod, payableAmount, posCashGiven, setPosCashGiven])
+
+  // Sync card type with card mode policy
+  useEffect(() => {
+    if (enabledPaymentMethods.cardMode === 'debit_only') {
+      if (internalCardType !== 'debit') setInternalCardType('debit')
+      if (posPayMethod === 'card' || posPayMethod === 'cc') setPosPayMethod('debit')
+    } else if (enabledPaymentMethods.cardMode === 'credit_only') {
+      if (internalCardType !== 'cc') setInternalCardType('cc')
+      if (posPayMethod === 'card' || posPayMethod === 'debit') setPosPayMethod('cc')
+    }
+  }, [enabledPaymentMethods.cardMode, internalCardType, posPayMethod, setPosPayMethod])
+
+  const cardButtonLabel = enabledPaymentMethods.cardMode === 'debit_only'
+    ? t.cart.debitCardBadge
+    : enabledPaymentMethods.cardMode === 'credit_only'
+      ? t.cart.creditCardBadge
+      : 'Kartu EDC'
+
+  const isCardMismatch = (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') &&
+    cardPrefix.length >= 4 && (
+      (enabledPaymentMethods.cardMode === 'debit_only' && identifyCardBin(cardPrefix).cardType === 'credit') ||
+      (enabledPaymentMethods.cardMode === 'credit_only' && identifyCardBin(cardPrefix).cardType === 'debit')
+    )
 
   if (!show) return null
 
@@ -230,7 +258,19 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
                   data-testid="settlement-tender-card"
                   type="button"
                   disabled={!isCardEligible}
-                  onClick={() => isCardEligible && setPosPayMethod('card')}
+                  onClick={() => {
+                    if (isCardEligible) {
+                      if (enabledPaymentMethods.cardMode === 'debit_only') {
+                        setPosPayMethod('debit')
+                        setInternalCardType('debit')
+                      } else if (enabledPaymentMethods.cardMode === 'credit_only') {
+                        setPosPayMethod('cc')
+                        setInternalCardType('cc')
+                      } else {
+                        setPosPayMethod('card')
+                      }
+                    }
+                  }}
                   className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
                     !isCardEligible
                       ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
@@ -240,7 +280,7 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
                   }`}
                 >
                   <CreditCard className="w-5 h-5 text-amber-500" />
-                  <span>Kartu EDC</span>
+                  <span>{cardButtonLabel}</span>
                 </button>
               )}
 
@@ -310,6 +350,7 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
               cardLast4={cardLast4}
               cardNetwork={cardNetwork}
               approvalCode={approvalCode}
+              cardMode={enabledPaymentMethods.cardMode}
               setInternalCardType={setInternalCardType}
               setPosPayMethod={setPosPayMethod}
               setSelectedBank={setSelectedBank}
@@ -335,16 +376,18 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
             variant="emerald"
             size="lg"
             onClick={() => {
-              if (isCashSufficient) {
+              if (isCashSufficient && !isCardMismatch) {
                 onConfirmSettlement()
                 onClose()
               }
             }}
-            disabled={!isCashSufficient || isSubmitting}
+            disabled={!isCashSufficient || isSubmitting || isCardMismatch}
             className="rounded-2xl font-black text-xs sm:text-sm px-6 shadow-xl flex items-center gap-2"
           >
             {isSubmitting ? (
               <span>Memproses Pembayaran...</span>
+            ) : isCardMismatch ? (
+              <span>Kartu Tidak Sesuai Kebijakan Toko</span>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />

@@ -270,26 +270,71 @@ export const FinancialTaxPolicyZone: React.FC = () => {
           </button>
 
           {/* CARD EDC */}
-          <button
-            type="button"
-            onClick={() => updateEnabledPaymentMethods({ card: !enabledPaymentMethods.card })}
-            className={`p-3.5 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${
-              enabledPaymentMethods.card
-                ? 'bg-amber-500/10 border-amber-500/50 text-white ring-1 ring-amber-500/30'
-                : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
-            }`}
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <CreditCard className={`w-4 h-4 ${enabledPaymentMethods.card ? 'text-amber-400' : 'text-slate-500'}`} />
-                <span className="text-xs font-bold text-slate-200">{t.settings.enableCardTender}</span>
-              </div>
-              <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableCardTenderDesc}</p>
+          <div className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2.5 transition-all ${
+            enabledPaymentMethods.card
+              ? 'bg-amber-500/10 border-amber-500/50 ring-1 ring-amber-500/30'
+              : 'bg-slate-950 border-slate-800'
+          }`}>
+            <div className="flex items-start justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => updateEnabledPaymentMethods({ card: !enabledPaymentMethods.card })}
+                className="flex-1 text-left space-y-1 cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <CreditCard className={`w-4 h-4 ${enabledPaymentMethods.card ? 'text-amber-400' : 'text-slate-500'}`} />
+                  <span className="text-xs font-bold text-slate-200">{t.settings.enableCardTender}</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableCardTenderDesc}</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => updateEnabledPaymentMethods({ card: !enabledPaymentMethods.card })}
+                className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 cursor-pointer ${enabledPaymentMethods.card ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'}`}
+              >
+                {enabledPaymentMethods.card ? 'Aktif' : 'Nonaktif'}
+              </button>
             </div>
-            <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.card ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'}`}>
-              {enabledPaymentMethods.card ? 'Aktif' : 'Nonaktif'}
-            </span>
-          </button>
+
+            {/* Sub-pills: All vs Debit Only vs CC Only */}
+            {enabledPaymentMethods.card && (
+              <div className="flex items-center gap-1.5 pt-1 border-t border-amber-500/20">
+                <button
+                  type="button"
+                  onClick={() => updateEnabledPaymentMethods({ cardMode: 'all' })}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                    (enabledPaymentMethods.cardMode || 'all') === 'all'
+                      ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                >
+                  {t.settings.cardModeAll}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateEnabledPaymentMethods({ cardMode: 'debit_only' })}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                    enabledPaymentMethods.cardMode === 'debit_only'
+                      ? 'bg-emerald-500 text-slate-950 shadow-sm font-black'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                >
+                  {t.settings.cardModeDebitOnly}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateEnabledPaymentMethods({ cardMode: 'credit_only' })}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                    enabledPaymentMethods.cardMode === 'credit_only'
+                      ? 'bg-purple-500 text-white shadow-sm font-black'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                >
+                  {t.settings.cardModeCreditOnly}
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* ROOM CHARGE */}
           <button

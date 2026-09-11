@@ -13,6 +13,7 @@ export interface EnabledPaymentMethods {
   cash: boolean
   qris: boolean
   card: boolean
+  cardMode?: 'all' | 'debit_only' | 'credit_only'
   roomCharge: boolean
 }
 

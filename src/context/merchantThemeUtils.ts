@@ -49,6 +49,7 @@ export const DEFAULT_ENABLED_PAYMENT_METHODS: EnabledPaymentMethods = {
   cash: true,
   qris: true,
   card: true,
+  cardMode: 'all',
   roomCharge: false
 }
 
@@ -61,6 +62,7 @@ export function loadStoredEnabledPaymentMethods(): EnabledPaymentMethods {
         cash: parsed.cash ?? true,
         qris: parsed.qris ?? true,
         card: parsed.card ?? true,
+        cardMode: parsed.cardMode ?? 'all',
         roomCharge: parsed.roomCharge ?? false
       }
     }

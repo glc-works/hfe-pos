@@ -286,8 +286,11 @@ export const enTranslations: TranslationDictionary = {
     enableCashTenderDesc: 'Accept physical bank notes and compute cashier change',
     enableQrisTender: 'QRIS (Dynamic / Static)',
     enableQrisTenderDesc: 'Accept Indonesian standardized QR e-wallets & mobile banking',
-    enableCardTender: 'Debit / Credit Card (EDC)',
-    enableCardTenderDesc: 'Accept bank cards processed via cashier EDC terminal',
+    enableCardTender: 'Bank Card EDC (Debit / Credit)',
+    enableCardTenderDesc: 'Accept bank card payments processed via cashier EDC terminal',
+    cardModeAll: 'All (Debit & Credit)',
+    cardModeDebitOnly: 'Debit Card Only',
+    cardModeCreditOnly: 'Credit Card Only',
     enableRoomChargeTender: 'Hotel Room Charge (Guest Folio)',
     enableRoomChargeTenderDesc: 'Hotel / Resort F&B only: post orders to registered guest room folio',
 

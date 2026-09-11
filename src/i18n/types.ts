@@ -288,6 +288,9 @@ export interface TranslationDictionary {
     enableQrisTenderDesc: string
     enableCardTender: string
     enableCardTenderDesc: string
+    cardModeAll: string
+    cardModeDebitOnly: string
+    cardModeCreditOnly: string
     enableRoomChargeTender: string
     enableRoomChargeTenderDesc: string
 
