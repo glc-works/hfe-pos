@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState } from 'react'
+import React, { useState } from 'react'
 import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles, User, X, Crown } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, QrisTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
 import { CustomerContact } from '../../hooks/useCustomerContacts'
@@ -10,9 +10,6 @@ import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
 import { formatExactMinorCurrency } from '../../utils/localeNumberFormat'
-const PosCardTenderForm = lazy(() => import('./PosCardTenderForm').then(({ PosCardTenderForm }) => ({ default: PosCardTenderForm })))
-const PosCashTenderForm = lazy(() => import('./PosCashTenderForm').then(({ PosCashTenderForm }) => ({ default: PosCashTenderForm })))
-const PosQrisTenderForm = lazy(() => import('./PosQrisTenderForm').then(({ PosQrisTenderForm }) => ({ default: PosQrisTenderForm })))
 export interface PosCartSectionProps {
   cartItems: CartItem[]
   selectedPOSTable: TableStatus | null
@@ -83,21 +80,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   const isCardEligible = !connectedRuntime && !authoritativeQuote
   const unavailableTenderClass = 'opacity-40 cursor-not-allowed'
 
-  const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>(
-    posPayMethod === 'debit' ? 'debit' : 'cc'
-  )
-  const [selectedBank, setSelectedBank] = useState<string>('BCA')
-  const [cardPrefix, setCardPrefix] = useState<string>('45563321')
-  const [cardLast4, setCardLast4] = useState<string>('9876')
-  const [cardNetwork, setCardNetwork] = useState<'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'discover' | 'unionpay' | 'other'>('visa')
-  const [approvalCode, setApprovalCode] = useState<string>('')
-
-  const [qrisProvider, setQrisProvider] = useState<string>(qrisMetadata?.provider || 'BCA')
-  const [rrnRefNumber, setRrnRefNumber] = useState<string>(qrisMetadata?.rrnRefNumber || '')
-  const [senderName, setSenderName] = useState<string>(qrisMetadata?.senderName || '')
-
-  const handleCardPrefixChange = (val: string) => setCardPrefix(val.replace(/\D/g, '').slice(0, 8))
-  const handleCardLast4Change = (val: string) => setCardLast4(val.replace(/\D/g, '').slice(0, 4))
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
       <SegmentedControl
@@ -306,54 +288,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
             <CreditCard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCard}</span>
           </button>
         </div>
-
-        {isCardEligible && (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
-          <Suspense fallback={<div className="min-h-[140px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
-            <PosCardTenderForm
-              posPayMethod={posPayMethod}
-              internalCardType={internalCardType}
-              selectedBank={selectedBank}
-              cardPrefix={cardPrefix}
-              cardLast4={cardLast4}
-              cardNetwork={cardNetwork}
-              approvalCode={approvalCode}
-              setInternalCardType={setInternalCardType}
-              setPosPayMethod={setPosPayMethod}
-              setSelectedBank={setSelectedBank}
-              onCardPrefixChange={handleCardPrefixChange}
-              onCardLast4Change={handleCardLast4Change}
-              setApprovalCode={setApprovalCode}
-            />
-          </Suspense>
-        )}
-
-        {posPayMethod === 'cash' && !awaitingCoreQuote && (
-          <Suspense fallback={<div className="min-h-[180px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
-            <PosCashTenderForm authoritativeQuote={authoritativeQuote} posCashGiven={posCashGiven} setPosCashGiven={setPosCashGiven} grandTotal={grandTotal} />
-          </Suspense>
-        )}
-
-        {posPayMethod === 'qris' && !awaitingCoreQuote && (
-          <Suspense fallback={<div className="min-h-[120px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
-            <PosQrisTenderForm
-              selectedProvider={qrisMetadata?.provider || qrisProvider}
-              setSelectedProvider={(prov) => {
-                setQrisProvider(prov)
-                setQrisMetadata?.({ provider: prov, rrnRefNumber, senderName })
-              }}
-              rrnRefNumber={qrisMetadata?.rrnRefNumber ?? rrnRefNumber}
-              setRrnRefNumber={(rrn) => {
-                setRrnRefNumber(rrn)
-                setQrisMetadata?.({ provider: qrisProvider, rrnRefNumber: rrn, senderName })
-              }}
-              senderName={qrisMetadata?.senderName ?? senderName}
-              setSenderName={(name) => {
-                setSenderName(name)
-                setQrisMetadata?.({ provider: qrisProvider, rrnRefNumber, senderName: name })
-              }}
-            />
-          </Suspense>
-        )}
 
         {reviewReady && (
           <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 animate-fadeIn">

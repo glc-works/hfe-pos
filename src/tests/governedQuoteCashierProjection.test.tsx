@@ -161,7 +161,7 @@ describe('PosCartSection authoritative quote projection', () => {
     )
 
     expect(html).toContain('data-testid="local-price-estimate"')
-    expect(html).toContain('aria-busy="true"')
+    expect(html).not.toMatch(/data-testid="tender-card"[^>]*disabled=""/)
     expect(html).toContain('33.000')
   })
 })
