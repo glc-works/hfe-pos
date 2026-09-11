@@ -2,14 +2,14 @@ import { CafeThemeConfig, MenuItem, TableInfo, Order, CustomerProfile, StationCo
 import { isConnectedFirstPartyRuntime, requiredRuntimeUuid } from '../config/firstPartyRuntime'
 
 export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
-  companyBookId: 'BOOK-CAFE-HQ-88',
-  ptLegalName: 'PT Kopi Karya Nusantara',
-  brandName: 'Artisan Cafe & Roastery HQ',
+  companyBookId: 'BOOK-GROUNDED-COFFEE-01',
+  ptLegalName: 'Grounded Coffee',
+  brandName: 'Grounded Coffee',
   logoUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&q=80',
-  taxIdNpwp: '01.234.567.8-012.000',
+  taxIdNpwp: '01.234.567.8-411.000',
   nibPermit: '9120001234567',
-  address: 'Jl. Senopati No. 45, Kebayoran Baru, Jakarta Selatan',
-  hfeLedgerApiEndpoint: 'https://api.hfe.internal/v1/company-books/BOOK-CAFE-HQ-88',
+  address: 'Ruko Virginia Arcade Blok A2, Jl. Sunburst CBD No.9, Serpong, Tangerang Selatan',
+  hfeLedgerApiEndpoint: 'https://api.hfecore.com/v1/company-books/BOOK-GROUNDED-COFFEE-01',
   operatingArchetype: 'casual-dine-in',
   workflowToggles: {
     enableMenuCatalog: true,
@@ -18,8 +18,8 @@ export const DEFAULT_COMPANY_PROFILE: HfeCompanyProfile = {
     defaultPosMode: 'tables'
   },
   storefrontInfo: {
-    tagline: 'Artisan Specialty Coffee & Fresh Pastry',
-    storyDescription: 'Pelopor kopi artisan dengan biji nusantara pilihan sejak 2020.',
+    tagline: 'Specialty Coffee Roasters & Artisanal Pastry',
+    storyDescription: 'Ruang ngopi tenang dan berkualitas di Ruko Virginia Arcade, Serpong.',
     operatingHours: 'Senin - Minggu: 07:00 - 22:00 WIB',
     wifiSsid: 'Kopitiam_Senopati_Guest',
     wifiPassword: 'SYNTHETIC-DEMO-WIFI',

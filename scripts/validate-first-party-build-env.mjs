@@ -8,7 +8,6 @@ const requiredValues = [
   'VITE_HFE_BRANCH_ID',
 ]
 const requiredUuids = [
-  'VITE_TOGROW_ORGANIZATION_ID',
   'VITE_HFE_BOOK_ID',
   'VITE_HFE_AUTHORITY_CONTEXT_ID',
   'VITE_HFE_CASHIER_SESSION_ID',
@@ -20,6 +19,10 @@ if (process.env.VITE_HFE_RUNTIME_MODE !== 'connected') {
 }
 for (const name of requiredValues) {
   if (!process.env[name]?.trim()) throw new Error(`preview build is missing ${name}`)
+}
+const orgId = process.env.VITE_HFE_ORGANIZATION_ID || process.env.VITE_TOGROW_ORGANIZATION_ID
+if (!orgId || !uuidPattern.test(orgId)) {
+  throw new Error('preview build requires valid UUID VITE_HFE_ORGANIZATION_ID (or VITE_TOGROW_ORGANIZATION_ID)')
 }
 for (const name of requiredUuids) {
   if (!uuidPattern.test(process.env[name] || '')) throw new Error(`preview build requires UUID ${name}`)

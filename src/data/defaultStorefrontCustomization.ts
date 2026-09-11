@@ -3,21 +3,23 @@ import { DEFAULT_MERCHANT_AMENITY_TAGS } from './amenityCatalog'
 
 export const DEFAULT_STOREFRONT_CUSTOMIZATION: StorefrontCustomizationConfig = {
   // 1. Landing Page Studio
+  storeName: 'Grounded Coffee',
+  storefrontSubdomain: 'groundedcoffee',
   heroHeadline: 'Artisan Coffee Roasters & Fresh Pastry Bar',
-  heroTagline: 'Koleksi single origin nusantara terbaik disangrai segar setiap minggu di Senopati. Nikmati pengalaman ngopi kelas dunia di area taman kami.',
+  heroTagline: 'Ruang ngopi tenang dan berkualitas di Ruko Virginia Arcade, BSD Serpong. Menyajikan racikan kopi terbaik untuk mengawali dan melengkapi hari Anda.',
   heroBannerUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200&q=80',
-  announcementBarText: 'Gunakan kupon "SENOPATI20" untuk diskon 20% saat order di meja!',
+  announcementBarText: 'Selamat datang di Grounded Coffee Serpong!',
   announcementBarActive: true,
   ctaOrderText: 'Buka Menu & Pesan',
   ctaReserveText: 'Reservasi Meja',
-  brandStoryText: 'Didirikan pada tahun 2021 di jantung Senopati, Jakarta Selatan, Kopitiam Senopati memadukan tradisi kedai kopi peranakan dengan teknologi pemanggangan specialty modern.',
-  operatingHoursText: 'Buka Setiap Hari: 07:00 - 23:00 WIB',
+  brandStoryText: 'Berlokasi di Ruko Virginia Arcade, Sunburst CBD Serpong, Grounded Coffee menghadirkan kehangatan kopi specialty berkualitas dengan suasana yang nyaman dan ramah.',
+  operatingHoursText: 'Buka Setiap Hari: 07:00 - 22:00 WIB',
   socialLinks: {
-    instagram: '@kopitiam_senopati',
-    whatsapp: '+62 812-3456-7890',
-    tiktok: '@kopitiamsenopati',
-    googleMapsUrl: 'https://maps.google.com/?q=Senopati+Jakarta',
-    website: 'https://kopitiamsenopati.id'
+    instagram: '@groundedcoffee.id',
+    whatsapp: '',
+    tiktok: '',
+    googleMapsUrl: 'https://maps.app.goo.gl/71xBxBZS7GkNDbAH6',
+    website: 'https://groundedcoffee.pos.hfeit.com'
   },
   channels: {
     enableDineInQr: true,

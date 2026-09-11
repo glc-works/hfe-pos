@@ -34,14 +34,16 @@ export function requiredRuntimeUuid(name: keyof ImportMetaEnv): string {
   return value
 }
 
-/** Exact Hfeit IAM organization for the connected runtime or canonical synthetic local demo. */
+/** Exact Hfe CORE organization for the connected runtime or canonical synthetic local demo. */
 export function resolveHfeitOrganizationId(): string {
   if (!isConnectedFirstPartyRuntime()) return demoAccess.organizationId
   const org =
+    import.meta.env.VITE_HFE_ORGANIZATION_ID ||
     import.meta.env.VITE_AUTH_ORGANIZATION_ID ||
     import.meta.env.VITE_HFAUTH_ORGANIZATION_ID ||
     import.meta.env.VITE_TOGROW_ORGANIZATION_ID
   if (org && UUID_PATTERN.test(org.trim())) return org.trim()
+  if (import.meta.env.VITE_HFE_ORGANIZATION_ID) return requiredRuntimeUuid('VITE_HFE_ORGANIZATION_ID')
   return requiredRuntimeUuid('VITE_TOGROW_ORGANIZATION_ID')
 }
 
