@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react'
 import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig, BusinessOperatingArchetype, PosWorkflowToggles, PB1TaxMode, SupportedCurrency, EnabledPaymentMethods } from '../types/pos'
 import { CashierAudioService } from '../services/hardware/CashierAudioService'
 import { BUILTIN_THEMES } from '../data/mockData'
@@ -125,16 +125,15 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
 
   const setEnabledPaymentMethods = (methods: EnabledPaymentMethods) => {
     setEnabledPaymentMethodsState(methods)
-    try { localStorage.setItem('hfe_enabled_payment_methods', JSON.stringify(methods)) } catch {}
   }
 
   const updateEnabledPaymentMethods = (delta: Partial<EnabledPaymentMethods>) => {
-    setEnabledPaymentMethodsState(prev => {
-      const next = { ...prev, ...delta }
-      try { localStorage.setItem('hfe_enabled_payment_methods', JSON.stringify(next)) } catch {}
-      return next
-    })
+    setEnabledPaymentMethodsState(prev => ({ ...prev, ...delta }))
   }
+
+  useEffect(() => {
+    try { localStorage.setItem('hfe_enabled_payment_methods', JSON.stringify(enabledPaymentMethods)) } catch {}
+  }, [enabledPaymentMethods])
 
   // 2. Hardware Beeper
   const [soundBeeperEnabled, setSoundBeeperEnabledState] = useState<boolean>(() => {

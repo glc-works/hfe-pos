@@ -243,7 +243,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
               <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableCashTenderDesc}</p>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.cash ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
-              {enabledPaymentMethods.cash ? 'Aktif' : 'Nonaktif'}
+              {enabledPaymentMethods.cash ? t.settings.tenderActive : t.settings.tenderInactive}
             </span>
           </button>
 
@@ -265,7 +265,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
               <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableQrisTenderDesc}</p>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.qris ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
-              {enabledPaymentMethods.qris ? 'Aktif' : 'Nonaktif'}
+              {enabledPaymentMethods.qris ? t.settings.tenderActive : t.settings.tenderInactive}
             </span>
           </button>
 
@@ -292,7 +292,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
                 onClick={() => updateEnabledPaymentMethods({ card: !enabledPaymentMethods.card })}
                 className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 cursor-pointer ${enabledPaymentMethods.card ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'}`}
               >
-                {enabledPaymentMethods.card ? 'Aktif' : 'Nonaktif'}
+                {enabledPaymentMethods.card ? t.settings.tenderActive : t.settings.tenderInactive}
               </button>
             </div>
 
@@ -354,7 +354,7 @@ export const FinancialTaxPolicyZone: React.FC = () => {
               <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableRoomChargeTenderDesc}</p>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.roomCharge ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-800 text-slate-400'}`}>
-              {enabledPaymentMethods.roomCharge ? 'Aktif' : 'Nonaktif'}
+              {enabledPaymentMethods.roomCharge ? t.settings.tenderActive : t.settings.tenderInactive}
             </span>
           </button>
         </div>

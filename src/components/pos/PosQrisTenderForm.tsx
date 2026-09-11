@@ -71,7 +71,7 @@ export const PosQrisTenderForm: React.FC<PosQrisTenderFormProps> = ({
 
       {/* Input RRN / Reference Number */}
       <div className="flex flex-col gap-1 pt-1">
-        <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+        <label htmlFor="qris-rrn-input" className="text-[10px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
           <span className="flex items-center gap-1">
             <Hash className="w-3 h-3 text-indigo-500" />
             {t.cart.qrisRrnLabel}
@@ -81,6 +81,7 @@ export const PosQrisTenderForm: React.FC<PosQrisTenderFormProps> = ({
           </span>
         </label>
         <input
+          id="qris-rrn-input"
           data-testid="input-qris-rrn"
           type="text"
           value={rrnRefNumber}
@@ -96,13 +97,14 @@ export const PosQrisTenderForm: React.FC<PosQrisTenderFormProps> = ({
       {/* Optional: Nama Pengirim */}
       {setSenderName && (
         <div className="flex flex-col gap-1 pt-0.5">
-          <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+          <label htmlFor="qris-sender-name-input" className="text-[10px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
             <span>Nama Pengirim di Bukti Bayar:</span>
             <span className="text-[9px] text-slate-400 font-normal">
               ({t.cart.approvalOptional})
             </span>
           </label>
           <input
+            id="qris-sender-name-input"
             type="text"
             value={senderName}
             onChange={(e) => setSenderName(e.target.value)}

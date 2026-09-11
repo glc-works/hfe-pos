@@ -288,9 +288,8 @@ export const idTranslations: TranslationDictionary = {
     enableQrisTenderDesc: 'Terima pembayaran scan QRIS multi-e-wallet & mobile banking',
     enableCardTender: 'Kartu Bank EDC (Debit / Kredit)',
     enableCardTenderDesc: 'Terima pembayaran kartu via mesin EDC fisik bank di outlet kasir',
-    cardModeAll: 'Semua (Debit & Kredit)',
-    cardModeDebitOnly: 'Hanya Kartu Debit',
-    cardModeCreditOnly: 'Hanya Kartu Kredit',
+    cardModeAll: 'Semua (Debit & Kredit)', cardModeDebitOnly: 'Hanya Kartu Debit', cardModeCreditOnly: 'Hanya Kartu Kredit',
+    tenderActive: 'Aktif', tenderInactive: 'Nonaktif',
     enableRoomChargeTender: 'Tagihan Kamar Hotel (Room Folio)',
     enableRoomChargeTenderDesc: 'Khusus outlet hotel/resort: bebankan transaksi ke tagihan kamar tamu',
 

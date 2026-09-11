@@ -122,10 +122,11 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
       ? t.cart.creditCardBadge
       : 'Kartu EDC'
 
+  const binInfo = identifyCardBin(cardPrefix)
   const isCardMismatch = (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') &&
-    cardPrefix.length >= 4 && (
-      (enabledPaymentMethods.cardMode === 'debit_only' && identifyCardBin(cardPrefix).cardType === 'credit') ||
-      (enabledPaymentMethods.cardMode === 'credit_only' && identifyCardBin(cardPrefix).cardType === 'debit')
+    binInfo.isExactMatch && cardPrefix.length >= 4 && (
+      (enabledPaymentMethods.cardMode === 'debit_only' && binInfo.cardType === 'credit') ||
+      (enabledPaymentMethods.cardMode === 'credit_only' && binInfo.cardType === 'debit')
     )
 
   if (!show) return null
@@ -376,12 +377,25 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
             variant="emerald"
             size="lg"
             onClick={() => {
-              if (isCashSufficient && !isCardMismatch) {
+              const isCurrentTenderEligible =
+                posPayMethod === 'cash' ? (enabledPaymentMethods.cash && isTenderEligible('cash')) :
+                posPayMethod === 'qris' ? (enabledPaymentMethods.qris && isTenderEligible('qris')) :
+                (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') ? (enabledPaymentMethods.card && isCardEligible) :
+                true
+
+              if (isCashSufficient && !isCardMismatch && isCurrentTenderEligible) {
                 onConfirmSettlement()
                 onClose()
               }
             }}
-            disabled={!isCashSufficient || isSubmitting || isCardMismatch}
+            disabled={
+              !isCashSufficient ||
+              isSubmitting ||
+              isCardMismatch ||
+              (posPayMethod === 'cash' && (!enabledPaymentMethods.cash || !isTenderEligible('cash'))) ||
+              (posPayMethod === 'qris' && (!enabledPaymentMethods.qris || !isTenderEligible('qris'))) ||
+              ((posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (!enabledPaymentMethods.card || !isCardEligible))
+            }
             className="rounded-2xl font-black text-xs sm:text-sm px-6 shadow-xl flex items-center gap-2"
           >
             {isSubmitting ? (

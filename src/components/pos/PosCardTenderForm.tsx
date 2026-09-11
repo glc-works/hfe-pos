@@ -44,7 +44,7 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
   const { t } = useTranslation()
   const effectiveLast4 = cardLast4 || cardLast3
   const binInfo = identifyCardBin(cardPrefix)
-  const isCardModeMismatch = cardPrefix.length >= 4 && (
+  const isCardModeMismatch = binInfo.isExactMatch && cardPrefix.length >= 4 && (
     (cardMode === 'debit_only' && binInfo.cardType === 'credit') ||
     (cardMode === 'credit_only' && binInfo.cardType === 'debit')
   )

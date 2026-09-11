@@ -288,9 +288,8 @@ export const enTranslations: TranslationDictionary = {
     enableQrisTenderDesc: 'Accept Indonesian standardized QR e-wallets & mobile banking',
     enableCardTender: 'Bank Card EDC (Debit / Credit)',
     enableCardTenderDesc: 'Accept bank card payments processed via cashier EDC terminal',
-    cardModeAll: 'All (Debit & Credit)',
-    cardModeDebitOnly: 'Debit Card Only',
-    cardModeCreditOnly: 'Credit Card Only',
+    cardModeAll: 'All (Debit & Credit)', cardModeDebitOnly: 'Debit Card Only', cardModeCreditOnly: 'Credit Card Only',
+    tenderActive: 'Active', tenderInactive: 'Inactive',
     enableRoomChargeTender: 'Hotel Room Charge (Guest Folio)',
     enableRoomChargeTenderDesc: 'Hotel / Resort F&B only: post orders to registered guest room folio',
 

@@ -130,7 +130,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       setTablesGrid((prev) => prev.map((t) => (t.name === selectedPOSTable.name || t.id === selectedPOSTable.id ? { ...t, status: 'free', totalBill: 0, orderCount: 0, customerName: undefined } : t)))
       setSelectedPOSTable(null)
     }
-    setCartItems([]); setPosCashGiven(''); setQrisMetadata(undefined); setShowPaymentSettlementModal(false); setShowMobileCartDrawer(false)
+    setCartItems([]); setPosCashGiven(''); setQrisMetadata(undefined); setSelectedCustomer(null); setShowPaymentSettlementModal(false); setShowMobileCartDrawer(false)
   }
 
   const {
@@ -140,7 +140,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   } = useCafeSettlement({
     financialPort, organizationId, companyBookId, authorityContext, cashierId, selectedTable: selectedPOSTable, orders,
     items: activeTableCartItems, fulfillmentMode, paymentMethod: posPayMethod, formatPrice, commitPaidState: handlePOSCheckoutTableWithClear,
-    clearCart: () => { setCartItems([]); setPosCashGiven(''); setQrisMetadata(undefined); setShowMobileCartDrawer(false); setShowPaymentSettlementModal(false) },
+    clearCart: () => { setCartItems([]); setPosCashGiven(''); setQrisMetadata(undefined); setSelectedCustomer(null); setShowMobileCartDrawer(false); setShowPaymentSettlementModal(false) },
   })
 
   const handleOpenPaymentSettlement = () => {
