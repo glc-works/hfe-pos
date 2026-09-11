@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles, User, X, Crown } from 'lucide-react'
+import React from 'react'
+import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, CheckCircle2, Scissors, Loader2, Sparkles, User, X, Crown } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, QrisTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
 import { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import {
   X, Banknote, QrCode, CreditCard, Building2, CheckCircle2,
-  Calculator, Sparkles, ArrowRight, RotateCcw, AlertTriangle, ShieldCheck, Crown
+  Sparkles, ArrowRight, AlertTriangle, ShieldCheck, Crown
 } from 'lucide-react'
-import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, CardTenderMetadata, QrisTenderMetadata } from '../../types/pos'
+import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, QrisTenderMetadata } from '../../types/pos'
 import type { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'
-import { Button, PriceTag } from '@/ui'
+import { Button } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
