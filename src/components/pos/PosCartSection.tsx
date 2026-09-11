@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useState } from 'react'
-import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles } from 'lucide-react'
+import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles, User, X, Crown } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
+import { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'
 import { SegmentedControl, Button } from '@/ui'
 import { GLYPHS } from '../../tokens/designTokens'
@@ -22,6 +23,9 @@ export interface PosCartSectionProps {
   packagingFee?: number
   fulfillmentMode?: OrderFulfillmentMode
   hideHeader?: boolean
+  selectedCustomer?: CustomerContact | null
+  onOpenCustomerPicker?: () => void
+  onClearCustomer?: () => void
   cardMetadata?: CardTenderMetadata
   authoritativeQuote?: ReviewedPosQuote | null
   checkoutPhase?: GovernedCheckoutPhase
@@ -47,6 +51,9 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   packagingFee = 0,
   fulfillmentMode = 'dine_in',
   hideHeader = false,
+  selectedCustomer,
+  onOpenCustomerPicker,
+  onClearCustomer,
   authoritativeQuote,
   checkoutPhase,
   setPosPayMethod,
@@ -121,6 +128,52 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           </div>
         </div>
       )}
+
+      {/* CUSTOMER CONTACT & LOYALTY CAPSULE */}
+      <div className="shrink-0 pt-1.5 pb-0.5">
+        {selectedCustomer ? (
+          <div className="w-full py-1.5 px-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs animate-fadeIn">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <div className="flex items-baseline gap-1.5 truncate">
+                <span className="font-bold text-[11px] text-amber-600 dark:text-amber-400 truncate">
+                  {selectedCustomer.name}
+                </span>
+                <span className="text-[9px] font-mono font-bold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1 py-0.2 rounded border border-amber-500/30 shrink-0">
+                  {selectedCustomer.tier}
+                </span>
+                {selectedCustomer.phone && selectedCustomer.phone !== '-' && (
+                  <span className="text-[10px] font-mono text-slate-400 truncate hidden sm:inline">
+                    {selectedCustomer.phone}
+                  </span>
+                )}
+              </div>
+            </div>
+            {onClearCustomer && (
+              <button
+                type="button"
+                onClick={onClearCustomer}
+                className="p-0.5 hover:bg-amber-500/20 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
+                title="Lepas Pelanggan"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onOpenCustomerPicker}
+            className="w-full py-1.5 px-2.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-between text-xs transition-all cursor-pointer group"
+          >
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+              <User className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-500 transition-colors" />
+              <span className="font-semibold text-[11px]">+ Pasang Pelanggan / Member</span>
+            </div>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Tamu Umum ▾</span>
+          </button>
+        )}
+      </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 my-1.5 flex flex-col gap-2">
         {cartItems.length === 0 ? (

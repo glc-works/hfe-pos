@@ -14,6 +14,8 @@ import { FinancialStatusBanner } from '../components/pos/FinancialStatusBanner'
 import { GovernedQrisPendingModal } from '../components/pos/GovernedQrisPendingModal'
 import { ActiveOperationsTrayDock } from '../components/pos/ActiveOperationsTrayDock'
 import { ShiftDrawerModal } from '../components/shifts/ShiftDrawerModal'
+import { CustomerPickerModal } from '../components/pos/CustomerPickerModal'
+import type { CustomerContact } from '../hooks/useCustomerContacts'
 import { useSpotlightShortcuts } from '../hooks/useSpotlightShortcuts'
 import { useOperationsTray } from '../hooks/useOperationsTray'
 import { useTranslation } from '../context/LanguageContext'
@@ -50,7 +52,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
   const [posModeTab, setPosModeTab] = useState<'tables' | 'catalog' | 'booking'>(initialMode)
   const [fulfillmentMode, setFulfillmentMode] = useState<OrderFulfillmentMode>('dine_in'), [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'unpaid' | 'paid' | 'available'>('all'), [selectedZoneId, setSelectedZoneId] = useState<PropertyZoneId>('all'), [selectedCategory, setSelectedCategory] = useState<string>('all'), [searchQuery, setSearchQuery] = useState<string>('')
   const [cartItems, setCartItems] = useState<CartItem[]>([]), [directQtyItem, setDirectQtyItem] = useState<{ item: CartItem; index: number } | null>(null)
-  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false), [showCameraScanner, setShowCameraScanner] = useState(false), [showTableOpsModal, setShowTableOpsModal] = useState(false), [showRoomChargeModal, setShowRoomChargeModal] = useState(false), [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false), [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false), [showEditPinnedModal, setShowEditPinnedModal] = useState(false), [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false), [showNotificationCenter, setShowNotificationCenter] = useState(false), [showServiceTickets, setShowServiceTickets] = useState(false), [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false), [showSpotlightModal, setShowSpotlightModal] = useState(false), [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false), [showPaymentSettlementModal, setShowPaymentSettlementModal] = useState(false)
+  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false), [showCameraScanner, setShowCameraScanner] = useState(false), [showTableOpsModal, setShowTableOpsModal] = useState(false), [showRoomChargeModal, setShowRoomChargeModal] = useState(false), [showTableDetailDrawer, setShowTableDetailDrawer] = useState(false), [showTableGuestBindingDrawer, setShowTableGuestBindingDrawer] = useState(false), [showEditPinnedModal, setShowEditPinnedModal] = useState(false), [showMobileCartDrawer, setShowMobileCartDrawer] = useState(false), [showNotificationCenter, setShowNotificationCenter] = useState(false), [showServiceTickets, setShowServiceTickets] = useState(false), [showEventTicketCheckIn, setShowEventTicketCheckIn] = useState(false), [showSpotlightModal, setShowSpotlightModal] = useState(false), [showShiftDrawerModal, setShowShiftDrawerModal] = useState(false), [showPaymentSettlementModal, setShowPaymentSettlementModal] = useState(false), [selectedCustomer, setSelectedCustomer] = useState<CustomerContact | null>(null), [showCustomerPickerModal, setShowCustomerPickerModal] = useState(false)
   const [reassignFromTable, setReassignFromTable] = useState<string>(() => selectedPOSTable?.name || tablesGrid[0]?.name || 'IND-01'), [reassignTargetTable, setReassignTargetTable] = useState<string>(() => tablesGrid[1]?.name || tablesGrid[0]?.name || 'IND-02'), [viewMode, setViewMode] = useState<'grid' | 'compact' | 'list'>('grid'), [pinnedItemIds, setPinnedItemIds] = useState<string[]>(() => productCatalog.slice(0, 12).map((i) => i.id))
   const pinnedFavorites = useMemo(() => productCatalog.filter((item) => pinnedItemIds.includes(item.id)), [productCatalog, pinnedItemIds])
 
@@ -192,6 +194,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
       packagingFee
     })
     setCartItems([])
+    setSelectedCustomer(null)
     setPosCashGiven('')
     setShowMobileCartDrawer(false)
   }
@@ -323,6 +326,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
               posPayMethod={posPayMethod} posCashGiven={posCashGiven} subtotal={subtotal}
               pb1Tax={pb1Tax} grandTotal={grandTotal} packagingFee={packagingFee}
               fulfillmentMode={fulfillmentMode} authoritativeQuote={authoritativeQuote} checkoutPhase={checkoutPhase}
+              selectedCustomer={selectedCustomer} onOpenCustomerPicker={() => setShowCustomerPickerModal(true)} onClearCustomer={() => setSelectedCustomer(null)}
               setPosPayMethod={setPosPayMethod} setPosCashGiven={setPosCashGiven} setFulfillmentMode={setFulfillmentMode}
               onUpdateQty={handleUpdateQty} onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
               onCheckout={handleOpenPaymentSettlement} onOpenSplitPayment={() => setShowTableOpsModal(true)}
@@ -426,6 +430,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         show={showMobileCartDrawer} cartItems={activeTableCartItems} selectedPOSTable={selectedPOSTable}
         posPayMethod={posPayMethod} posCashGiven={posCashGiven} subtotal={subtotal} pb1Tax={pb1Tax} grandTotal={grandTotal}
         packagingFee={packagingFee} fulfillmentMode={fulfillmentMode} authoritativeQuote={authoritativeQuote} onClose={() => setShowMobileCartDrawer(false)}
+        selectedCustomer={selectedCustomer} onOpenCustomerPicker={() => setShowCustomerPickerModal(true)} onClearCustomer={() => setSelectedCustomer(null)}
         checkoutPhase={checkoutPhase}
         setPosPayMethod={setPosPayMethod} setPosCashGiven={setPosCashGiven} setFulfillmentMode={setFulfillmentMode}
         onUpdateQty={handleUpdateQty} onOpenDirectQtyModal={(item, index) => setDirectQtyItem({ item, index })}
@@ -460,31 +465,26 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         showEventTicketCheckIn={showEventTicketCheckIn} setShowEventTicketCheckIn={setShowEventTicketCheckIn}
         showSpotlightModal={showSpotlightModal} setShowSpotlightModal={setShowSpotlightModal}
         handleAddToCart={handleAddToCart} handleTableClick={handleTableClick}
-        staffRole={staffRole}
-        showPaymentSettlementModal={showPaymentSettlementModal}
-        setShowPaymentSettlementModal={setShowPaymentSettlementModal}
-        cartItems={activeTableCartItems}
-        fulfillmentMode={fulfillmentMode}
-        posPayMethod={posPayMethod}
-        setPosPayMethod={setPosPayMethod}
-        posCashGiven={posCashGiven}
-        setPosCashGiven={setPosCashGiven}
-        packagingFee={packagingFee}
-        authoritativeQuote={authoritativeQuote}
-        checkoutPhase={checkoutPhase}
-        onConfirmSettlement={handleCheckoutAction}
+        staffRole={staffRole} showPaymentSettlementModal={showPaymentSettlementModal}
+        setShowPaymentSettlementModal={setShowPaymentSettlementModal} cartItems={activeTableCartItems}
+        fulfillmentMode={fulfillmentMode} posPayMethod={posPayMethod} setPosPayMethod={setPosPayMethod}
+        posCashGiven={posCashGiven} setPosCashGiven={setPosCashGiven} packagingFee={packagingFee}
+        authoritativeQuote={authoritativeQuote} checkoutPhase={checkoutPhase} onConfirmSettlement={handleCheckoutAction}
       />
 
       <ShiftDrawerModal
-        isOpen={showShiftDrawerModal}
-        onClose={() => setShowShiftDrawerModal(false)}
-        openingFloat={cashDrawerFloat || 500000}
-        totalCashSales={1250000}
+        isOpen={showShiftDrawerModal} onClose={() => setShowShiftDrawerModal(false)}
+        openingFloat={cashDrawerFloat || 500000} totalCashSales={1250000}
         bookId={companyBookId || 'BOOK-CAFE-HQ-88'}
         onReconciled={() => {
           setShowShiftDrawerModal(false)
           if (onLockTerminal) onLockTerminal()
         }}
+      />
+
+      <CustomerPickerModal
+        isOpen={showCustomerPickerModal} onClose={() => setShowCustomerPickerModal(false)}
+        onSelectCustomer={(c) => setSelectedCustomer(c)} currentSelectedId={selectedCustomer?.id}
       />
     </div>
   )
