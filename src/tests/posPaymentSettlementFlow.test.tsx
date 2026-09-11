@@ -152,5 +152,36 @@ describe('POS Payment Settlement Modal Flow (Toast / Square Benchmark)', () => {
     expect(html).toContain('gold')
     expect(html).toContain('Meja OUT-04')
   })
+
+  it('hides Kamar Hotel tender button by default for regular cafes (roomCharge: false)', () => {
+    const html = renderToStaticMarkup(
+      <LanguageProvider>
+        <MerchantConfigProvider>
+          <PosPaymentSettlementModal
+            show={true}
+            onClose={vi.fn()}
+            items={sampleItems as any}
+            selectedTable={null}
+            subtotal={84000}
+            pb1Tax={8400}
+            grandTotal={92400}
+            fulfillmentMode="dine_in"
+            posPayMethod="cash"
+            setPosPayMethod={vi.fn()}
+            posCashGiven="100000"
+            setPosCashGiven={vi.fn()}
+            onConfirmSettlement={vi.fn()}
+          />
+        </MerchantConfigProvider>
+      </LanguageProvider>
+    )
+
+    // Regular cafe has cash, qris, card EDC, but NOT Kamar Hotel
+    expect(html).toContain('Tunai')
+    expect(html).toContain('QRIS')
+    expect(html).toContain('Kartu EDC')
+    expect(html).not.toContain('Kamar Hotel')
+  })
 })
+
 

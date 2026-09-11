@@ -280,6 +280,16 @@ export interface TranslationDictionary {
     openTabDesc: string
     initialCashFloat: string
     initialCashFloatSub: string
+    enabledPaymentMethodsTitle: string
+    enabledPaymentMethodsSub: string
+    enableCashTender: string
+    enableCashTenderDesc: string
+    enableQrisTender: string
+    enableQrisTenderDesc: string
+    enableCardTender: string
+    enableCardTenderDesc: string
+    enableRoomChargeTender: string
+    enableRoomChargeTenderDesc: string
 
     // Zone 3: Perangkat Keras & Kasir
     zone3Heading: string

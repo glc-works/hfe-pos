@@ -42,3 +42,29 @@ export function applyThemeToDocument(mode: ThemeModeType): void {
     body?.classList.remove('dark')
   }
 }
+
+import type { EnabledPaymentMethods } from '../types/pos'
+
+export const DEFAULT_ENABLED_PAYMENT_METHODS: EnabledPaymentMethods = {
+  cash: true,
+  qris: true,
+  card: true,
+  roomCharge: false
+}
+
+export function loadStoredEnabledPaymentMethods(): EnabledPaymentMethods {
+  try {
+    const stored = localStorage.getItem('hfe_enabled_payment_methods')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      return {
+        cash: parsed.cash ?? true,
+        qris: parsed.qris ?? true,
+        card: parsed.card ?? true,
+        roomCharge: parsed.roomCharge ?? false
+      }
+    }
+  } catch {}
+  return DEFAULT_ENABLED_PAYMENT_METHODS
+}
+

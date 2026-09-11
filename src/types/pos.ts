@@ -8,6 +8,14 @@ export type CustomerLoginType = 'phone' | 'guest-name'
 export type PaymentPolicy = 'pay-first' | 'open-tab'
 export type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
 export type PosPayMethod = 'cash' | 'qris' | 'cc' | 'debit' | 'card'
+
+export interface EnabledPaymentMethods {
+  cash: boolean
+  qris: boolean
+  card: boolean
+  roomCharge: boolean
+}
+
 export type OrderFulfillmentMode = 'dine_in' | 'takeaway' | 'delivery'
 export type DeliveryDropOffOption = 'leave_at_lobby_guard' | 'meet_at_door' | 'meet_in_person'
 export interface DeliveryAddressInfo {

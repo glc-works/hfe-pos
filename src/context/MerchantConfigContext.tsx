@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useRef, ReactNode } from 'react'
-import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig, BusinessOperatingArchetype, PosWorkflowToggles, PB1TaxMode, SupportedCurrency } from '../types/pos'
+import { PaymentPolicy, CafeThemeConfig, PrimaryDomainApp, Voucher, PartnerContact, StorefrontCustomizationConfig, BusinessOperatingArchetype, PosWorkflowToggles, PB1TaxMode, SupportedCurrency, EnabledPaymentMethods } from '../types/pos'
 import { CashierAudioService } from '../services/hardware/CashierAudioService'
 import { BUILTIN_THEMES } from '../data/mockData'
 import { MARKETPLACE_THEMES } from '../data/marketplaceThemesData'
@@ -8,7 +8,7 @@ import { INITIAL_PARTNER_CONTACTS } from '../data/mockContacts'
 import { DEFAULT_STOREFRONT_CUSTOMIZATION } from '../data/defaultStorefrontCustomization'
 import { normalizeSurfaceHost } from '../utils/surfaceHost'
 import { resolveInitialPb1TaxMode } from '../config/firstPartyRuntime'
-import { ThemeModeType, resolveThemeForMode, applyThemeToDocument } from './merchantThemeUtils'
+import { ThemeModeType, resolveThemeForMode, applyThemeToDocument, loadStoredEnabledPaymentMethods } from './merchantThemeUtils'
 
 export type ViewportModeType = 'mobile' | 'tablet-portrait' | 'tablet-landscape' | 'tablet' | 'responsive'
 export type { ThemeModeType }
@@ -25,6 +25,9 @@ export interface MerchantConfigContextType {
   setPrimaryCurrency: (currency: SupportedCurrency) => void
   initialCashFloat: number
   setInitialCashFloat: (amt: number) => void
+  enabledPaymentMethods: EnabledPaymentMethods
+  setEnabledPaymentMethods: (methods: EnabledPaymentMethods) => void
+  updateEnabledPaymentMethods: (delta: Partial<EnabledPaymentMethods>) => void
 
   // 2. HARDWARE & CASHIER WORKSTATION
   soundBeeperEnabled: boolean
@@ -115,6 +118,23 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       return stored !== null ? Number(stored) : 500000
     } catch { return 500000 }
   })
+
+  const [enabledPaymentMethods, setEnabledPaymentMethodsState] = useState<EnabledPaymentMethods>(() => {
+    return loadStoredEnabledPaymentMethods()
+  })
+
+  const setEnabledPaymentMethods = (methods: EnabledPaymentMethods) => {
+    setEnabledPaymentMethodsState(methods)
+    try { localStorage.setItem('hfe_enabled_payment_methods', JSON.stringify(methods)) } catch {}
+  }
+
+  const updateEnabledPaymentMethods = (delta: Partial<EnabledPaymentMethods>) => {
+    setEnabledPaymentMethodsState(prev => {
+      const next = { ...prev, ...delta }
+      try { localStorage.setItem('hfe_enabled_payment_methods', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
 
   // 2. Hardware Beeper
   const [soundBeeperEnabled, setSoundBeeperEnabledState] = useState<boolean>(() => {
@@ -353,45 +373,15 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
       localStorage.setItem('hfe_storefront_customization', JSON.stringify(DEFAULT_STOREFRONT_CUSTOMIZATION))
     } catch {}
   }
-  const setPaymentPolicy = (policy: PaymentPolicy) => {
-    setPaymentPolicyState(policy)
-    try { localStorage.setItem('hfe_payment_policy', policy) } catch {}
-  }
-  const setPb1TaxMode = (mode: PB1TaxMode) => {
-    const effectiveMode = resolveInitialPb1TaxMode(String(mode))
-    setPb1TaxModeState(effectiveMode)
-    try { localStorage.setItem('hfe_pb1_tax_mode', String(effectiveMode)) } catch {}
-  }
-  const setTakeawaySurcharge = (fee: number) => {
-    setTakeawaySurchargeState(fee)
-    try { localStorage.setItem('hfe_takeaway_surcharge', String(fee)) } catch {}
-  }
-  const setPrimaryCurrency = (curr: SupportedCurrency) => {
-    setPrimaryCurrencyState(curr)
-    try { localStorage.setItem('hfe_primary_currency', curr) } catch {}
-  }
-  const setInitialCashFloat = (amt: number) => {
-    setInitialCashFloatState(amt)
-    try { localStorage.setItem('hfe_initial_cash_float', String(amt)) } catch {}
-  }
-  const setSoundBeeperEnabled = (enabled: boolean) => {
-    setSoundBeeperEnabledState(enabled)
-    CashierAudioService.getInstance().setEnabled(enabled)
-  }
+  const setPaymentPolicy = (p: PaymentPolicy) => { setPaymentPolicyState(p); try { localStorage.setItem('hfe_payment_policy', p) } catch {} }
+  const setPb1TaxMode = (m: PB1TaxMode) => { const eff = resolveInitialPb1TaxMode(String(m)); setPb1TaxModeState(eff); try { localStorage.setItem('hfe_pb1_tax_mode', String(eff)) } catch {} }
+  const setTakeawaySurcharge = (fee: number) => { setTakeawaySurchargeState(fee); try { localStorage.setItem('hfe_takeaway_surcharge', String(fee)) } catch {} }
+  const setPrimaryCurrency = (c: SupportedCurrency) => { setPrimaryCurrencyState(c); try { localStorage.setItem('hfe_primary_currency', c) } catch {} }
+  const setInitialCashFloat = (amt: number) => { setInitialCashFloatState(amt); try { localStorage.setItem('hfe_initial_cash_float', String(amt)) } catch {} }
+  const setSoundBeeperEnabled = (en: boolean) => { setSoundBeeperEnabledState(en); CashierAudioService.getInstance().setEnabled(en) }
 
-  const setCustomerTheme = (theme: CafeThemeConfig) => {
-    setCustomerThemeState(theme)
-    try {
-      localStorage.setItem('hfe_customer_theme', JSON.stringify(theme))
-    } catch {}
-  }
-
-  const setMerchantTheme = (theme: CafeThemeConfig) => {
-    setMerchantThemeState(theme)
-    try {
-      localStorage.setItem('hfe_merchant_theme', JSON.stringify(theme))
-    } catch {}
-  }
+  const setCustomerTheme = (theme: CafeThemeConfig) => { setCustomerThemeState(theme); try { localStorage.setItem('hfe_customer_theme', JSON.stringify(theme)) } catch {} }
+  const setMerchantTheme = (theme: CafeThemeConfig) => { setMerchantThemeState(theme); try { localStorage.setItem('hfe_merchant_theme', JSON.stringify(theme)) } catch {} }
 
   const saveCustomTheme = (name: string, theme: CafeThemeConfig) => {
     const updated = [...savedThemes.filter(t => t.themeId !== theme.themeId), { ...theme, themeName: name, isCustomTheme: true }]
@@ -436,15 +426,8 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
     try { localStorage.setItem('hfe_partner_contacts', JSON.stringify(updated)) } catch {}
   }
 
-  const setOnResetMockState = (fn: () => void) => {
-    resetHandlerRef.current = fn
-  }
-
-  const onResetMockState = () => {
-    if (resetHandlerRef.current) {
-      resetHandlerRef.current()
-    }
-  }
+  const setOnResetMockState = (fn: () => void) => { resetHandlerRef.current = fn }
+  const onResetMockState = () => { if (resetHandlerRef.current) resetHandlerRef.current() }
 
   const allAvailableThemes: CafeThemeConfig[] = [
     ...BUILTIN_THEMES,
@@ -460,6 +443,7 @@ export const MerchantConfigProvider: React.FC<{ children: ReactNode }> = ({ chil
         takeawaySurcharge, setTakeawaySurcharge,
         primaryCurrency, setPrimaryCurrency,
         initialCashFloat, setInitialCashFloat,
+        enabledPaymentMethods, setEnabledPaymentMethods, updateEnabledPaymentMethods,
         soundBeeperEnabled, setSoundBeeperEnabled,
         themeMode, setThemeMode, toggleThemeMode,
         customerTheme, setCustomerTheme,

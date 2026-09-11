@@ -1,5 +1,5 @@
 import React from 'react'
-import { DollarSign, Percent, ShoppingBag, Coins, CreditCard, Banknote } from 'lucide-react'
+import { DollarSign, Percent, ShoppingBag, Coins, CreditCard, Banknote, QrCode, Building2 } from 'lucide-react'
 import { useTranslation } from '../../context/LanguageContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { SupportedCurrency } from '../../types/pos'
@@ -17,7 +17,9 @@ export const FinancialTaxPolicyZone: React.FC = () => {
     paymentPolicy,
     setPaymentPolicy,
     initialCashFloat,
-    setInitialCashFloat
+    setInitialCashFloat,
+    enabledPaymentMethods,
+    updateEnabledPaymentMethods
   } = useMerchantConfig()
 
   const CURRENCIES: { code: SupportedCurrency; label: string; symbol: string; flag: string }[] = [
@@ -208,6 +210,107 @@ export const FinancialTaxPolicyZone: React.FC = () => {
               {paymentPolicy === 'open-tab' && <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />}
             </div>
             <p className="text-[11px] text-slate-400 leading-snug">{t.settings.openTabDesc}</p>
+          </button>
+        </div>
+      </div>
+
+      {/* 4. ENABLED PAYMENT METHODS SELECTOR */}
+      <div className="flex flex-col gap-2.5 pt-1 border-t border-slate-800/80">
+        <div>
+          <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+            <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+            {t.settings.enabledPaymentMethodsTitle}
+          </label>
+          <p className="text-[11px] text-slate-400 mt-0.5">{t.settings.enabledPaymentMethodsSub}</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* CASH */}
+          <button
+            type="button"
+            onClick={() => updateEnabledPaymentMethods({ cash: !enabledPaymentMethods.cash })}
+            className={`p-3.5 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${
+              enabledPaymentMethods.cash
+                ? 'bg-emerald-500/10 border-emerald-500/50 text-white ring-1 ring-emerald-500/30'
+                : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Banknote className={`w-4 h-4 ${enabledPaymentMethods.cash ? 'text-emerald-400' : 'text-slate-500'}`} />
+                <span className="text-xs font-bold text-slate-200">{t.settings.enableCashTender}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableCashTenderDesc}</p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.cash ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
+              {enabledPaymentMethods.cash ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </button>
+
+          {/* QRIS */}
+          <button
+            type="button"
+            onClick={() => updateEnabledPaymentMethods({ qris: !enabledPaymentMethods.qris })}
+            className={`p-3.5 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${
+              enabledPaymentMethods.qris
+                ? 'bg-indigo-500/10 border-indigo-500/50 text-white ring-1 ring-indigo-500/30'
+                : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <QrCode className={`w-4 h-4 ${enabledPaymentMethods.qris ? 'text-indigo-400' : 'text-slate-500'}`} />
+                <span className="text-xs font-bold text-slate-200">{t.settings.enableQrisTender}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableQrisTenderDesc}</p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.qris ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
+              {enabledPaymentMethods.qris ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </button>
+
+          {/* CARD EDC */}
+          <button
+            type="button"
+            onClick={() => updateEnabledPaymentMethods({ card: !enabledPaymentMethods.card })}
+            className={`p-3.5 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${
+              enabledPaymentMethods.card
+                ? 'bg-amber-500/10 border-amber-500/50 text-white ring-1 ring-amber-500/30'
+                : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <CreditCard className={`w-4 h-4 ${enabledPaymentMethods.card ? 'text-amber-400' : 'text-slate-500'}`} />
+                <span className="text-xs font-bold text-slate-200">{t.settings.enableCardTender}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableCardTenderDesc}</p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.card ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'}`}>
+              {enabledPaymentMethods.card ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </button>
+
+          {/* ROOM CHARGE */}
+          <button
+            type="button"
+            onClick={() => updateEnabledPaymentMethods({ roomCharge: !enabledPaymentMethods.roomCharge })}
+            className={`p-3.5 rounded-2xl border text-left flex items-start justify-between gap-3 transition-all cursor-pointer ${
+              enabledPaymentMethods.roomCharge
+                ? 'bg-purple-500/10 border-purple-500/50 text-white ring-1 ring-purple-500/30'
+                : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
+            }`}
+          >
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Building2 className={`w-4 h-4 ${enabledPaymentMethods.roomCharge ? 'text-purple-400' : 'text-slate-500'}`} />
+                <span className="text-xs font-bold text-slate-200">{t.settings.enableRoomChargeTender}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-snug">{t.settings.enableRoomChargeTenderDesc}</p>
+            </div>
+            <span className={`text-xs px-2 py-0.5 rounded-lg font-bold shrink-0 ${enabledPaymentMethods.roomCharge ? 'bg-purple-500/20 text-purple-400' : 'bg-slate-800 text-slate-400'}`}>
+              {enabledPaymentMethods.roomCharge ? 'Aktif' : 'Nonaktif'}
+            </span>
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import {
 import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, QrisTenderMetadata } from '../../types/pos'
 import type { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'
+import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { Button } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
@@ -62,6 +63,7 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   selectedCustomer
 }) => {
   const { t, formatPrice, language } = useTranslation()
+  const { enabledPaymentMethods } = useMerchantConfig()
 
   const payableAmount = authoritativeQuote
     ? Number(authoritativeQuote.amountDueMinor) / 100
@@ -182,69 +184,79 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">
               Pilih Metode Pembayaran:
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              <button
-                data-testid="settlement-tender-cash"
-                type="button"
-                disabled={!isTenderEligible('cash')}
-                onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
-                  !isTenderEligible('cash')
-                    ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
-                    : posPayMethod === 'cash'
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-sm ring-2 ring-emerald-500/20 font-black cursor-pointer'
-                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
-                }`}
-              >
-                <Banknote className="w-5 h-5 text-emerald-500" />
-                <span>Tunai</span>
-              </button>
+            <div className={`grid gap-2 ${
+              enabledPaymentMethods.roomCharge ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'
+            }`}>
+              {enabledPaymentMethods.cash && (
+                <button
+                  data-testid="settlement-tender-cash"
+                  type="button"
+                  disabled={!isTenderEligible('cash')}
+                  onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
+                  className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                    !isTenderEligible('cash')
+                      ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                      : posPayMethod === 'cash'
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-sm ring-2 ring-emerald-500/20 font-black cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
+                  }`}
+                >
+                  <Banknote className="w-5 h-5 text-emerald-500" />
+                  <span>Tunai</span>
+                </button>
+              )}
 
-              <button
-                data-testid="settlement-tender-qris"
-                type="button"
-                disabled={!isTenderEligible('qris')}
-                onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
-                  !isTenderEligible('qris')
-                    ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
-                    : posPayMethod === 'qris'
-                      ? 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm ring-2 ring-indigo-500/20 font-black cursor-pointer'
-                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
-                }`}
-              >
-                <QrCode className="w-5 h-5 text-indigo-500" />
-                <span>QRIS</span>
-              </button>
+              {enabledPaymentMethods.qris && (
+                <button
+                  data-testid="settlement-tender-qris"
+                  type="button"
+                  disabled={!isTenderEligible('qris')}
+                  onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
+                  className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                    !isTenderEligible('qris')
+                      ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                      : posPayMethod === 'qris'
+                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm ring-2 ring-indigo-500/20 font-black cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
+                  }`}
+                >
+                  <QrCode className="w-5 h-5 text-indigo-500" />
+                  <span>QRIS</span>
+                </button>
+              )}
 
-              <button
-                data-testid="settlement-tender-card"
-                type="button"
-                disabled={!isCardEligible}
-                onClick={() => isCardEligible && setPosPayMethod('card')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
-                  !isCardEligible
-                    ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
-                    : posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
-                      ? 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300 shadow-sm ring-2 ring-amber-500/20 font-black cursor-pointer'
-                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
-                }`}
-              >
-                <CreditCard className="w-5 h-5 text-amber-500" />
-                <span>Kartu EDC</span>
-              </button>
+              {enabledPaymentMethods.card && (
+                <button
+                  data-testid="settlement-tender-card"
+                  type="button"
+                  disabled={!isCardEligible}
+                  onClick={() => isCardEligible && setPosPayMethod('card')}
+                  className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                    !isCardEligible
+                      ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                      : posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
+                        ? 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300 shadow-sm ring-2 ring-amber-500/20 font-black cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5 text-amber-500" />
+                  <span>Kartu EDC</span>
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  onClose()
-                  onOpenRoomChargeModal?.()
-                }}
-                className="p-2.5 rounded-2xl border bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer"
-              >
-                <Building2 className="w-5 h-5 text-purple-500" />
-                <span>Kamar Hotel</span>
-              </button>
+              {enabledPaymentMethods.roomCharge && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose()
+                    onOpenRoomChargeModal?.()
+                  }}
+                  className="p-2.5 rounded-2xl border bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer"
+                >
+                  <Building2 className="w-5 h-5 text-purple-500" />
+                  <span>Kamar Hotel</span>
+                </button>
+              )}
             </div>
           </div>
 

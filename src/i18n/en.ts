@@ -280,6 +280,16 @@ export const enTranslations: TranslationDictionary = {
     openTabDesc: 'Orders can be added incrementally and settled when guests finish dining',
     initialCashFloat: 'Initial Cash Float Balance (Rp):',
     initialCashFloatSub: 'Opening petty cash change in drawer when shift starts',
+    enabledPaymentMethodsTitle: 'Active POS Payment Methods:',
+    enabledPaymentMethodsSub: 'Select tenders allowed for cashier bill settlement at checkout',
+    enableCashTender: 'Cash Payment',
+    enableCashTenderDesc: 'Accept physical bank notes and compute cashier change',
+    enableQrisTender: 'QRIS (Dynamic / Static)',
+    enableQrisTenderDesc: 'Accept Indonesian standardized QR e-wallets & mobile banking',
+    enableCardTender: 'Debit / Credit Card (EDC)',
+    enableCardTenderDesc: 'Accept bank cards processed via cashier EDC terminal',
+    enableRoomChargeTender: 'Hotel Room Charge (Guest Folio)',
+    enableRoomChargeTenderDesc: 'Hotel / Resort F&B only: post orders to registered guest room folio',
 
     // Zone 3: Perangkat Keras & Kasir
     zone3Heading: '🖨️ Hardware & Cashier Workstation',

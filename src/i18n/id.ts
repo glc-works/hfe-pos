@@ -280,6 +280,16 @@ export const idTranslations: TranslationDictionary = {
     openTabDesc: 'Pesanan dapat ditambah bertahap dan dibayar saat tamu selesai makan',
     initialCashFloat: 'Saldo Kas Awal Kasir / Float (Rp):',
     initialCashFloatSub: 'Modal uang pecahan kasir saat shift dibuka untuk uang kembalian',
+    enabledPaymentMethodsTitle: 'Metode Pembayaran yang Aktif di Kasir:',
+    enabledPaymentMethodsSub: 'Pilih metode bayar yang dapat diterima kasir pada saat pelunasan nota',
+    enableCashTender: 'Uang Tunai (Cash)',
+    enableCashTenderDesc: 'Terima pembayaran uang tunai fisik dan hitung kembalian kasir',
+    enableQrisTender: 'QRIS Dinamis / Statis',
+    enableQrisTenderDesc: 'Terima pembayaran scan QRIS multi-e-wallet & mobile banking',
+    enableCardTender: 'Kartu Debit / Kredit (EDC)',
+    enableCardTenderDesc: 'Terima kartu bank melalui mesin gesek/insert EDC outlet',
+    enableRoomChargeTender: 'Tagihan Kamar Hotel (Room Folio)',
+    enableRoomChargeTenderDesc: 'Khusus outlet hotel/resort: bebankan transaksi ke tagihan kamar tamu',
 
     // Zone 3: Perangkat Keras & Kasir
     zone3Heading: '🖨️ Perangkat Keras & Kasir',
