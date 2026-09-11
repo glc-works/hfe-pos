@@ -1,8 +1,8 @@
 {
   "source_repo": "glc-works/headless-company-books",
-  "source_commit": "e2bc43373d544d22406373eeee4c1fc06f48b27b",
+  "source_commit": "9402dd82f730dfbaf5e7fd2883b52a26d9c1264e",
   "source_path": "packages/hfe-sdk",
   "contract_version": "2.1.0",
-  "synced_at": "2026-08-28T06:12:00.000000+00:00",
-  "digest_sha256": "1f8095178ecbc8441c80ed1b8e4bad777e488ec9f8d35b4925ff14c6154db9ed"
+  "synced_at": "2026-09-11T12:51:09.000000+00:00",
+  "digest_sha256": "3f8b8739c8be8a988b365b13228d4b2e0c8bccae21dfdc8560fcf7a143cc75a9"
 }
