@@ -8,8 +8,9 @@ import { useTranslation } from '../../context/LanguageContext'
 import { Button, PriceTag } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
-import { formatExactMinorCurrency } from '../../utils/localeNumberFormat'
 import { PosQrisTenderForm } from './PosQrisTenderForm'
+import { PosCardTenderForm } from './PosCardTenderForm'
+import { PosCashTenderForm } from './PosCashTenderForm'
 
 export interface PosPaymentSettlementModalProps {
   show: boolean
@@ -66,6 +67,8 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   const [cardPrefix, setCardPrefix] = useState<string>('45563321')
   const [cardLast4, setCardLast4] = useState<string>('9876')
   const [approvalCode, setApprovalCode] = useState<string>('APPR-8899')
+  const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>('cc')
+  const [cardNetwork, setCardNetwork] = useState<'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'discover' | 'unionpay' | 'other'>('visa')
 
   const [qrisProvider, setQrisProvider] = useState<string>(qrisMetadata?.provider || 'BCA')
   const [rrnRefNumber, setRrnRefNumber] = useState<string>(qrisMetadata?.rrnRefNumber || '')
@@ -94,15 +97,7 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   if (!show) return null
 
   const cashGivenNum = Number(posCashGiven.replace(/\D/g, '')) || 0
-  const changeAmount = Math.max(0, cashGivenNum - payableAmount)
   const isCashSufficient = posPayMethod !== 'cash' || cashGivenNum >= payableAmount
-
-  const quickPresets = [
-    { label: 'Uang Pas', amount: payableAmount },
-    { label: 'Rp 50.000', amount: 50000 },
-    { label: 'Rp 100.000', amount: 100000 },
-    { label: 'Rp 200.000', amount: 200000 }
-  ].filter(p => p.amount >= payableAmount || p.label === 'Uang Pas')
 
   const isSubmitting = checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting'
 
@@ -225,60 +220,18 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
 
           {/* Tender Form Specifics */}
           {posPayMethod === 'cash' && (
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Nominal Uang Tunai Diterima:
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
-                    Rp
-                  </span>
-                  <input
-                    type="number"
-                    value={posCashGiven}
-                    onChange={(e) => setPosCashGiven(e.target.value)}
-                    placeholder={payableAmount.toString()}
-                    className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-base font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              {/* Quick Cash Presets */}
-              <div className="flex flex-wrap gap-1.5">
-                {quickPresets.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setPosCashGiven(preset.amount.toString())}
-                    className="px-2.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 text-slate-800 dark:text-slate-200 transition-all cursor-pointer active:scale-95 shadow-sm"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Change / Kembalian Calculation */}
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                  Uang Kembalian:
-                </span>
-                <span className={`text-base font-black font-mono ${
-                  changeAmount > 0
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : isCashSufficient
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-rose-500'
-                }`}>
-                  {isCashSufficient ? formatPrice(changeAmount) : 'Uang Kurang!'}
-                </span>
-              </div>
-
+            <div className="space-y-2">
+              <PosCashTenderForm
+                authoritativeQuote={authoritativeQuote}
+                posCashGiven={posCashGiven}
+                setPosCashGiven={setPosCashGiven}
+                grandTotal={payableAmount}
+              />
               {!isCashSufficient && cashGivenNum > 0 && (
                 <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-2 animate-fadeIn">
-                  <div className="text-[11px] text-rose-500 font-medium">
-                    Kurang <span className="font-bold font-mono">{formatPrice(payableAmount - cashGivenNum)}</span>
+                  <div className="text-[11px] text-rose-500 font-medium flex items-center gap-1">
+                    <span className="font-bold">Uang Kurang!</span>
+                    <span>(Kurang <span className="font-bold font-mono">{formatPrice(payableAmount - cashGivenNum)}</span>)</span>
                   </div>
                   <button
                     type="button"
@@ -307,37 +260,21 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
           )}
 
           {(posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                    Bank EDC:
-                  </label>
-                  <select
-                    value={selectedBank}
-                    onChange={(e) => setSelectedBank(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white"
-                  >
-                    <option value="BCA">BCA EDC</option>
-                    <option value="Mandiri">Mandiri EDC</option>
-                    <option value="BRI">BRI EDC</option>
-                    <option value="BNI">BNI EDC</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                    Approval Code EDC:
-                  </label>
-                  <input
-                    type="text"
-                    value={approvalCode}
-                    onChange={(e) => setApprovalCode(e.target.value)}
-                    placeholder="APPR-1234"
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
+            <PosCardTenderForm
+              posPayMethod={posPayMethod}
+              internalCardType={internalCardType}
+              selectedBank={selectedBank}
+              cardPrefix={cardPrefix}
+              cardLast4={cardLast4}
+              cardNetwork={cardNetwork}
+              approvalCode={approvalCode}
+              setInternalCardType={setInternalCardType}
+              setPosPayMethod={setPosPayMethod}
+              setSelectedBank={setSelectedBank}
+              onCardPrefixChange={(val) => setCardPrefix(val.replace(/\D/g, '').slice(0, 8))}
+              onCardLast4Change={(val) => setCardLast4(val.replace(/\D/g, '').slice(0, 4))}
+              setApprovalCode={setApprovalCode}
+            />
           )}
         </div>
 

@@ -42,7 +42,7 @@ describe('POS Payment Settlement Modal Flow (Toast / Square Benchmark)', () => {
     expect(html).toContain('QRIS')
     expect(html).toContain('Kartu EDC')
     // Kembalian calculation
-    expect(html).toContain('Uang Kembalian')
+    expect(html).toContain('Kembalian:')
     expect(html).toContain('7.600')
     // Selesaikan CTA
     expect(html).toContain('Selesaikan &amp; Cetak Struk')
@@ -53,5 +53,64 @@ describe('POS Payment Settlement Modal Flow (Toast / Square Benchmark)', () => {
     const cashGiven = 100000
     const change = cashGiven - payableAmount
     expect(change).toBe(7600)
+  })
+
+  it('renders interactive virtual card tender form when card payment method is selected', () => {
+    const html = renderToStaticMarkup(
+      <LanguageProvider>
+        <MerchantConfigProvider>
+          <PosPaymentSettlementModal
+            show={true}
+            onClose={vi.fn()}
+            items={sampleItems as any}
+            selectedTable={null}
+            subtotal={84000}
+            pb1Tax={8400}
+            grandTotal={92400}
+            fulfillmentMode="takeaway"
+            posPayMethod="card"
+            setPosPayMethod={vi.fn()}
+            posCashGiven="92400"
+            setPosCashGiven={vi.fn()}
+            onConfirmSettlement={vi.fn()}
+          />
+        </MerchantConfigProvider>
+      </LanguageProvider>
+    )
+
+    // Card tender elements from PosCardTenderForm
+    expect(html).toContain('VISA')
+    expect(html).toContain('Trace:')
+    expect(html).toContain('APPR-8899')
+  })
+
+  it('renders rich QRIS provider options and RRN fields when qris payment method is selected', () => {
+    const html = renderToStaticMarkup(
+      <LanguageProvider>
+        <MerchantConfigProvider>
+          <PosPaymentSettlementModal
+            show={true}
+            onClose={vi.fn()}
+            items={sampleItems as any}
+            selectedTable={null}
+            subtotal={84000}
+            pb1Tax={8400}
+            grandTotal={92400}
+            fulfillmentMode="dine_in"
+            posPayMethod="qris"
+            setPosPayMethod={vi.fn()}
+            posCashGiven="92400"
+            setPosCashGiven={vi.fn()}
+            onConfirmSettlement={vi.fn()}
+            qrisMetadata={{ provider: 'GoPay', rrnRefNumber: '123456789012', senderName: 'Budi' }}
+          />
+        </MerchantConfigProvider>
+      </LanguageProvider>
+    )
+
+    // QRIS provider pills and RRN
+    expect(html).toContain('GoPay')
+    expect(html).toContain('123456789012')
+    expect(html).toContain('Budi')
   })
 })
