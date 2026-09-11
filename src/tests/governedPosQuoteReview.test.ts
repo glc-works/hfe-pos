@@ -126,6 +126,49 @@ describe('governed POS quote review & acceptance', () => {
     })
   })
 
+  it('accepts CORE quotes that also list ineligible out-of-scope card tenders', async () => {
+    const futureExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+    const fetchMock = vi.fn().mockResolvedValue(response(201, {
+      quote_id: 'QUOTE-1',
+      revision: '3',
+      digest_sha256: 'd'.repeat(64),
+      currency: 'IDR',
+      subtotal_minor: '28000',
+      discount_total_minor: '0',
+      tax_total_minor: '0',
+      service_charge_total_minor: '0',
+      tip_total_minor: '0',
+      rounding_total_minor: '0',
+      amount_due_minor: '28000',
+      preset_id: 'PRESET-1',
+      preset_version: '4',
+      lines: [{
+        ordinal: 0,
+        item_id: 'MN-001',
+        quantity: '1',
+        modifier_ids: [],
+        discount_allocated_minor: '0',
+      }],
+      expires_at: futureExpiry,
+      tender_eligibility: [
+        { tender_type: 'cash', eligible: true },
+        { tender_type: 'qris', eligible: true },
+        { tender_type: 'debit', eligible: false, reason_code: 'not_in972_scope' },
+        { tender_type: 'credit', eligible: false, reason_code: 'not_in972_scope' },
+      ],
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+      .prepareGovernedRetailQuote(governedPayload, context)
+
+    expect(result.amountDueMinor).toBe('28000')
+    expect(result.tenderEligibility).toEqual([
+      { tenderType: 'cash', eligible: true, reasonCode: undefined },
+      { tenderType: 'qris', eligible: true, reasonCode: undefined },
+    ])
+  })
+
   it('rejects quotes with non-canonical decimal money strings', async () => {
     const futureExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString()
     const fetchMock = vi.fn().mockResolvedValue(response(201, {

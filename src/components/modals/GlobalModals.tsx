@@ -7,7 +7,7 @@ import { QrisModal } from './QrisModal'
 import { RecipeBomModal } from './RecipeBomModal'
 import { PwaInstallPromptModal } from '../shared/PwaInstallPromptModal'
 import { PRODUCT_CATALOG } from '../../data/mockData'
-import { MenuItem, CustomerProfile, HfeCompanyProfile } from '../../types/pos'
+import { MenuItem, CustomerProfile, HfeCompanyProfile, QrStepView } from '../../types/pos'
 
 export interface GlobalModalsProps {
   showLoginModal: boolean
@@ -20,7 +20,7 @@ export interface GlobalModalsProps {
   setSelectedRecipeBOM: (item: MenuItem | null) => void
   customerProfiles: CustomerProfile[]
   setCustomerProfiles: React.Dispatch<React.SetStateAction<CustomerProfile[]>>
-  setQrStepView: (v: 'catalog' | 'checkout') => void
+  setQrStepView: (v: QrStepView) => void
 }
 
 export const GlobalModals: React.FC<GlobalModalsProps> = ({

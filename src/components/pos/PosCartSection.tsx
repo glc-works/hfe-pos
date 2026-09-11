@@ -1,6 +1,7 @@
-import React, { lazy, Suspense, useState } from 'react'
-import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, Banknote, QrCode, CreditCard, CheckCircle2, Scissors, UtensilsCrossed, Bike, Loader2, Sparkles } from 'lucide-react'
-import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
+import React from 'react'
+import { ShoppingBag, Coffee, Calculator, Minus, Plus, Trash2, CheckCircle2, Scissors, Loader2, Sparkles, User, X, Crown } from 'lucide-react'
+import { CartItem, TableStatus, PosPayMethod, CardTenderMetadata, QrisTenderMetadata, OrderFulfillmentMode } from '../../types/pos'
+import { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'
 import { SegmentedControl, Button } from '@/ui'
 import { GLYPHS } from '../../tokens/designTokens'
@@ -9,8 +10,6 @@ import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
 import { formatExactMinorCurrency } from '../../utils/localeNumberFormat'
-const PosCardTenderForm = lazy(() => import('./PosCardTenderForm').then(({ PosCardTenderForm }) => ({ default: PosCardTenderForm })))
-const PosCashTenderForm = lazy(() => import('./PosCashTenderForm').then(({ PosCashTenderForm }) => ({ default: PosCashTenderForm })))
 export interface PosCartSectionProps {
   cartItems: CartItem[]
   selectedPOSTable: TableStatus | null
@@ -22,13 +21,18 @@ export interface PosCartSectionProps {
   packagingFee?: number
   fulfillmentMode?: OrderFulfillmentMode
   hideHeader?: boolean
+  selectedCustomer?: CustomerContact | null
+  onOpenCustomerPicker?: () => void
+  onClearCustomer?: () => void
   cardMetadata?: CardTenderMetadata
+  qrisMetadata?: QrisTenderMetadata
   authoritativeQuote?: ReviewedPosQuote | null
   checkoutPhase?: GovernedCheckoutPhase
   setPosPayMethod: (method: PosPayMethod) => void
   setPosCashGiven: (val: string) => void
   setFulfillmentMode?: (mode: OrderFulfillmentMode) => void
   setCardMetadata?: (meta: CardTenderMetadata) => void
+  setQrisMetadata?: (meta: QrisTenderMetadata) => void
   onUpdateQty: (index: number, qty: number) => void
   onOpenDirectQtyModal: (item: CartItem, index: number) => void
   onCheckout: () => void
@@ -47,11 +51,16 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   packagingFee = 0,
   fulfillmentMode = 'dine_in',
   hideHeader = false,
+  selectedCustomer,
+  onOpenCustomerPicker,
+  onClearCustomer,
+  qrisMetadata,
   authoritativeQuote,
   checkoutPhase,
   setPosPayMethod,
   setPosCashGiven,
   setFulfillmentMode,
+  setQrisMetadata,
   onUpdateQty,
   onOpenDirectQtyModal,
   onCheckout,
@@ -64,24 +73,7 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
   const reviewReady = checkoutPhase?.kind === 'review'
   const connectedRuntime = isConnectedFirstPartyRuntime()
   const awaitingCoreQuote = connectedRuntime && !authoritativeQuote
-  const isTenderEligible = (tenderType: 'cash' | 'qris') => !authoritativeQuote || (
-    authoritativeQuote.tenderEligibility.filter((entry) => entry.tenderType === tenderType).length === 1 &&
-    authoritativeQuote.tenderEligibility.some((entry) => entry.tenderType === tenderType && entry.eligible)
-  )
-  const isCardEligible = !connectedRuntime && !authoritativeQuote
-  const unavailableTenderClass = 'opacity-40 cursor-not-allowed'
 
-  const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>(
-    posPayMethod === 'debit' ? 'debit' : 'cc'
-  )
-  const [selectedBank, setSelectedBank] = useState<string>('BCA')
-  const [cardPrefix, setCardPrefix] = useState<string>('45563321')
-  const [cardLast4, setCardLast4] = useState<string>('9876')
-  const [cardNetwork, setCardNetwork] = useState<'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'discover' | 'unionpay' | 'other'>('visa')
-  const [approvalCode, setApprovalCode] = useState<string>('')
-
-  const handleCardPrefixChange = (val: string) => setCardPrefix(val.replace(/\D/g, '').slice(0, 8))
-  const handleCardLast4Change = (val: string) => setCardLast4(val.replace(/\D/g, '').slice(0, 4))
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3.5 flex flex-col justify-between shadow-2xl h-full min-h-0 overflow-hidden">
       <SegmentedControl
@@ -101,26 +93,59 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <ShoppingBag className="w-4 h-4 text-indigo-500 dark:text-indigo-400" /> {t.cart.cashierCart}
           </h3>
-          <div className="flex items-center gap-2">
-            {onSwitchToCatalog && (
-              <button
-                type="button"
-                onClick={onSwitchToCatalog}
-                className="text-[11px] font-bold text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 bg-amber-100 dark:bg-amber-500/10 hover:bg-amber-200 dark:hover:bg-amber-500/20 border border-amber-300 dark:border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
-                title="Tambah Menu ke Keranjang"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>{t.cart.addMoreMenu}</span>
-              </button>
-            )}
-            {selectedPOSTable && fulfillmentMode === 'dine_in' && (
-              <span className="text-xs font-mono font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-300 dark:border-amber-500/30">
-                {selectedPOSTable.name}
-              </span>
-            )}
-          </div>
+          {selectedPOSTable && fulfillmentMode === 'dine_in' && (
+            <span className="text-xs font-mono font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-300 dark:border-amber-500/30">
+              {selectedPOSTable.name}
+            </span>
+          )}
         </div>
       )}
+
+      {/* CUSTOMER CONTACT & LOYALTY CAPSULE */}
+      <div className="shrink-0 pt-1.5 pb-0.5">
+        {selectedCustomer ? (
+          <div className="w-full py-1.5 px-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs animate-fadeIn">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <div className="flex items-baseline gap-1.5 truncate">
+                <span className="font-bold text-[11px] text-amber-600 dark:text-amber-400 truncate">
+                  {selectedCustomer.name}
+                </span>
+                <span className="text-[9px] font-mono font-bold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1 py-0.2 rounded border border-amber-500/30 shrink-0">
+                  {selectedCustomer.tier}
+                </span>
+                {selectedCustomer.phone && selectedCustomer.phone !== '-' && (
+                  <span className="text-[10px] font-mono text-slate-400 truncate hidden sm:inline">
+                    {selectedCustomer.phone}
+                  </span>
+                )}
+              </div>
+            </div>
+            {onClearCustomer && (
+              <button
+                type="button"
+                onClick={onClearCustomer}
+                className="p-0.5 hover:bg-amber-500/20 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
+                title="Lepas Pelanggan"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onOpenCustomerPicker}
+            className="w-full py-1.5 px-2.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-between text-xs transition-all cursor-pointer group"
+          >
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+              <User className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-500 transition-colors" />
+              <span className="font-semibold text-[11px]">+ Pasang Pelanggan / Member</span>
+            </div>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Tamu Umum ▾</span>
+          </button>
+        )}
+      </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 my-1.5 flex flex-col gap-2">
         {cartItems.length === 0 ? (
@@ -222,68 +247,6 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           </p>
         )}
 
-        <div className="grid grid-cols-3 gap-1.5 pt-1">
-          <button
-            data-testid="tender-cash"
-            type="button"
-            disabled={!isTenderEligible('cash')}
-            onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${!isTenderEligible('cash') ? unavailableTenderClass : posPayMethod === 'cash' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-          >
-            <Banknote className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCash}</span>
-          </button>
-          <button
-            data-testid="tender-qris"
-            type="button"
-            disabled={!isTenderEligible('qris')}
-            onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${!isTenderEligible('qris') ? unavailableTenderClass : posPayMethod === 'qris' ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold' : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-          >
-            <QrCode className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payQris}</span>
-          </button>
-          <button
-            data-testid="tender-card"
-            type="button"
-            disabled={!isCardEligible}
-            onClick={() => isCardEligible && setPosPayMethod('card')}
-            className={`py-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1 transition-all whitespace-nowrap ${
-              !isCardEligible
-                ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
-                : posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
-                  ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-950 shadow-md font-extrabold'
-                  : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <CreditCard className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{t.cart.payCard}</span>
-          </button>
-        </div>
-
-        {isCardEligible && (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
-          <Suspense fallback={<div className="min-h-[140px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
-            <PosCardTenderForm
-              posPayMethod={posPayMethod}
-              internalCardType={internalCardType}
-              selectedBank={selectedBank}
-              cardPrefix={cardPrefix}
-              cardLast4={cardLast4}
-              cardNetwork={cardNetwork}
-              approvalCode={approvalCode}
-              setInternalCardType={setInternalCardType}
-              setPosPayMethod={setPosPayMethod}
-              setSelectedBank={setSelectedBank}
-              onCardPrefixChange={handleCardPrefixChange}
-              onCardLast4Change={handleCardLast4Change}
-              setApprovalCode={setApprovalCode}
-            />
-          </Suspense>
-        )}
-
-        {posPayMethod === 'cash' && !awaitingCoreQuote && (
-          <Suspense fallback={<div className="min-h-[180px] rounded-2xl bg-slate-50 dark:bg-slate-950" aria-busy="true" />}>
-            <PosCashTenderForm authoritativeQuote={authoritativeQuote} posCashGiven={posCashGiven} setPosCashGiven={setPosCashGiven} grandTotal={grandTotal} />
-          </Suspense>
-        )}
-
         {reviewReady && (
           <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 animate-fadeIn">
             <span className="flex items-center gap-1.5 font-bold">
@@ -327,17 +290,9 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
               reviewReady ? 'ring-2 ring-emerald-400 ring-offset-2 animate-pulse' : ''
             }`}
           >
-            {checkoutPhase?.kind === 'quoting'
-              ? 'Menghitung Kuotasi PB1...'
-              : checkoutPhase?.kind === 'accepting'
-                ? 'Memproses Transaksi...'
-                : reviewReady
-                  ? `⚡ 2. Terima & Bayar Sekarang • ${authoritativeQuote ? formatExactMinor(authoritativeQuote.amountDueMinor) : formatPrice(grandTotal)} ➔`
-                  : awaitingCoreQuote
-                    ? t.cart.reviewCoreQuote
-                    : fulfillmentMode === 'takeaway'
-                      ? `${t.cart.takeawayModeLabel} • 🔍 Review Kuotasi (${formatPrice(grandTotal)})`
-                      : `🔍 1. Review Kuotasi PB1 • ${formatPrice(grandTotal)}`}
+            {checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting'
+              ? 'Memproses...'
+              : `${t.cart.payAction} ➔`}
           </Button>
         </div>
       </div>

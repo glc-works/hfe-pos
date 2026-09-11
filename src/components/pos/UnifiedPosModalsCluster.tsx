@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { TableStatus, MenuItem, StaffSurfaceMode, CartItem, OrderFulfillmentMode, PosPayMethod } from '../../types/pos'
+import { TableStatus, MenuItem, StaffSurfaceMode, CartItem, OrderFulfillmentMode, PosPayMethod, QrisTenderMetadata } from '../../types/pos'
 import { CashierCameraScannerModal } from './CashierCameraScannerModal'
 import { DirectQtyInputModal } from './DirectQtyInputModal'
 import { TableOpsModal } from '../tables/TableOpsModal'
@@ -16,8 +16,10 @@ import { SupportFeedbackModal } from '../support/SupportFeedbackModal'
 import { PosPaymentSettlementModal } from './PosPaymentSettlementModal'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
+import type { CustomerContact } from '../../hooks/useCustomerContacts'
 
 export interface UnifiedPosModalsClusterProps {
+  selectedCustomer?: CustomerContact | null
   showCameraScanner: boolean
   setShowCameraScanner: (show: boolean) => void
   handleScanSuccess: (barcode: string) => void
@@ -84,12 +86,15 @@ export interface UnifiedPosModalsClusterProps {
   posCashGiven?: string
   setPosCashGiven?: (val: string) => void
   packagingFee?: number
+  qrisMetadata?: QrisTenderMetadata
+  setQrisMetadata?: (meta: QrisTenderMetadata) => void
   authoritativeQuote?: ReviewedPosQuote | null
   checkoutPhase?: GovernedCheckoutPhase
   onConfirmSettlement?: () => Promise<void> | void
 }
 
 export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = ({
+  selectedCustomer,
   showCameraScanner,
   setShowCameraScanner,
   handleScanSuccess,
@@ -147,6 +152,8 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
   posCashGiven = '',
   setPosCashGiven = () => {},
   packagingFee = 0,
+  qrisMetadata,
+  setQrisMetadata,
   authoritativeQuote,
   checkoutPhase,
   onConfirmSettlement = () => {}
@@ -306,6 +313,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
       <PosPaymentSettlementModal
         show={showPaymentSettlementModal}
         onClose={() => setShowPaymentSettlementModal?.(false)}
+        selectedCustomer={selectedCustomer}
         items={cartItems}
         selectedTable={selectedPOSTable}
         subtotal={subtotal}
@@ -322,6 +330,8 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         onConfirmSettlement={onConfirmSettlement}
         onOpenRoomChargeModal={() => setShowRoomChargeModal(true)}
         onOpenSplitPaymentModal={() => setShowTableOpsModal(true)}
+        qrisMetadata={qrisMetadata}
+        setQrisMetadata={setQrisMetadata}
       />
     </>
   )

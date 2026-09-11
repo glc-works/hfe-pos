@@ -64,7 +64,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return saved
       }
     } catch {}
-    return 'dark'
+    return 'light'
   })
 
   // Determine system theme preference
@@ -118,8 +118,8 @@ export function useTheme(): ThemeContextType {
   const context = useContext(ThemeContext)
   if (!context) {
     return {
-      themeMode: 'dark',
-      effectiveTheme: 'dark',
+      themeMode: 'light',
+      effectiveTheme: 'light',
       setThemeMode: () => {},
       toggleThemeMode: () => {}
     }

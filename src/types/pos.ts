@@ -8,6 +8,15 @@ export type CustomerLoginType = 'phone' | 'guest-name'
 export type PaymentPolicy = 'pay-first' | 'open-tab'
 export type PB1TaxMode = 0 | 1 | 2 // 0=Disabled, 1=Exclude (Show), 2=Include (Embedded in price)
 export type PosPayMethod = 'cash' | 'qris' | 'cc' | 'debit' | 'card'
+
+export interface EnabledPaymentMethods {
+  cash: boolean
+  qris: boolean
+  card: boolean
+  cardMode?: 'all' | 'debit_only' | 'credit_only'
+  roomCharge: boolean
+}
+
 export type OrderFulfillmentMode = 'dine_in' | 'takeaway' | 'delivery'
 export type DeliveryDropOffOption = 'leave_at_lobby_guard' | 'meet_at_door' | 'meet_in_person'
 export interface DeliveryAddressInfo {
@@ -25,6 +34,12 @@ export interface CardTenderMetadata {
   cardTier?: string  // e.g. "World", "Batik Air", "Private/Prioritas", "Infinite", "Signature", "Platinum"
   maskedReconNumber?: string // e.g. "4123-***-789"
   approvalCode?: string
+}
+
+export interface QrisTenderMetadata {
+  provider?: 'bca' | 'mandiri' | 'gopay' | 'ovo' | 'shopeepay' | 'dana' | 'other' | string
+  rrnRefNumber?: string
+  senderName?: string
 }
 
 export interface TableReservation {
@@ -142,6 +157,8 @@ export interface CartItem extends MenuItem {
   selectedModifiers?: SelectedModifier[]
 }
 
+export type QrStepView = 'catalog' | 'checkout' | 'order_summary'
+
 export interface OrderTicket {
   id: string
   table: string
@@ -157,6 +174,8 @@ export interface OrderTicket {
   timeElapsedMinutes: number
   createdAt: string
   waiterCall?: string
+  queueNumber?: number
+  roundNumber?: number
 }
 
 export interface Order extends OrderTicket {
@@ -398,39 +417,19 @@ export interface OperationScalePolicy {
 }
 
 export interface OnboardingData {
-  businessType: BusinessType
-  operationScale: OperationScale
-  cluster?: BusinessCluster
-  migrationSource?: MigrationSource
-  migrationFileName?: string
-  country?: SupportedCountry
-  currency?: SupportedCurrency
-  capacityScale?: string
-  brandName: string
-  logoUrl: string
-  address: string
-  instagram: string
-  whatsappOrder: string
-  wifiSsid: string
-  wifiPassword: string
-  wifiAccessPolicy?: WifiAccessPolicy
-  pb1TaxMode: PB1TaxMode
-  initialKasFloat: number
-  tenancyUuid?: string
+  businessType: BusinessType; operationScale: OperationScale; cluster?: BusinessCluster
+  migrationSource?: MigrationSource; migrationFileName?: string; country?: SupportedCountry
+  currency?: SupportedCurrency; capacityScale?: string; brandName: string; logoUrl: string
+  address: string; instagram: string; whatsappOrder: string; wifiSsid: string; wifiPassword: string
+  wifiAccessPolicy?: WifiAccessPolicy; pb1TaxMode: PB1TaxMode; initialKasFloat: number; tenancyUuid?: string
 }
 
 // --- TEAM MEMBERSHIP & RBAC TYPES ---
 export type StaffRole = 'owner' | 'store_manager' | 'cashier' | 'barista' | 'chef' | 'waiter' | 'checker_qc' | 'sommelier' | 'courier' | 'warehouse_keeper'
 
 export interface TeamMember {
-  id: string
-  name: string
-  contact: string
-  role: StaffRole
-  status: 'active' | 'pending_invite'
-  pinCode: string
-  invitedAt: string
-  activatedAt?: string
+  id: string; name: string; contact: string; role: StaffRole
+  status: 'active' | 'pending_invite'; pinCode: string; invitedAt: string; activatedAt?: string
 }
 
 // --- EVENT TICKETING & WORKSHOP CLASS BOOKING TYPES ---

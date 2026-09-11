@@ -242,6 +242,7 @@ describe('cafe checkout attempt coordination', () => {
       subtotal_minor: '25000', amount_due_minor: '25000', discount_total_minor: '0', tax_total_minor: '0',
       service_charge_total_minor: '0', tip_total_minor: '0', rounding_total_minor: '0', preset_id: 'PRESET-1',
       preset_version: '1' as Int64String, expires_at: '2026-08-28T10:15:00Z', lines: [], tender_eligibility: [],
+      promotions: [],
     } satisfies PosSaleQuoteView })
     await durable.transition('qris_intent_requested')
     await durable.transition('qris_intent_ready', {

@@ -25,7 +25,7 @@ export interface AcceptOrderCommand {
 export interface AcceptTenderCommand {
   amount_minor: string;
   provider_intent_reference?: string | null;
-  tender_type: string;
+  tender_type: PosTenderType;
 }
 
 export interface AcceptedOrderReceipt {
@@ -39,9 +39,10 @@ export interface AcceptedOrderReceipt {
 export interface AcceptedTenderReceipt {
   acceptance_effect_key: string;
   amount_minor: string;
+  currency: string;
   provider_intent_reference?: string | null;
   tender_id: string;
-  tender_type: string;
+  tender_type: PosTenderType;
 }
 
 export interface Account {
@@ -54,12 +55,16 @@ export interface Account {
   state_revision: Int64String;
 }
 
+export type AccountClass = "asset" | "liability" | "equity" | "revenue" | "expense" | "other";
+
 export interface AccountList {
   accounts: Account[];
 }
 
+export type AccountingBookScopeMode = "all_current_and_future";
+
 export interface AccountingBookScopeSummary {
-  mode: string;
+  mode: AccountingBookScopeMode;
 }
 
 export interface AccountingPeriod {
@@ -72,8 +77,12 @@ export interface AccountingPeriod {
 }
 
 export interface AccountingPeriodList {
-  accounting_periods: AccountingPeriod[];
+  has_more: boolean;
+  items: AccountingPeriod[];
+  next_cursor?: string | null;
 }
+
+export type AccountingPeriodSoftLockStatus = "soft_locked";
 
 export interface AccountingPeriodTransition {
   reason: string;
@@ -116,8 +125,16 @@ export interface AdminReviewSubmissionRequest {
   target_type: string;
 }
 
+export interface AdmissionCommand {
+  expected_revision?: Int64String | null;
+  reason: string;
+  status: AdmissionStatus;
+}
+
+export type AdmissionStatus = "active" | "suspended" | "revoked";
+
 export interface AdmissionView {
-  admission_scope: string;
+  admission_scope: EarlyAccessAdmissionScope;
   application: string;
   client_application_id: string;
   company_book_id: string;
@@ -137,7 +154,7 @@ export interface AdmissionView {
   revoked_by_principal_id?: string | null;
   starts_at: string;
   state_revision: Int64String;
-  status: string;
+  status: EarlyAccessAdmissionStatus;
   support_contact: string;
   suspended_at?: string | null;
   suspended_by_principal_id?: string | null;
@@ -167,14 +184,14 @@ export interface AgingBucketSummary {
 export interface AgingReport {
   as_of_date: string;
   buckets: AgingBucket[];
-  direction: string;
+  direction: OpenItemDirection;
   grand_total: Int64String;
 }
 
 export interface AllocateContractLossRequest {
   capital_ratio?: number | null;
   contract_id: string;
-  contract_mode?: string | null;
+  contract_mode?: null | UniversalContractMode;
   period_id: string;
   total_loss_minor: Int64String;
 }
@@ -188,7 +205,7 @@ export interface AllocateNsfpPoolRequest {
 export interface AllocatePayment {
   allocated_amount: Int64String;
   document_id: string;
-  document_type: string;
+  document_type: PaymentAllocationDocumentType;
   fx_gain_loss?: Int64String | null;
 }
 
@@ -196,12 +213,15 @@ export interface ApiError {
   code: string;
   details: ApiErrorDetails;
   message: string;
+  remediation?: string | null;
   request_id: string;
 }
 
 export interface ApiErrorDetails {
   violations?: ValidationViolation[] | null;
 }
+
+export type ApiReleaseChannel = "preview" | "stable";
 
 export interface ApplyInvoiceEstampRequest {
   document_amount_minor?: Int64String | null;
@@ -229,16 +249,20 @@ export interface ApprovalDecisionRequest {
 export interface ApprovalDecisionResponse {
   approval_request_id: string;
   decision: string;
-  state: string;
+  state: ApprovalRequestState;
 }
+
+export type ApprovalPolicyMode = "always_approve" | "direct_post" | "threshold_approve";
 
 export interface ApprovalPolicySetting {
   configured: boolean;
-  mode: string;
+  mode: ApprovalPolicyMode;
   required_role: string;
   source_capability: string;
   threshold_amount?: Int64String | null;
 }
+
+export type ApprovalRequestState = "approved" | "rejected";
 
 export interface ApproveLiveRequest {
   notes?: string | null;
@@ -269,7 +293,7 @@ export interface ArAgingBucketView {
 
 export interface ArApReconciliation {
   difference: Int64String;
-  direction: string;
+  direction: OpenItemDirection;
   gl_account_balance: Int64String;
   reconciled: boolean;
   subledger_open_total: Int64String;
@@ -290,30 +314,38 @@ export interface AssetCategoryView {
 }
 
 export interface AssignParticipantRequest {
-  participant_role: string;
+  participant_role: AuditParticipantRole;
   principal_id: string;
 }
 
 export interface Attention {
-  action_type: string;
+  action_type: AttentionActionType;
   action_url?: string | null;
   created_at: string;
   description?: string | null;
   detail?: unknown;
   id: string;
-  severity: string;
+  severity: AttentionSeverity;
   source_capability: string;
   source_id?: string | null;
   source_type: string;
-  state: string;
+  state: AttentionState;
   title: string;
   updated_at: string;
 }
+
+export type AttentionActionType = "view" | "approve" | "acknowledge" | "resolve" | "respond";
 
 export interface AttentionList {
   attentions: Attention[];
   unread_count: Int64String;
 }
+
+export type AttentionSeverity = "info" | "warning" | "urgent";
+
+export type AttentionState = "active" | "acknowledged" | "resolved" | "dismissed";
+
+export type AuctionBidStatus = "active";
 
 export interface AuctionBidView {
   bid_amount_minor: Int64String;
@@ -323,12 +355,14 @@ export interface AuctionBidView {
   created_at: string;
   id: string;
   lot_id: string;
-  status: string;
+  status: AuctionBidStatus;
   tenant_id: string;
 }
 
+export type AuctionLotStatus = "active";
+
 export interface AuctionLotView {
-  auction_mode: string;
+  auction_mode: AuctionMode;
   company_book_id: string;
   created_at: string;
   current_highest_bid_minor: Int64String;
@@ -337,10 +371,14 @@ export interface AuctionLotView {
   lot_title: string;
   reserve_price_minor: Int64String;
   starting_price_minor: Int64String;
-  status: string;
+  status: AuctionLotStatus;
   tenant_id: string;
   winning_bidder_principal_id?: string | null;
 }
+
+export type AuctionMode = "english";
+
+export type AuctionSettlementStatus = "settled";
 
 export interface AuctionSettlementView {
   buyer_premium_minor: Int64String;
@@ -350,18 +388,28 @@ export interface AuctionSettlementView {
   lot_id: string;
   net_payout_minor: Int64String;
   seller_commission_minor: Int64String;
-  status: string;
+  status: AuctionSettlementStatus;
   tenant_id: string;
   winning_bid_minor: Int64String;
 }
+
+export type AuditAdjustmentScope = "internal_audit" | "external_audit";
+
+export type AuditEngagementType = "internal_audit" | "external_audit";
+
+export type AuditFindingClassification = "misstatement" | "control_deficiency" | "disclosure_gap" | "scope_limitation" | "other";
 
 export interface AuditFindingContent {
   affected_period?: string | null;
   asserted_amount_minor?: Int64String | null;
   asserted_currency?: string | null;
-  classification: string;
+  classification: AuditFindingClassification;
   description: string;
 }
+
+export type AuditFindingDisposition = "accepted" | "rejected" | "returned_for_revision";
+
+export type AuditParticipantRole = "internal_auditor" | "external_auditor";
 
 export interface AuditedCalkNotesView {
   accounting_policies_summary: string;
@@ -387,7 +435,7 @@ export interface AuditedCashFlowStatementView {
   financing_activities_minor: Int64String;
   generated_at: string;
   investing_activities_minor: Int64String;
-  method: string;
+  method: CashFlowMethod;
   net_cash_flow_minor: Int64String;
   operating_activities_minor: Int64String;
   period_end_date: string;
@@ -415,7 +463,7 @@ export interface AuditorDigitalSignatureView {
   auditor_license_number: string;
   auditor_principal_id: string;
   auditor_public_key_fingerprint: string;
-  auditor_signature_scope: string;
+  auditor_signature_scope: AuditorSignatureScope;
   company_book_id: string;
   fiscal_period: number;
   fiscal_year: number;
@@ -426,17 +474,23 @@ export interface AuditorDigitalSignatureView {
   tenant_id: string;
 }
 
+export type AuditorRole = "audit_lead" | "auditor" | "reviewer";
+
+export type AuditorSignatureScope = "external_audit" | "internal_audit";
+
 export interface AuditorSignatureStatusView {
   company_book_id: string;
   is_signed: boolean;
   period_id: string;
   signature?: null | AuditorDigitalSignatureView;
-  verification_status: string;
+  verification_status: AuditorSignatureVerificationStatus;
 }
 
+export type AuditorSignatureVerificationStatus = "verified" | "unsigned";
+
 export interface AuditorWorkingPaperView {
-  adjustment_scope: string;
-  auditor_role: string;
+  adjustment_scope: AuditAdjustmentScope;
+  auditor_role: AuditorRole;
   company_book_id: string;
   created_at: string;
   created_by_principal_id: string;
@@ -515,6 +569,8 @@ export interface AutoSyncDraftView {
   user_principal_id: string;
 }
 
+export type BadDebtProvisioningRunStatus = "draft" | "posted" | "reversed";
+
 export interface BadDebtProvisioningRunView {
   as_of_date: string;
   company_book_id: string;
@@ -522,7 +578,7 @@ export interface BadDebtProvisioningRunView {
   id: string;
   journal_entry_id?: string | null;
   provision_allowance_minor: Int64String;
-  status: string;
+  status: BadDebtProvisioningRunStatus;
   tenant_id: string;
   total_ar_outstanding_minor: Int64String;
 }
@@ -549,7 +605,7 @@ export interface BalanceSheetSection {
 export interface BankAccount {
   account_name: string;
   account_number?: string | null;
-  account_type: string;
+  account_type: BankAccountType;
   bank_code?: string | null;
   bank_name?: string | null;
   created_at: string;
@@ -559,7 +615,7 @@ export interface BankAccount {
   id: string;
   institution_contact_id?: string | null;
   state_revision: Int64String;
-  status: string;
+  status: BankAccountStatus;
   swift_code?: string | null;
   updated_at: string;
 }
@@ -574,6 +630,14 @@ export interface BankAccountList {
   accounts: BankAccount[];
 }
 
+export type BankAccountStatus = "draft" | "active" | "restricted" | "closed" | "archived";
+
+export type BankAccountTransitionTarget = "active" | "restricted" | "closed" | "archived";
+
+export type BankAccountType = "bank" | "cash" | "ewallet" | "credit_card" | "petty_cash";
+
+export type BankCategorizationRuleStatus = "active";
+
 export interface BankCategorizationRuleView {
   company_book_id: string;
   created_at: string;
@@ -581,20 +645,26 @@ export interface BankCategorizationRuleView {
   id: string;
   priority: number;
   rule_name: string;
-  status: string;
+  status: BankCategorizationRuleStatus;
   target_account_number: string;
 }
+
+export type BankFeedConnectionStatus = "active";
+
+export type BankFeedConnectionType = "aggregator";
 
 export interface BankFeedConnectionView {
   bank_name: string;
   company_book_id: string;
-  connection_type: string;
+  connection_type: BankFeedConnectionType;
   created_at: string;
   external_account_id: string;
   id: string;
   provider_name: string;
-  status: string;
+  status: BankFeedConnectionStatus;
 }
+
+export type BankFeedMatchConfirmationStatus = "confirmed";
 
 export interface BankFeedMatchConfirmationView {
   company_book_id: string;
@@ -604,15 +674,17 @@ export interface BankFeedMatchConfirmationView {
   match_id: string;
   matched_invoice_id?: string | null;
   statement_line_id: string;
-  status: string;
+  status: BankFeedMatchConfirmationStatus;
 }
+
+export type BankFeedMatchStatus = "unmatched" | "suggested" | "matched" | "ignored";
 
 export interface BankFeedMatchView {
   company_book_id: string;
   confidence_score: number;
   created_at: string;
   id: string;
-  match_status: string;
+  match_status: BankFeedMatchStatus;
   matched_invoice_id?: string | null;
   statement_line_id: string;
   tenant_id: string;
@@ -620,9 +692,11 @@ export interface BankFeedMatchView {
 
 export interface BankLineMatch {
   line_id: string;
-  outcome: string;
+  outcome: BankLineMatchOutcome;
   payment_ids: string[];
 }
+
+export type BankLineMatchOutcome = "matched" | "suggested" | "unmatched";
 
 export interface BankMatchRun {
   already_resolved: Int64String;
@@ -642,21 +716,27 @@ export interface BankReconciliation {
   movement: Int64String;
   opening_balance: Int64String;
   statement_id: string;
-  status: string;
+  status: BankReconciliationStatus;
   unresolved_lines: Int64String;
 }
+
+export type BankReconciliationStatus = "draft" | "finalized";
 
 export interface BankStatement {
   bank_account_id: string;
   closing_balance: string;
   created_at: string;
   id: string;
-  import_source: string;
+  import_source: BankStatementImportSource;
   lines: BankStatementLine[];
   opening_balance: string;
-  reconciliation_status: string;
+  reconciliation_status: BankStatementReconciliationStatus;
   statement_date: string;
 }
+
+export type BankStatementChannel = "auto" | "kbb" | "kopra" | "cms" | "direct" | "octobiz";
+
+export type BankStatementFeedIngestStatus = "ingested";
 
 export interface BankStatementFeedIngestView {
   company_book_id: string;
@@ -664,15 +744,17 @@ export interface BankStatementFeedIngestView {
   ingested_at: string;
   provider_name: string;
   records_ingested: number;
-  status: string;
+  status: BankStatementFeedIngestStatus;
 }
+
+export type BankStatementImportSource = "manual" | "csv" | "mt940" | "bank_feed";
 
 export interface BankStatementLine {
   amount: string;
   currency: string;
   description: string;
   id: string;
-  match_status: string;
+  match_status: BankStatementLineMatchStatus;
   matched_payment_id?: string | null;
   matched_posting_id?: string | null;
   ordinal: number;
@@ -681,6 +763,10 @@ export interface BankStatementLine {
   reference?: string | null;
   transaction_date: string;
 }
+
+export type BankStatementLineMatchStatus = "unmatched" | "suggested" | "matched" | "ignored";
+
+export type BankStatementLineResolution = "accept" | "ignore";
 
 export interface BankStatementList {
   statements: BankStatementSummary[];
@@ -699,7 +785,7 @@ export interface BankStatementMappingOverride {
 export interface BankStatementProfile {
   active: boolean;
   bank_name: string;
-  channel: string;
+  channel: BankStatementChannel;
   column_mapping: unknown;
   currency: string;
   date_format: string;
@@ -716,16 +802,18 @@ export interface BankStatementProfileList {
   profiles: BankStatementProfile[];
 }
 
+export type BankStatementReconciliationStatus = "unreconciled" | "in_progress" | "reconciled";
+
 export interface BankStatementSummary {
   bank_account_id: string;
   closing_balance: string;
   created_at: string;
   id: string;
   import_filename?: string | null;
-  import_source: string;
+  import_source: BankStatementImportSource;
   line_count: Int64String;
   opening_balance: string;
-  reconciliation_status: string;
+  reconciliation_status: BankStatementReconciliationStatus;
   statement_date: string;
 }
 
@@ -744,6 +832,15 @@ export interface BarcodeLookupResponse {
   wholesale_min_qty?: number | null;
   wholesale_price?: Int64String | null;
 }
+
+export interface BasisCompleteness {
+  elected_topics: PolicyTopic[];
+  missing_topics: PolicyTopic[];
+  required_topics: PolicyTopic[];
+  state: CompletenessState;
+}
+
+export type BasisState = "enabled" | "suspended";
 
 export interface BatamFtzSettingsView {
   allow_usd_functional_currency: boolean;
@@ -769,6 +866,12 @@ export interface BatamFtzVatSummaryView {
   total_vat_non_collectible_07_minor: Int64String;
 }
 
+export type BetaEnrollmentStatus = "active";
+
+export type BetaReleaseChannel = "beta" | "alpha" | "developer_preview";
+
+export type BillableHoursInvoiceStatus = "generated";
+
 export interface BillableHoursInvoiceView {
   company_book_id: string;
   created_at: string;
@@ -777,7 +880,7 @@ export interface BillableHoursInvoiceView {
   period_end: string;
   period_start: string;
   sales_invoice_document_id?: string | null;
-  status: string;
+  status: BillableHoursInvoiceStatus;
   total_billable_hours: number;
   total_invoice_amount_minor: Int64String;
 }
@@ -862,13 +965,13 @@ export interface BookedCourierDeliveryView {
   label_pdf_url?: string | null;
   provider_name: string;
   shipping_cost_minor: Int64String;
-  status: string;
+  status: CourierBookingStatus;
   tracking_url?: string | null;
 }
 
 export interface BoundedAccountList {
-  accounts: Account[];
   has_more: boolean;
+  items: Account[];
   next_cursor?: string | null;
 }
 
@@ -938,7 +1041,7 @@ export interface CalculateProfitSharingRequest {
   period_month: number;
   period_year: number;
   share_percentage?: number | null;
-  split_type?: string | null;
+  split_type?: null | ProfitSharingSplitType;
   total_net_profit_minor: Int64String;
 }
 
@@ -951,7 +1054,7 @@ export interface CalculateShippingRatesRequest {
 }
 
 export interface CalculateWorkingCapitalContributionsRequest {
-  contribution_basis?: string | null;
+  contribution_basis?: null | WorkingCapitalContributionBasis;
   contribution_percentage_rate?: number | null;
   net_working_capital_minor: Int64String;
   period_year: number;
@@ -961,6 +1064,8 @@ export interface CalculateWorkingCapitalContributionsRequest {
 export type CalendarCategory = "statutory_compliance" | "tax_filing" | "accounting_close" | "treasury_due" | "payroll" | "custom_milestone";
 
 export type CalendarEventSeverity = "info" | "warning" | "critical";
+
+export type CalendarEventSource = "custom" | "statutory" | "tax" | "accounting_close" | "treasury" | "payroll";
 
 export type CalendarEventStatus = "pending" | "satisfied" | "overdue" | "dismissed";
 
@@ -973,7 +1078,7 @@ export interface CalendarEventView {
   id: string;
   jurisdiction: string;
   severity: CalendarEventSeverity;
-  source_capability?: string | null;
+  source_capability?: null | CalendarEventSource;
   source_id?: string | null;
   status: CalendarEventStatus;
   summary?: string | null;
@@ -987,6 +1092,31 @@ export interface CalendarEventsSummaryView {
   pending_count: number;
   total_events: number;
   upcoming_30_days_count: number;
+}
+
+export interface CapTableClass {
+  holdings: CapTableHolding[];
+  instrument_class: string;
+  total_percentage: string | null;
+  total_units: string | null;
+}
+
+export interface CapTableHolding {
+  beneficial: boolean;
+  effective_from: string;
+  holder: HolderReference;
+  percentage: string | null;
+  statement_id: string;
+  statement_number: number;
+  units: string | null;
+  voting_percentage: string | null;
+}
+
+export interface CapTableView {
+  as_of: string;
+  classes: CapTableClass[];
+  company_id: string;
+  derived: boolean;
 }
 
 export type CapabilityReadiness = CapabilityReadinessState & { capability: string; company_book_id: string; decided_by: string; reason: string; };
@@ -1018,6 +1148,8 @@ export interface CashFlowLine {
   label: string;
 }
 
+export type CashFlowMethod = "direct" | "indirect";
+
 export interface CashFlowSection {
   lines: CashFlowLine[];
   total_minor: number;
@@ -1028,6 +1160,12 @@ export interface CashFlowStatement {
   investing: CashFlowSection;
   net_cash_change_minor: number;
   operating: CashFlowSection;
+}
+
+export interface CausedView {
+  audit_event_ids: string[];
+  explorer_execution_id?: string | null;
+  webhook_delivery_ids: string[];
 }
 
 export interface CertifyProgressRequest {
@@ -1052,7 +1190,7 @@ export interface ClaimConnectorVendorRequest {
 
 export interface ClaimConnectorVendorView {
   claim_id: string;
-  claim_status: string;
+  claim_status: ConnectorClaimStatus;
   connector_id: string;
   counterparty_org_name: string;
   verified_at: string;
@@ -1091,7 +1229,7 @@ export interface CloseReadinessStatusView {
   fiscal_year: number;
   ready_for_lock: boolean;
   reconciliation_matched_count: Int64String;
-  status: string;
+  status: ContinuousCloseStatus;
   updated_at: string;
 }
 
@@ -1104,9 +1242,11 @@ export interface CodSettlementReconciliationView {
   journal_entry_id?: string | null;
   net_payout_minor: Int64String;
   reconciled_at: string;
-  settlement_status: string;
+  settlement_status: CodSettlementStatus;
   tenant_id: string;
 }
+
+export type CodSettlementStatus = "unsettled" | "partially_settled" | "settled" | "overpaid";
 
 export interface CommercialSalesOrder {
   contact_id: string;
@@ -1117,7 +1257,7 @@ export interface CommercialSalesOrder {
   lines: CommercialSalesOrderLine[];
   quote_conversion_id: string;
   source_customer_quote_id: string;
-  status: string;
+  status: SalesDocumentStatus;
   subtotal: Int64String;
 }
 
@@ -1137,14 +1277,14 @@ export interface CompanyAccountingFrameworkSettingsView {
   created_at: string;
   effective_from: string;
   id: string;
-  inventory_costing_method: string;
+  inventory_costing_method: InventoryCostingMethod;
   tenant_id: string;
   use_us_gaap_presentation: boolean;
 }
 
 export interface CompanyBillingProfileView {
   base_monthly_fee_idr: Int64String;
-  billing_status: string;
+  billing_status: CompanyBillingStatus;
   company_book_id: string;
   environment: string;
   live_approval_notes?: string | null;
@@ -1152,6 +1292,8 @@ export interface CompanyBillingProfileView {
   live_approved_by?: string | null;
   per_pos_transaction_fee_idr: Int64String;
 }
+
+export type CompanyBillingStatus = "trial" | "pending_approval" | "active" | "suspended" | "sandbox";
 
 export interface CompanyBook {
   archived_at?: string | null;
@@ -1164,7 +1306,8 @@ export interface CompanyBook {
 }
 
 export interface CompanyBookList {
-  company_books: AuthorizedCompanyBookView[];
+  has_more: boolean;
+  items: AuthorizedCompanyBookView[];
   next_cursor?: string | null;
 }
 
@@ -1185,6 +1328,8 @@ export interface CompanyEmployeePayslipView {
   tenant_id: string;
 }
 
+export type CompanyEnvironmentMode = "sandbox" | "live";
+
 export interface CompanyFixedAssetView {
   accumulated_depr_account_number: string;
   acquisition_cost_minor: Int64String;
@@ -1198,20 +1343,9 @@ export interface CompanyFixedAssetView {
   depreciation_method: string;
   id: string;
   salvage_value_minor: Int64String;
-  status: string;
+  status: FixedAssetStatus;
   tenant_id: string;
   useful_life_months: number;
-}
-
-export interface CompanyGroupHierarchyView {
-  consolidation_method: string;
-  created_at: string;
-  id: string;
-  ownership_percentage: number;
-  parent_company_book_id: string;
-  status: string;
-  subsidiary_company_book_id: string;
-  tenant_id: string;
 }
 
 export interface CompanyInstalledConnectorView {
@@ -1227,6 +1361,8 @@ export interface CompanyInstalledConnectorView {
   tenant_id: string;
 }
 
+export type CompanyLegalHoldStatus = "active_hold";
+
 export interface CompanyLegalHoldView {
   case_reference_number: string;
   company_book_id: string;
@@ -1234,8 +1370,40 @@ export interface CompanyLegalHoldView {
   gdpr_deletion_override: boolean;
   id: string;
   merkle_evidence_root_hash: string;
-  status: string;
+  status: CompanyLegalHoldStatus;
   tenant_id: string;
+}
+
+export interface CompanyList {
+  has_more: boolean;
+  items: CompanySummaryView[];
+  next_cursor: string | null;
+}
+
+export type CompanyStatus = "active" | "retired";
+
+export interface CompanySummaryView {
+  id: string;
+  jurisdiction_id: string | null;
+  legal_name: string;
+  organization_id: string | null;
+  state_revision: Int64String;
+  status: CompanyStatus;
+}
+
+export interface CompanyView {
+  created_at: string;
+  current_identity_revision_id: string;
+  current_registrations: RegistrationView[];
+  id: string;
+  incorporation_date: string | null;
+  jurisdiction_id: string | null;
+  legal_name: string;
+  organization_id: string | null;
+  party: null | PartyReference;
+  state_revision: Int64String;
+  status: CompanyStatus;
+  updated_at: string;
 }
 
 export interface CompanyWorkOrderView {
@@ -1247,7 +1415,7 @@ export interface CompanyWorkOrderView {
   estimated_cost_minor: Int64String;
   estimated_labor_hours: number;
   id: string;
-  status: string;
+  status: WorkOrderStatus;
   tenant_id: string;
   work_order_number: string;
 }
@@ -1263,10 +1431,12 @@ export interface CompleteWorkOrderResultView {
   completed_at: string;
   completion_notes?: string | null;
   id: string;
-  status: string;
+  status: WorkOrderStatus;
   tenant_id: string;
   work_order_id: string;
 }
+
+export type CompletenessState = "complete" | "capability-scoped";
 
 export interface ComponentRef {
   component_key: string;
@@ -1282,7 +1452,7 @@ export interface ComposeStarterCoaRequest {
 export interface ConfigureAccountingFrameworkRequest {
   accounting_framework: string;
   effective_from: string;
-  inventory_costing_method: string;
+  inventory_costing_method: InventoryCostingMethod;
   use_us_gaap_presentation?: boolean | null;
 }
 
@@ -1295,7 +1465,7 @@ export interface ConfigureBatamFtzJurisdictionRequest {
 
 export interface ConfigureHoldingSamplingRuleRequest {
   audit_entity_level?: string | null;
-  audit_status?: string | null;
+  audit_status?: null | HoldingAuditSampleStatus;
   holding_perimeter_id: string;
   sample_rule_name: string;
   sampled_journal_id: string;
@@ -1318,7 +1488,7 @@ export interface ConfirmBankFeedMatchRequest {
 export type ConfirmCashTenderAcceptedResponse = ConfirmCashTenderResponse | ConfirmCashTenderApprovalRequiredResponse;
 
 export interface ConfirmCashTenderApprovalRequiredResponse {
-  status: string;
+  status: PostingApprovalRequiredStatus;
   tender_id: string;
 }
 
@@ -1385,11 +1555,15 @@ export interface ConfirmQrisProviderSettlementResponse {
 export interface Connection {
   counterparty: DirectoryProfile;
   decision_reason?: string | null;
-  direction: string;
+  direction: ConnectionDirection;
   id: string;
   message?: string | null;
-  status: string;
+  status: ConnectionStatus;
 }
+
+export type ConnectionDirection = "outgoing" | "incoming";
+
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "blocked";
 
 export interface ConnectionVersionResponse {
   active: boolean;
@@ -1405,23 +1579,16 @@ export interface ConnectionVersionResponse {
   version_id: string;
 }
 
-export interface ConsolidatedBalanceSheetView {
-  cta_translation_reserve_minor: Int64String;
-  generated_at: string;
-  non_controlling_interest_minor: Int64String;
-  parent_company_book_id: string;
-  parent_equity_minor: Int64String;
-  period_month: number;
-  period_year: number;
-  presentation_currency: string;
-  status: string;
-  total_consolidated_assets_minor: Int64String;
-  total_consolidated_liabilities_minor: Int64String;
-}
+export type ConnectorClaimStatus = "pending" | "in_review" | "verified" | "revoked";
+
+export type ConnectorClaimVerificationMethod = "domain_challenge" | "dns_txt_record" | "oauth_signing_challenge" | "mutual_tls";
 
 export interface ConsolidatedTrialBalanceView {
   lines: ConsolidationLineItem[];
+  participants: ConsolidationParticipantView[];
   perimeter_id: string;
+  period_end: string;
+  period_start: string;
   presentation_currency: string;
   total_consolidated_credit_minor: number;
   total_consolidated_debit_minor: number;
@@ -1453,6 +1620,13 @@ export interface ConsolidationMemberView {
   subsidiary_company_book_id: string;
 }
 
+export interface ConsolidationParticipantView {
+  company_book_id: string;
+  reporting_book_id: string;
+  role: MemberBindingRole;
+  source: string;
+}
+
 export interface ConsolidationPerimeterView {
   created_at: string;
   holding_company_book_id: string;
@@ -1468,7 +1642,7 @@ export interface Contact {
   email?: string | null;
   id: string;
   is_self: boolean;
-  kind: string;
+  kind: ContactKind;
   name: string;
   notes?: string | null;
   tax_id?: string | null;
@@ -1500,6 +1674,8 @@ export interface ContactBankAccount {
   swift?: string | null;
 }
 
+export type ContactCreditLimitStatus = "active" | "suspended" | "blocked";
+
 export interface ContactCreditLimitView {
   company_book_id: string;
   contact_id: string;
@@ -1508,12 +1684,16 @@ export interface ContactCreditLimitView {
   credit_limit_minor: Int64String;
   grace_period_days: number;
   id: string;
-  status: string;
+  status: ContactCreditLimitStatus;
   tenant_id: string;
 }
 
+export type ContactKind = "person" | "organization";
+
 export interface ContactList {
-  contacts: Contact[];
+  has_more: boolean;
+  items: Contact[];
+  next_cursor: string | null;
 }
 
 export interface ContactOrganization {
@@ -1554,6 +1734,11 @@ export interface ContactProfileLink {
   url: string;
 }
 
+export interface ContactReference {
+  company_book_id: string;
+  contact_id: string;
+}
+
 export interface ContactRelationship {
   active: boolean;
   effective_from: string;
@@ -1562,10 +1747,12 @@ export interface ContactRelationship {
   id: string;
   notes?: string | null;
   ownership_basis_points?: number | null;
-  relationship_type: string;
+  relationship_type: ContactRelationshipType;
   title?: string | null;
   to_contact_id: string;
 }
+
+export type ContactRelationshipType = "director" | "officer" | "commissioner" | "signatory" | "representative" | "shareholder" | "owner" | "partner" | "trustee" | "beneficiary" | "beneficial_owner" | "key_person" | "parent_company" | "subsidiary" | "affiliate";
 
 export interface ContactRole {
   active: boolean;
@@ -1578,8 +1765,10 @@ export interface ContactRole {
   id: string;
   payment_terms_days?: number | null;
   risk_note?: string | null;
-  role: string;
+  role: ContactRoleKind;
 }
+
+export type ContactRoleKind = "customer" | "supplier" | "employee" | "contractor" | "landlord" | "tenant" | "bank" | "lender" | "borrower" | "investor" | "tax_authority" | "government_authority" | "other";
 
 export interface ContinuousCloseScheduleView {
   close_readiness_score: number;
@@ -1590,10 +1779,12 @@ export interface ContinuousCloseScheduleView {
   fiscal_year: number;
   id: string;
   reconciliation_matched_count: Int64String;
-  status: string;
+  status: ContinuousCloseStatus;
   tenant_id: string;
   updated_at: string;
 }
+
+export type ContinuousCloseStatus = "in_progress" | "ready_for_lock" | "period_locked";
 
 export interface ContractLossAllocationView {
   capital_provider_loss_minor: Int64String;
@@ -1615,7 +1806,7 @@ export interface ConversionOutcome {
   lines: LineVariance[];
   purchase_order_id?: string | null;
   source_quote_id: string;
-  status: string;
+  status: SupplierQuoteConversionStatus;
   target_quote_id?: string | null;
   warning: boolean;
 }
@@ -1625,7 +1816,7 @@ export interface ConversionPreview {
   lines: LineVariance[];
   offered_actions: ConversionAction[];
   source_quote_id: string;
-  source_quote_status: string;
+  source_quote_status: QuoteState;
   warning: boolean;
   warning_message?: string | null;
 }
@@ -1646,8 +1837,10 @@ export interface ConvertedQuoteToInvoiceView {
   converted_at: string;
   quote_id: string;
   sales_invoice_id: string;
-  status: string;
+  status: QuoteConversionStatus;
 }
+
+export type CorporateRestructuringEventType = "merger_acquisition" | "divestment_carveout" | "de_merger";
 
 export interface CorporateRestructuringEventView {
   carveout_perimeter_json: unknown;
@@ -1655,13 +1848,15 @@ export interface CorporateRestructuringEventView {
   created_at: string;
   created_by_principal_id: string;
   effective_date: string;
-  event_type: string;
+  event_type: CorporateRestructuringEventType;
   goodwill_recognized_minor: Int64String;
   id: string;
   target_entity_name: string;
   tenant_id: string;
   transaction_valuation_minor: Int64String;
 }
+
+export type CourierBookingStatus = "booked";
 
 export interface CreateAccount {
   active?: boolean;
@@ -1699,7 +1894,7 @@ export interface CreateAssignmentRequest {
 }
 
 export interface CreateAuctionLotRequest {
-  auction_mode?: string | null;
+  auction_mode?: null | AuctionMode;
   end_time: string;
   lot_title: string;
   reserve_price_minor?: Int64String | null;
@@ -1707,8 +1902,8 @@ export interface CreateAuctionLotRequest {
 }
 
 export interface CreateAuditorWorkingPaperRequest {
-  adjustment_scope?: string | null;
-  auditor_role: string;
+  adjustment_scope?: null | AuditAdjustmentScope;
+  auditor_role: AuditorRole;
   division_code?: string | null;
   fiscal_period: number;
   fiscal_year: number;
@@ -1719,7 +1914,7 @@ export interface CreateAuditorWorkingPaperRequest {
 export interface CreateBankAccount {
   account_name: string;
   account_number?: string | null;
-  account_type: string;
+  account_type: BankAccountType;
   bank_code?: string | null;
   bank_name?: string | null;
   currency: string;
@@ -1738,7 +1933,7 @@ export interface CreateBankCategorizationRuleRequest {
 
 export interface CreateBankFeedConnectionRequest {
   bank_name: string;
-  connection_type?: string | null;
+  connection_type?: null | BankFeedConnectionType;
   external_account_id: string;
   provider_name: string;
 }
@@ -1767,7 +1962,7 @@ export interface CreateBookInput {
 }
 
 export interface CreateBusinessEventRuleRequest {
-  classification_result?: string | null;
+  classification_result?: null | PhysicalEventClassification;
   metric_trigger_condition: string;
   rule_name: string;
 }
@@ -1780,6 +1975,16 @@ export interface CreateCompanyBook {
   operating_model?: string | null;
 }
 
+export interface CreateCompanyRequest {
+  company_book_id: string;
+  evidence_references?: EvidenceReference[];
+  incorporation_date?: string | null;
+  jurisdiction_id?: string | null;
+  legal_name: string;
+  organization_id: string;
+  registered_address?: Record<string, unknown>;
+}
+
 export interface CreateConsolidationPerimeterRequest {
   perimeter_name: string;
   presentation_currency: string;
@@ -1788,7 +1993,7 @@ export interface CreateConsolidationPerimeterRequest {
 export interface CreateContact {
   dimension_value_ids?: string[] | null;
   email?: string | null;
-  kind: string;
+  kind: ContactKind;
   name: string;
   notes?: string | null;
   tax_id?: string | null;
@@ -1825,7 +2030,7 @@ export interface CreateContactRelationship {
   effective_to?: string | null;
   notes?: string | null;
   ownership_basis_points?: number | null;
-  relationship_type: string;
+  relationship_type: ContactRelationshipType;
   title?: string | null;
   to_contact_id: string;
 }
@@ -1837,7 +2042,7 @@ export interface CreateContactRole {
   effective_to?: string | null;
   payment_terms_days?: number | null;
   risk_note?: string | null;
-  role: string;
+  role: ContactRoleKind;
 }
 
 export interface CreateCustomCalendarEventRequest {
@@ -1886,7 +2091,7 @@ export interface CreateDimensionValue {
 }
 
 export interface CreateDiscountRuleRequest {
-  discount_category: string;
+  discount_category: DiscountCategory;
   discount_percentage?: number | null;
   effective_from?: string | null;
   effective_to?: string | null;
@@ -1901,13 +2106,13 @@ export interface CreateEmployeePayrollProfileRequest {
   base_salary_minor: Int64String;
   employee_name: string;
   npwp_number?: string | null;
-  ptkp_status?: string | null;
-  ter_category?: string | null;
+  ptkp_status?: null | PtkpStatus;
+  ter_category?: null | TerCategory;
 }
 
 export interface CreateEngagementRequest {
   engagement_code: string;
-  engagement_type: string;
+  engagement_type: AuditEngagementType;
 }
 
 export interface CreateExpenseClaim {
@@ -1941,12 +2146,12 @@ export interface CreateFindingRequest {
 export interface CreateFixedAsset {
   acquired_date: string;
   asset_category_id: string;
-  asset_class: string;
+  asset_class: FixedAssetClass;
   barcode?: string | null;
   category?: string | null;
   cost: Int64String;
   custodian_contact_id?: string | null;
-  depreciation_method?: string | null;
+  depreciation_method?: null | TreatmentMethod;
   depreciation_rate?: string | null;
   description?: string | null;
   dimension_value_ids?: string[] | null;
@@ -1965,6 +2170,15 @@ export interface CreateFixedAsset {
 
 export interface CreateGuestCounterparty {
   display_name: string;
+}
+
+export interface CreateIdentityRevisionRequest {
+  effective_from: string;
+  evidence_references?: EvidenceReference[];
+  jurisdiction_id?: string | null;
+  legal_name: string;
+  reason?: string | null;
+  registered_address?: Record<string, unknown>;
 }
 
 export interface CreateImportDeclaration {
@@ -2003,7 +2217,7 @@ export interface CreateInventoryLocation {
 
 export interface CreateInventoryTransfer {
   from_location_id: string;
-  status?: string | null;
+  status?: null | InventoryTransferStatus;
   to_location_id: string;
   transfer_date: string;
   transfer_number: string;
@@ -2013,7 +2227,7 @@ export interface CreateInventoryTransformation {
   abnormal_loss_value?: Int64String | null;
   bom_id?: string | null;
   consume: TransformationConsume[];
-  kind: string;
+  kind: InventoryTransformationKind;
   produce: TransformationProduce[];
   transformation_date: string;
 }
@@ -2028,7 +2242,7 @@ export interface CreateItem {
   barcode?: string | null;
   description?: string | null;
   dimension_value_ids?: string[] | null;
-  kind: string;
+  kind: ItemKind;
   max_stock_level?: Int64String | null;
   min_stock_level?: Int64String | null;
   name: string;
@@ -2045,7 +2259,7 @@ export interface CreateItem {
 
 export interface CreateLandedCostApportionment {
   apportionment_date: string;
-  basis: string;
+  basis: LandedCostBasis;
   lines: CreateLandedCostLine[];
   memo?: string | null;
   purchase_document_id: string;
@@ -2054,7 +2268,7 @@ export interface CreateLandedCostApportionment {
 export interface CreateLandedCostLine {
   amount: string;
   capitalise?: boolean | null;
-  cost_type: string;
+  cost_type: LandedCostType;
   description?: string | null;
   vendor_contact_id?: string | null;
 }
@@ -2067,6 +2281,19 @@ export interface CreateLead {
   lead_source: string;
 }
 
+export interface CreateMemberBindingRequest {
+  basis_key: string;
+  book_purpose: string;
+  effective_from: string;
+  effective_to?: string | null;
+  holding_company_book_id: string;
+  perimeter_id: string;
+  predecessor_version_id?: string | null;
+  presentation_currency: string;
+  reporting_book_id: string;
+  role?: MemberBindingRole;
+}
+
 export interface CreateMonthlyPayrollRunRequest {
   period_month: number;
   period_year: number;
@@ -2076,13 +2303,44 @@ export interface CreateMonthlyPayrollRunRequest {
   total_pph21_withheld_minor: Int64String;
 }
 
+export interface CreateMovementManifestRequest {
+  member_binding_version_id: string;
+  period_end: string;
+  period_start: string;
+  predecessor_manifest_id?: string | null;
+  sharing_grant_version_id: string;
+}
+
+export interface CreateOfficerRequest {
+  effective_from: string;
+  effective_to?: string | null;
+  evidence_references?: EvidenceReference[];
+  person: ContactReference;
+  role: OfficerRole;
+  supersedes_officer_id?: string | null;
+  title?: string | null;
+}
+
+export interface CreateOwnershipStatementRequest {
+  beneficial?: boolean;
+  effective_from: string;
+  effective_to?: string | null;
+  evidence_references?: EvidenceReference[];
+  holder: HolderReference;
+  instrument_class: string;
+  percentage?: string | null;
+  supersedes_statement_id?: string | null;
+  units?: string | null;
+  voting_percentage?: string | null;
+}
+
 export interface CreatePayment {
   amount: Int64String;
   bank_account_id: string;
   contact_id: string;
   currency: string;
   dimension_value_ids?: string[] | null;
-  direction: string;
+  direction: PaymentDirection;
   memo?: string | null;
   payment_date: string;
   payment_method?: string | null;
@@ -2118,7 +2376,7 @@ export interface CreatePersonInCharge {
   given_name?: string | null;
   name?: string | null;
   person_contact_id?: string | null;
-  relationship_type?: string | null;
+  relationship_type?: null | ContactRelationshipType;
   telephone?: string | null;
   title?: string | null;
 }
@@ -2163,7 +2421,7 @@ export interface CreatePurchaseDocument {
   currency: string;
   dimension_value_ids?: string[] | null;
   document_date: string;
-  document_type: string;
+  document_type: CreatePurchaseDocumentType;
   due_date?: string | null;
   lines: CreatePurchaseLine[];
   matched_po_id?: string | null;
@@ -2174,6 +2432,8 @@ export interface CreatePurchaseDocument {
   received_date?: string | null;
   vendor_invoice_number?: string | null;
 }
+
+export type CreatePurchaseDocumentType = "purchase_order" | "bill" | "goods_receipt" | "debit_note";
 
 export interface CreatePurchaseLine {
   description: string;
@@ -2187,6 +2447,17 @@ export interface CreatePurchaseLine {
   unit?: string | null;
   unit_price: Int64String;
   withholding_profile_id?: string | null;
+}
+
+export interface CreateRegistrationRequest {
+  effective_from: string;
+  effective_to?: string | null;
+  evidence_references?: EvidenceReference[];
+  issuer: string;
+  jurisdiction_id?: string | null;
+  kind: RegistrationKind;
+  registration_number: string;
+  supersedes_registration_id?: string | null;
 }
 
 export interface CreateReversalRequest {
@@ -2205,7 +2476,7 @@ export interface CreateSalesDocument {
   currency: string;
   dimension_value_ids?: string[] | null;
   document_date: string;
-  document_type: string;
+  document_type: SalesDocumentType;
   due_date?: string | null;
   lines: CreateSalesLine[];
   memo?: string | null;
@@ -2234,7 +2505,7 @@ export interface CreateSalesOpportunityRequest {
   contact_id: string;
   estimated_amount_minor?: Int64String | null;
   opportunity_name: string;
-  pipeline_stage?: string | null;
+  pipeline_stage?: null | SalesPipelineStage;
   win_probability_pct?: number | null;
 }
 
@@ -2247,6 +2518,14 @@ export interface CreateSalesQuoteRequest {
   quote_number: string;
   subtotal_minor: Int64String;
   tax_total_minor: Int64String;
+}
+
+export interface CreateSecretRequest {
+  disclosure?: string | null;
+  key: string;
+  scope: ScopeRequest;
+  source: SecretSourceKind;
+  value?: string | null;
 }
 
 export interface CreateServiceBilling {
@@ -2280,11 +2559,11 @@ export interface CreateServiceFakturMonetaryAssessment {
   commercial_terms_sha256: string;
   currency: string;
   dpp: Int64String;
-  dpp_method: string;
+  dpp_method: ServiceFakturDppMethod;
   dpp_method_version: string;
   faktur_evidence_reference: string;
   faktur_evidence_sha256: string;
-  faktur_status: string;
+  faktur_status: ServiceFakturStatus;
   gross_customer_amount: Int64String;
   nominal_ppn_rate_basis_points: number;
   official_source_checked_on: string;
@@ -2294,7 +2573,7 @@ export interface CreateServiceFakturMonetaryAssessment {
   penggantian: Int64String;
   rounding_contract_reference: string;
   rounding_contract_sha256: string;
-  rounding_mode: string;
+  rounding_mode: ServiceFakturRoundingMode;
   service_invoice_id: string;
   service_tax_point_assessment_id: string;
 }
@@ -2311,6 +2590,15 @@ export interface CreateServiceFulfillment {
 export interface CreateServiceRecognitionReadinessAssessment {
   obligation_satisfactions: ServiceObligationSatisfactionInput[];
   tax_point_assessments: ServiceTaxPointAssessmentInput[];
+}
+
+export interface CreateSharingGrantRequest {
+  effective_from: string;
+  effective_to?: string | null;
+  evidence_locator: string;
+  evidence_sha256: string;
+  member_binding_version_id: string;
+  predecessor_version_id?: string | null;
 }
 
 export interface CreateSubscriptionPlanRequest {
@@ -2339,10 +2627,10 @@ export interface CreateSupplierQuote {
 }
 
 export interface CreateTemplateDefinitionRequest {
-  category: string;
+  category: TemplateCategory;
   locale?: string | null;
   name: string;
-  source_capability: string;
+  source_capability: TemplateSourceCapability;
   template_key: string;
   variable_schema: unknown;
 }
@@ -2371,7 +2659,7 @@ export interface CreateTreatmentRequest {
   authority_reference: string;
   classification_reference?: string | null;
   effective_from: string;
-  method: string;
+  method: TreatmentMethod;
   policy_reference: string;
   reason: string;
   residual_value: Int64String;
@@ -2380,7 +2668,7 @@ export interface CreateTreatmentRequest {
 
 export interface CreateUniversalContractRequest {
   capital_ratio?: number | null;
-  contract_mode?: string | null;
+  contract_mode?: null | UniversalContractMode;
   profit_split_ratio?: number | null;
 }
 
@@ -2389,7 +2677,7 @@ export interface CreateUserReferralCodeRequest {
 }
 
 export interface CreateWealthPortfolioRequest {
-  asset_class: string;
+  asset_class: WealthPortfolioAssetClass;
   currency?: string | null;
   current_valuation_minor?: Int64String | null;
   family_group_id: string;
@@ -2411,6 +2699,34 @@ export interface CreateWorkOrderRequest {
   work_order_number: string;
 }
 
+export type CurrencyLayer = "functional" | "identity" | "revaluation";
+
+export interface CustomerApiDiscovery {
+  aggregate_digest_sha256: string;
+  aggregate_revision: string;
+  operations: DiscoveredOperation[];
+  release_channel: ApiReleaseChannel;
+}
+
+export type CustomerEnvironmentKind = "development" | "staging" | "production";
+
+export interface CustomerEnvironmentList {
+  items: CustomerEnvironmentView[];
+}
+
+export type CustomerEnvironmentState = "provisioning" | "ready" | "suspended" | "archived" | "closed";
+
+export interface CustomerEnvironmentView {
+  binding_ref: string | null;
+  created_at: string;
+  id: string;
+  kind: CustomerEnvironmentKind;
+  state: CustomerEnvironmentState;
+  workspace_id: string;
+}
+
+export type CustomerLoyaltyAccountStatus = "active";
+
 export interface CustomerLoyaltyAccountView {
   company_book_id: string;
   created_at: string;
@@ -2418,9 +2734,9 @@ export interface CustomerLoyaltyAccountView {
   customer_contact_id: string;
   id: string;
   lifetime_points_earned: Int64String;
-  status: string;
+  status: CustomerLoyaltyAccountStatus;
   tenant_id: string;
-  tier_level: string;
+  tier_level: LoyaltyTierLevel;
 }
 
 export interface CustomerLoyaltyPointsResultView {
@@ -2494,6 +2810,8 @@ export interface CustomerQuoteRequest {
 
 export type CustomerStatus = "pending" | "accepted" | "rejected";
 
+export type CustomerSubscriptionStatus = "active";
+
 export interface CustomerSubscriptionView {
   auto_renew: boolean;
   company_book_id: string;
@@ -2505,7 +2823,7 @@ export interface CustomerSubscriptionView {
   mrr_value_minor: Int64String;
   next_billing_date: string;
   plan_id: string;
-  status: string;
+  status: CustomerSubscriptionStatus;
   tenant_id: string;
 }
 
@@ -2524,7 +2842,7 @@ export interface DecideConnection {
 }
 
 export interface DecideProviderSettlementBankMatch {
-  action: string;
+  action: ProviderSettlementBankMatchAction;
   expected_current_decision_id?: string | null;
   settlement_financial_effect_id?: string | null;
 }
@@ -2545,7 +2863,7 @@ export interface Delivery {
   sales_document_id: string;
   ship_to_contact_id?: string | null;
   shipping_address_id?: string | null;
-  status: string;
+  status: DeliveryStatus;
   tracking_number?: string | null;
   updated_at: string;
 }
@@ -2562,10 +2880,16 @@ export interface DeliveryList {
   deliveries: Delivery[];
 }
 
+export type DeliveryState = "pending" | "delivered" | "failed";
+
+export type DeliveryStatus = "pending" | "shipped" | "delivered" | "returned";
+
 export interface DepreciateRequest {
   book_ids: string[];
   through: string;
 }
+
+export type DepreciationBatchStatus = "batch_completed";
 
 export interface DepreciationResult {
   asset_id: string;
@@ -2599,7 +2923,7 @@ export interface DeveloperKeyItem {
   revoke_reason?: string | null;
   revoked_at?: string | null;
   scopes: string[];
-  status: string;
+  status: DeveloperKeyStatus;
   total_requests: Int64String;
 }
 
@@ -2609,12 +2933,14 @@ export interface DeveloperKeyMetricsItem {
   key_name: string;
   key_prefix: string;
   owner_email?: string | null;
-  status: string;
+  status: DeveloperKeyStatus;
   total_api_requests: Int64String;
   total_companies_created: Int64String;
   total_gmv_amount: Int64String;
   total_pos_transactions: Int64String;
 }
+
+export type DeveloperKeyStatus = "active" | "retiring" | "suspended" | "revoked" | "expired";
 
 export interface DeviceSyncStatusView {
   client_device_signature: string;
@@ -2631,7 +2957,7 @@ export interface DimensionDefinition {
   code: string;
   created_at: string;
   id: string;
-  kind: string;
+  kind: DimensionKind;
   name: string;
   system_seed: boolean;
   updated_at: string;
@@ -2641,8 +2967,10 @@ export interface DimensionDefinitionList {
   definitions: DimensionDefinition[];
 }
 
+export type DimensionKind = "context" | "classification";
+
 export interface DimensionRequirementInput {
-  account_class?: string | null;
+  account_class?: null | AccountClass;
   account_role?: string | null;
   definition_id: string;
   document_type?: string | null;
@@ -2654,7 +2982,7 @@ export interface DimensionRequirementInput {
 }
 
 export interface DimensionRequirementView {
-  account_class?: string | null;
+  account_class?: null | AccountClass;
   account_role?: string | null;
   changed_by: string;
   created_at: string;
@@ -2710,14 +3038,13 @@ export interface DisburseH2hIso20022PaymentView {
   external_message_id: string;
   id: string;
   instructed_amount_minor: Int64String;
-  message_type: string;
-  status: string;
+  message_type: Iso20022MessageType;
+  status: H2hDisbursementStatus;
   tenant_id: string;
 }
 
 export interface DisburseSalaryPayoutsRequest {
   bank_account_id: string;
-  payment_method?: string | null;
   payroll_run_id: string;
 }
 
@@ -2728,14 +3055,18 @@ export interface DisburseSalaryPayoutsView {
   id: string;
   journal_entry_id?: string | null;
   payroll_run_id: string;
-  status: string;
+  status: PayrollRunStatus;
   total_net_disbursed_minor: Int64String;
 }
+
+export type DiscountCategory = "early_settlement" | "volume_tier" | "trade_contract" | "promotional_campaign" | "channel_partner";
+
+export type DiscountQuoteStatus = "APPROVED" | "MARGIN_GUARD_VIOLATION";
 
 export interface DiscountRuleView {
   company_book_id: string;
   created_at: string;
-  discount_category: string;
+  discount_category: DiscountCategory;
   discount_percentage: number;
   effective_from: string;
   effective_to?: string | null;
@@ -2744,6 +3075,11 @@ export interface DiscountRuleView {
   margin_guard_floor_percentage: number;
   min_order_value_minor: Int64String;
   rule_name: string;
+}
+
+export interface DiscoveredOperation {
+  operation_id: string;
+  support_state: SupportState;
 }
 
 export interface DispatchSleekSignDocumentRequest {
@@ -2781,13 +3117,12 @@ export interface DisputeSalesInvoiceResultView {
   disputed_amount_minor: Int64String;
   id: string;
   original_invoice_id: string;
-  status: string;
+  status: SalesInvoiceDisputeStatus;
   tenant_id: string;
 }
 
 export interface DistributePartnerProfitRequest {
   agreement_id?: string | null;
-  disbursement_method?: string | null;
   partner_contact_id: string;
   payout_amount_minor: Int64String;
   period_month: number;
@@ -2796,7 +3131,7 @@ export interface DistributePartnerProfitRequest {
 }
 
 export interface DivisionAuditPaperSummary {
-  auditor_role: string;
+  auditor_role: AuditorRole;
   division_code: string;
   papers: AuditorWorkingPaperView[];
   total_working_papers: Int64String;
@@ -2819,7 +3154,7 @@ export interface DocumentActiveViewerView {
 
 export interface DocumentLockView {
   document_id: string;
-  document_type: string;
+  document_type: LockableDocumentType;
   expires_at: string;
   lock_id: string;
   locked_at: string;
@@ -2839,14 +3174,20 @@ export interface DocumentPresenceView {
   active_editor?: null | DocumentActiveEditorView;
   active_viewers: DocumentActiveViewerView[];
   document_id: string;
-  document_type: string;
+  document_type: LockableDocumentType;
 }
+
+export type DocumentSettlementStatus = "unsettled" | "partially_settled" | "settled" | "overpaid";
 
 export interface DocumentUnlockResultView {
   document_id: string;
-  document_type: string;
+  document_type: LockableDocumentType;
   unlocked: boolean;
 }
+
+export type EarlyAccessAdmissionScope = "flagship-pos-demo";
+
+export type EarlyAccessAdmissionStatus = "active" | "suspended" | "revoked";
 
 export interface EarnCustomerLoyaltyPointsRequest {
   customer_contact_id: string;
@@ -2875,13 +3216,15 @@ export interface EfakturCsvExportView {
   total_documents: Int64String;
 }
 
+export type EfakturDocumentStatus = "draft";
+
 export interface EfakturDocumentView {
   buyer_name: string;
   buyer_npwp: string;
   company_book_id: string;
   created_at: string;
   dpp_amount_minor: Int64String;
-  efaktur_status: string;
+  efaktur_status: EfakturDocumentStatus;
   id: string;
   nsfp_assigned_number: string;
   ppn_amount_minor: Int64String;
@@ -2901,6 +3244,8 @@ export interface EfakturFtzExportView {
 
 export type Eligibility = "current" | "expired" | "unavailable";
 
+export type EmployeePayrollProfileStatus = "active";
+
 export interface EmployeePayrollProfileView {
   allowances_minor: Int64String;
   base_salary_minor: Int64String;
@@ -2909,9 +3254,9 @@ export interface EmployeePayrollProfileView {
   employee_name: string;
   id: string;
   npwp_number?: string | null;
-  ptkp_status: string;
-  status: string;
-  ter_category: string;
+  ptkp_status: PtkpStatus;
+  status: EmployeePayrollProfileStatus;
+  ter_category: TerCategory;
 }
 
 export interface EnableCompanyLegalHoldRequest {
@@ -2925,13 +3270,15 @@ export interface EngineDiscrepancy {
   engine_account_id: string;
   engine_credit_normal_minor: number;
   journal_credit_normal_minor: number;
-  kind: string;
+  kind: EngineDiscrepancyKind;
 }
+
+export type EngineDiscrepancyKind = "mismatched" | "extra_in_journal" | "missing_in_journal";
 
 export interface EnqueueExportJobRequest {
   format: string;
   parameters?: unknown;
-  report_type: string;
+  report_type: ExportReportType;
 }
 
 export interface EnrollBetaChannelRequest {
@@ -2944,9 +3291,9 @@ export interface EnrollBetaChannelView {
   company_book_id: string;
   connector_id?: string | null;
   enrolled_at: string;
-  enrolled_channel: string;
+  enrolled_channel: BetaReleaseChannel;
   enrollment_id: string;
-  status: string;
+  status: BetaEnrollmentStatus;
 }
 
 export interface EnterpriseDivisionAuditMatrixView {
@@ -2998,7 +3345,7 @@ export interface EvaluateDiscountQuoteView {
   margin_guard_passed: boolean;
   max_permissible_discount_minor: Int64String;
   net_order_value_minor: Int64String;
-  status: string;
+  status: DiscountQuoteStatus;
   total_discount_minor: Int64String;
 }
 
@@ -3011,6 +3358,12 @@ export interface EvidenceInput {
 
 export interface EvidenceRefInput {
   evidence_reference_id: string;
+}
+
+export interface EvidenceReference {
+  kind: string;
+  locator: string;
+  sha256?: string | null;
 }
 
 export interface ExecuteBilateralTradeRequest {
@@ -3037,7 +3390,7 @@ export interface ExpenseClaim {
   period_end?: string | null;
   period_start?: string | null;
   posting_id?: string | null;
-  status: string;
+  status: ExpenseClaimStatus;
   subtotal: string;
   tax_total: string;
   total: string;
@@ -3047,6 +3400,8 @@ export interface ExpenseClaim {
 export interface ExpenseClaimList {
   claims: ExpenseClaim[];
 }
+
+export type ExpenseClaimStatus = "draft" | "submitted" | "approved" | "posted" | "paid" | "cleared" | "rejected" | "withdrawn";
 
 export interface ExpenseLine {
   amount: string;
@@ -3060,6 +3415,8 @@ export interface ExpenseLine {
   tax_amount: string;
 }
 
+export type ExperienceEntitlementStatus = "trial" | "active" | "suspended";
+
 export interface ExperienceEntitlementView {
   company_book_id: string;
   created_at: string;
@@ -3067,7 +3424,7 @@ export interface ExperienceEntitlementView {
   granted_by_principal_id?: string | null;
   id: string;
   reason?: string | null;
-  status: string;
+  status: ExperienceEntitlementStatus;
   updated_at: string;
 }
 
@@ -3094,9 +3451,13 @@ export interface ExportJobResponse {
   error?: string | null;
   format: string;
   generation_id: string;
-  report_type: string;
-  status: string;
+  report_type: ExportReportType;
+  status: ExportJobStatus;
 }
+
+export type ExportJobStatus = "queued" | "running" | "ready" | "failed";
+
+export type ExportReportType = "trial_balance";
 
 export interface FederatedNodeSyncView {
   company_book_id: string;
@@ -3151,11 +3512,13 @@ export interface FinancialLineList {
 export interface FinancialTruthProvenance {
   as_of_timestamp: string;
   provenance_ref: string;
-  reconciled_status: string;
+  reconciled_status: FinancialTruthReconciledStatus;
 }
 
+export type FinancialTruthReconciledStatus = "reconciled";
+
 export interface FindingDispositionRequest {
-  disposition: string;
+  disposition: AuditFindingDisposition;
   reason: string;
 }
 
@@ -3166,14 +3529,14 @@ export interface FixedAsset {
   acquired_date: string;
   active: boolean;
   asset_category_id: string;
-  asset_class: string;
+  asset_class: FixedAssetClass;
   barcode?: string | null;
   category?: string | null;
   cost: Int64String;
   created_at: string;
   custodian_contact_id?: string | null;
   depreciated_through?: string | null;
-  depreciation_method: string;
+  depreciation_method: TreatmentMethod;
   depreciation_rate?: string | null;
   description?: string | null;
   dimension_value_ids: string[];
@@ -3194,13 +3557,15 @@ export interface FixedAsset {
   registration_no?: string | null;
   salvage: Int64String;
   serial_number?: string | null;
-  status: string;
+  status: FixedAssetStatus;
   supplier_contact_id?: string | null;
   updated_at: string;
   useful_life_months: number;
   warranty_expiry?: string | null;
   warranty_terms?: string | null;
 }
+
+export type FixedAssetClass = "tangible_ppe" | "intangible" | "investment_property" | "right_of_use" | "biological" | "other";
 
 export interface FixedAssetDisposalResultView {
   accumulated_depreciation_minor: Int64String;
@@ -3212,7 +3577,7 @@ export interface FixedAssetDisposalResultView {
   disposed_at: string;
   gain_loss_minor: Int64String;
   net_book_value_minor: Int64String;
-  status: string;
+  status: FixedAssetStatus;
 }
 
 export interface FixedAssetList {
@@ -3230,6 +3595,8 @@ export interface FixedAssetReconciliation {
   register_net_book_value: Int64String;
 }
 
+export type FixedAssetStatus = "active" | "disposed" | "impaired" | "revalued";
+
 export interface FrozenComponentAllocation {
   amount_minor: string;
   quote_line_id: string;
@@ -3242,7 +3609,7 @@ export interface FrozenQuoteComponent {
   beneficiary?: string | null;
   calculation_snapshot: unknown;
   component_id: string;
-  component_kind: string;
+  component_kind: PosSaleQuoteComponentKind;
   funding_party?: string | null;
   ordinal: number;
   semantic_account_role: string;
@@ -3341,15 +3708,17 @@ export interface GenerateEfakturDocumentRequest {
   sales_invoice_id: string;
 }
 
+export type GovernedPosTenderOutcome = "awaiting_provider_confirmation" | "pending_dispatch" | "outcome_unknown" | "applied" | "definitively_rejected";
+
 export interface GovernedPosTenderOutcomeResponse {
   accepted_tender_effect_key: string;
   amount_minor: string;
   currency: string;
   order_id: string;
-  outcome: string;
+  outcome: GovernedPosTenderOutcome;
   posting_finality?: string | null;
   posting_id?: string | null;
-  posting_source_capability?: string | null;
+  posting_source_capability?: null | PosTenderPostingSourceCapability;
   posting_source_object_id?: string | null;
   posting_stable_effect_key?: string | null;
   provider_event_id?: string | null;
@@ -3366,9 +3735,23 @@ export interface GuestCounterparty {
   id: string;
 }
 
+export type H2hDisbursementStatus = "disbursed";
+
+export type H2hStatementProcessedStatus = "ingested";
+
+export type HolderKind = "contact" | "company";
+
+export interface HolderReference {
+  company_id?: string | null;
+  contact?: null | ContactReference;
+  kind: HolderKind;
+}
+
+export type HoldingAuditSampleStatus = "sampled_pending_review";
+
 export interface HoldingAuditSampleView {
   audit_entity_level: string;
-  audit_status: string;
+  audit_status: HoldingAuditSampleStatus;
   created_at: string;
   holding_perimeter_id: string;
   id: string;
@@ -3379,12 +3762,18 @@ export interface HoldingAuditSampleView {
   tenant_id: string;
 }
 
+export type HubAppCategory = "pos_retail" | "erp_accounting" | "payroll_hr" | "inventory_warehouse" | "crm_sales" | "industry_specific" | "general" | "ecommerce_pos" | "supply_chain";
+
+export type HubAppStatus = "draft" | "submitted" | "in_review" | "published" | "rejected" | "deprecated";
+
+export type HubAppType = "first_party_app" | "third_party_saas" | "mobile_app" | "desktop_client" | "headless_extension";
+
 export interface HubAppView {
-  app_type: string;
+  app_type: HubAppType;
   app_url?: string | null;
   author_name: string;
   built_by_tier: BuiltByTier;
-  category: string;
+  category: HubAppCategory;
   created_at: string;
   demo_url?: string | null;
   description: string;
@@ -3398,16 +3787,20 @@ export interface HubAppView {
   name: string;
   pricing_model: string;
   slug: string;
-  status: string;
+  status: HubAppStatus;
   summary: string;
   verified_badge: boolean;
   version: string;
 }
 
+export type HubConnectorCategory = "banking" | "payment" | "tax" | "shipping" | "pos" | "iot" | "crm" | "ai_agents" | "custom" | "mcp_servers" | "agent_skills" | "agent_personas" | "compliance" | "developer_tooling" | "accounting" | "ecommerce" | "payroll_hr";
+
+export type HubConnectorStatus = "draft" | "submitted" | "in_review" | "approved" | "published" | "rejected" | "deprecated";
+
 export interface HubConnectorView {
   author_name: string;
   built_by_tier: BuiltByTier;
-  category: string;
+  category: HubConnectorCategory;
   created_at: string;
   description: string;
   developer_id?: string | null;
@@ -3422,7 +3815,7 @@ export interface HubConnectorView {
   name: string;
   pricing_model: string;
   slug: string;
-  status: string;
+  status: HubConnectorStatus;
   summary: string;
   verified_badge: boolean;
   version: string;
@@ -3435,9 +3828,17 @@ export interface HubDeveloperProfileView {
   id: string;
   support_email: string;
   tenant_id: string;
-  verification_status: string;
+  verification_status: HubDeveloperVerificationStatus;
   website_url?: string | null;
 }
+
+export type HubDeveloperVerificationStatus = "unverified" | "verified" | "suspended";
+
+export type HubPartnerStatus = "draft" | "applied" | "in_review" | "published" | "rejected" | "suspended";
+
+export type HubPartnerTier = "registered" | "certified" | "premier" | "chartered";
+
+export type HubPartnerType = "implementation_partner" | "accounting_partner" | "audit_partner" | "technology_partner";
 
 export interface HubPartnerView {
   certified_consultants_count: number;
@@ -3451,12 +3852,38 @@ export interface HubPartnerView {
   jurisdiction_coverage: string[];
   logo_url?: string | null;
   partner_name: string;
-  partner_type: string;
+  partner_type: HubPartnerType;
   rating_score: number;
-  status: string;
+  status: HubPartnerStatus;
   summary: string;
-  tier: string;
+  tier: HubPartnerTier;
   website_url?: string | null;
+}
+
+export type HubReviewDecision = "approved" | "rejected" | "changes_requested";
+
+export type HubSubmissionReviewStatus = "draft" | "submitted" | "in_review" | "approved" | "published" | "rejected" | "deprecated";
+
+export type HubSubmissionTargetType = "connector" | "app" | "partner";
+
+export interface IdentityRevisionList {
+  items: IdentityRevisionView[];
+  next_cursor: string | null;
+}
+
+export interface IdentityRevisionView {
+  company_id: string;
+  effective_from: string;
+  evidence_references: EvidenceReference[];
+  id: string;
+  jurisdiction_id: string | null;
+  legal_name: string;
+  reason: string | null;
+  recorded_at: string;
+  recorded_by_principal_id: string;
+  registered_address: Record<string, unknown> | null;
+  revision_number: number;
+  supersedes_revision_id: string | null;
 }
 
 export interface ImpairAsset {
@@ -3509,7 +3936,7 @@ export interface ImportDeclaration {
   port_of_entry?: string | null;
   posting_id?: string | null;
   purchase_document_ids: string[];
-  status: string;
+  status: ImportDeclarationStatus;
   updated_at: string;
 }
 
@@ -3530,6 +3957,8 @@ export interface ImportDeclarationList {
   declarations: ImportDeclaration[];
 }
 
+export type ImportDeclarationStatus = "draft" | "submitted" | "posted" | "void";
+
 export interface ImportXeroHistoricalDataRequest {
   import_contacts?: boolean | null;
   import_journals?: boolean | null;
@@ -3537,7 +3966,7 @@ export interface ImportXeroHistoricalDataRequest {
 }
 
 export interface ImportedAccountRow {
-  account_class: string;
+  account_class: AccountClass;
   account_code: string;
   name: string;
   normal_balance: string;
@@ -3580,19 +4009,21 @@ export interface IngestH2hCamt053StatementView {
   external_message_id: string;
   id: string;
   ingested_at: string;
-  message_type: string;
-  processed_status: string;
+  message_type: Iso20022MessageType;
+  processed_status: H2hStatementProcessedStatus;
   statement_lines_parsed: Int64String;
   tenant_id: string;
   total_closing_balance_minor?: Int64String | null;
 }
 
 export interface IngestPhysicalEventRequest {
-  classification?: string | null;
+  classification?: null | PhysicalEventClassification;
   device_id: string;
-  event_type: string;
+  event_type: PhysicalEventType;
   metric_payload: unknown;
 }
+
+export type InputClass = "primary" | "adjustment" | "complete-derived";
 
 export interface InstallConnectorRequest {
   configuration_values?: unknown;
@@ -3600,20 +4031,7 @@ export interface InstallConnectorRequest {
   granted_permission_scopes?: string[] | null;
 }
 
-export interface IntercompanyEliminationRunView {
-  created_at: string;
-  cta_translation_reserve_minor: Int64String;
-  eliminated_expense_minor: Int64String;
-  eliminated_payable_minor: Int64String;
-  eliminated_receivable_minor: Int64String;
-  eliminated_revenue_minor: Int64String;
-  id: string;
-  parent_company_book_id: string;
-  period_month: number;
-  period_year: number;
-  status: string;
-  tenant_id: string;
-}
+export type InventoryCostingMethod = "fifo" | "moving_average" | "lifo";
 
 export interface InventoryLocation {
   created_at: string;
@@ -3628,7 +4046,7 @@ export interface InventoryMovement {
   id: string;
   item_id: string;
   movement_date: string;
-  movement_type: string;
+  movement_type: InventoryMovementType;
   quantity: Int64String;
   running_avg_cost: Int64String;
   running_book_value: Int64String;
@@ -3638,6 +4056,8 @@ export interface InventoryMovement {
   total_value: Int64String;
   unit_cost: Int64String;
 }
+
+export type InventoryMovementType = "receipt" | "issue" | "return" | "adjustment" | "stocktake" | "transfer_in" | "transfer_out" | "landed_cost" | "transformation_in" | "transformation_out";
 
 export interface InventoryReconciliation {
   difference: Int64String;
@@ -3653,11 +4073,13 @@ export interface InventoryTransfer {
   from_location_id: string;
   id: string;
   posting_id?: string | null;
-  status: string;
+  status: InventoryTransferStatus;
   to_location_id: string;
   transfer_date: string;
   transfer_number: string;
 }
+
+export type InventoryTransferStatus = "draft" | "posted" | "cancelled";
 
 export interface InventoryTransformation {
   abnormal_loss_value: Int64String;
@@ -3666,12 +4088,14 @@ export interface InventoryTransformation {
   consumed_movement_ids: string[];
   id: string;
   input_value: Int64String;
-  kind: string;
+  kind: InventoryTransformationKind;
   outputs: TransformationOutput[];
   posting_id?: string | null;
   transformation_date: string;
   unassigned_value: Int64String;
 }
+
+export type InventoryTransformationKind = "assemble" | "disassemble" | "repack" | "blend";
 
 export interface InvitationView {
   company_book_id: string;
@@ -3690,9 +4114,13 @@ export interface InvoiceEstampResultView {
   id: string;
   provider_name: string;
   stamped_at: string;
-  status: string;
+  status: InvoiceEstampStatus;
   tenant_id: string;
 }
+
+export type InvoiceEstampStatus = "stamped";
+
+export type InvoicePaymentLinkStatus = "active";
 
 export interface InvoicePaymentLinkView {
   company_book_id: string;
@@ -3701,8 +4129,10 @@ export interface InvoicePaymentLinkView {
   invoice_id: string;
   payment_link_url: string;
   provider_name: string;
-  status: string;
+  status: InvoicePaymentLinkStatus;
 }
+
+export type Iso20022MessageType = "pain.001" | "camt.053";
 
 export interface IssueDeveloperKeyRequest {
   environment?: string | null;
@@ -3725,7 +4155,6 @@ export interface IssueDeveloperKeyResponse {
 
 export interface IssueNonFiatUnitsRequest {
   counterparty_entity_id: string;
-  unit_type: string;
   units_amount: number;
 }
 
@@ -3745,7 +4174,7 @@ export interface Item {
   description?: string | null;
   dimension_value_ids: string[];
   id: string;
-  kind: string;
+  kind: ItemKind;
   max_stock_level?: Int64String | null;
   min_stock_level?: Int64String | null;
   name: string;
@@ -3762,8 +4191,12 @@ export interface Item {
   updated_at: string;
 }
 
+export type ItemKind = "inventory" | "service" | "non_inventory";
+
 export interface ItemList {
+  has_more: boolean;
   items: Item[];
+  next_cursor: string | null;
 }
 
 export interface JournalLineInput {
@@ -3786,7 +4219,7 @@ export interface LandedCostAllocation {
 export interface LandedCostApportionment {
   allocations: LandedCostAllocation[];
   apportionment_date: string;
-  basis: string;
+  basis: LandedCostBasis;
   capitalised_total: string;
   created_at: string;
   id: string;
@@ -3795,8 +4228,8 @@ export interface LandedCostApportionment {
   posting_id?: string | null;
   purchase_document_id: string;
   residual_total: string;
-  residual_treatment?: string | null;
-  status: string;
+  residual_treatment: null | ResidualTreatment;
+  status: LandedCostApportionmentStatus;
   total_cost: string;
   updated_at: string;
 }
@@ -3805,10 +4238,14 @@ export interface LandedCostApportionmentList {
   apportionments: LandedCostApportionment[];
 }
 
+export type LandedCostApportionmentStatus = "draft" | "submitted" | "posted" | "void";
+
+export type LandedCostBasis = "value" | "quantity" | "weight" | "volume";
+
 export interface LandedCostLine {
   amount: string;
   capitalise: boolean;
-  cost_type: string;
+  cost_type: LandedCostType;
   description?: string | null;
   id: string;
   ordinal: number;
@@ -3817,14 +4254,16 @@ export interface LandedCostLine {
 
 export interface LandedCostPolicy {
   options: LandedCostPolicyOption[];
-  residual_treatment: string;
+  residual_treatment: ResidualTreatment;
 }
 
 export interface LandedCostPolicyOption {
   description: string;
   is_default: boolean;
-  residual_treatment: string;
+  residual_treatment: ResidualTreatment;
 }
+
+export type LandedCostType = "freight" | "insurance" | "duty" | "brokerage" | "handling" | "storage" | "financing" | "other";
 
 export interface Lead {
   contact_id: string;
@@ -3836,7 +4275,7 @@ export interface Lead {
   id: string;
   lead_code: string;
   lead_source: string;
-  stage: string;
+  stage: LeadStage;
   updated_at: string;
 }
 
@@ -3844,11 +4283,13 @@ export interface LeadList {
   leads: Lead[];
 }
 
+export type LeadStage = "prospect" | "qualified" | "converted" | "lost";
+
 export interface LedgerWebhookEnvelope {
   company_book_id: string;
   data: unknown;
   event_id: string;
-  event_type: string;
+  event_type: WebhookEventType;
   timestamp: string;
 }
 
@@ -3871,12 +4312,6 @@ export interface LineVariance {
   warning: boolean;
 }
 
-export interface LinkSubsidiaryCompanyBookRequest {
-  consolidation_method?: string | null;
-  ownership_percentage?: number | null;
-  subsidiary_company_book_id: string;
-}
-
 export interface LockHolderInfo {
   display_name: string;
   email: string;
@@ -3885,6 +4320,8 @@ export interface LockHolderInfo {
   minutes_remaining: Int64String;
   principal_id: string;
 }
+
+export type LockableDocumentType = "quotation" | "sales_order" | "invoice" | "sales_invoice" | "credit_note" | "purchase_order" | "bill" | "purchase_bill" | "goods_receipt" | "debit_note" | "supplier_quote" | "customer_quote" | "manual_journal";
 
 export interface LogTimesheetEntryRequest {
   billable_rate_minor: Int64String;
@@ -3896,9 +4333,14 @@ export interface LogTimesheetEntryRequest {
   staff_principal_id: string;
 }
 
+export type LoyaltyPointTransactionType = "earn" | "redeem" | "expire" | "adjustment";
+
+export type LoyaltyTierLevel = "bronze" | "silver" | "gold" | "platinum";
+
 export type MaintenanceStatus = "active" | "maintenance_mode" | "deprecated" | "archived";
 
 export interface ManualJournal {
+  accounting_book_id: string;
   approval_request_id?: string | null;
   content_revision: Int64String;
   content_sha256: string;
@@ -3909,12 +4351,13 @@ export interface ManualJournal {
   financial_date: string;
   id: string;
   lines: JournalLineInput[];
-  state: string;
+  state: ManualJournalState;
   state_revision: Int64String;
   version_id: string;
 }
 
 export interface ManualJournalContent {
+  accounting_book_id?: string | null;
   currency: string;
   description: string;
   evidence?: EvidenceInput[];
@@ -3922,6 +4365,8 @@ export interface ManualJournalContent {
   financial_date: string;
   lines: JournalLineInput[];
 }
+
+export type ManualJournalState = "draft" | "submitted" | "approved" | "rejected";
 
 export interface MatchGoodsReceiptBillRequest {
   bill_date: string;
@@ -3937,6 +4382,31 @@ export interface MatchedBillLineRequest {
   tax_profile_id?: string | null;
   taxable?: boolean;
   withholding_profile_id?: string | null;
+}
+
+export type MemberBindingRole = "parent" | "subsidiary";
+
+export interface MemberBindingView {
+  basis_key: string;
+  binding_id: string;
+  book_purpose: string;
+  created_at: string;
+  effective_from: string;
+  effective_to?: string | null;
+  holding_company_book_id: string;
+  id: string;
+  member_company_book_id: string;
+  perimeter_id: string;
+  predecessor_version_id?: string | null;
+  presentation_currency: string;
+  reporting_book_id: string;
+  role: MemberBindingRole;
+  version: Int64String;
+}
+
+export interface MembershipChange {
+  expected_revision: Int64String;
+  role: Role;
 }
 
 export interface MembershipList {
@@ -3968,7 +4438,7 @@ export interface MembershipView {
 
 export interface MerchantBillingItem {
   base_monthly_fee_idr: Int64String;
-  billing_status: string;
+  billing_status: CompanyBillingStatus;
   company_book_id: string;
   company_name: string;
   current_cycle_pos_gmv_idr: Int64String;
@@ -3977,6 +4447,8 @@ export interface MerchantBillingItem {
   per_pos_transaction_fee_idr: Int64String;
   projected_monthly_total_idr: Int64String;
 }
+
+export type MerchantRouteSemanticAccountRole = "payment_provider_clearing";
 
 export interface MerchantRouteVersionResponse {
   active: boolean;
@@ -3990,12 +4462,14 @@ export interface MerchantRouteVersionResponse {
   external_merchant_id: string;
   merchant_route_id: string;
   provenance: string;
-  semantic_account_role: string;
+  semantic_account_role: MerchantRouteSemanticAccountRole;
   settlement_route_key: string;
   supersedes_version_id?: string | null;
   version: number;
   version_id: string;
 }
+
+export type MetricsProvider = "grafana_prometheus";
 
 export interface MigrateRealCompanyOpeningBalancesRequest {
   as_of_date: string;
@@ -4005,12 +4479,10 @@ export interface MigrateRealCompanyOpeningBalancesRequest {
 }
 
 export interface MigrateTenantInfrastructureRequest {
-  migrated_journal_count: Int64String;
   migration_payload_uri: string;
   proof_sentinel_checksum: string;
-  source_deployment_mode: string;
-  status?: string | null;
-  target_deployment_mode: string;
+  source_deployment_mode: NodeDeploymentMode;
+  target_deployment_mode: NodeDeploymentMode;
 }
 
 export interface MonthlyDepreciationBatchResultView {
@@ -4019,7 +4491,7 @@ export interface MonthlyDepreciationBatchResultView {
   period_date: string;
   processed_at: string;
   schedules_created_count: number;
-  status: string;
+  status: DepreciationBatchStatus;
   total_depreciation_amount_minor: Int64String;
 }
 
@@ -4030,33 +4502,115 @@ export interface MonthlyPayrollRunView {
   journal_entry_id?: string | null;
   period_month: number;
   period_year: number;
-  status: string;
+  status: PayrollRunStatus;
   total_bpjs_employee_minor: Int64String;
   total_bpjs_employer_minor: Int64String;
   total_gross_salary_minor: Int64String;
   total_pph21_withheld_minor: Int64String;
 }
 
+export interface MovementManifestItemView {
+  account_content_sha256?: string | null;
+  account_id?: string | null;
+  account_state_revision?: Int64String | null;
+  amount_minor?: Int64String | null;
+  direction?: string | null;
+  financial_date: string;
+  inclusion: string;
+  journal_entry_id?: string | null;
+  journal_line_id?: string | null;
+  ordinal: number;
+  posting_content_sha256: string;
+  posting_finality: string;
+  posting_id: string;
+  posting_state_revision: Int64String;
+  posting_time?: string | null;
+  source_capability: string;
+  source_content_sha256: string;
+  source_object_id: string;
+  source_version: Int64String;
+  stable_effect_key: string;
+}
+
+export interface MovementManifestView {
+  accounting_period_state_revision: Int64String;
+  applied_credit_minor: Int64String;
+  applied_debit_minor: Int64String;
+  applied_line_count: number;
+  authority_context_id: string;
+  authority_context_kind: string;
+  authority_revision_id?: string | null;
+  basis_key: string;
+  book_purpose: string;
+  content_sha256: string;
+  created_at: string;
+  cutoff_at: string;
+  excluded_posting_count: number;
+  holding_company_book_id: string;
+  id: string;
+  identity_fx_evidence_id: string;
+  identity_fx_evidence_sha256: string;
+  items: MovementManifestItemView[];
+  manifest_id: string;
+  member_binding_version_id: string;
+  member_binding_version_number: Int64String;
+  member_company_book_id: string;
+  perimeter_id: string;
+  period_end: string;
+  period_id: string;
+  period_start: string;
+  permission_group_id?: string | null;
+  permission_group_version?: Int64String | null;
+  predecessor_manifest_id?: string | null;
+  presentation_currency: string;
+  reconciliation_snapshot_id: string;
+  reconciliation_snapshot_sha256: string;
+  reporting_basis_snapshot: ResolvedReportingBasis;
+  reporting_basis_snapshot_sha256: string;
+  reporting_basis_version_id: string;
+  reporting_book_id: string;
+  reporting_book_state_revision: Int64String;
+  sharing_grant_evidence_sha256: string;
+  sharing_grant_version_id: string;
+  sharing_grant_version_number: Int64String;
+  source_sha256: string;
+  version: Int64String;
+}
+
+export type MutationOutcome = "accepted" | "pending";
+
+export type NodeDeploymentMode = "on_premise" | "saas_shared" | "dedicated_db";
+
+export type NotificationChannel = "in_app" | "email" | "push" | "sms" | "whatsapp" | "telegram";
+
 export interface NotificationDelivery {
-  channel: string;
+  channel: NotificationChannel;
   company_book_id: string;
   created_at: string;
   id: string;
-  provider?: string | null;
+  provider?: null | NotificationProvider;
   provider_message_id?: string | null;
   recipient_email?: string | null;
   retry_count: number;
   sent_at?: string | null;
-  source_capability?: string | null;
+  source_capability?: null | NotificationSourceCapability;
   source_id?: string | null;
-  state: string;
+  state: NotificationDeliveryState;
   subject?: string | null;
 }
 
 export interface NotificationDeliveryEnqueuedView {
   notification_delivery_id: string;
-  status: string;
+  status: NotificationDeliveryState;
 }
+
+export type NotificationDeliveryState = "pending" | "sending" | "accepted" | "sent" | "delivered" | "read" | "failed";
+
+export type NotificationProvider = "smtp" | "ses" | "fcm" | "twilio" | "wabusiness";
+
+export type NotificationSourceCapability = "sales" | "purchase" | "contacts" | "membership";
+
+export type NsfpPoolStatus = "active";
 
 export interface NsfpPoolView {
   company_book_id: string;
@@ -4065,7 +4619,7 @@ export interface NsfpPoolView {
   id: string;
   nsfp_end_number: string;
   nsfp_start_number: string;
-  status: string;
+  status: NsfpPoolStatus;
   tax_year: number;
 }
 
@@ -4093,6 +4647,35 @@ export interface OffboardingTransferResult {
   source_principal_id: string;
   successor_principal_id: string;
   transferred_at: string;
+}
+
+export interface OfficerList {
+  items: OfficerView[];
+  next_cursor: string | null;
+}
+
+export interface OfficerMutationResult {
+  approval_request_id: string | null;
+  officer: OfficerView;
+  outcome: MutationOutcome;
+}
+
+export type OfficerRole = "director" | "secretary" | "commissioner" | "signatory" | "chief_executive" | "chief_financial" | "other";
+
+export interface OfficerView {
+  approval_request_id: string | null;
+  company_id: string;
+  effective_from: string;
+  effective_to: string | null;
+  evidence_references: EvidenceReference[];
+  id: string;
+  person: ContactReference;
+  recorded_at: string;
+  recorded_by_principal_id: string;
+  role: OfficerRole;
+  status: RecordStatus;
+  supersedes_officer_id: string | null;
+  title: string | null;
 }
 
 export interface OnboardSingaporeEntityRequest {
@@ -4138,18 +4721,26 @@ export interface OpenItem {
   amount_open_transaction?: Int64String | null;
   contact_id: string;
   created_at: string;
-  direction: string;
+  direction: OpenItemDirection;
   document_date: string;
   due_date?: string | null;
   id: string;
   original_amount: Int64String;
   parent_open_item_id?: string | null;
-  source_capability: string;
+  source_capability: OpenItemSourceCapability;
   source_doc_id: string;
-  source_doc_type: string;
-  status: string;
+  source_doc_type: OpenItemSourceDocType;
+  status: OpenItemStatus;
   transaction_currency?: string | null;
 }
+
+export type OpenItemDirection = "receivable" | "payable";
+
+export type OpenItemSourceCapability = "sales" | "purchase";
+
+export type OpenItemSourceDocType = "sales_invoice" | "purchase_bill" | "debit_note";
+
+export type OpenItemStatus = "open" | "partially_paid" | "cleared" | "void";
 
 export interface OpenPosCashierSessionRequest {
   cashier_principal_id: string;
@@ -4157,35 +4748,167 @@ export interface OpenPosCashierSessionRequest {
   terminal_id: string;
 }
 
+export type OpeningBalancesMigrationStatus = "posted";
+
 export interface OpeningBalancesMigrationView {
   as_of_date: string;
   company_book_id: string;
   migrated_at: string;
   migration_id: string;
   opening_balances_migrated: boolean;
-  status: string;
+  status: OpeningBalancesMigrationStatus;
   total_credits_minor: Int64String;
   total_debits_minor: Int64String;
+}
+
+export interface OrganizationCreate {
+  name: string;
+  slug: string;
+}
+
+export interface OrganizationInvitationAccept {
+  token: string;
+}
+
+export interface OrganizationInvitationCreate {
+  email: string;
+  role: Role;
+}
+
+export interface OrganizationInvitationIssued {
+  invitation: OrganizationInvitationView;
+  token?: string | null;
+}
+
+export interface OrganizationInvitationView {
+  email: string;
+  expires_at: string;
+  id: string;
+  organization_id: string;
+  role: Role;
+  state_revision: Int64String;
+}
+
+export interface OrganizationMembershipPage {
+  items: OrganizationMembershipView[];
+  next_cursor?: string | null;
+}
+
+export interface OrganizationMembershipView {
+  active: boolean;
+  organization_id: string;
+  principal_id: string;
+  role: Role;
+  state_revision: Int64String;
+}
+
+export interface OrganizationPage {
+  items: OrganizationView[];
+  next_cursor?: string | null;
+}
+
+export type OrganizationStatus = "active" | "archived";
+
+export interface OrganizationUpdate {
+  expected_revision: Int64String;
+  name: string;
+}
+
+export interface OrganizationView {
+  id: string;
+  name: string;
+  slug: string;
+  state_revision: Int64String;
+  status: OrganizationStatus;
+}
+
+export interface OrganizationWorkspaceCreated {
+  environment: CustomerEnvironmentView;
+  id: string;
+  name: string;
+  organization_id: string;
+  slug: string;
+  state_revision: Int64String;
+  status: WorkspaceStatus;
+}
+
+export interface OrganizationWorkspacePage {
+  items: OrganizationWorkspaceView[];
+  next_cursor?: string | null;
+}
+
+export interface OrganizationWorkspaceView {
+  id: string;
+  name: string;
+  organization_id: string;
+  slug: string;
+  state_revision: Int64String;
+  status: WorkspaceStatus;
+}
+
+export interface OwnedCompanyBookList {
+  items: OwnedCompanyBookView[];
+}
+
+export interface OwnedCompanyBookView {
+  active: boolean;
+  company_owner_source: string;
+  display_name: string;
+  functional_currency: string;
+  id: string;
 }
 
 export interface OwnerCapacityList {
   owner_capacities: OwnerCapacityView[];
 }
 
+export type OwnerCapacityState = "requested" | "active" | "revoked";
+
 export interface OwnerCapacityView {
   id: string;
   principal_id: string;
-  state: string;
+  state: OwnerCapacityState;
   state_revision: Int64String;
   state_token: string;
+}
+
+export interface OwnershipStatementList {
+  items: OwnershipStatementView[];
+  next_cursor: string | null;
+}
+
+export interface OwnershipStatementMutationResult {
+  approval_request_id: string | null;
+  outcome: MutationOutcome;
+  statement: OwnershipStatementView;
+}
+
+export interface OwnershipStatementView {
+  approval_request_id: string | null;
+  beneficial: boolean;
+  company_id: string;
+  effective_from: string;
+  effective_to: string | null;
+  evidence_references: EvidenceReference[];
+  holder: HolderReference;
+  id: string;
+  instrument_class: string;
+  percentage: string | null;
+  recorded_at: string;
+  recorded_by_principal_id: string;
+  statement_number: number;
+  status: RecordStatus;
+  supersedes_statement_id: string | null;
+  units: string | null;
+  voting_percentage: string | null;
 }
 
 export interface PartnerManagedClientItemView {
   client_name: string;
   company_book_id: string;
-  environment_mode: string;
+  environment_mode: CompanyEnvironmentMode;
   linked_at: string;
-  status: string;
+  status: PartnerManagedClientStatus;
 }
 
 export interface PartnerManagedClientListView {
@@ -4193,8 +4916,17 @@ export interface PartnerManagedClientListView {
   matured_commission_balance_minor: Int64String;
   partner_id: string;
   partner_name: string;
-  partner_tier: string;
+  partner_tier: PartnerTier;
   total_clients: number;
+}
+
+export type PartnerManagedClientStatus = "active" | "suspended" | "terminated";
+
+export type PartnerTier = "certified_accountant";
+
+export interface PartyReference {
+  company_book_id: string;
+  contact_id: string;
 }
 
 export interface Payment {
@@ -4206,7 +4938,7 @@ export interface Payment {
   created_at: string;
   currency: string;
   dimension_value_ids: string[];
-  direction: string;
+  direction: PaymentDirection;
   id: string;
   memo?: string | null;
   payment_date: string;
@@ -4216,7 +4948,7 @@ export interface Payment {
   reference?: string | null;
   resolved_gl_account_code: string;
   state_revision: Int64String;
-  status: string;
+  status: PaymentStatus;
   updated_at: string;
 }
 
@@ -4225,15 +4957,21 @@ export interface PaymentAllocation {
   applied_at?: string | null;
   applied_posting_id?: string | null;
   document_id: string;
-  document_type: string;
+  document_type: PaymentAllocationDocumentType;
   fx_gain_loss?: Int64String | null;
   id: string;
   payment_id: string;
 }
 
+export type PaymentAllocationDocumentType = "sales_invoice" | "purchase_bill";
+
+export type PaymentDirection = "receive" | "spend";
+
 export interface PaymentList {
   payments: Payment[];
 }
+
+export type PaymentStatus = "draft" | "submitted" | "posted" | "void";
 
 export interface PayrollCalculationApprovalView {
   approved_at: string;
@@ -4241,7 +4979,7 @@ export interface PayrollCalculationApprovalView {
   company_book_id: string;
   id: string;
   payroll_run_id: string;
-  status: string;
+  status: PayrollRunStatus;
 }
 
 export interface PayrollCalculationRunView {
@@ -4250,7 +4988,7 @@ export interface PayrollCalculationRunView {
   id: string;
   period_month: number;
   period_year: number;
-  status: string;
+  status: PayrollRunStatus;
   tenant_id: string;
   total_bpjs_deduction_minor: Int64String;
   total_gross_salary_minor: Int64String;
@@ -4271,7 +5009,7 @@ export interface PayrollRun {
   period: string;
   posting_id?: string | null;
   pph21_total: Int64String;
-  status: string;
+  status: PayrollRunStatus;
   updated_at: string;
 }
 
@@ -4280,7 +5018,7 @@ export interface PayrollRunApprovalView {
   company_book_id: string;
   id: string;
   journal_entry_id?: string | null;
-  status: string;
+  status: PayrollRunStatus;
 }
 
 export interface PayrollRunLine {
@@ -4302,14 +5040,16 @@ export interface PayrollRunList {
   runs: PayrollRun[];
 }
 
+export type PayrollRunStatus = "draft" | "submitted" | "posted" | "reversed";
+
 export interface PendingCurationItemView {
   id: string;
-  status: string;
+  status: HubSubmissionReviewStatus;
   submitted_at: string;
   submitter_name: string;
   target_id: string;
   target_name: string;
-  target_type: string;
+  target_type: HubSubmissionTargetType;
 }
 
 export interface PendingCurationListView {
@@ -4318,7 +5058,7 @@ export interface PendingCurationListView {
 }
 
 export interface PendingInvitationListItem {
-  delivery_state: string;
+  delivery_state: DeliveryState;
   expires_at: string;
   id: string;
   invited_by_principal_id: string;
@@ -4355,13 +5095,13 @@ export interface PersonInCharge {
   organization_contact_id: string;
   organization_name: string;
   relationship_id: string;
-  relationship_type: string;
+  relationship_type: ContactRelationshipType;
   telephone?: string | null;
   title?: string | null;
 }
 
 export interface PhysicalBusinessEventRuleView {
-  classification_result: string;
+  classification_result: PhysicalEventClassification;
   company_book_id: string;
   created_at: string;
   id: string;
@@ -4370,29 +5110,37 @@ export interface PhysicalBusinessEventRuleView {
   tenant_id: string;
 }
 
+export type PhysicalDeviceStatus = "active";
+
+export type PhysicalDeviceType = "scale" | "barcode_scanner" | "rfid_reader" | "temperature_sensor" | "gps_tracker" | "other";
+
 export interface PhysicalDeviceView {
   company_book_id: string;
   created_at: string;
   device_identifier: string;
-  device_type: string;
+  device_type: PhysicalDeviceType;
   firmware_version: string;
   id: string;
   mac_address?: string | null;
-  status: string;
+  status: PhysicalDeviceStatus;
   tenant_id: string;
 }
 
+export type PhysicalEventClassification = "financial_posting" | "informational_alert";
+
 export interface PhysicalEventStreamView {
-  classification: string;
+  classification: PhysicalEventClassification;
   company_book_id: string;
   created_at: string;
   device_id: string;
-  event_type: string;
+  event_type: PhysicalEventType;
   id: string;
   metric_payload: unknown;
   processed_at: string;
   tenant_id: string;
 }
+
+export type PhysicalEventType = "weight_capture" | "item_scan" | "temperature_reading" | "location_ping" | "door_status" | "other";
 
 export interface PlaceAuctionBidRequest {
   bid_amount_minor: Int64String;
@@ -4405,7 +5153,7 @@ export interface PlaceInService {
 }
 
 export interface PlatformAdminOverviewView {
-  engine_health_status: string;
+  engine_health_status: PlatformHealthStatus;
   open_support_tickets_count: number;
   pending_curation_submissions_count: number;
   total_active_books: number;
@@ -4413,11 +5161,19 @@ export interface PlatformAdminOverviewView {
   total_tenants: number;
 }
 
+export interface PlatformAdmissionView {
+  principal_id: string;
+  state_revision: Int64String;
+  status: AdmissionStatus;
+}
+
+export type PlatformHealthStatus = "optimal" | "degraded" | "down";
+
 export interface PlatformSystemHealthView {
   checked_at: string;
   otel_collector_ready: boolean;
   postgres_ready: boolean;
-  status: string;
+  status: PlatformHealthStatus;
   tigerbeetle_ready: boolean;
   uptime_seconds: Int64String;
 }
@@ -4427,10 +5183,12 @@ export interface PlatformTenantListView {
   total_count: number;
 }
 
+export type PlatformTenantStatus = "active" | "suspended";
+
 export interface PlatformTenantSummary {
   book_count: number;
   created_at: string;
-  status: string;
+  status: PlatformTenantStatus;
   tenant_id: string;
   tenant_name: string;
 }
@@ -4457,8 +5215,21 @@ export interface PointLedgerEntryView {
   points_delta: Int64String;
   reference_document_id?: string | null;
   tenant_id: string;
-  transaction_type: string;
+  transaction_type: LoyaltyPointTransactionType;
   unearned_liability_amount_minor: Int64String;
+}
+
+export interface PolicyElection {
+  effective_from: string;
+  id: string;
+  topic: PolicyTopic;
+  treatment_ref: string;
+}
+
+export interface PolicyElectionInput {
+  reason: string;
+  topic: PolicyTopic;
+  treatment_ref: string;
 }
 
 export interface PolicyInput {
@@ -4468,6 +5239,8 @@ export interface PolicyInput {
   qualified_assessment_reference?: string | null;
   qualified_assessment_sha256?: string | null;
 }
+
+export type PolicyTopic = "fixed_asset_depreciation" | "inventory_costing";
 
 export interface PolicyView {
   approved_by: string;
@@ -4495,6 +5268,8 @@ export interface PolicyView {
   version: Int64String;
 }
 
+export type PosCashierSessionStatus = "open" | "closed";
+
 export interface PosCashierSessionView {
   cash_over_short_amount_minor?: Int64String | null;
   cashier_principal_id: string;
@@ -4506,7 +5281,7 @@ export interface PosCashierSessionView {
   id: string;
   opened_at: string;
   opening_cash_float_minor: Int64String;
-  status: string;
+  status: PosCashierSessionStatus;
   tenant_id: string;
   terminal_id: string;
 }
@@ -4516,6 +5291,8 @@ export interface PosHandoverEvidenceRequest {
   evidence_reference: string;
   occurred_at: string;
 }
+
+export type PosOrderCorrectionKind = "return" | "correction";
 
 export interface PosOrderItemView {
   cogs_amount_minor: Int64String;
@@ -4528,10 +5305,14 @@ export interface PosOrderItemView {
   unit_price_minor: Int64String;
 }
 
+export type PosOrderPaymentMethod = "cash";
+
+export type PosOrderStatus = "draft" | "submitted" | "posted" | "corrected";
+
 export interface PosOrderView {
   company_book_id: string;
   content_sha256?: string | null;
-  correction_kind?: string | null;
+  correction_kind?: null | PosOrderCorrectionKind;
   corrects_pos_order_id?: string | null;
   created_at: string;
   customer_contact_id?: string | null;
@@ -4544,14 +5325,22 @@ export interface PosOrderView {
   handover_occurred_at?: string | null;
   id: string;
   items: PosOrderItemView[];
-  payment_method: string;
+  payment_method: PosOrderPaymentMethod;
   posting_id?: string | null;
   session_id: string;
   state_revision: Int64String;
-  status: string;
+  status: PosOrderStatus;
   subtotal_minor: Int64String;
   tax_amount_minor: Int64String;
   tenant_id: string;
+}
+
+export type PosSaleQuoteComponentKind = "base" | "modifier" | "discount" | "tax" | "service_charge" | "tip" | "rounding";
+
+export interface PosSaleQuoteFreeLineView {
+  quantity: Int64String;
+  sku: string;
+  unit_price_minor: string;
 }
 
 export interface PosSaleQuoteLineRequest {
@@ -4568,10 +5357,20 @@ export interface PosSaleQuoteLineView {
   quantity: Int64String;
 }
 
+export type PosSaleQuotePromotionStatus = "applied" | "not_applied_single_rule_v1" | "below_min_spend" | "quantity_below_threshold" | "member_daily_limit_reached" | "member_total_limit_reached" | "global_limit_reached";
+
+export interface PosSaleQuotePromotionView {
+  code: string;
+  discount_minor: string;
+  free_lines: PosSaleQuoteFreeLineView[];
+  rule_id: string;
+  status: PosSaleQuotePromotionStatus;
+}
+
 export interface PosSaleQuoteTenderEligibilityView {
   eligible: boolean;
-  reason_code?: string | null;
-  tender_type: string;
+  reason_code?: null | PosTenderIneligibilityReason;
+  tender_type: PosTenderType;
 }
 
 export interface PosSaleQuoteView {
@@ -4583,6 +5382,7 @@ export interface PosSaleQuoteView {
   lines: PosSaleQuoteLineView[];
   preset_id: string;
   preset_version: Int64String;
+  promotions: PosSaleQuotePromotionView[];
   quote_id: string;
   revision: Int64String;
   rounding_total_minor: string;
@@ -4593,11 +5393,19 @@ export interface PosSaleQuoteView {
   tip_total_minor: string;
 }
 
+export type PosTenderIneligibilityReason = "not_in972_scope";
+
+export type PosTenderPostingSourceCapability = "pos_tender_sale";
+
 export interface PosTenderRefundAllocationResponse {
   amount_minor: string;
   component_id: string;
   original_journal_line_id: string;
 }
+
+export type PosTenderType = "cash" | "qris" | "debit" | "credit";
+
+export type PosTerminalStatus = "active";
 
 export interface PosTerminalView {
   company_book_id: string;
@@ -4606,7 +5414,7 @@ export interface PosTerminalView {
   outlet_location_id: string;
   receipt_footer?: string | null;
   receipt_header?: string | null;
-  status: string;
+  status: PosTerminalStatus;
   tenant_id: string;
   terminal_code: string;
   terminal_name: string;
@@ -4626,7 +5434,7 @@ export type PostPosOrderAcceptedResponse = PostPosOrderResponse | PostPosOrderAp
 
 export interface PostPosOrderApprovalRequiredResponse {
   order_id: string;
-  status: string;
+  status: PostingApprovalRequiredStatus;
 }
 
 export interface PostPosOrderRequest {
@@ -4659,6 +5467,8 @@ export interface Posting {
   state_revision: Int64String;
 }
 
+export type PostingApprovalRequiredStatus = "approval_required";
+
 export interface PostingJournalEntry {
   id: string;
   lines: PostingJournalLine[];
@@ -4686,6 +5496,8 @@ export interface PredictVariableConsiderationRequest {
   sales_document_id: string;
 }
 
+export type PreparedDocumentStatus = "draft";
+
 export interface PreviewCollision {
   component_key: string;
   decision: string;
@@ -4694,7 +5506,7 @@ export interface PreviewCollision {
 }
 
 export interface PreviewLine {
-  account_class: string;
+  account_class: StarterCoaAccountClass;
   code: string;
   line_key: string;
   name: string;
@@ -4714,7 +5526,7 @@ export interface ProcessPosRetailOrderRequest {
   customer_contact_id?: string | null;
   discount_amount_minor?: Int64String | null;
   items: ProcessPosRetailOrderItemRequest[];
-  payment_method?: string | null;
+  payment_method?: null | PosOrderPaymentMethod;
   session_id: string;
 }
 
@@ -4728,9 +5540,13 @@ export interface ProfitDistributionResultView {
   payout_amount_minor: Int64String;
   period_month: number;
   period_year: number;
-  status: string;
+  status: ProfitDistributionStatus;
   tenant_id: string;
 }
+
+export type ProfitDistributionStatus = "disbursed";
+
+export type ProfitSharingCalculationStatus = "calculated";
 
 export interface ProfitSharingCalculationView {
   agreement_id?: string | null;
@@ -4744,11 +5560,15 @@ export interface ProfitSharingCalculationView {
   period_year: number;
   retained_earnings_minor: Int64String;
   share_percentage: number;
-  split_type: string;
-  status: string;
+  split_type: ProfitSharingSplitType;
+  status: ProfitSharingCalculationStatus;
   tenant_id: string;
   total_net_profit_minor: Int64String;
 }
+
+export type ProfitSharingSplitType = "fixed_percentage" | "waterfall_hurdle";
+
+export type ProjectRetentionStatus = "active" | "released" | "defect_liability_expired";
 
 export interface ProjectRetentionSummaryView {
   accumulated_released_minor: Int64String;
@@ -4756,7 +5576,7 @@ export interface ProjectRetentionSummaryView {
   defect_liability_days: number;
   defect_liability_end_date?: string | null;
   retention_rate_pct: number;
-  status: string;
+  status: ProjectRetentionStatus;
   unmatured_balance_minor: Int64String;
 }
 
@@ -4771,6 +5591,8 @@ export interface ProjectSCurveMetricsView {
   spi?: number | null;
 }
 
+export type ProjectSCurvePeriodStatus = "planned" | "current" | "closed";
+
 export interface ProjectSCurvePointView {
   ac_cost_minor?: Int64String | null;
   ac_pct?: number | null;
@@ -4780,7 +5602,7 @@ export interface ProjectSCurvePointView {
   period_label: string;
   pv_cost_minor: Int64String;
   pv_pct: number;
-  status: string;
+  status: ProjectSCurvePeriodStatus;
 }
 
 export interface ProjectSCurveSeriesResponse {
@@ -4794,13 +5616,13 @@ export interface ProjectSCurveSeriesResponse {
 }
 
 export interface PrometheusMetricsView {
-  active_provider: string;
+  active_provider: MetricsProvider;
   metrics: string;
   otel_endpoint: string;
 }
 
 export interface ProviderSettlementBankMatch {
-  action: string;
+  action: ProviderSettlementBankMatchDecision;
   active: boolean;
   amount_minor: string;
   created_at: string;
@@ -4816,6 +5638,12 @@ export interface ProviderSettlementBankMatch {
   statement_line_id: string;
 }
 
+export type ProviderSettlementBankMatchAction = "match" | "withdraw";
+
+export type ProviderSettlementBankMatchDecision = "matched" | "withdrawn";
+
+export type PtkpStatus = "TK/0" | "TK/1" | "TK/2" | "TK/3" | "K/0" | "K/1" | "K/2" | "K/3" | "K/I/0" | "K/I/1" | "K/I/2" | "K/I/3";
+
 export interface PublishDirectoryProfile {
   discoverable: boolean;
   display_name: string;
@@ -4830,7 +5658,7 @@ export interface PurchaseDocument {
   dimension_value_ids: string[];
   document_date: string;
   document_number: string;
-  document_type: string;
+  document_type: PurchaseDocumentType;
   due_date?: string | null;
   id: string;
   lines: PurchaseLine[];
@@ -4840,8 +5668,8 @@ export interface PurchaseDocument {
   parent_document_id?: string | null;
   posting_id?: string | null;
   received_date?: string | null;
-  settlement_status: string;
-  status: string;
+  settlement_status: DocumentSettlementStatus;
+  status: PurchaseDocumentStatus;
   subtotal: Int64String;
   tax_total: Int64String;
   total: Int64String;
@@ -4852,6 +5680,10 @@ export interface PurchaseDocument {
 export interface PurchaseDocumentList {
   documents: PurchaseDocument[];
 }
+
+export type PurchaseDocumentStatus = "draft" | "submitted" | "posted" | "paid" | "void" | "approved" | "issued" | "cancelled" | "accepted" | "rejected";
+
+export type PurchaseDocumentType = "supplier_quote" | "purchase_order" | "bill" | "goods_receipt" | "debit_note";
 
 export interface PurchaseLine {
   description: string;
@@ -4927,16 +5759,11 @@ export interface QrisSettlementAllocationRequest {
   provider_event_receipt_id: string;
 }
 
+export type QrisSettlementDeductionKind = "mdr" | "fee_tax";
+
 export interface QrisSettlementDeductionRequest {
   amount_minor: string;
-  kind: string;
-}
-
-export interface QrisStatusResponse {
-  amount_received_idr?: Int64String | null;
-  paid_at?: string | null;
-  payment_id: string;
-  status: string;
+  kind: QrisSettlementDeductionKind;
 }
 
 export interface QualifyCredit {
@@ -4960,6 +5787,8 @@ export interface QuoteConsumptionView {
   lines: QuoteConsumptionLineView[];
   source_quote_id: string;
 }
+
+export type QuoteConversionStatus = "converted";
 
 export interface QuoteOrderAllocation {
   quantity: Int64String;
@@ -5011,11 +5840,13 @@ export interface ReconciliationRequest {
 export interface RecordRestructuringEventRequest {
   carveout_perimeter_json: unknown;
   effective_date: string;
-  event_type: string;
+  event_type: CorporateRestructuringEventType;
   goodwill_recognized_minor?: Int64String | null;
   target_entity_name: string;
   transaction_valuation_minor: Int64String;
 }
+
+export type RecordStatus = "accepted" | "pending_approval" | "rejected";
 
 export interface RecurringBillingBatchResultView {
   batch_id: string;
@@ -5023,10 +5854,12 @@ export interface RecurringBillingBatchResultView {
   company_book_id: string;
   invoices_generated_count: number;
   processed_at: string;
-  status: string;
+  status: RecurringBillingBatchStatus;
   subscriptions_evaluated_count: number;
   total_billed_minor: Int64String;
 }
+
+export type RecurringBillingBatchStatus = "simulated" | "completed";
 
 export interface RedeemCustomerLoyaltyPointsRequest {
   customer_contact_id: string;
@@ -5036,20 +5869,21 @@ export interface RedeemCustomerLoyaltyPointsRequest {
 
 export interface RedeemNonFiatUnitsRequest {
   counterparty_entity_id: string;
-  unit_type: string;
   units_amount: number;
+}
+
+export interface RedeemSecretResponse {
+  key: string;
+  note: string;
+  revealed_at: string;
+  secret_id: string;
+  value: string;
 }
 
 export interface RefundPayload {
   reason: string;
   refunded_amount: Int64String;
   tx_id: string;
-}
-
-export interface RefundResponse {
-  refund_id: string;
-  refunded_at: string;
-  status: string;
 }
 
 export interface RegisterDeveloperRequest {
@@ -5074,7 +5908,7 @@ export interface RegisterFixedAssetRequest {
 
 export interface RegisterPhysicalDeviceRequest {
   device_identifier: string;
-  device_type: string;
+  device_type: PhysicalDeviceType;
   firmware_version?: string | null;
   mac_address?: string | null;
 }
@@ -5085,6 +5919,28 @@ export interface RegisterPosTerminalRequest {
   receipt_header?: string | null;
   terminal_code: string;
   terminal_name: string;
+}
+
+export type RegistrationKind = "company_number" | "tax_id" | "vat_gst" | "social_security" | "licence" | "other";
+
+export interface RegistrationList {
+  items: RegistrationView[];
+  next_cursor: string | null;
+}
+
+export interface RegistrationView {
+  company_id: string;
+  effective_from: string;
+  effective_to: string | null;
+  evidence_references: EvidenceReference[];
+  id: string;
+  issuer: string;
+  jurisdiction_id: string | null;
+  kind: RegistrationKind;
+  recorded_at: string;
+  recorded_by_principal_id: string;
+  registration_number: string;
+  supersedes_registration_id: string | null;
 }
 
 export interface ReleaseTemporaryPostingLock {
@@ -5110,6 +5966,52 @@ export interface ReplaceAccount {
   name: string;
 }
 
+export type ReportKind = "trial_balance";
+
+export interface ReportingBasisVersionInput {
+  currency_layer: CurrencyLayer;
+  effective_from: string;
+  input_class: InputClass;
+  policy_manifest: unknown;
+  policy_provenance: unknown;
+  policy_version_id: string;
+  predecessor_version_id?: string | null;
+  qualified_assessment_reference: string;
+  qualified_assessment_sha256: string;
+  reason: string;
+  state: BasisState;
+  treatment_version_id?: string | null;
+}
+
+export interface ReportingBasisVersionListView {
+  reporting_basis_versions: ReportingBasisVersionView[];
+}
+
+export interface ReportingBasisVersionView {
+  accounting_book_id: string;
+  authority_context_id: string;
+  completeness: BasisCompleteness;
+  content_sha256: string;
+  created_at: string;
+  created_by_principal_id: string;
+  currency_layer: CurrencyLayer;
+  effective_from: string;
+  effective_to?: string | null;
+  elections: PolicyElection[];
+  id: string;
+  input_class: InputClass;
+  policy_manifest: unknown;
+  policy_provenance: unknown;
+  policy_version_id: string;
+  predecessor_version_id?: string | null;
+  qualified_assessment_reference: string;
+  qualified_assessment_sha256: string;
+  reason: string;
+  state: BasisState;
+  treatment_version_id?: string | null;
+  version: Int64String;
+}
+
 export interface RequestConnection {
   handle: string;
   message?: string | null;
@@ -5119,13 +6021,27 @@ export interface RequestOwnerRequest {
   principal_id: string;
 }
 
+export interface RequestRecordDetailView {
+  caused: CausedView;
+  request: unknown;
+  request_payload: unknown;
+  response_payload: unknown;
+}
+
+export interface RequestRecordListView {
+  next_cursor?: string | null;
+  requests: unknown[];
+}
+
 export interface ResetDeveloperSandboxBookRequest {
   reason: string;
   seed_version: string;
 }
 
+export type ResidualTreatment = "expense_to_cogs" | "capitalise_remaining";
+
 export interface ResolveBankStatementLine {
-  action: string;
+  action: BankStatementLineResolution;
   payment_id?: string | null;
 }
 
@@ -5139,18 +6055,36 @@ export interface ResolveContactResponse {
   active_vouchers_count: number;
   contact_id: string;
   loyalty_points: Int64String;
-  loyalty_tier: string;
+  loyalty_tier: LoyaltyTierLevel;
+}
+
+export interface ResolvedReportingBasis {
+  accounting_book_id: string;
+  content_sha256: string;
+  currency_layer: string;
+  effective_from: string;
+  id: string;
+  input_class: string;
+  policy_manifest: unknown;
+  policy_provenance: unknown;
+  policy_version_id: string;
+  qualified_assessment_reference: string;
+  qualified_assessment_sha256: string;
+  treatment_version_id?: string | null;
+  version: Int64String;
 }
 
 export interface RespondFindingRequest {
   response_text: string;
 }
 
+export type RevaluationRateType = "period_end" | "bi_rate" | "manual";
+
 export interface RevaluationRequest {
   as_of_date: string;
   currency: string;
   exchange_rate?: number | null;
-  rate_type?: string;
+  rate_type?: RevaluationRateType;
 }
 
 export interface RevaluationRun {
@@ -5159,15 +6093,40 @@ export interface RevaluationRun {
   currency: string;
   exchange_rate: number;
   id: string;
-  status: string;
+  status: RevaluationRunStatus;
   total_fx_gain_loss: Int64String;
   total_items_revalued: number;
 }
+
+export type RevaluationRunStatus = "pending" | "recorded" | "posted" | "reversed" | "failed";
 
 export interface RevalueAsset {
   date: string;
   reason: string;
   revalued_amount: Int64String;
+}
+
+export interface RevealGrantOutcome {
+  reveal: RevealGrantView;
+  secret_id: string;
+}
+
+export interface RevealGrantRequest {
+  reason: string;
+}
+
+export type RevealGrantState = "pending" | "redeemed" | "expired" | "revoked";
+
+export interface RevealGrantView {
+  expires_at: string;
+  redemptions_remaining: number;
+  reveal_id: string;
+  state: RevealGrantState;
+}
+
+export interface RevealRedeemPath {
+  reveal: string;
+  secret: string;
 }
 
 export interface ReversalRequest {
@@ -5178,13 +6137,29 @@ export interface ReversalRequest {
   reason: string;
   requested_by_principal_id: string;
   reversal_financial_date: string;
-  state: string;
+  state: ReversalState;
   state_revision: Int64String;
+}
+
+export type ReversalState = "submitted" | "approved" | "rejected" | "posted";
+
+export interface RevisionCommand {
+  expected_revision: Int64String;
 }
 
 export interface RevokeDeveloperKeyRequest {
   reason: string;
 }
+
+export interface RevokeSecretRequest {
+  reason: string;
+}
+
+export interface RevokeSharingGrantRequest {
+  reason: string;
+}
+
+export type Role = "owner" | "admin" | "member";
 
 export interface RoleAssignmentList {
   assignments: RoleAssignmentView[];
@@ -5233,6 +6208,12 @@ export interface RotateDeveloperKeyRequest {
   grace_period_hours?: Int64String | null;
 }
 
+export interface RotateSecretRequest {
+  reason: string;
+  source: SecretSourceKind;
+  value?: string | null;
+}
+
 export interface RunBadDebtProvisioningRequest {
   as_of_date?: string | null;
   provision_rate_pct?: number | null;
@@ -5250,12 +6231,6 @@ export interface RunBankFeedRuleMatchingResultView {
   matches: BankFeedMatchView[];
   total_evaluated: Int64String;
   total_matched: Int64String;
-}
-
-export interface RunIntercompanyEliminationsRequest {
-  auto_eliminate_matching_intercompany_tx?: boolean | null;
-  period_month: number;
-  period_year: number;
 }
 
 export interface RunMonthlyDepreciationBatchRequest {
@@ -5276,7 +6251,7 @@ export interface SaaSUsageMeteringView {
   created_at: string;
   id: string;
   journal_posting_count: Int64String;
-  status: string;
+  status: UsageMeteringStatus;
   storage_bytes_used: Int64String;
   tenant_id: string;
 }
@@ -5289,7 +6264,7 @@ export interface SalesDocument {
   dimension_value_ids: string[];
   document_date: string;
   document_number: string;
-  document_type: string;
+  document_type: SalesDocumentType;
   due_date?: string | null;
   id: string;
   lines: SalesLine[];
@@ -5298,8 +6273,8 @@ export interface SalesDocument {
   posting_id?: string | null;
   reference?: string | null;
   salesperson_id?: string | null;
-  settlement_status: string;
-  status: string;
+  settlement_status: DocumentSettlementStatus;
+  status: SalesDocumentStatus;
   subtotal: Int64String;
   tax_total: Int64String;
   total: Int64String;
@@ -5309,6 +6284,12 @@ export interface SalesDocument {
 export interface SalesDocumentList {
   documents: SalesDocument[];
 }
+
+export type SalesDocumentStatus = "draft" | "submitted" | "posted" | "paid" | "void" | "overdue" | "sent" | "accepted" | "rejected" | "expired" | "withdrawn" | "confirmed" | "partially_fulfilled" | "fulfilled" | "on_hold" | "closed" | "cancelled" | "issued";
+
+export type SalesDocumentType = "quotation" | "sales_order" | "invoice" | "credit_note";
+
+export type SalesInvoiceDisputeStatus = "disputed";
 
 export interface SalesLeaderboardEntry {
   conversion_rate_percentage: number;
@@ -5342,6 +6323,8 @@ export interface SalesLine {
   unit_price: Int64String;
 }
 
+export type SalesOpportunityStatus = "open";
+
 export interface SalesOpportunityView {
   assigned_sales_rep_principal_id?: string | null;
   company_book_id: string;
@@ -5350,11 +6333,15 @@ export interface SalesOpportunityView {
   estimated_amount_minor: Int64String;
   id: string;
   opportunity_name: string;
-  pipeline_stage: string;
-  status: string;
+  pipeline_stage: SalesPipelineStage;
+  status: SalesOpportunityStatus;
   tenant_id: string;
   win_probability_pct: number;
 }
+
+export type SalesPipelineStage = "qualified";
+
+export type SalesQuoteStatus = "draft";
 
 export interface SalesQuoteView {
   company_book_id: string;
@@ -5367,16 +6354,18 @@ export interface SalesQuoteView {
   opportunity_id?: string | null;
   quote_date: string;
   quote_number: string;
-  status: string;
+  status: SalesQuoteStatus;
   subtotal_minor: Int64String;
   tax_total_minor: Int64String;
   tenant_id: string;
 }
 
+export type SandboxGenerationStatus = "current" | "retired";
+
 export interface SandboxRolloverReceipt {
   committed_at: string;
-  environment_mode: string;
-  lifecycle_status: string;
+  environment_mode: CompanyEnvironmentMode;
+  lifecycle_status: SandboxGenerationStatus;
   predecessor_company_book_id: string;
   seed_version: string;
   successor_company_book_id: string;
@@ -5389,8 +6378,60 @@ export interface SaveDraftInput {
   step_index: number;
 }
 
+export interface ScopeRequest {
+  application_id?: string | null;
+  environment?: string | null;
+  kind: SecretScopeKind;
+  product?: string | null;
+}
+
+export type SecretDisclosure = "write_only" | "revealable";
+
+export type SecretEnvironment = "development" | "staging" | "production" | "sandbox";
+
+export interface SecretList {
+  next_cursor?: string | null;
+  secrets: SecretMetadataView[];
+}
+
+export interface SecretMetadataView {
+  created_at: string;
+  created_by_principal_id: string;
+  disclosure: SecretDisclosure;
+  key: string;
+  last_revealed_at?: string | null;
+  reveal?: null | RevealGrantView;
+  revoked_at?: string | null;
+  revoked_reason?: string | null;
+  rotated_at?: string | null;
+  scope: SecretScope;
+  secret_id: string;
+  state: SecretState;
+  state_revision: Int64String;
+  state_token: string;
+  version: number;
+}
+
+export interface SecretPath {
+  secret: string;
+}
+
+export interface SecretScope {
+  application_id?: string | null;
+  environment?: null | SecretEnvironment;
+  kind: SecretScopeKind;
+  product?: string | null;
+  workspace_id: string;
+}
+
+export type SecretScopeKind = "environment" | "application" | "product";
+
+export type SecretSourceKind = "supplied" | "generated";
+
+export type SecretState = "active" | "pending" | "revoked";
+
 export interface SelectTemplateRequest {
-  document_kind: string;
+  document_kind: TemplateDocumentKind;
   effective_from: string;
   reason?: string | null;
   template_id: string;
@@ -5453,6 +6494,8 @@ export interface ServiceEvidence {
   reason: string;
 }
 
+export type ServiceFakturDppMethod = "eleven_twelfths_penggantian";
+
 export interface ServiceFakturMonetaryAssessment {
   actor_principal_id: string;
   aggregation_level: string;
@@ -5463,13 +6506,13 @@ export interface ServiceFakturMonetaryAssessment {
   created_at: string;
   currency: string;
   dpp: Int64String;
-  dpp_method: string;
+  dpp_method: ServiceFakturDppMethod;
   dpp_method_version: string;
   faktur_date: string;
   faktur_evidence_reference: string;
   faktur_evidence_sha256: string;
   faktur_reference: string;
-  faktur_status: string;
+  faktur_status: ServiceFakturStatus;
   finalized_at: string;
   gross_customer_amount: Int64String;
   id: string;
@@ -5481,7 +6524,7 @@ export interface ServiceFakturMonetaryAssessment {
   penggantian: Int64String;
   rounding_contract_reference: string;
   rounding_contract_sha256: string;
-  rounding_mode: string;
+  rounding_mode: ServiceFakturRoundingMode;
   sales_order_id: string;
   service_contract_assessment_id: string;
   service_invoice_id: string;
@@ -5489,6 +6532,10 @@ export interface ServiceFakturMonetaryAssessment {
   service_tax_point_assessment_id: string;
   tax_point_date: string;
 }
+
+export type ServiceFakturRoundingMode = "nearest_rupiah_half_up";
+
+export type ServiceFakturStatus = "original";
 
 export interface ServiceFulfillment {
   actor_principal_id: string;
@@ -5665,7 +6712,7 @@ export interface ServiceTaxPointAssessment {
   remaining_taxable_base: Int64String;
   service_invoice_id: string;
   special_regime: boolean;
-  statutory_supply_basis: string;
+  statutory_supply_basis: StatutorySupplyBasis;
   supplier_pkp: boolean;
   tax_facility: boolean;
   tax_point_date: string;
@@ -5688,7 +6735,7 @@ export interface ServiceTaxPointAssessmentInput {
   remaining_taxable_base: Int64String;
   service_invoice_id: string;
   special_regime: boolean;
-  statutory_supply_basis: string;
+  statutory_supply_basis: StatutorySupplyBasis;
   supplier_pkp: boolean;
   tax_facility: boolean;
   tax_point_date: string;
@@ -5696,7 +6743,7 @@ export interface ServiceTaxPointAssessmentInput {
 }
 
 export interface SetApprovalPolicy {
-  mode: string;
+  mode: ApprovalPolicyMode;
   reason: string;
   required_role?: string | null;
   threshold_amount?: Int64String | null;
@@ -5710,11 +6757,11 @@ export interface SetContactCreditLimitRequest {
 
 export interface SetExperienceEntitlementRequest {
   reason?: string | null;
-  status: string;
+  status: ExperienceEntitlementStatus;
 }
 
 export interface SetLandedCostPolicy {
-  residual_treatment: string;
+  residual_treatment: ResidualTreatment;
 }
 
 export interface SetTimephasedBaselineRequest {
@@ -5728,8 +6775,27 @@ export interface ShareDocument {
 export interface SharedDocument {
   id: string;
   prepared_document_id: string;
-  prepared_status: string;
+  prepared_status: PreparedDocumentStatus;
   source_document_number: string;
+}
+
+export interface SharingGrantView {
+  created_at: string;
+  data_class: string;
+  effective_from: string;
+  effective_to?: string | null;
+  evidence_locator: string;
+  evidence_sha256: string;
+  grant_id: string;
+  holding_company_book_id: string;
+  id: string;
+  member_binding_version_id: string;
+  member_company_book_id: string;
+  perimeter_id: string;
+  predecessor_version_id?: string | null;
+  reporting_book_id: string;
+  state: string;
+  version: Int64String;
 }
 
 export interface ShippingRateQuoteView {
@@ -5756,7 +6822,7 @@ export interface SignoffAccountingPeriodAuditorRequest {
   auditor_firm_name: string;
   auditor_license_number: string;
   auditor_public_key_fingerprint: string;
-  auditor_signature_scope?: string | null;
+  auditor_signature_scope?: null | AuditorSignatureScope;
   fiscal_period: number;
   fiscal_year: number;
   merkle_root_hash: string;
@@ -5805,9 +6871,11 @@ export interface SleekSignDocumentView {
   status: string;
 }
 
+export type SleekWebhookAckStatus = "processed";
+
 export interface SleekWebhookAckView {
   event_id: string;
-  status: string;
+  status: SleekWebhookAckStatus;
   success: boolean;
 }
 
@@ -5830,19 +6898,23 @@ export interface SoftLockAccountingPeriodView {
   locked_at: string;
   locked_by_principal_id: string;
   reason?: string | null;
-  status: string;
+  status: AccountingPeriodSoftLockStatus;
 }
 
 export interface SourcedPurchaseOrderListView {
   purchase_orders: PurchaseOrderView[];
 }
 
+export type StarterCoaAccountClass = "asset" | "liability" | "equity" | "revenue" | "expense";
+
 export interface StarterCoaPreview {
   collisions: PreviewCollision[];
   components: ComponentRef[];
   lines: PreviewLine[];
-  status: string;
+  status: StarterCoaPreviewStatus;
 }
+
+export type StarterCoaPreviewStatus = "applicable" | "needs_review" | "unsupported";
 
 export interface StatementOfChangesInEquity {
   closing_equity_minor: number;
@@ -5850,6 +6922,8 @@ export interface StatementOfChangesInEquity {
   net_income_minor: number;
   opening_equity_minor: number;
 }
+
+export type StatutorySupplyBasis = "commercial_sales_invoice";
 
 export interface StockPosition {
   avg_cost: Int64String;
@@ -5863,8 +6937,10 @@ export interface StocktakeRequest {
   note?: string | null;
 }
 
+export type SubledgerAccountRole = "commission_payable" | "non_fiat_units";
+
 export interface SubledgerStatementView {
-  account_role: string;
+  account_role: SubledgerAccountRole;
   company_book_id: string;
   counterparty_entity_id: string;
   created_at: string;
@@ -5892,23 +6968,6 @@ export interface SubmitAppRequest {
   version?: string | null;
 }
 
-export interface SubmitConnectorRequest {
-  category: string;
-  description: string;
-  documentation_url?: string | null;
-  execution_mode?: string | null;
-  icon_url?: string | null;
-  mcp_protocol_version?: string | null;
-  name: string;
-  pricing_model?: string | null;
-  release_notes?: string | null;
-  required_permission_scopes?: string[] | null;
-  slug: string;
-  summary: string;
-  version?: string | null;
-  version_semver: string;
-}
-
 export interface SubmitPosOrderRequest {
   financial_date: string;
   handover: PosHandoverEvidenceRequest;
@@ -5919,6 +6978,8 @@ export interface SubmitSubledgerClaimRequest {
   claim_amount_minor: Int64String;
 }
 
+export type SubscriptionPlanStatus = "active";
+
 export interface SubscriptionPlanView {
   billing_interval: string;
   company_book_id: string;
@@ -5928,7 +6989,7 @@ export interface SubscriptionPlanView {
   plan_code: string;
   plan_name: string;
   price_minor: Int64String;
-  status: string;
+  status: SubscriptionPlanStatus;
   tenant_id: string;
 }
 
@@ -5990,6 +7051,8 @@ export interface SupplierQuoteConversionLine {
   unit_price: Int64String;
 }
 
+export type SupplierQuoteConversionStatus = "awaiting_quote_approval" | "completed" | "rejected" | "cancelled";
+
 export interface SupplierQuoteDecision {
   decision: string;
   reason?: string | null;
@@ -6017,6 +7080,8 @@ export interface SupplierQuoteLineView {
 export interface SupplierQuoteList {
   quotes: SupplierQuote[];
 }
+
+export type SupportState = "contract_generated" | "implemented" | "proved" | "supported" | "deprecated" | "retired" | "drifted" | "invalidated" | "suspended";
 
 export interface SyncOfflineQueueItem {
   client_device_signature: string;
@@ -6055,23 +7120,27 @@ export interface TagOwnerRequest {
   owner_name: string;
 }
 
+export type TemplateCategory = "document" | "email" | "message";
+
 export interface TemplateDefinitionView {
-  category: string;
+  category: TemplateCategory;
   created_at: string;
   id: string;
   locale: string;
   name: string;
-  source_capability: string;
+  source_capability: TemplateSourceCapability;
   template_key: string;
   tenant_id: string;
   variable_schema: unknown;
 }
 
+export type TemplateDocumentKind = "trial_balance" | "balance_sheet" | "income_statement" | "cash_flow" | "sales_invoice";
+
 export interface TemplateSelectionView {
   company_book_id: string;
   created_at: string;
   created_by: string;
-  document_kind: string;
+  document_kind: TemplateDocumentKind;
   effective_from: string;
   id: string;
   provenance: unknown;
@@ -6079,6 +7148,8 @@ export interface TemplateSelectionView {
   template_version: string;
   tenant_id: string;
 }
+
+export type TemplateSourceCapability = "accounting" | "approval" | "ar_ap" | "audit_adjustment" | "bank" | "company_book" | "company_connection" | "company_settings" | "contact" | "contacts" | "delivery" | "expense_claim" | "financial_kernel" | "fixed_asset" | "fixed_asset_depreciation" | "fixed_asset_disposal" | "fixed_asset_impairment" | "fixed_asset_revaluation" | "import_declaration" | "inventory" | "inventory_transformation" | "journal" | "landed_cost" | "manual_journal" | "order" | "payment" | "payments" | "payroll" | "pos" | "product" | "purchase" | "sales" | "stocktake" | "tax" | "ticket";
 
 export interface TemplateVersionView {
   content_payload: string;
@@ -6097,19 +7168,24 @@ export interface TemporaryLockEvidenceView {
   reason: string;
 }
 
+export type TenantInfrastructureMigrationStatus = "requested";
+
 export interface TenantInfrastructureMigrationView {
   company_book_id: string;
   id: string;
   initiated_by_principal_id: string;
-  migrated_at: string;
+  migrated_at?: string | null;
   migrated_journal_count: Int64String;
   migration_payload_uri: string;
   proof_sentinel_checksum: string;
-  source_deployment_mode: string;
-  status: string;
-  target_deployment_mode: string;
+  requested_at: string;
+  source_deployment_mode: NodeDeploymentMode;
+  status: TenantInfrastructureMigrationStatus;
+  target_deployment_mode: NodeDeploymentMode;
   tenant_id: string;
 }
+
+export type TerCategory = "A" | "B" | "C";
 
 export interface TicketCommentListView {
   comments: TicketCommentView[];
@@ -6166,6 +7242,8 @@ export interface TimephasedBaselineItemRequest {
   planned_progress_pct: number;
 }
 
+export type TimesheetApprovalRunStatus = "approved";
+
 export interface TimesheetApprovalRunView {
   approved_by_principal_id: string;
   approved_entries_count: number;
@@ -6174,11 +7252,13 @@ export interface TimesheetApprovalRunView {
   id: string;
   period_end: string;
   period_start: string;
-  status: string;
+  status: TimesheetApprovalRunStatus;
   tenant_id: string;
   total_approved_amount_minor: Int64String;
   total_approved_hours: number;
 }
+
+export type TimesheetEntryStatus = "submitted";
 
 export interface TimesheetEntryView {
   billable_rate_minor: Int64String;
@@ -6191,7 +7271,7 @@ export interface TimesheetEntryView {
   is_billable: boolean;
   project_code: string;
   staff_principal_id: string;
-  status: string;
+  status: TimesheetEntryStatus;
   tenant_id: string;
   total_billable_minor: Int64String;
 }
@@ -6220,10 +7300,12 @@ export interface TransformationOutput {
 
 export interface TransformationProduce {
   item_id: string;
-  kind: string;
+  kind: TransformationProduceKind;
   quantity: Int64String;
   value?: Int64String | null;
 }
+
+export type TransformationProduceKind = "primary" | "by_product";
 
 export interface TransitionAdmissionRequest {
   reason: string;
@@ -6232,7 +7314,7 @@ export interface TransitionAdmissionRequest {
 export interface TransitionBankAccount {
   evidence: BankAccountEvidence[];
   reason: string;
-  target_status: string;
+  target_status: BankAccountTransitionTarget;
 }
 
 export interface TransitionBookInput {
@@ -6243,6 +7325,8 @@ export interface TransitionBookInput {
 
 export type TreatmentClassification = "required" | "permitted" | "workflow";
 
+export type TreatmentMethod = "straight_line" | "declining_balance";
+
 export interface TreatmentView {
   annual_rate_basis_points?: number | null;
   asset_category_id: string;
@@ -6251,7 +7335,7 @@ export interface TreatmentView {
   classification_reference?: string | null;
   effective_from: string;
   id: string;
-  method: string;
+  method: TreatmentMethod;
   policy_reference: string;
   reason: string;
   recorded_at: string;
@@ -6290,7 +7374,7 @@ export interface TrialBalanceRenderProjection {
   payload_id?: string | null;
   payload_schema_version: number;
   payload_sha256?: string | null;
-  report_kind: string;
+  report_kind: ReportKind;
   source_report_id: string;
   source_report_revision?: string | null;
   total_credit_minor: number;
@@ -6298,13 +7382,11 @@ export interface TrialBalanceRenderProjection {
 }
 
 export interface TriggerContinuousCloseRequest {
-  close_readiness_score?: number | null;
   daily_fx_revaluation_last_run?: string | null;
   daily_micro_depreciation_last_run?: string | null;
   fiscal_period: number;
   fiscal_year: number;
   reconciliation_matched_count?: Int64String | null;
-  status?: string | null;
 }
 
 export interface TriggerFederatedNodeSyncRequest {
@@ -6330,13 +7412,17 @@ export interface UnifiedIdentityItem {
   created_at: string;
   email?: string | null;
   identity_id: string;
-  identity_type: string;
+  identity_type: UnifiedIdentityType;
   issuer: string;
   last_active_at?: string | null;
   name: string;
-  status: string;
+  status: UnifiedIdentityStatus;
   total_requests: Int64String;
 }
+
+export type UnifiedIdentityStatus = "active" | "retiring" | "suspended" | "revoked" | "expired" | "deactivated";
+
+export type UnifiedIdentityType = "developer_api_key" | "oidc_principal";
 
 export interface UnitReferenceItem {
   lot_batch: string;
@@ -6355,21 +7441,25 @@ export interface UnitResolverPayload {
   warranty_status: string;
 }
 
+export type UniversalContractMode = "proportional_capital_risk" | "sole_capital_provider_risk";
+
+export type UniversalContractStatus = "active";
+
 export interface UniversalContractView {
   capital_ratio: number;
   company_book_id: string;
-  contract_mode: string;
+  contract_mode: UniversalContractMode;
   created_at: string;
   id: string;
   profit_split_ratio: number;
-  status: string;
+  status: UniversalContractStatus;
   tenant_id: string;
 }
 
 export interface UpdateBankAccount {
   account_name?: string | null;
   account_number?: string | null;
-  account_type?: string | null;
+  account_type?: null | BankAccountType;
   bank_code?: string | null;
   bank_name?: string | null;
   currency?: string | null;
@@ -6424,7 +7514,7 @@ export interface UpdatePayment {
   contact_id: string;
   currency: string;
   dimension_value_ids?: string[] | null;
-  direction: string;
+  direction: PaymentDirection;
   memo?: string | null;
   payment_date: string;
   payment_method?: string | null;
@@ -6439,7 +7529,7 @@ export interface UpdateRoleMetadataRequest {
 export interface UpdateTicketRequest {
   assignee_principal_id?: string | null;
   priority?: string | null;
-  status?: string | null;
+  status?: null | TicketStatus;
 }
 
 export interface UpsertContactOrganization {
@@ -6499,6 +7589,8 @@ export interface UsGaapIncomeStatementView {
   to_date?: string | null;
 }
 
+export type UsageMeteringStatus = "active";
+
 export interface UserDraftView {
   client_device_signature: string;
   company_book_id: string;
@@ -6544,12 +7636,16 @@ export interface VariableConsiderationPredictionView {
   reserved_discount_amount_minor: Int64String;
   sales_document_id: string;
   should_book_day1_reserve: boolean;
-  status: string;
+  status: VariableConsiderationReserveStatus;
   tenant_id: string;
 }
 
+export type VariableConsiderationReserveStatus = "active_reserve" | "no_reserve_required";
+
+export type WealthPortfolioAssetClass = "real_estate" | "private_equity" | "liquid_market" | "art_collectible";
+
 export interface WealthPortfolioView {
-  asset_class: string;
+  asset_class: WealthPortfolioAssetClass;
   created_at: string;
   currency: string;
   current_valuation_minor: Int64String;
@@ -6560,17 +7656,21 @@ export interface WealthPortfolioView {
   tenant_id: string;
 }
 
+export type WebhookDeliveryStatus = "pending" | "delivered" | "failed" | "retrying";
+
 export interface WebhookDeliveryView {
   created_at: string;
   event_payload: unknown;
-  event_type: string;
+  event_type: WebhookEventType;
   http_status?: number | null;
   id: Int64String;
   retry_count: number;
   sent_at?: string | null;
-  status: string;
+  status: WebhookDeliveryStatus;
   subscription_id: string;
 }
+
+export type WebhookEventType = "posting.applied" | "invoice.created" | "payment.received" | "contact.created";
 
 export interface WebhookSubscriptionView {
   company_book_id: string;
@@ -6578,7 +7678,7 @@ export interface WebhookSubscriptionView {
   event_types: string[];
   id: string;
   is_active: boolean;
-  last_status?: string | null;
+  last_status?: null | WebhookDeliveryStatus;
   retry_count: number;
   target_url: string;
 }
@@ -6595,17 +7695,45 @@ export interface WorkOrderPartsIssuedView {
   work_order_id: string;
 }
 
+export type WorkOrderStatus = "open" | "completed";
+
+export type WorkingCapitalContributionBasis = "net_working_capital";
+
+export type WorkingCapitalContributionStatus = "calculated";
+
 export interface WorkingCapitalContributionView {
   calculated_amount_minor: Int64String;
   company_book_id: string;
-  contribution_basis: string;
+  contribution_basis: WorkingCapitalContributionBasis;
   contribution_percentage_rate: number;
   created_at: string;
   id: string;
   period_year: number;
   recipient_contact_id: string;
-  status: string;
+  status: WorkingCapitalContributionStatus;
   tenant_id: string;
+}
+
+export interface WorkspaceList {
+  next_cursor?: string | null;
+  workspaces: WorkspaceView[];
+}
+
+export interface WorkspaceSecretsPath {
+  workspace: string;
+}
+
+export type WorkspaceStatus = "active" | "suspended" | "archived";
+
+export interface WorkspaceView {
+  binding_model: string;
+  created_at: string;
+  display_name: string;
+  organization_id: string;
+  state_revision: Int64String;
+  state_token: string;
+  status: WorkspaceStatus;
+  workspace_id: string;
 }
 
 export interface XeroHistoricalDataImportView {
@@ -6614,12 +7742,14 @@ export interface XeroHistoricalDataImportView {
   imported_at: string;
   imported_contacts_count: number;
   imported_journals_count: number;
-  status: string;
+  status: XeroImportStatus;
   xero_tenant_id: string;
 }
 
+export type XeroImportStatus = "completed";
+
 const schemaDescriptors: Record<string, SchemaDescriptor> =
-{"AcceptInvitationRequest":{"kind":"object","properties":{"token":{"kind":"string"}},"additional":null},"AcceptOrderCommand":{"kind":"object","properties":{"quote_digest_sha256":{"kind":"string"},"quote_id":{"kind":"string"},"quote_revision":{"kind":"int64"},"tender":{"kind":"ref","name":"AcceptTenderCommand"}},"additional":null},"AcceptTenderCommand":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"provider_intent_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tender_type":{"kind":"string"}},"additional":null},"AcceptedOrderReceipt":{"kind":"object","properties":{"acceptance_idempotency_key":{"kind":"string"},"accepted_at":{"kind":"string"},"order_id":{"kind":"string"},"quote":{"kind":"ref","name":"FrozenQuoteReceipt"},"tender":{"kind":"ref","name":"AcceptedTenderReceipt"}},"additional":null},"AcceptedTenderReceipt":{"kind":"object","properties":{"acceptance_effect_key":{"kind":"string"},"amount_minor":{"kind":"string"},"provider_intent_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tender_id":{"kind":"string"},"tender_type":{"kind":"string"}},"additional":null},"Account":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"id":{"kind":"string"},"manual_entry_allowed":{"kind":"boolean"},"name":{"kind":"string"},"normal_balance":{"kind":"string"},"state_revision":{"kind":"int64"}},"additional":null},"AccountList":{"kind":"object","properties":{"accounts":{"kind":"array","items":{"kind":"ref","name":"Account"}}},"additional":null},"AccountingBookScopeSummary":{"kind":"object","properties":{"mode":{"kind":"string"}},"additional":null},"AccountingPeriod":{"kind":"object","properties":{"financial_end":{"kind":"string"},"financial_start":{"kind":"string"},"id":{"kind":"string"},"state":{"kind":"ref","name":"PeriodState"},"state_revision":{"kind":"int64"},"temporary_posting_lock":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"TemporaryLockEvidenceView"}]}},"additional":null},"AccountingPeriodList":{"kind":"object","properties":{"accounting_periods":{"kind":"array","items":{"kind":"ref","name":"AccountingPeriod"}}},"additional":null},"AccountingPeriodTransition":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"AccountsReceivableAgingReportView":{"kind":"object","properties":{"aging_buckets":{"kind":"ref","name":"ArAgingBucketView"},"as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"generated_at":{"kind":"string"},"total_ar_outstanding_minor":{"kind":"int64"}},"additional":null},"AcquireDocumentLockRequest":{"kind":"object","properties":{"display_name":{"kind":"string"},"email":{"kind":"string"},"ttl_minutes":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"AddRevisionRequest":{"kind":"object","properties":{"content":{"kind":"ref","name":"CadjProposalContent"}},"additional":null},"AddSubsidiaryMemberRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_percentage":{"kind":"number"},"subsidiary_company_book_id":{"kind":"string"}},"additional":null},"AddTicketCommentRequest":{"kind":"object","properties":{"body":{"kind":"string"},"is_internal_note":{"kind":"boolean"}},"additional":null},"AdminReviewSubmissionRequest":{"kind":"object","properties":{"decision":{"kind":"string"},"review_comments":{"kind":"string"},"target_id":{"kind":"string"},"target_type":{"kind":"string"}},"additional":null},"AdmissionView":{"kind":"object","properties":{"admission_scope":{"kind":"string"},"application":{"kind":"string"},"client_application_id":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"created_reason":{"kind":"string"},"data_handling_notice":{"kind":"string"},"deployment_environment":{"kind":"string"},"exit_export_route":{"kind":"string"},"expires_at":{"kind":"string"},"id":{"kind":"string"},"participant_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"principal_id":{"kind":"string"},"review_at":{"kind":"string"},"revocation_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoked_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoked_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"starts_at":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"string"},"support_contact":{"kind":"string"},"suspended_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"suspended_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"suspension_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tenant_id":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"AgingBucket":{"kind":"object","properties":{"contact_id":{"kind":"string"},"contact_name":{"kind":"string"},"current":{"kind":"int64"},"days_1_30":{"kind":"int64"},"days_31_60":{"kind":"int64"},"days_61_90":{"kind":"int64"},"days_90_plus":{"kind":"int64"},"total_open":{"kind":"int64"}},"additional":null},"AgingBucketSummary":{"kind":"object","properties":{"aging_31_60d":{"kind":"int64"},"aging_61_90d":{"kind":"int64"},"aging_90d_plus":{"kind":"int64"},"current_0_30d":{"kind":"int64"}},"additional":null},"AgingReport":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"buckets":{"kind":"array","items":{"kind":"ref","name":"AgingBucket"}},"direction":{"kind":"string"},"grand_total":{"kind":"int64"}},"additional":null},"AllocateContractLossRequest":{"kind":"object","properties":{"capital_ratio":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"contract_id":{"kind":"string"},"contract_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_id":{"kind":"string"},"total_loss_minor":{"kind":"int64"}},"additional":null},"AllocateNsfpPoolRequest":{"kind":"object","properties":{"nsfp_end_number":{"kind":"string"},"nsfp_start_number":{"kind":"string"},"tax_year":{"kind":"integer"}},"additional":null},"AllocatePayment":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"document_id":{"kind":"string"},"document_type":{"kind":"string"},"fx_gain_loss":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"ApiError":{"kind":"object","properties":{"code":{"kind":"string"},"details":{"kind":"ref","name":"ApiErrorDetails"},"message":{"kind":"string"},"request_id":{"kind":"string"}},"additional":null},"ApiErrorDetails":{"kind":"object","properties":{"violations":{"kind":"union","variants":[{"kind":"array","items":{"kind":"ref","name":"ValidationViolation"}},{"kind":"null"}]}},"additional":null},"ApplyInvoiceEstampRequest":{"kind":"object","properties":{"document_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"provider_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApplyPartnerRequest":{"kind":"object","properties":{"certified_consultants_count":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"contact_email":{"kind":"string"},"description":{"kind":"string"},"industry_specializations":{"kind":"array","items":{"kind":"string"}},"jurisdiction_coverage":{"kind":"array","items":{"kind":"string"}},"logo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_name":{"kind":"string"},"partner_type":{"kind":"string"},"summary":{"kind":"string"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApprovalDecisionRequest":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApprovalDecisionResponse":{"kind":"object","properties":{"approval_request_id":{"kind":"string"},"decision":{"kind":"string"},"state":{"kind":"string"}},"additional":null},"ApprovalPolicySetting":{"kind":"object","properties":{"configured":{"kind":"boolean"},"mode":{"kind":"string"},"required_role":{"kind":"string"},"source_capability":{"kind":"string"},"threshold_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"ApproveLiveRequest":{"kind":"object","properties":{"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApprovePayrollCalculationRequest":{"kind":"object","properties":{"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payroll_run_id":{"kind":"string"}},"additional":null},"ApprovePayrollRunRequest":{"kind":"object","properties":{"auto_post_journal":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"ApproveTimesheetBatchRequest":{"kind":"object","properties":{"period_end":{"kind":"string"},"period_start":{"kind":"string"},"timesheet_entry_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"ArAgingBucketView":{"kind":"object","properties":{"current_minor":{"kind":"int64"},"days_1_30_minor":{"kind":"int64"},"days_31_60_minor":{"kind":"int64"},"days_61_90_minor":{"kind":"int64"},"over_90_days_minor":{"kind":"int64"}},"additional":null},"ArApReconciliation":{"kind":"object","properties":{"difference":{"kind":"int64"},"direction":{"kind":"string"},"gl_account_balance":{"kind":"int64"},"reconciled":{"kind":"boolean"},"subledger_open_total":{"kind":"int64"}},"additional":null},"ArchiveCompanyBook":{"kind":"object","properties":{},"additional":null},"AssessPocProjectRevenueRequest":{"kind":"object","properties":{"actual_cost_incurred_minor":{"kind":"int64"},"billed_to_date_minor":{"kind":"int64"}},"additional":null},"AssetCategoryView":{"kind":"object","properties":{"created_at":{"kind":"string"},"created_by":{"kind":"string"},"id":{"kind":"string"},"name":{"kind":"string"}},"additional":null},"AssignParticipantRequest":{"kind":"object","properties":{"participant_role":{"kind":"string"},"principal_id":{"kind":"string"}},"additional":null},"Attention":{"kind":"object","properties":{"action_type":{"kind":"string"},"action_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"detail":{"kind":"value"},"id":{"kind":"string"},"severity":{"kind":"string"},"source_capability":{"kind":"string"},"source_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_type":{"kind":"string"},"state":{"kind":"string"},"title":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"AttentionList":{"kind":"object","properties":{"attentions":{"kind":"array","items":{"kind":"ref","name":"Attention"}},"unread_count":{"kind":"int64"}},"additional":null},"AuctionBidView":{"kind":"object","properties":{"bid_amount_minor":{"kind":"int64"},"bid_deposit_hold_id":{"kind":"string"},"bidder_principal_id":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"lot_id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"AuctionLotView":{"kind":"object","properties":{"auction_mode":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"current_highest_bid_minor":{"kind":"int64"},"end_time":{"kind":"string"},"id":{"kind":"string"},"lot_title":{"kind":"string"},"reserve_price_minor":{"kind":"int64"},"starting_price_minor":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"winning_bidder_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"AuctionSettlementView":{"kind":"object","properties":{"buyer_premium_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"lot_id":{"kind":"string"},"net_payout_minor":{"kind":"int64"},"seller_commission_minor":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"winning_bid_minor":{"kind":"int64"}},"additional":null},"AuditFindingContent":{"kind":"object","properties":{"affected_period":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"asserted_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"asserted_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"classification":{"kind":"string"},"description":{"kind":"string"}},"additional":null},"AuditedCalkNotesView":{"kind":"object","properties":{"accounting_policies_summary":{"kind":"string"},"audit_merkle_root_hash":{"kind":"string"},"audit_working_paper_ref":{"kind":"string"},"company_book_id":{"kind":"string"},"critical_accounting_estimates":{"kind":"string"},"currency":{"kind":"string"},"general_information":{"kind":"string"},"generated_at":{"kind":"string"},"period_end_date":{"kind":"string"},"period_start_date":{"kind":"string"},"reporting_standard":{"kind":"string"},"segment_reporting_notes":{"kind":"array","items":{"kind":"string"}}},"additional":null},"AuditedCashFlowStatementView":{"kind":"object","properties":{"audit_merkle_root_hash":{"kind":"string"},"beginning_cash_balance_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"ending_cash_balance_minor":{"kind":"int64"},"financing_activities_minor":{"kind":"int64"},"generated_at":{"kind":"string"},"investing_activities_minor":{"kind":"int64"},"method":{"kind":"string"},"net_cash_flow_minor":{"kind":"int64"},"operating_activities_minor":{"kind":"int64"},"period_end_date":{"kind":"string"},"period_start_date":{"kind":"string"},"reporting_standard":{"kind":"string"}},"additional":null},"AuditedChangesInEquityView":{"kind":"object","properties":{"additional_paid_in_capital_minor":{"kind":"int64"},"audit_merkle_root_hash":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"generated_at":{"kind":"string"},"other_comprehensive_income_minor":{"kind":"int64"},"period_end_date":{"kind":"string"},"period_start_date":{"kind":"string"},"reporting_standard":{"kind":"string"},"retained_earnings_minor":{"kind":"int64"},"share_capital_minor":{"kind":"int64"},"total_equity_minor":{"kind":"int64"}},"additional":null},"AuditorDigitalSignatureView":{"kind":"object","properties":{"auditor_firm_name":{"kind":"string"},"auditor_license_number":{"kind":"string"},"auditor_principal_id":{"kind":"string"},"auditor_public_key_fingerprint":{"kind":"string"},"auditor_signature_scope":{"kind":"string"},"company_book_id":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"merkle_root_hash":{"kind":"string"},"pki_signature_hex":{"kind":"string"},"signed_at":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"AuditorSignatureStatusView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"is_signed":{"kind":"boolean"},"period_id":{"kind":"string"},"signature":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuditorDigitalSignatureView"}]},"verification_status":{"kind":"string"}},"additional":null},"AuditorWorkingPaperView":{"kind":"object","properties":{"adjustment_scope":{"kind":"string"},"auditor_role":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"division_code":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"paper_findings_json":{"kind":"value"},"paper_title":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"AuthorityComponentSummary":{"kind":"object","properties":{"display_name":{"kind":"string"},"id":{"kind":"string"},"unrestricted":{"kind":"boolean"}},"additional":null},"AuthorityContextKind":{"kind":"enum","values":["operational_role","owner"]},"AuthorityContextList":{"kind":"object","properties":{"authority_contexts":{"kind":"array","items":{"kind":"ref","name":"AuthorityContextSummary"}},"membership_read_visibility_revision":{"kind":"string"}},"additional":null},"AuthorityContextStatus":{"kind":"enum","values":["active","revoked"]},"AuthorityContextSummary":{"kind":"object","properties":{"accounting_book_scope":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AccountingBookScopeSummary"}]},"authority_context_id":{"kind":"string"},"authority_revision":{"kind":"int64"},"context_group":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuthorityComponentSummary"}]},"document_access_profile":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuthorityComponentSummary"}]},"kind":{"kind":"ref","name":"AuthorityContextKind"},"membership_read_visibility_revision":{"kind":"string"},"role_display_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_system":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"status":{"kind":"ref","name":"AuthorityContextStatus"}},"additional":null},"AuthorityRevisionPreview":{"kind":"object","properties":{"added_actions":{"kind":"array","items":{"kind":"string"}},"affected_principals":{"kind":"int64"},"current_authority_revision_id":{"kind":"string"},"elevated":{"kind":"boolean"},"permission_group_id":{"kind":"string"},"removed_actions":{"kind":"array","items":{"kind":"string"}},"role_id":{"kind":"string"}},"additional":null},"AuthorizedCompanyBookView":{"kind":"object","properties":{"authority_context_count":{"kind":"int64"},"display_name":{"kind":"string"},"functional_currency":{"kind":"string"},"id":{"kind":"string"},"membership_read_visibility_revision":{"kind":"string"},"read_only":{"kind":"boolean"},"status":{"kind":"ref","name":"CompanyBookStatus"}},"additional":null},"AutoSyncDraftRequest":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"draft_payload":{"kind":"value"},"draft_type":{"kind":"string"}},"additional":null},"AutoSyncDraftView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"company_book_id":{"kind":"string"},"draft_payload":{"kind":"value"},"draft_type":{"kind":"string"},"id":{"kind":"string"},"synced":{"kind":"boolean"},"updated_at":{"kind":"string"},"user_principal_id":{"kind":"string"}},"additional":null},"BadDebtProvisioningRunView":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provision_allowance_minor":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"total_ar_outstanding_minor":{"kind":"int64"}},"additional":null},"BalanceSheet":{"kind":"object","properties":{"assets":{"kind":"ref","name":"BalanceSheetSection"},"equity":{"kind":"ref","name":"BalanceSheetSection"},"liabilities":{"kind":"ref","name":"BalanceSheetSection"},"total_equity_minor":{"kind":"integer"}},"additional":null},"BalanceSheetLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"balance_minor":{"kind":"integer"}},"additional":null},"BalanceSheetSection":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"BalanceSheetLine"}},"total_minor":{"kind":"integer"}},"additional":null},"BankAccount":{"kind":"object","properties":{"account_name":{"kind":"string"},"account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_type":{"kind":"string"},"bank_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bank_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"gl_account_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"institution_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"string"},"swift_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"BankAccountEvidence":{"kind":"object","properties":{"evidence_type":{"kind":"string"},"integrity_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"locator":{"kind":"string"}},"additional":null},"BankAccountList":{"kind":"object","properties":{"accounts":{"kind":"array","items":{"kind":"ref","name":"BankAccount"}}},"additional":null},"BankCategorizationRuleView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"description_pattern":{"kind":"string"},"id":{"kind":"string"},"priority":{"kind":"integer"},"rule_name":{"kind":"string"},"status":{"kind":"string"},"target_account_number":{"kind":"string"}},"additional":null},"BankFeedConnectionView":{"kind":"object","properties":{"bank_name":{"kind":"string"},"company_book_id":{"kind":"string"},"connection_type":{"kind":"string"},"created_at":{"kind":"string"},"external_account_id":{"kind":"string"},"id":{"kind":"string"},"provider_name":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"BankFeedMatchConfirmationView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"confirmed_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"match_id":{"kind":"string"},"matched_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"statement_line_id":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"BankFeedMatchView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"confidence_score":{"kind":"number"},"created_at":{"kind":"string"},"id":{"kind":"string"},"match_status":{"kind":"string"},"matched_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"statement_line_id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"BankLineMatch":{"kind":"object","properties":{"line_id":{"kind":"string"},"outcome":{"kind":"string"},"payment_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"BankMatchRun":{"kind":"object","properties":{"already_resolved":{"kind":"int64"},"lines":{"kind":"array","items":{"kind":"ref","name":"BankLineMatch"}},"matched":{"kind":"int64"},"statement_id":{"kind":"string"},"suggested":{"kind":"int64"},"unmatched":{"kind":"int64"}},"additional":null},"BankReconciliation":{"kind":"object","properties":{"balanced":{"kind":"boolean"},"closing_balance":{"kind":"int64"},"difference":{"kind":"int64"},"finalized_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"movement":{"kind":"int64"},"opening_balance":{"kind":"int64"},"statement_id":{"kind":"string"},"status":{"kind":"string"},"unresolved_lines":{"kind":"int64"}},"additional":null},"BankStatement":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"closing_balance":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"import_source":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"BankStatementLine"}},"opening_balance":{"kind":"string"},"reconciliation_status":{"kind":"string"},"statement_date":{"kind":"string"}},"additional":null},"BankStatementFeedIngestView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"external_account_id":{"kind":"string"},"ingested_at":{"kind":"string"},"provider_name":{"kind":"string"},"records_ingested":{"kind":"integer"},"status":{"kind":"string"}},"additional":null},"BankStatementLine":{"kind":"object","properties":{"amount":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"id":{"kind":"string"},"match_status":{"kind":"string"},"matched_payment_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ordinal":{"kind":"integer"},"provider_settlement_match":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ProviderSettlementBankMatch"}]},"raw_record":{"kind":"value"},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transaction_date":{"kind":"string"}},"additional":null},"BankStatementList":{"kind":"object","properties":{"statements":{"kind":"array","items":{"kind":"ref","name":"BankStatementSummary"}}},"additional":null},"BankStatementMappingOverride":{"kind":"object","properties":{"column_mapping":{"kind":"value"},"date_format":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"decimal_separator":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"delimiter":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"has_header_row":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"skip_lines":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"thousand_separator":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BankStatementProfile":{"kind":"object","properties":{"active":{"kind":"boolean"},"bank_name":{"kind":"string"},"channel":{"kind":"string"},"column_mapping":{"kind":"value"},"currency":{"kind":"string"},"date_format":{"kind":"string"},"decimal_separator":{"kind":"string"},"delimiter":{"kind":"string"},"format":{"kind":"string"},"has_header_row":{"kind":"boolean"},"id":{"kind":"string"},"skip_lines":{"kind":"integer"},"thousand_separator":{"kind":"string"}},"additional":null},"BankStatementProfileList":{"kind":"object","properties":{"profiles":{"kind":"array","items":{"kind":"ref","name":"BankStatementProfile"}}},"additional":null},"BankStatementSummary":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"closing_balance":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"import_filename":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"import_source":{"kind":"string"},"line_count":{"kind":"int64"},"opening_balance":{"kind":"string"},"reconciliation_status":{"kind":"string"},"statement_date":{"kind":"string"}},"additional":null},"BarcodeLookupRequest":{"kind":"object","properties":{"barcode":{"kind":"string"}},"additional":null},"BarcodeLookupResponse":{"kind":"object","properties":{"barcode":{"kind":"string"},"category":{"kind":"string"},"name":{"kind":"string"},"product_id":{"kind":"string"},"retail_price":{"kind":"int64"},"stock_level":{"kind":"integer"},"uom":{"kind":"string"},"wholesale_min_qty":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"wholesale_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"BatamFtzSettingsView":{"kind":"object","properties":{"allow_usd_functional_currency":{"kind":"boolean"},"bp_batam_license_number":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customs_registration_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"default_ftz_tax_code":{"kind":"string"},"id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"BatamFtzVatSummaryView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"generated_at":{"kind":"string"},"ppftz_01_document_count":{"kind":"int64"},"ppftz_02_document_count":{"kind":"int64"},"ppftz_03_document_count":{"kind":"int64"},"tax_period":{"kind":"string"},"total_intra_ftz_delivery_minor":{"kind":"int64"},"total_tlddp_delivery_minor":{"kind":"int64"},"total_vat_collected_standard_minor":{"kind":"int64"},"total_vat_non_collectible_07_minor":{"kind":"int64"}},"additional":null},"BillableHoursInvoiceView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"string"},"invoice_id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"sales_invoice_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"total_billable_hours":{"kind":"number"},"total_invoice_amount_minor":{"kind":"int64"}},"additional":null},"BillingOverviewResponse":{"kind":"object","properties":{"base_company_fee_idr":{"kind":"int64"},"per_pos_transaction_fee_idr":{"kind":"int64"},"projected_mrr_idr":{"kind":"int64"},"total_active_companies":{"kind":"int64"},"total_live_approved_companies":{"kind":"int64"},"total_pos_transactions_current_month":{"kind":"int64"},"total_sandbox_companies":{"kind":"int64"}},"additional":null},"BookComparisonLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"delta_minor":{"kind":"integer"},"left_balance_minor":{"kind":"integer"},"left_credit_minor":{"kind":"integer"},"left_debit_minor":{"kind":"integer"},"right_balance_minor":{"kind":"integer"},"right_credit_minor":{"kind":"integer"},"right_debit_minor":{"kind":"integer"}},"additional":null},"BookCourierDeliveryRequest":{"kind":"object","properties":{"cod_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"courier_service_code":{"kind":"string"},"is_cod":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"package_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_name":{"kind":"string"},"recipient_address":{"kind":"string"},"recipient_name":{"kind":"string"},"recipient_phone":{"kind":"string"},"recipient_postal_code":{"kind":"string"},"sender_address":{"kind":"string"},"sender_name":{"kind":"string"},"sender_phone":{"kind":"string"},"sender_postal_code":{"kind":"string"},"weight_grams":{"kind":"integer"}},"additional":null},"BookDepreciationResultView":{"kind":"object","properties":{"accumulated":{"kind":"int64"},"book_id":{"kind":"string"},"depreciated_through":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"months_posted":{"kind":"integer"},"nbv":{"kind":"int64"},"posted":{"kind":"array","items":{"kind":"ref","name":"PostedMonth"}}},"additional":null},"BookListView":{"kind":"object","properties":{"books":{"kind":"array","items":{"kind":"ref","name":"BookView"}}},"additional":null},"BookView":{"kind":"object","properties":{"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"lifecycle_changed_by":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lifecycle_effective_at":{"kind":"string"},"lifecycle_reason":{"kind":"string"},"lifecycle_recorded_at":{"kind":"string"},"lifecycle_state":{"kind":"ref","name":"LifecycleState"},"name":{"kind":"string"},"purpose":{"kind":"string"},"state_revision":{"kind":"int64"}},"additional":null},"BookedCourierDeliveryView":{"kind":"object","properties":{"awb_tracking_number":{"kind":"string"},"booked_at":{"kind":"string"},"company_book_id":{"kind":"string"},"courier_service_code":{"kind":"string"},"currency":{"kind":"string"},"delivery_id":{"kind":"string"},"id":{"kind":"string"},"label_barcode_data":{"kind":"string"},"label_pdf_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_name":{"kind":"string"},"shipping_cost_minor":{"kind":"int64"},"status":{"kind":"string"},"tracking_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BoundedAccountList":{"kind":"object","properties":{"accounts":{"kind":"array","items":{"kind":"ref","name":"Account"}},"has_more":{"kind":"boolean"},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BoundedFinancialLineList":{"kind":"object","properties":{"book_id":{"kind":"string"},"has_more":{"kind":"boolean"},"lines":{"kind":"array","items":{"kind":"ref","name":"FinancialLine"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BoundedTrialBalanceComparison":{"kind":"object","properties":{"all_reconciled":{"kind":"boolean"},"as_of":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"has_more":{"kind":"boolean"},"left_book_id":{"kind":"string"},"left_reconciliation":{"kind":"ref","name":"Reconciliation"},"left_total_credit_minor":{"kind":"integer"},"left_total_debit_minor":{"kind":"integer"},"lines":{"kind":"array","items":{"kind":"ref","name":"BookComparisonLine"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"right_book_id":{"kind":"string"},"right_reconciliation":{"kind":"ref","name":"Reconciliation"},"right_total_credit_minor":{"kind":"integer"},"right_total_debit_minor":{"kind":"integer"}},"additional":null},"BuiltByTier":{"kind":"enum","values":["official","certified_partner","community"]},"CadjLineInput":{"kind":"object","properties":{"account_code":{"kind":"string"},"amount_minor":{"kind":"int64"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"direction":{"kind":"string"},"ordinal":{"kind":"integer"}},"additional":null},"CadjProposalContent":{"kind":"object","properties":{"correction_route":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"evidence":{"kind":"array","items":{"kind":"ref","name":"EvidenceRefInput"}},"financial_date":{"kind":"string"},"ias8_rationale":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CadjLineInput"}}},"additional":null},"CalculatePayrollRunRequest":{"kind":"object","properties":{"include_commissions":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"include_overtime":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"}},"additional":null},"CalculatePosSaleQuoteRequest":{"kind":"object","properties":{"currency":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuoteLineRequest"}},"outlet_id":{"kind":"string"},"promotion_codes":{"kind":"array","items":{"kind":"string"}},"terminal_id":{"kind":"string"}},"additional":null},"CalculateProfitSharingRequest":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"hurdle_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"partner_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"share_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"split_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_net_profit_minor":{"kind":"int64"}},"additional":null},"CalculateShippingRatesRequest":{"kind":"object","properties":{"courier_providers":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"destination_postal_code":{"kind":"string"},"items_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"origin_postal_code":{"kind":"string"},"weight_grams":{"kind":"integer"}},"additional":null},"CalculateWorkingCapitalContributionsRequest":{"kind":"object","properties":{"contribution_basis":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contribution_percentage_rate":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"net_working_capital_minor":{"kind":"int64"},"period_year":{"kind":"integer"},"recipient_contact_id":{"kind":"string"}},"additional":null},"CalendarCategory":{"kind":"enum","values":["statutory_compliance","tax_filing","accounting_close","treasury_due","payroll","custom_milestone"]},"CalendarEventSeverity":{"kind":"enum","values":["info","warning","critical"]},"CalendarEventStatus":{"kind":"enum","values":["pending","satisfied","overdue","dismissed"]},"CalendarEventView":{"kind":"object","properties":{"action_label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"action_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"ref","name":"CalendarCategory"},"company_book_id":{"kind":"string"},"event_date":{"kind":"string"},"id":{"kind":"string"},"jurisdiction":{"kind":"string"},"severity":{"kind":"ref","name":"CalendarEventSeverity"},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"CalendarEventStatus"},"summary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"string"}},"additional":null},"CalendarEventsSummaryView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"critical_count":{"kind":"integer"},"events":{"kind":"array","items":{"kind":"ref","name":"CalendarEventView"}},"pending_count":{"kind":"integer"},"total_events":{"kind":"integer"},"upcoming_30_days_count":{"kind":"integer"}},"additional":null},"CapabilityReadiness":{"kind":"intersection","variants":[{"kind":"ref","name":"CapabilityReadinessState"},{"kind":"object","properties":{"capability":{"kind":"string"},"company_book_id":{"kind":"string"},"decided_by":{"kind":"string"},"reason":{"kind":"string"}},"additional":null}]},"CapabilityReadinessState":{"kind":"union","variants":[{"kind":"object","properties":{"state":{"kind":"enum","values":["ready"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["missing_required_configuration"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["needs_review"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["recommended_action"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["not_applicable"]}},"additional":null},{"kind":"object","properties":{"operations":{"kind":"array","items":{"kind":"string"}},"state":{"kind":"enum","values":["blocked"]}},"additional":null}]},"CapabilitySettingInput":{"kind":"object","properties":{"capability_key":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"reason":{"kind":"string"}},"additional":null},"CapabilitySettingView":{"kind":"object","properties":{"capability_key":{"kind":"string"},"changed_by":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"id":{"kind":"string"},"reason":{"kind":"string"},"version":{"kind":"int64"}},"additional":null},"CashFlowLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"integer"},"label":{"kind":"string"}},"additional":null},"CashFlowSection":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"CashFlowLine"}},"total_minor":{"kind":"integer"}},"additional":null},"CashFlowStatement":{"kind":"object","properties":{"financing":{"kind":"ref","name":"CashFlowSection"},"investing":{"kind":"ref","name":"CashFlowSection"},"net_cash_change_minor":{"kind":"integer"},"operating":{"kind":"ref","name":"CashFlowSection"}},"additional":null},"CertifyProgressRequest":{"kind":"object","properties":{"actual_cost_incurred_minor":{"kind":"int64"},"bast_document_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"certified_physical_progress_pct":{"kind":"number"},"period_index":{"kind":"integer"}},"additional":null},"ChangeRoleAuthorityRequest":{"kind":"object","properties":{"permission_group_id":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ClaimConnectorVendorRequest":{"kind":"object","properties":{"claim_verification_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"counterparty_org_name":{"kind":"string"},"developer_id":{"kind":"string"},"official_domain_email":{"kind":"string"},"sentinel_proof_signature":{"kind":"string"}},"additional":null},"ClaimConnectorVendorView":{"kind":"object","properties":{"claim_id":{"kind":"string"},"claim_status":{"kind":"string"},"connector_id":{"kind":"string"},"counterparty_org_name":{"kind":"string"},"verified_at":{"kind":"string"}},"additional":null},"ClaimGuestCounterparty":{"kind":"object","properties":{"claim_token":{"kind":"string"}},"additional":null},"ClaimedGuestCounterparty":{"kind":"object","properties":{"connection_id":{"kind":"string"},"prepared_document_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"ClearDraftResultView":{"kind":"object","properties":{"cleared":{"kind":"boolean"},"draft_type":{"kind":"string"}},"additional":null},"CloseAuctionLotRequest":{"kind":"object","properties":{"buyer_premium_rate_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"seller_commission_rate_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"ClosePosCashierSessionRequest":{"kind":"object","properties":{"closing_cash_counted_minor":{"kind":"int64"},"session_id":{"kind":"string"}},"additional":null},"CloseReadinessStatusView":{"kind":"object","properties":{"close_readiness_score":{"kind":"number"},"company_book_id":{"kind":"string"},"daily_fx_revaluation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"daily_micro_depreciation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"ready_for_lock":{"kind":"boolean"},"reconciliation_matched_count":{"kind":"int64"},"status":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"CodSettlementReconciliationView":{"kind":"object","properties":{"awb_tracking_number":{"kind":"string"},"collected_amount_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"gateway_fee_minor":{"kind":"int64"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"net_payout_minor":{"kind":"int64"},"reconciled_at":{"kind":"string"},"settlement_status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"CommercialSalesOrder":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CommercialSalesOrderLine"}},"quote_conversion_id":{"kind":"string"},"source_customer_quote_id":{"kind":"string"},"status":{"kind":"string"},"subtotal":{"kind":"int64"}},"additional":null},"CommercialSalesOrderLine":{"kind":"object","properties":{"allocated_quantity":{"kind":"int64"},"description":{"kind":"string"},"id":{"kind":"string"},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"source_customer_quote_line_id":{"kind":"string"},"unit_price":{"kind":"int64"}},"additional":null},"CompanyAccountingFrameworkSettingsView":{"kind":"object","properties":{"accounting_framework":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"inventory_costing_method":{"kind":"string"},"tenant_id":{"kind":"string"},"use_us_gaap_presentation":{"kind":"boolean"}},"additional":null},"CompanyBillingProfileView":{"kind":"object","properties":{"base_monthly_fee_idr":{"kind":"int64"},"billing_status":{"kind":"string"},"company_book_id":{"kind":"string"},"environment":{"kind":"string"},"live_approval_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"live_approved_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"live_approved_by":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"per_pos_transaction_fee_idr":{"kind":"int64"}},"additional":null},"CompanyBook":{"kind":"object","properties":{"archived_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"archived_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"display_name":{"kind":"string"},"functional_currency":{"kind":"string"},"id":{"kind":"string"},"read_only":{"kind":"boolean"},"status":{"kind":"ref","name":"CompanyBookStatus"}},"additional":null},"CompanyBookList":{"kind":"object","properties":{"company_books":{"kind":"array","items":{"kind":"ref","name":"AuthorizedCompanyBookView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CompanyBookStatus":{"kind":"enum","values":["active","archived"]},"CompanyEmployeePayslipView":{"kind":"object","properties":{"base_salary_minor":{"kind":"int64"},"bpjs_deduction_minor":{"kind":"int64"},"commissions_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"employee_contact_id":{"kind":"string"},"id":{"kind":"string"},"net_salary_minor":{"kind":"int64"},"overtime_pay_minor":{"kind":"int64"},"payroll_run_id":{"kind":"string"},"pph21_deduction_minor":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"CompanyFixedAssetView":{"kind":"object","properties":{"accumulated_depr_account_number":{"kind":"string"},"acquisition_cost_minor":{"kind":"int64"},"acquisition_date":{"kind":"string"},"asset_account_number":{"kind":"string"},"asset_code":{"kind":"string"},"asset_name":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"depreciation_expense_account_number":{"kind":"string"},"depreciation_method":{"kind":"string"},"id":{"kind":"string"},"salvage_value_minor":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"useful_life_months":{"kind":"integer"}},"additional":null},"CompanyGroupHierarchyView":{"kind":"object","properties":{"consolidation_method":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"ownership_percentage":{"kind":"number"},"parent_company_book_id":{"kind":"string"},"status":{"kind":"string"},"subsidiary_company_book_id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"CompanyInstalledConnectorView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"connector_id":{"kind":"string"},"connector_name":{"kind":"string"},"connector_slug":{"kind":"string"},"granted_permission_scopes":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"installed_at":{"kind":"string"},"installed_version_semver":{"kind":"string"},"is_enabled":{"kind":"boolean"},"tenant_id":{"kind":"string"}},"additional":null},"CompanyLegalHoldView":{"kind":"object","properties":{"case_reference_number":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"gdpr_deletion_override":{"kind":"boolean"},"id":{"kind":"string"},"merkle_evidence_root_hash":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"CompanyWorkOrderView":{"kind":"object","properties":{"assigned_technician_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"string"},"description":{"kind":"string"},"estimated_cost_minor":{"kind":"int64"},"estimated_labor_hours":{"kind":"number"},"id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"work_order_number":{"kind":"string"}},"additional":null},"CompleteWorkOrderRequest":{"kind":"object","properties":{"actual_labor_hours":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"completion_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CompleteWorkOrderResultView":{"kind":"object","properties":{"actual_labor_hours":{"kind":"number"},"company_book_id":{"kind":"string"},"completed_at":{"kind":"string"},"completion_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"work_order_id":{"kind":"string"}},"additional":null},"ComponentRef":{"kind":"object","properties":{"component_key":{"kind":"string"},"component_version":{"kind":"int64"}},"additional":null},"ComposeStarterCoaRequest":{"kind":"object","properties":{"enabled_capabilities":{"kind":"array","items":{"kind":"string"}},"jurisdiction":{"kind":"string"},"primary_operating_model":{"kind":"string"}},"additional":null},"ConfigureAccountingFrameworkRequest":{"kind":"object","properties":{"accounting_framework":{"kind":"string"},"effective_from":{"kind":"string"},"inventory_costing_method":{"kind":"string"},"use_us_gaap_presentation":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"ConfigureBatamFtzJurisdictionRequest":{"kind":"object","properties":{"allow_usd_functional_currency":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"bp_batam_license_number":{"kind":"string"},"customs_registration_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"default_ftz_tax_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConfigureHoldingSamplingRuleRequest":{"kind":"object","properties":{"audit_entity_level":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"audit_status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"holding_perimeter_id":{"kind":"string"},"sample_rule_name":{"kind":"string"},"sampled_journal_id":{"kind":"string"},"subsidiary_company_book_id":{"kind":"string"}},"additional":null},"ConfigureUaeJurisdictionRequest":{"kind":"object","properties":{"corporate_tax_exemption":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"free_zone_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"is_free_zone_qfzp":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"trn_number":{"kind":"string"},"vat_stagger_period":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConfirmBankFeedMatchRequest":{"kind":"object","properties":{"clearing_account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConfirmCashTenderAcceptedResponse":{"kind":"union","variants":[{"kind":"ref","name":"ConfirmCashTenderResponse"},{"kind":"ref","name":"ConfirmCashTenderApprovalRequiredResponse"}]},"ConfirmCashTenderApprovalRequiredResponse":{"kind":"object","properties":{"status":{"kind":"string"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmCashTenderRequest":{"kind":"object","properties":{"accepted_tender_effect_key":{"kind":"string"}},"additional":null},"ConfirmCashTenderResponse":{"kind":"object","properties":{"finality":{"kind":"string"},"posting_id":{"kind":"string"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmOnboardingRequest":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"}},"additional":null},"ConfirmOnboardingResponse":{"kind":"object","properties":{"company_book":{"kind":"ref","name":"CompanyBook"},"initial_readiness":{"kind":"array","items":{"kind":"ref","name":"CapabilityReadiness"}},"owner_membership_id":{"kind":"string"},"starter_coa_preview":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"StarterCoaPreview"}]}},"additional":null},"ConfirmQrisProviderEventRequest":{"kind":"object","properties":{"accepted_tender_effect_key":{"kind":"string"},"amount_minor":{"kind":"string"},"currency":{"kind":"string"},"external_merchant_id":{"kind":"string"},"occurred_at":{"kind":"string"},"provider_intent_reference":{"kind":"string"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmQrisProviderEventResponse":{"kind":"object","properties":{"confirmation_effect_key":{"kind":"string"},"event_receipt_id":{"kind":"string"},"finality":{"kind":"string"},"posting_id":{"kind":"string"},"provider_event_id":{"kind":"string"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmQrisProviderSettlementRequest":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"QrisSettlementAllocationRequest"}},"currency":{"kind":"string"},"deductions":{"kind":"array","items":{"kind":"ref","name":"QrisSettlementDeductionRequest"}},"external_merchant_id":{"kind":"string"},"gross_amount_minor":{"kind":"string"},"net_payout_minor":{"kind":"string"},"occurred_at":{"kind":"string"},"settlement_reference":{"kind":"string"}},"additional":null},"ConfirmQrisProviderSettlementResponse":{"kind":"object","properties":{"finality":{"kind":"string"},"gross_amount_minor":{"kind":"string"},"net_payout_minor":{"kind":"string"},"posting_id":{"kind":"string"},"provider_event_id":{"kind":"string"},"settlement_id":{"kind":"string"}},"additional":null},"Connection":{"kind":"object","properties":{"counterparty":{"kind":"ref","name":"DirectoryProfile"},"decision_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"direction":{"kind":"string"},"id":{"kind":"string"},"message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"}},"additional":null},"ConnectionVersionResponse":{"kind":"object","properties":{"active":{"kind":"boolean"},"connection_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"effective_from":{"kind":"string"},"provenance":{"kind":"string"},"provider":{"kind":"string"},"provider_display_name":{"kind":"string"},"supersedes_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"integer"},"version_id":{"kind":"string"}},"additional":null},"ConsolidatedBalanceSheetView":{"kind":"object","properties":{"cta_translation_reserve_minor":{"kind":"int64"},"generated_at":{"kind":"string"},"non_controlling_interest_minor":{"kind":"int64"},"parent_company_book_id":{"kind":"string"},"parent_equity_minor":{"kind":"int64"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"presentation_currency":{"kind":"string"},"status":{"kind":"string"},"total_consolidated_assets_minor":{"kind":"int64"},"total_consolidated_liabilities_minor":{"kind":"int64"}},"additional":null},"ConsolidatedTrialBalanceView":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"ConsolidationLineItem"}},"perimeter_id":{"kind":"string"},"presentation_currency":{"kind":"string"},"total_consolidated_credit_minor":{"kind":"integer"},"total_consolidated_debit_minor":{"kind":"integer"},"total_elimination_credit_minor":{"kind":"integer"},"total_elimination_debit_minor":{"kind":"integer"},"total_gross_credit_minor":{"kind":"integer"},"total_gross_debit_minor":{"kind":"integer"},"zero_net_internal_leakage":{"kind":"boolean"}},"additional":null},"ConsolidationLineItem":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_name":{"kind":"string"},"balance_minor":{"kind":"integer"},"consolidated_credit_minor":{"kind":"integer"},"consolidated_debit_minor":{"kind":"integer"},"elimination_credit_minor":{"kind":"integer"},"elimination_debit_minor":{"kind":"integer"},"gross_credit_minor":{"kind":"integer"},"gross_debit_minor":{"kind":"integer"}},"additional":null},"ConsolidationMemberView":{"kind":"object","properties":{"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_percentage":{"kind":"number"},"perimeter_id":{"kind":"string"},"subsidiary_company_book_id":{"kind":"string"}},"additional":null},"ConsolidationPerimeterView":{"kind":"object","properties":{"created_at":{"kind":"string"},"holding_company_book_id":{"kind":"string"},"id":{"kind":"string"},"perimeter_name":{"kind":"string"},"presentation_currency":{"kind":"string"}},"additional":null},"Contact":{"kind":"object","properties":{"active":{"kind":"boolean"},"created_at":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_self":{"kind":"boolean"},"kind":{"kind":"string"},"name":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"ContactAddress":{"kind":"object","properties":{"address_country":{"kind":"string"},"address_locality":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"address_region":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"postal_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"street_address":{"kind":"string"}},"additional":null},"ContactBankAccount":{"kind":"object","properties":{"account_number":{"kind":"string"},"active":{"kind":"boolean"},"bank_name":{"kind":"string"},"contact_id":{"kind":"string"},"country":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"swift":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ContactCreditLimitView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"credit_hold_active":{"kind":"boolean"},"credit_limit_minor":{"kind":"int64"},"grace_period_days":{"kind":"integer"},"id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"ContactList":{"kind":"object","properties":{"contacts":{"kind":"array","items":{"kind":"ref","name":"Contact"}}},"additional":null},"ContactOrganization":{"kind":"object","properties":{"contact_id":{"kind":"string"},"industry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"lei":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ContactPerson":{"kind":"object","properties":{"additional_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"birth_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gender":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"gender_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"string"}},"additional":null},"ContactProfile":{"kind":"object","properties":{"about":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"headline":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"links":{"kind":"array","items":{"kind":"ref","name":"ContactProfileLink"}},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"photo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ContactProfileLink":{"kind":"object","properties":{"active":{"kind":"boolean"},"contact_id":{"kind":"string"},"id":{"kind":"string"},"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"platform":{"kind":"string"},"url":{"kind":"string"}},"additional":null},"ContactRelationship":{"kind":"object","properties":{"active":{"kind":"boolean"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"from_contact_id":{"kind":"string"},"id":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"relationship_type":{"kind":"string"},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"to_contact_id":{"kind":"string"}},"additional":null},"ContactRole":{"kind":"object","properties":{"active":{"kind":"boolean"},"contact_id":{"kind":"string"},"credit_limit":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"current":{"kind":"boolean"},"default_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"payment_terms_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"risk_note":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role":{"kind":"string"}},"additional":null},"ContinuousCloseScheduleView":{"kind":"object","properties":{"close_readiness_score":{"kind":"number"},"company_book_id":{"kind":"string"},"daily_fx_revaluation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"daily_micro_depreciation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"reconciliation_matched_count":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ContractLossAllocationView":{"kind":"object","properties":{"capital_provider_loss_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"contract_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"operator_loss_minor":{"kind":"int64"},"period_id":{"kind":"string"},"tenant_id":{"kind":"string"},"total_loss_minor":{"kind":"int64"}},"additional":null},"ConversionAction":{"kind":"enum","values":["within_quote","adjust_po","revise_quote","new_quote","linked_exception","standalone_exception","detach_to_standalone"]},"ConversionOutcome":{"kind":"object","properties":{"action":{"kind":"ref","name":"ConversionAction"},"conversion_id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"LineVariance"}},"purchase_order_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_quote_id":{"kind":"string"},"status":{"kind":"string"},"target_quote_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"warning":{"kind":"boolean"}},"additional":null},"ConversionPreview":{"kind":"object","properties":{"expired":{"kind":"boolean"},"lines":{"kind":"array","items":{"kind":"ref","name":"LineVariance"}},"offered_actions":{"kind":"array","items":{"kind":"ref","name":"ConversionAction"}},"source_quote_id":{"kind":"string"},"source_quote_status":{"kind":"string"},"warning":{"kind":"boolean"},"warning_message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConvertCustomerQuote":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"QuoteOrderAllocation"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"order_date":{"kind":"string"}},"additional":null},"ConvertQuoteToInvoiceRequest":{"kind":"object","properties":{"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"invoice_issue_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConvertedQuoteToInvoiceView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"converted_at":{"kind":"string"},"quote_id":{"kind":"string"},"sales_invoice_id":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"CorporateRestructuringEventView":{"kind":"object","properties":{"carveout_perimeter_json":{"kind":"value"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"effective_date":{"kind":"string"},"event_type":{"kind":"string"},"goodwill_recognized_minor":{"kind":"int64"},"id":{"kind":"string"},"target_entity_name":{"kind":"string"},"tenant_id":{"kind":"string"},"transaction_valuation_minor":{"kind":"int64"}},"additional":null},"CreateAccount":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"manual_entry_allowed":{"kind":"boolean"},"name":{"kind":"string"},"normal_balance":{"kind":"string"}},"additional":null},"CreateAccountingPeriod":{"kind":"object","properties":{"financial_end":{"kind":"string"},"financial_start":{"kind":"string"}},"additional":null},"CreateAdmission":{"kind":"object","properties":{"client_application_id":{"kind":"string"},"data_handling_notice":{"kind":"string"},"exit_export_route":{"kind":"string"},"expires_at":{"kind":"string"},"participant_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"principal_id":{"kind":"string"},"reason":{"kind":"string"},"review_at":{"kind":"string"},"starts_at":{"kind":"string"},"support_contact":{"kind":"string"}},"additional":null},"CreateAssetCategoryRequest":{"kind":"object","properties":{"name":{"kind":"string"}},"additional":null},"CreateAssignmentRequest":{"kind":"object","properties":{"principal_id":{"kind":"string"},"role_id":{"kind":"string"}},"additional":null},"CreateAuctionLotRequest":{"kind":"object","properties":{"auction_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"end_time":{"kind":"string"},"lot_title":{"kind":"string"},"reserve_price_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"starting_price_minor":{"kind":"int64"}},"additional":null},"CreateAuditorWorkingPaperRequest":{"kind":"object","properties":{"adjustment_scope":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"auditor_role":{"kind":"string"},"division_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"paper_findings_json":{"kind":"value"},"paper_title":{"kind":"string"}},"additional":null},"CreateBankAccount":{"kind":"object","properties":{"account_name":{"kind":"string"},"account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_type":{"kind":"string"},"bank_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bank_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"gl_account_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"institution_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"swift_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateBankCategorizationRuleRequest":{"kind":"object","properties":{"description_pattern":{"kind":"string"},"priority":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"rule_name":{"kind":"string"},"target_account_number":{"kind":"string"}},"additional":null},"CreateBankFeedConnectionRequest":{"kind":"object","properties":{"bank_name":{"kind":"string"},"connection_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_account_id":{"kind":"string"},"provider_name":{"kind":"string"}},"additional":null},"CreateBankStatement":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"closing_balance":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateBankStatementLine"}},"opening_balance":{"kind":"string"},"statement_date":{"kind":"string"}},"additional":null},"CreateBankStatementLine":{"kind":"object","properties":{"amount":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transaction_date":{"kind":"string"}},"additional":null},"CreateBookInput":{"kind":"object","properties":{"effective_from":{"kind":"string"},"name":{"kind":"string"},"purpose":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreateBusinessEventRuleRequest":{"kind":"object","properties":{"classification_result":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"metric_trigger_condition":{"kind":"string"},"rule_name":{"kind":"string"}},"additional":null},"CreateCompanyBook":{"kind":"object","properties":{"display_name":{"kind":"string"},"enabled_capabilities":{"kind":"array","items":{"kind":"string"}},"functional_currency":{"kind":"string"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"operating_model":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateConsolidationPerimeterRequest":{"kind":"object","properties":{"perimeter_name":{"kind":"string"},"presentation_currency":{"kind":"string"}},"additional":null},"CreateContact":{"kind":"object","properties":{"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"kind":{"kind":"string"},"name":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateContactAddress":{"kind":"object","properties":{"address_country":{"kind":"string"},"address_locality":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"address_region":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"is_primary":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"postal_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"street_address":{"kind":"string"}},"additional":null},"CreateContactBankAccount":{"kind":"object","properties":{"account_number":{"kind":"string"},"bank_name":{"kind":"string"},"country":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"is_primary":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"swift":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateContactProfileLink":{"kind":"object","properties":{"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"platform":{"kind":"string"},"url":{"kind":"string"}},"additional":null},"CreateContactRelationship":{"kind":"object","properties":{"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"relationship_type":{"kind":"string"},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"to_contact_id":{"kind":"string"}},"additional":null},"CreateContactRole":{"kind":"object","properties":{"credit_limit":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"default_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_terms_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"risk_note":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role":{"kind":"string"}},"additional":null},"CreateCustomCalendarEventRequest":{"kind":"object","properties":{"action_label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"action_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"ref","name":"CalendarCategory"},"event_date":{"kind":"string"},"jurisdiction":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"severity":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"CalendarEventSeverity"}]},"summary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"string"}},"additional":null},"CreateCustomerSubscriptionRequest":{"kind":"object","properties":{"auto_renew":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"contact_id":{"kind":"string"},"current_period_end":{"kind":"string"},"current_period_start":{"kind":"string"},"mrr_value_minor":{"kind":"int64"},"next_billing_date":{"kind":"string"},"plan_id":{"kind":"string"}},"additional":null},"CreateDelivery":{"kind":"object","properties":{"carrier":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"delivery_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateDeliveryLine"}},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sales_document_id":{"kind":"string"},"ship_to_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"shipping_address_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tracking_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateDeliveryLine":{"kind":"object","properties":{"description":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"sales_document_line_id":{"kind":"string"}},"additional":null},"CreateDimensionValue":{"kind":"object","properties":{"code":{"kind":"string"},"name":{"kind":"string"},"parent_value_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateDiscountRuleRequest":{"kind":"object","properties":{"discount_category":{"kind":"string"},"discount_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"effective_from":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fixed_discount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"margin_guard_floor_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"min_order_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"rule_name":{"kind":"string"}},"additional":null},"CreateEmployeePayrollProfileRequest":{"kind":"object","properties":{"allowances_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"base_salary_minor":{"kind":"int64"},"employee_name":{"kind":"string"},"npwp_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ptkp_status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ter_category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateEngagementRequest":{"kind":"object","properties":{"engagement_code":{"kind":"string"},"engagement_type":{"kind":"string"}},"additional":null},"CreateExpenseClaim":{"kind":"object","properties":{"business_purpose":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"claim_date":{"kind":"string"},"claimant_contact_id":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateExpenseLine"}},"period_end":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_start":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateExpenseLine":{"kind":"object","properties":{"amount":{"kind":"string"},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"expense_date":{"kind":"string"},"tax_amount":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateFindingRequest":{"kind":"object","properties":{"content":{"kind":"ref","name":"AuditFindingContent"},"finding_code":{"kind":"string"}},"additional":null},"CreateFixedAsset":{"kind":"object","properties":{"acquired_date":{"kind":"string"},"asset_category_id":{"kind":"string"},"asset_class":{"kind":"string"},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"cost":{"kind":"int64"},"custodian_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"depreciation_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"depreciation_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"funding_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gl_asset":{"kind":"string"},"insurer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"parent_asset_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salvage":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"serial_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"useful_life_months":{"kind":"integer"}},"additional":null},"CreateGuestCounterparty":{"kind":"object","properties":{"display_name":{"kind":"string"}},"additional":null},"CreateImportDeclaration":{"kind":"object","properties":{"authority_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"customs_currency":{"kind":"string"},"customs_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"declaration_date":{"kind":"string"},"declaration_number":{"kind":"string"},"duty_total":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"exchange_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"import_tax_total":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"incoterm":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateImportDeclarationLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"other_charges_total":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"port_of_entry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"CreateImportDeclarationLine":{"kind":"object","properties":{"customs_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"description":{"kind":"string"},"duty_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"import_tax_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"imported_form":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"tariff_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateInventoryLocation":{"kind":"object","properties":{"is_primary":{"kind":"boolean"},"location_code":{"kind":"string"},"location_name":{"kind":"string"}},"additional":null},"CreateInventoryTransfer":{"kind":"object","properties":{"from_location_id":{"kind":"string"},"status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"to_location_id":{"kind":"string"},"transfer_date":{"kind":"string"},"transfer_number":{"kind":"string"}},"additional":null},"CreateInventoryTransformation":{"kind":"object","properties":{"abnormal_loss_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bom_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"consume":{"kind":"array","items":{"kind":"ref","name":"TransformationConsume"}},"kind":{"kind":"string"},"produce":{"kind":"array","items":{"kind":"ref","name":"TransformationProduce"}},"transformation_date":{"kind":"string"}},"additional":null},"CreateInvitationRequest":{"kind":"object","properties":{"email":{"kind":"string"},"role_id":{"kind":"ref","name":"RoleId"}},"additional":null},"CreateItem":{"kind":"object","properties":{"aliases":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"kind":{"kind":"string"},"max_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"min_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"name":{"kind":"string"},"parent_item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"preferred_supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sale_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sale_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sku":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateLandedCostApportionment":{"kind":"object","properties":{"apportionment_date":{"kind":"string"},"basis":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateLandedCostLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_id":{"kind":"string"}},"additional":null},"CreateLandedCostLine":{"kind":"object","properties":{"amount":{"kind":"string"},"capitalise":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"cost_type":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"vendor_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateLead":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"estimated_deal_amount":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lead_code":{"kind":"string"},"lead_source":{"kind":"string"}},"additional":null},"CreateMonthlyPayrollRunRequest":{"kind":"object","properties":{"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"total_bpjs_employee_minor":{"kind":"int64"},"total_bpjs_employer_minor":{"kind":"int64"},"total_gross_salary_minor":{"kind":"int64"},"total_pph21_withheld_minor":{"kind":"int64"}},"additional":null},"CreatePayment":{"kind":"object","properties":{"amount":{"kind":"int64"},"bank_account_id":{"kind":"string"},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"direction":{"kind":"string"},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_date":{"kind":"string"},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreatePayrollLine":{"kind":"object","properties":{"allowances":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bank_account_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bonus":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bpjs_employee":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bpjs_employer":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"employee_contact_id":{"kind":"string"},"gross":{"kind":"int64"},"other_deductions":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"overtime":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"pph21":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"CreatePayrollRun":{"kind":"object","properties":{"functional_currency":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreatePayrollLine"}},"pay_date":{"kind":"string"},"period":{"kind":"string"}},"additional":null},"CreatePersonInCharge":{"kind":"object","properties":{"effective_from":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gender":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"gender_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"person_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"relationship_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreatePocProjectBudgetRequest":{"kind":"object","properties":{"contract_value_minor":{"kind":"int64"},"project_id":{"kind":"string"},"total_budgeted_cost_minor":{"kind":"int64"}},"additional":null},"CreatePosTenderRefundRequest":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreatePosTenderRefundResponse":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"PosTenderRefundAllocationResponse"}},"finality":{"kind":"string"},"original_tender_id":{"kind":"string"},"posting_id":{"kind":"string"},"refund_id":{"kind":"string"}},"additional":null},"CreateProposalRequest":{"kind":"object","properties":{"proposal_code":{"kind":"string"}},"additional":null},"CreateProviderConnectionRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"integration_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"CreateProviderMerchantRouteRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"external_merchant_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"CreatePurchaseDocument":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"document_date":{"kind":"string"},"document_type":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreatePurchaseLine"}},"matched_po_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_receipt_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"prices_include_tax":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"vendor_invoice_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreatePurchaseLine":{"kind":"object","properties":{"description":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"discount_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"},"withholding_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateReversalRequest":{"kind":"object","properties":{"reason":{"kind":"string"},"reversal_financial_date":{"kind":"string"}},"additional":null},"CreateRoleRequest":{"kind":"object","properties":{"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"permission_group_id":{"kind":"string"},"suffix":{"kind":"string"}},"additional":null},"CreateSalesDocument":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"document_date":{"kind":"string"},"document_type":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateSalesLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"prices_include_tax":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salesperson_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateSalesLine":{"kind":"object","properties":{"description":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"discount_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"revenue_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"},"withholding_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateSalesOpportunityRequest":{"kind":"object","properties":{"assigned_sales_rep_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"estimated_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"opportunity_name":{"kind":"string"},"pipeline_stage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"win_probability_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"CreateSalesQuoteRequest":{"kind":"object","properties":{"contact_id":{"kind":"string"},"expiry_date":{"kind":"string"},"grand_total_minor":{"kind":"int64"},"opportunity_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"quote_number":{"kind":"string"},"subtotal_minor":{"kind":"int64"},"tax_total_minor":{"kind":"int64"}},"additional":null},"CreateServiceBilling":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceBillingAllocationInput"}},"document_date":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreateServiceContractAssessment":{"kind":"object","properties":{"classification":{"kind":"ref","name":"ServiceRevenueClassification"},"contract_modification":{"kind":"boolean"},"currency":{"kind":"string"},"fixed_transaction_price":{"kind":"int64"},"paragraph_35_a_met":{"kind":"boolean"},"paragraph_35_b_met":{"kind":"boolean"},"paragraph_35_c_met":{"kind":"boolean"},"performance_obligations":{"kind":"array","items":{"kind":"ref","name":"ServicePerformanceObligationInput"}},"principal_agent_issue":{"kind":"boolean"},"qualified_assessment_reference":{"kind":"string"},"qualified_assessment_sha256":{"kind":"string"},"variable_consideration":{"kind":"boolean"}},"additional":null},"CreateServiceFakturMonetaryAssessment":{"kind":"object","properties":{"aggregation_level":{"kind":"string"},"calculation_contract_identity":{"kind":"string"},"commercial_terms_reference":{"kind":"string"},"commercial_terms_sha256":{"kind":"string"},"currency":{"kind":"string"},"dpp":{"kind":"int64"},"dpp_method":{"kind":"string"},"dpp_method_version":{"kind":"string"},"faktur_evidence_reference":{"kind":"string"},"faktur_evidence_sha256":{"kind":"string"},"faktur_status":{"kind":"string"},"gross_customer_amount":{"kind":"int64"},"nominal_ppn_rate_basis_points":{"kind":"integer"},"official_source_checked_on":{"kind":"string"},"official_source_reference":{"kind":"string"},"official_source_sha256":{"kind":"string"},"output_ppn":{"kind":"int64"},"penggantian":{"kind":"int64"},"rounding_contract_reference":{"kind":"string"},"rounding_contract_sha256":{"kind":"string"},"rounding_mode":{"kind":"string"},"service_invoice_id":{"kind":"string"},"service_tax_point_assessment_id":{"kind":"string"}},"additional":null},"CreateServiceFulfillment":{"kind":"object","properties":{"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ServiceFulfillmentLineInput"}},"performed_from":{"kind":"string"},"performed_through":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreateServiceRecognitionReadinessAssessment":{"kind":"object","properties":{"obligation_satisfactions":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationSatisfactionInput"}},"tax_point_assessments":{"kind":"array","items":{"kind":"ref","name":"ServiceTaxPointAssessmentInput"}}},"additional":null},"CreateSubscriptionPlanRequest":{"kind":"object","properties":{"billing_interval":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"plan_code":{"kind":"string"},"plan_name":{"kind":"string"},"price_minor":{"kind":"int64"}},"additional":null},"CreateSupplierQuote":{"kind":"object","properties":{"connector_idempotency_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"external_company_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_content_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_party_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_quote_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_revision_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"SupplierQuoteLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"source_system":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"supplier_reference":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"CreateTemplateDefinitionRequest":{"kind":"object","properties":{"category":{"kind":"string"},"locale":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"source_capability":{"kind":"string"},"template_key":{"kind":"string"},"variable_schema":{"kind":"value"}},"additional":null},"CreateTemplateVersionRequest":{"kind":"object","properties":{"content_payload":{"kind":"string"},"style_metadata":{"kind":"value"},"subject_pattern":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"integer"}},"additional":null},"CreateTemporaryPostingLock":{"kind":"object","properties":{"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"string"}},"additional":null},"CreateTicketRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"initial_comment":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"priority":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"string"}},"additional":null},"CreateTreatmentRequest":{"kind":"object","properties":{"annual_rate_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"authority_reference":{"kind":"string"},"classification_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"method":{"kind":"string"},"policy_reference":{"kind":"string"},"reason":{"kind":"string"},"residual_value":{"kind":"int64"},"useful_life_months":{"kind":"integer"}},"additional":null},"CreateUniversalContractRequest":{"kind":"object","properties":{"capital_ratio":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"contract_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"profit_split_ratio":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"CreateUserReferralCodeRequest":{"kind":"object","properties":{"custom_referral_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateWealthPortfolioRequest":{"kind":"object","properties":{"asset_class":{"kind":"string"},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"current_valuation_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"family_group_id":{"kind":"string"},"portfolio_name":{"kind":"string"}},"additional":null},"CreateWebhookSubscriptionRequest":{"kind":"object","properties":{"event_types":{"kind":"array","items":{"kind":"string"}},"secret":{"kind":"string"},"target_url":{"kind":"string"}},"additional":null},"CreateWorkOrderRequest":{"kind":"object","properties":{"assigned_technician_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"customer_contact_id":{"kind":"string"},"description":{"kind":"string"},"estimated_cost_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"estimated_labor_hours":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"work_order_number":{"kind":"string"}},"additional":null},"CustomerLoyaltyAccountView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"current_points_balance":{"kind":"int64"},"customer_contact_id":{"kind":"string"},"id":{"kind":"string"},"lifetime_points_earned":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"tier_level":{"kind":"string"}},"additional":null},"CustomerLoyaltyPointsResultView":{"kind":"object","properties":{"account":{"kind":"ref","name":"CustomerLoyaltyAccountView"},"entry":{"kind":"ref","name":"PointLedgerEntryView"}},"additional":null},"CustomerQuote":{"kind":"object","properties":{"accepted_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"customer_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_number":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CustomerQuoteLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"revision_number":{"kind":"int64"},"revision_of_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"QuoteState"},"subtotal":{"kind":"int64"},"terms":{"kind":"string"},"updated_at":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"CustomerQuoteConversion":{"kind":"object","properties":{"conversion_id":{"kind":"string"},"sales_order":{"kind":"ref","name":"CommercialSalesOrder"},"source_quote_id":{"kind":"string"}},"additional":null},"CustomerQuoteLifecycleRequest":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"target_status":{"kind":"ref","name":"QuoteState"}},"additional":null},"CustomerQuoteLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"CustomerQuoteLineRequest":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"CustomerQuoteRequest":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"customer_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CustomerQuoteLineRequest"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"terms":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"CustomerStatus":{"kind":"enum","values":["pending","accepted","rejected"]},"CustomerSubscriptionView":{"kind":"object","properties":{"auto_renew":{"kind":"boolean"},"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"current_period_end":{"kind":"string"},"current_period_start":{"kind":"string"},"id":{"kind":"string"},"mrr_value_minor":{"kind":"int64"},"next_billing_date":{"kind":"string"},"plan_id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"DataSovereigntyExportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"download_url":{"kind":"string"},"expires_at":{"kind":"string"},"export_format":{"kind":"string"},"export_id":{"kind":"string"}},"additional":null},"DecideConnection":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DecideProviderSettlementBankMatch":{"kind":"object","properties":{"action":{"kind":"string"},"expected_current_decision_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"settlement_financial_effect_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"Decision":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"Delivery":{"kind":"object","properties":{"carrier":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"delivery_date":{"kind":"string"},"delivery_number":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"DeliveryLine"}},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sales_document_id":{"kind":"string"},"ship_to_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"shipping_address_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"tracking_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"DeliveryLine":{"kind":"object","properties":{"description":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"sales_document_line_id":{"kind":"string"}},"additional":null},"DeliveryList":{"kind":"object","properties":{"deliveries":{"kind":"array","items":{"kind":"ref","name":"Delivery"}}},"additional":null},"DepreciateRequest":{"kind":"object","properties":{"book_ids":{"kind":"array","items":{"kind":"string"}},"through":{"kind":"string"}},"additional":null},"DepreciationResult":{"kind":"object","properties":{"asset_id":{"kind":"string"},"books":{"kind":"array","items":{"kind":"ref","name":"BookDepreciationResultView"}}},"additional":null},"DetectBankStatement":{"kind":"object","properties":{"file_content":{"kind":"string"}},"additional":null},"DetectedBankStatementMapping":{"kind":"object","properties":{"delimiter":{"kind":"string"},"has_header_row":{"kind":"boolean"},"headers":{"kind":"array","items":{"kind":"string"}},"preview_rows":{"kind":"array","items":{"kind":"array","items":{"kind":"string"}}},"suggested_mapping":{"kind":"value"},"warnings":{"kind":"array","items":{"kind":"string"}}},"additional":null},"DeveloperKeyItem":{"kind":"object","properties":{"created_at":{"kind":"string"},"environment":{"kind":"string"},"id":{"kind":"string"},"key_name":{"kind":"string"},"key_prefix":{"kind":"string"},"last_used_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"last_used_ip":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"retiring_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoke_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoked_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"scopes":{"kind":"array","items":{"kind":"string"}},"status":{"kind":"string"},"total_requests":{"kind":"int64"}},"additional":null},"DeveloperKeyMetricsItem":{"kind":"object","properties":{"environment":{"kind":"string"},"key_id":{"kind":"string"},"key_name":{"kind":"string"},"key_prefix":{"kind":"string"},"owner_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"total_api_requests":{"kind":"int64"},"total_companies_created":{"kind":"int64"},"total_gmv_amount":{"kind":"int64"},"total_pos_transactions":{"kind":"int64"}},"additional":null},"DeviceSyncStatusView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"company_book_id":{"kind":"string"},"last_synced_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"pending_queue_count":{"kind":"int64"},"records":{"kind":"array","items":{"kind":"ref","name":"SyncOfflineRecordView"}},"total_synced_count":{"kind":"int64"}},"additional":null},"DimensionDefinition":{"kind":"object","properties":{"active":{"kind":"boolean"},"applies_to":{"kind":"string"},"code":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"kind":{"kind":"string"},"name":{"kind":"string"},"system_seed":{"kind":"boolean"},"updated_at":{"kind":"string"}},"additional":null},"DimensionDefinitionList":{"kind":"object","properties":{"definitions":{"kind":"array","items":{"kind":"ref","name":"DimensionDefinition"}}},"additional":null},"DimensionRequirementInput":{"kind":"object","properties":{"account_class":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_role":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"definition_id":{"kind":"string"},"document_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"line_context":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"string"},"required":{"kind":"boolean"},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DimensionRequirementView":{"kind":"object","properties":{"account_class":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_role":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"changed_by":{"kind":"string"},"created_at":{"kind":"string"},"definition_id":{"kind":"string"},"document_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"id":{"kind":"string"},"line_context":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"string"},"required":{"kind":"boolean"},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"int64"}},"additional":null},"DimensionValue":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"created_at":{"kind":"string"},"definition_id":{"kind":"string"},"id":{"kind":"string"},"name":{"kind":"string"},"parent_value_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"DimensionValueList":{"kind":"object","properties":{"values":{"kind":"array","items":{"kind":"ref","name":"DimensionValue"}}},"additional":null},"DirectoryProfile":{"kind":"object","properties":{"display_name":{"kind":"string"},"handle":{"kind":"string"},"verified":{"kind":"boolean"}},"additional":null},"DisburseH2hIso20022PaymentRequest":{"kind":"object","properties":{"bank_code":{"kind":"string"},"creditor_account_number":{"kind":"string"},"creditor_name":{"kind":"string"},"currency":{"kind":"string"},"debtor_account_number":{"kind":"string"},"end_to_end_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_message_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"instructed_amount_minor":{"kind":"int64"},"raw_pain001_xml":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DisburseH2hIso20022PaymentView":{"kind":"object","properties":{"bank_code":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"disbursed_at":{"kind":"string"},"external_message_id":{"kind":"string"},"id":{"kind":"string"},"instructed_amount_minor":{"kind":"int64"},"message_type":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"DisburseSalaryPayoutsRequest":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payroll_run_id":{"kind":"string"}},"additional":null},"DisburseSalaryPayoutsView":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"company_book_id":{"kind":"string"},"disbursed_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payroll_run_id":{"kind":"string"},"status":{"kind":"string"},"total_net_disbursed_minor":{"kind":"int64"}},"additional":null},"DiscountRuleView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"discount_category":{"kind":"string"},"discount_percentage":{"kind":"number"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fixed_discount_minor":{"kind":"int64"},"id":{"kind":"string"},"margin_guard_floor_percentage":{"kind":"number"},"min_order_value_minor":{"kind":"int64"},"rule_name":{"kind":"string"}},"additional":null},"DispatchSleekSignDocumentRequest":{"kind":"object","properties":{"custom_message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_title":{"kind":"string"},"document_type":{"kind":"string"},"recipient_email":{"kind":"string"},"recipient_name":{"kind":"string"}},"additional":null},"DisposeFixedAssetRequest":{"kind":"object","properties":{"disposal_date":{"kind":"string"},"disposal_proceeds_minor":{"kind":"int64"},"gain_loss_account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"proceeds_account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DisposeRequest":{"kind":"object","properties":{"date":{"kind":"string"},"proceeds":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"DisputeSalesInvoiceRequest":{"kind":"object","properties":{"dispute_reason":{"kind":"string"},"disputed_amount_minor":{"kind":"int64"},"payer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DisputeSalesInvoiceResultView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"dispute_reason":{"kind":"string"},"dispute_sub_invoice_id":{"kind":"string"},"disputed_amount_minor":{"kind":"int64"},"id":{"kind":"string"},"original_invoice_id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"DistributePartnerProfitRequest":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"disbursement_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_contact_id":{"kind":"string"},"payout_amount_minor":{"kind":"int64"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"source_bank_account_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DivisionAuditPaperSummary":{"kind":"object","properties":{"auditor_role":{"kind":"string"},"division_code":{"kind":"string"},"papers":{"kind":"array","items":{"kind":"ref","name":"AuditorWorkingPaperView"}},"total_working_papers":{"kind":"int64"}},"additional":null},"DocumentActiveEditorView":{"kind":"object","properties":{"display_name":{"kind":"string"},"editing_since":{"kind":"string"},"email":{"kind":"string"},"lock_expires_at":{"kind":"string"},"principal_id":{"kind":"string"}},"additional":null},"DocumentActiveViewerView":{"kind":"object","properties":{"display_name":{"kind":"string"},"email":{"kind":"string"},"principal_id":{"kind":"string"},"viewing_since":{"kind":"string"}},"additional":null},"DocumentLockView":{"kind":"object","properties":{"document_id":{"kind":"string"},"document_type":{"kind":"string"},"expires_at":{"kind":"string"},"lock_id":{"kind":"string"},"locked_at":{"kind":"string"},"locked_by_display_name":{"kind":"string"},"locked_by_email":{"kind":"string"},"locked_by_principal_id":{"kind":"string"},"minutes_remaining":{"kind":"int64"}},"additional":null},"DocumentLockedErrorResponse":{"kind":"object","properties":{"error":{"kind":"string"},"lock_holder":{"kind":"ref","name":"LockHolderInfo"},"message":{"kind":"string"}},"additional":null},"DocumentPresenceView":{"kind":"object","properties":{"active_editor":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"DocumentActiveEditorView"}]},"active_viewers":{"kind":"array","items":{"kind":"ref","name":"DocumentActiveViewerView"}},"document_id":{"kind":"string"},"document_type":{"kind":"string"}},"additional":null},"DocumentUnlockResultView":{"kind":"object","properties":{"document_id":{"kind":"string"},"document_type":{"kind":"string"},"unlocked":{"kind":"boolean"}},"additional":null},"EarnCustomerLoyaltyPointsRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"string"},"points":{"kind":"int64"},"reference_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unearned_liability_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"EcosystemBilateralTradeView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"counterparty_book_uri":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"inbound_purchase_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"outbound_sales_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"proof_sentinel_hash":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"EfakturCsvExportView":{"kind":"object","properties":{"batch_id":{"kind":"string"},"company_book_id":{"kind":"string"},"csv_content":{"kind":"string"},"exported_at":{"kind":"string"},"total_documents":{"kind":"int64"}},"additional":null},"EfakturDocumentView":{"kind":"object","properties":{"buyer_name":{"kind":"string"},"buyer_npwp":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"dpp_amount_minor":{"kind":"int64"},"efaktur_status":{"kind":"string"},"id":{"kind":"string"},"nsfp_assigned_number":{"kind":"string"},"ppn_amount_minor":{"kind":"int64"},"qr_code_verification_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sales_invoice_id":{"kind":"string"}},"additional":null},"EfakturFtzExportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"csv_payload":{"kind":"string"},"generated_at":{"kind":"string"},"tax_period":{"kind":"string"},"total_gross_amount_minor":{"kind":"int64"},"total_records":{"kind":"integer"},"total_tax_amount_minor":{"kind":"int64"}},"additional":null},"Eligibility":{"kind":"enum","values":["current","expired","unavailable"]},"EmployeePayrollProfileView":{"kind":"object","properties":{"allowances_minor":{"kind":"int64"},"base_salary_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"employee_name":{"kind":"string"},"id":{"kind":"string"},"npwp_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ptkp_status":{"kind":"string"},"status":{"kind":"string"},"ter_category":{"kind":"string"}},"additional":null},"EnableCompanyLegalHoldRequest":{"kind":"object","properties":{"case_reference_number":{"kind":"string"},"gdpr_deletion_override":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"merkle_evidence_root_hash":{"kind":"string"}},"additional":null},"EngineDiscrepancy":{"kind":"object","properties":{"account_id":{"kind":"string"},"engine_account_id":{"kind":"string"},"engine_credit_normal_minor":{"kind":"integer"},"journal_credit_normal_minor":{"kind":"integer"},"kind":{"kind":"string"}},"additional":null},"EnqueueExportJobRequest":{"kind":"object","properties":{"format":{"kind":"string"},"parameters":{"kind":"value"},"report_type":{"kind":"string"}},"additional":null},"EnrollBetaChannelRequest":{"kind":"object","properties":{"connector_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"enrolled_channel":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"invite_code_or_token":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"EnrollBetaChannelView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"connector_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"enrolled_at":{"kind":"string"},"enrolled_channel":{"kind":"string"},"enrollment_id":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"EnterpriseDivisionAuditMatrixView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"divisions":{"kind":"array","items":{"kind":"ref","name":"DivisionAuditPaperSummary"}},"fiscal_period":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"fiscal_year":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"total_papers":{"kind":"int64"}},"additional":null},"EntityHierarchyReparentingView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"new_parent_book_id":{"kind":"string"},"previous_parent_book_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reparented_by_principal_id":{"kind":"string"},"reparenting_reason":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"EquityMovementLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"integer"},"label":{"kind":"string"}},"additional":null},"ErrorEnvelope":{"kind":"object","properties":{"error":{"kind":"ref","name":"ApiError"}},"additional":null},"EvaluateDiscountQuoteRequest":{"kind":"object","properties":{"discount_rule_ids":{"kind":"array","items":{"kind":"string"}},"estimated_cogs_minor":{"kind":"int64"},"gross_order_value_minor":{"kind":"int64"},"manual_discount_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"manual_fixed_discount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"EvaluateDiscountQuoteView":{"kind":"object","properties":{"applied_rule_ids":{"kind":"array","items":{"kind":"string"}},"estimated_cogs_minor":{"kind":"int64"},"gross_margin_percentage":{"kind":"number"},"gross_order_value_minor":{"kind":"int64"},"gross_profit_minor":{"kind":"int64"},"margin_guard_floor_percentage":{"kind":"number"},"margin_guard_passed":{"kind":"boolean"},"max_permissible_discount_minor":{"kind":"int64"},"net_order_value_minor":{"kind":"int64"},"status":{"kind":"string"},"total_discount_minor":{"kind":"int64"}},"additional":null},"EvidenceInput":{"kind":"object","properties":{"evidence_type":{"kind":"string"},"integrity_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"locator":{"kind":"string"},"originating_capability":{"kind":"string"}},"additional":null},"EvidenceRefInput":{"kind":"object","properties":{"evidence_reference_id":{"kind":"string"}},"additional":null},"ExecuteBilateralTradeRequest":{"kind":"object","properties":{"counterparty_book_uri":{"kind":"string"},"inbound_purchase_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"outbound_sales_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"proof_sentinel_hash":{"kind":"string"},"status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ExecutionMode":{"kind":"enum","values":["stateless","stateful","legacy_adapter"]},"ExpenseClaim":{"kind":"object","properties":{"business_purpose":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"claim_date":{"kind":"string"},"claim_number":{"kind":"string"},"claimant_contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ExpenseLine"}},"period_end":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_start":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"subtotal":{"kind":"string"},"tax_total":{"kind":"string"},"total":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ExpenseClaimList":{"kind":"object","properties":{"claims":{"kind":"array","items":{"kind":"ref","name":"ExpenseClaim"}}},"additional":null},"ExpenseLine":{"kind":"object","properties":{"amount":{"kind":"string"},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"expense_date":{"kind":"string"},"id":{"kind":"string"},"ordinal":{"kind":"integer"},"tax_amount":{"kind":"string"}},"additional":null},"ExperienceEntitlementView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"experience":{"kind":"string"},"granted_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ExportDataSovereigntyRequest":{"kind":"object","properties":{"export_format":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"include_audit_trail":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"ExportEfakturFtzScheduleRequest":{"kind":"object","properties":{"include_ppftz_details":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"tax_period":{"kind":"string"}},"additional":null},"ExportFtaAuditFileRequest":{"kind":"object","properties":{"export_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_end":{"kind":"string"},"period_start":{"kind":"string"}},"additional":null},"ExportJobResponse":{"kind":"object","properties":{"artifact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"completed_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"error":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"format":{"kind":"string"},"generation_id":{"kind":"string"},"report_type":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"FederatedNodeSyncView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"endpoint_uri":{"kind":"string"},"id":{"kind":"string"},"last_synced_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"node_deployment_mode":{"kind":"string"},"node_name":{"kind":"string"},"public_key_fingerprint":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"FinancialInsightsSummary":{"kind":"object","properties":{"kpis":{"kind":"ref","name":"FinancialKpiMetrics"},"payables_aging_summary":{"kind":"ref","name":"AgingBucketSummary"},"provenance":{"kind":"ref","name":"FinancialTruthProvenance"},"receivables_aging_summary":{"kind":"ref","name":"AgingBucketSummary"}},"additional":null},"FinancialKpiMetrics":{"kind":"object","properties":{"burn_rate_monthly":{"kind":"int64"},"capital_efficiency_index":{"kind":"number"},"fcf_margin_pct":{"kind":"number"},"gross_margin_pct":{"kind":"number"},"liquid_cash":{"kind":"int64"},"net_income":{"kind":"int64"},"revenue":{"kind":"int64"},"runway_months":{"kind":"integer"}},"additional":null},"FinancialLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"int64"},"direction":{"kind":"string"},"entry_description":{"kind":"string"},"financial_date":{"kind":"string"},"journal_entry_id":{"kind":"string"},"line_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_ordinal":{"kind":"integer"},"posting_id":{"kind":"string"},"posting_time":{"kind":"string"}},"additional":null},"FinancialLineList":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"FinancialLine"}}},"additional":null},"FinancialTruthProvenance":{"kind":"object","properties":{"as_of_timestamp":{"kind":"string"},"provenance_ref":{"kind":"string"},"reconciled_status":{"kind":"string"}},"additional":null},"FindingDispositionRequest":{"kind":"object","properties":{"disposition":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"FixedAsset":{"kind":"object","properties":{"accumulated_depreciation":{"kind":"int64"},"accumulated_impairment":{"kind":"int64"},"accumulated_revaluation":{"kind":"int64"},"acquired_date":{"kind":"string"},"active":{"kind":"boolean"},"asset_category_id":{"kind":"string"},"asset_class":{"kind":"string"},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"cost":{"kind":"int64"},"created_at":{"kind":"string"},"custodian_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"depreciated_through":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"depreciation_method":{"kind":"string"},"depreciation_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"disposal_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"disposal_proceeds":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"funding_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gl_asset":{"kind":"string"},"id":{"kind":"string"},"insurance_expiry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"insurance_policy_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"insured_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"insurer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"net_book_value":{"kind":"int64"},"parent_asset_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"placed_in_service_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salvage":{"kind":"int64"},"serial_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"},"useful_life_months":{"kind":"integer"},"warranty_expiry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"warranty_terms":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"FixedAssetDisposalResultView":{"kind":"object","properties":{"accumulated_depreciation_minor":{"kind":"int64"},"acquisition_cost_minor":{"kind":"int64"},"asset_id":{"kind":"string"},"company_book_id":{"kind":"string"},"disposal_date":{"kind":"string"},"disposal_proceeds_minor":{"kind":"int64"},"disposed_at":{"kind":"string"},"gain_loss_minor":{"kind":"int64"},"net_book_value_minor":{"kind":"int64"},"status":{"kind":"string"}},"additional":null},"FixedAssetList":{"kind":"object","properties":{"assets":{"kind":"array","items":{"kind":"ref","name":"FixedAsset"}}},"additional":null},"FixedAssetReconciliation":{"kind":"object","properties":{"difference":{"kind":"int64"},"gl_accumulated_depreciation":{"kind":"int64"},"gl_asset_cost":{"kind":"int64"},"gl_net_book_value":{"kind":"int64"},"reconciled":{"kind":"boolean"},"register_accumulated_depreciation":{"kind":"int64"},"register_cost":{"kind":"int64"},"register_net_book_value":{"kind":"int64"}},"additional":null},"FrozenComponentAllocation":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"quote_line_id":{"kind":"string"}},"additional":null},"FrozenQuoteComponent":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"FrozenComponentAllocation"}},"amount_minor":{"kind":"string"},"basis_minor":{"kind":"string"},"beneficiary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"calculation_snapshot":{"kind":"value"},"component_id":{"kind":"string"},"component_kind":{"kind":"string"},"funding_party":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ordinal":{"kind":"integer"},"semantic_account_role":{"kind":"string"}},"additional":null},"FrozenQuoteLine":{"kind":"object","properties":{"base_amount_minor":{"kind":"string"},"discount_allocated_minor":{"kind":"string"},"item_id":{"kind":"string"},"item_snapshot":{"kind":"value"},"modifier_ids":{"kind":"array","items":{"kind":"string"}},"ordinal":{"kind":"integer"},"price_version_id":{"kind":"string"},"quantity":{"kind":"int64"},"unit_price_minor":{"kind":"string"}},"additional":null},"FrozenQuotePolicy":{"kind":"object","properties":{"policy_version_id":{"kind":"string"},"resolution_ordinal":{"kind":"integer"},"resolved_basis":{"kind":"value"}},"additional":null},"FrozenQuotePromotion":{"kind":"object","properties":{"promotion_version_id":{"kind":"string"},"redemption_snapshot":{"kind":"value"}},"additional":null},"FrozenQuoteReceipt":{"kind":"object","properties":{"amount_due_minor":{"kind":"string"},"components":{"kind":"array","items":{"kind":"ref","name":"FrozenQuoteComponent"}},"currency":{"kind":"string"},"digest_sha256":{"kind":"string"},"expires_at":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"FrozenQuoteLine"}},"policies":{"kind":"array","items":{"kind":"ref","name":"FrozenQuotePolicy"}},"preset_id":{"kind":"string"},"preset_version":{"kind":"int64"},"promotions":{"kind":"array","items":{"kind":"ref","name":"FrozenQuotePromotion"}},"quote_id":{"kind":"string"},"revision":{"kind":"int64"}},"additional":null},"FtaAuditFileExportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"export_id":{"kind":"string"},"file_format":{"kind":"string"},"generated_file_content":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"sha256_checksum":{"kind":"string"},"total_general_ledger_records":{"kind":"int64"},"total_purchase_records":{"kind":"int64"},"total_sales_records":{"kind":"int64"},"trn_number":{"kind":"string"}},"additional":null},"FtaVat201ReportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"corporate_tax_applicable_rate_pct":{"kind":"number"},"corporate_tax_threshold_minor":{"kind":"int64"},"currency":{"kind":"string"},"exempt_supplies_amount_minor":{"kind":"int64"},"is_qfzp":{"kind":"boolean"},"net_vat_due_minor":{"kind":"int64"},"reverse_charge_expenses_amount_minor":{"kind":"int64"},"reverse_charge_expenses_recoverable_vat_minor":{"kind":"int64"},"reverse_charge_supplies_amount_minor":{"kind":"int64"},"reverse_charge_supplies_vat_minor":{"kind":"int64"},"standard_rated_expenses_amount_minor":{"kind":"int64"},"standard_rated_expenses_recoverable_vat_minor":{"kind":"int64"},"standard_rated_supplies_amount_minor":{"kind":"int64"},"standard_rated_supplies_vat_minor":{"kind":"int64"},"tax_period_end":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_period_start":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_output_tax_minor":{"kind":"int64"},"total_recoverable_tax_minor":{"kind":"int64"},"tourist_tax_refunds_vat_minor":{"kind":"int64"},"trn_number":{"kind":"string"},"zero_rated_supplies_amount_minor":{"kind":"int64"}},"additional":null},"GenerateBillableHoursInvoiceRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"project_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"GenerateEfakturDocumentRequest":{"kind":"object","properties":{"buyer_name":{"kind":"string"},"buyer_npwp":{"kind":"string"},"dpp_amount_minor":{"kind":"int64"},"ppn_amount_minor":{"kind":"int64"},"sales_invoice_id":{"kind":"string"}},"additional":null},"GovernedPosTenderOutcomeResponse":{"kind":"object","properties":{"accepted_tender_effect_key":{"kind":"string"},"amount_minor":{"kind":"string"},"currency":{"kind":"string"},"order_id":{"kind":"string"},"outcome":{"kind":"string"},"posting_finality":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_source_object_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_stable_effect_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_event_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_event_receipt_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_occurred_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tender_id":{"kind":"string"}},"additional":null},"GuestCounterparty":{"kind":"object","properties":{"claim_token":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"claimed":{"kind":"boolean"},"display_name":{"kind":"string"},"held_document_count":{"kind":"int64"},"id":{"kind":"string"}},"additional":null},"HoldingAuditSampleView":{"kind":"object","properties":{"audit_entity_level":{"kind":"string"},"audit_status":{"kind":"string"},"created_at":{"kind":"string"},"holding_perimeter_id":{"kind":"string"},"id":{"kind":"string"},"sample_rule_name":{"kind":"string"},"sampled_by_principal_id":{"kind":"string"},"sampled_journal_id":{"kind":"string"},"subsidiary_company_book_id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"HubAppView":{"kind":"object","properties":{"app_type":{"kind":"string"},"app_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"author_name":{"kind":"string"},"built_by_tier":{"kind":"ref","name":"BuiltByTier"},"category":{"kind":"string"},"created_at":{"kind":"string"},"demo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"developer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"execution_mode":{"kind":"ref","name":"ExecutionMode"},"icon_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_official":{"kind":"boolean"},"last_maintained_at":{"kind":"string"},"maintenance_status":{"kind":"ref","name":"MaintenanceStatus"},"name":{"kind":"string"},"pricing_model":{"kind":"string"},"slug":{"kind":"string"},"status":{"kind":"string"},"summary":{"kind":"string"},"verified_badge":{"kind":"boolean"},"version":{"kind":"string"}},"additional":null},"HubConnectorView":{"kind":"object","properties":{"author_name":{"kind":"string"},"built_by_tier":{"kind":"ref","name":"BuiltByTier"},"category":{"kind":"string"},"created_at":{"kind":"string"},"description":{"kind":"string"},"developer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"documentation_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"execution_mode":{"kind":"ref","name":"ExecutionMode"},"icon_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_official":{"kind":"boolean"},"last_maintained_at":{"kind":"string"},"maintenance_status":{"kind":"ref","name":"MaintenanceStatus"},"mcp_protocol_version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"pricing_model":{"kind":"string"},"slug":{"kind":"string"},"status":{"kind":"string"},"summary":{"kind":"string"},"verified_badge":{"kind":"boolean"},"version":{"kind":"string"}},"additional":null},"HubDeveloperProfileView":{"kind":"object","properties":{"created_at":{"kind":"string"},"developer_email":{"kind":"string"},"developer_name":{"kind":"string"},"id":{"kind":"string"},"support_email":{"kind":"string"},"tenant_id":{"kind":"string"},"verification_status":{"kind":"string"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"HubPartnerView":{"kind":"object","properties":{"certified_consultants_count":{"kind":"integer"},"contact_email":{"kind":"string"},"created_at":{"kind":"string"},"description":{"kind":"string"},"developer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"industry_specializations":{"kind":"array","items":{"kind":"string"}},"is_featured":{"kind":"boolean"},"jurisdiction_coverage":{"kind":"array","items":{"kind":"string"}},"logo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_name":{"kind":"string"},"partner_type":{"kind":"string"},"rating_score":{"kind":"number"},"status":{"kind":"string"},"summary":{"kind":"string"},"tier":{"kind":"string"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ImpairAsset":{"kind":"object","properties":{"date":{"kind":"string"},"reason":{"kind":"string"},"recoverable_amount":{"kind":"int64"}},"additional":null},"ImportBankStatement":{"kind":"object","properties":{"closing_balance":{"kind":"string"},"file_content":{"kind":"string"},"filename":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"format":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"mapping":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"BankStatementMappingOverride"}]},"opening_balance":{"kind":"string"},"profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"statement_date":{"kind":"string"}},"additional":null},"ImportCoaRequest":{"kind":"object","properties":{"dry_run":{"kind":"boolean"},"file_content_base64":{"kind":"string"},"file_format":{"kind":"string"}},"additional":null},"ImportCoaResponse":{"kind":"object","properties":{"created_account_ids":{"kind":"array","items":{"kind":"string"}},"imported_accounts_count":{"kind":"integer"},"is_dry_run":{"kind":"boolean"},"mapped_roles_count":{"kind":"integer"},"preview_rows":{"kind":"union","variants":[{"kind":"array","items":{"kind":"ref","name":"ImportedAccountRow"}},{"kind":"null"}]}},"additional":null},"ImportDeclaration":{"kind":"object","properties":{"assessed_total":{"kind":"int64"},"authority_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"customs_currency":{"kind":"string"},"customs_value":{"kind":"int64"},"declaration_date":{"kind":"string"},"declaration_number":{"kind":"string"},"duty_total":{"kind":"int64"},"exchange_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"import_tax_total":{"kind":"int64"},"incoterm":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"ImportDeclarationLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"other_charges_total":{"kind":"int64"},"port_of_entry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_ids":{"kind":"array","items":{"kind":"string"}},"status":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ImportDeclarationLine":{"kind":"object","properties":{"customs_value":{"kind":"int64"},"description":{"kind":"string"},"duty_amount":{"kind":"int64"},"id":{"kind":"string"},"import_tax_amount":{"kind":"int64"},"imported_form":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"tariff_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ImportDeclarationList":{"kind":"object","properties":{"declarations":{"kind":"array","items":{"kind":"ref","name":"ImportDeclaration"}}},"additional":null},"ImportXeroHistoricalDataRequest":{"kind":"object","properties":{"import_contacts":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"import_journals":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"xero_tenant_id":{"kind":"string"}},"additional":null},"ImportedAccountRow":{"kind":"object","properties":{"account_class":{"kind":"string"},"account_code":{"kind":"string"},"name":{"kind":"string"},"normal_balance":{"kind":"string"},"parent_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_mapping":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"IncomeStatement":{"kind":"object","properties":{"expenses":{"kind":"array","items":{"kind":"ref","name":"IncomeStatementLine"}},"net_income_minor":{"kind":"integer"},"revenue":{"kind":"array","items":{"kind":"ref","name":"IncomeStatementLine"}},"total_expenses_minor":{"kind":"integer"},"total_revenue_minor":{"kind":"integer"}},"additional":null},"IncomeStatementLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"integer"}},"additional":null},"IngestBankStatementFeedRequest":{"kind":"object","properties":{"external_account_id":{"kind":"string"},"provider_name":{"kind":"string"},"raw_statement_data":{"kind":"string"}},"additional":null},"IngestH2hCamt053StatementRequest":{"kind":"object","properties":{"bank_code":{"kind":"string"},"external_message_id":{"kind":"string"},"raw_xml_payload":{"kind":"string"},"statement_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"IngestH2hCamt053StatementView":{"kind":"object","properties":{"bank_code":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"external_message_id":{"kind":"string"},"id":{"kind":"string"},"ingested_at":{"kind":"string"},"message_type":{"kind":"string"},"processed_status":{"kind":"string"},"statement_lines_parsed":{"kind":"int64"},"tenant_id":{"kind":"string"},"total_closing_balance_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"IngestPhysicalEventRequest":{"kind":"object","properties":{"classification":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"device_id":{"kind":"string"},"event_type":{"kind":"string"},"metric_payload":{"kind":"value"}},"additional":null},"InstallConnectorRequest":{"kind":"object","properties":{"configuration_values":{"kind":"value"},"connector_id":{"kind":"string"},"granted_permission_scopes":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]}},"additional":null},"IntercompanyEliminationRunView":{"kind":"object","properties":{"created_at":{"kind":"string"},"cta_translation_reserve_minor":{"kind":"int64"},"eliminated_expense_minor":{"kind":"int64"},"eliminated_payable_minor":{"kind":"int64"},"eliminated_receivable_minor":{"kind":"int64"},"eliminated_revenue_minor":{"kind":"int64"},"id":{"kind":"string"},"parent_company_book_id":{"kind":"string"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"InventoryLocation":{"kind":"object","properties":{"created_at":{"kind":"string"},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"location_code":{"kind":"string"},"location_name":{"kind":"string"}},"additional":null},"InventoryMovement":{"kind":"object","properties":{"created_at":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"string"},"movement_date":{"kind":"string"},"movement_type":{"kind":"string"},"quantity":{"kind":"int64"},"running_avg_cost":{"kind":"int64"},"running_book_value":{"kind":"int64"},"running_qty":{"kind":"int64"},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_value":{"kind":"int64"},"unit_cost":{"kind":"int64"}},"additional":null},"InventoryReconciliation":{"kind":"object","properties":{"difference":{"kind":"int64"},"gl_inventory":{"kind":"int64"},"movement_book_value":{"kind":"int64"},"reconciled":{"kind":"boolean"},"register_book_value":{"kind":"int64"},"register_movement_difference":{"kind":"int64"}},"additional":null},"InventoryTransfer":{"kind":"object","properties":{"created_at":{"kind":"string"},"from_location_id":{"kind":"string"},"id":{"kind":"string"},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"to_location_id":{"kind":"string"},"transfer_date":{"kind":"string"},"transfer_number":{"kind":"string"}},"additional":null},"InventoryTransformation":{"kind":"object","properties":{"abnormal_loss_value":{"kind":"int64"},"bom_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"by_product_value":{"kind":"int64"},"consumed_movement_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"input_value":{"kind":"int64"},"kind":{"kind":"string"},"outputs":{"kind":"array","items":{"kind":"ref","name":"TransformationOutput"}},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transformation_date":{"kind":"string"},"unassigned_value":{"kind":"int64"}},"additional":null},"InvitationView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"expires_at":{"kind":"string"},"id":{"kind":"string"},"normalized_email":{"kind":"string"},"proposed_role_id":{"kind":"ref","name":"RoleId"},"state_revision":{"kind":"int64"}},"additional":null},"InvoiceEstampResultView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"document_amount_minor":{"kind":"int64"},"document_id":{"kind":"string"},"estamp_serial_number":{"kind":"string"},"id":{"kind":"string"},"provider_name":{"kind":"string"},"stamped_at":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"InvoicePaymentLinkView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"invoice_id":{"kind":"string"},"payment_link_url":{"kind":"string"},"provider_name":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"IssueDeveloperKeyRequest":{"kind":"object","properties":{"environment":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"key_name":{"kind":"string"},"owner_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"scopes":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]}},"additional":null},"IssueDeveloperKeyResponse":{"kind":"object","properties":{"environment":{"kind":"string"},"key_id":{"kind":"string"},"key_name":{"kind":"string"},"key_prefix":{"kind":"string"},"note":{"kind":"string"},"raw_secret_token":{"kind":"string"},"scopes":{"kind":"array","items":{"kind":"string"}}},"additional":null},"IssueNonFiatUnitsRequest":{"kind":"object","properties":{"counterparty_entity_id":{"kind":"string"},"unit_type":{"kind":"string"},"units_amount":{"kind":"number"}},"additional":null},"IssueWorkOrderPartsRequest":{"kind":"object","properties":{"item_id":{"kind":"string"},"quantity":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"unit_cost_minor":{"kind":"int64"}},"additional":null},"Item":{"kind":"object","properties":{"active":{"kind":"boolean"},"aliases":{"kind":"array","items":{"kind":"string"}},"avg_cost":{"kind":"int64"},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"book_value":{"kind":"int64"},"created_at":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"kind":{"kind":"string"},"max_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"min_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"name":{"kind":"string"},"on_hand_qty":{"kind":"int64"},"parent_item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"preferred_supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_price":{"kind":"int64"},"sale_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sale_price":{"kind":"int64"},"sku":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ItemList":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"Item"}}},"additional":null},"JournalLineInput":{"kind":"object","properties":{"account_id":{"kind":"string"},"amount_minor":{"kind":"int64"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"direction":{"kind":"string"},"ordinal":{"kind":"integer"}},"additional":null},"LandedCostAllocation":{"kind":"object","properties":{"allocated_cost":{"kind":"string"},"basis_amount":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_line_id":{"kind":"string"}},"additional":null},"LandedCostApportionment":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"LandedCostAllocation"}},"apportionment_date":{"kind":"string"},"basis":{"kind":"string"},"capitalised_total":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"LandedCostLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_id":{"kind":"string"},"residual_total":{"kind":"string"},"residual_treatment":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"total_cost":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"LandedCostApportionmentList":{"kind":"object","properties":{"apportionments":{"kind":"array","items":{"kind":"ref","name":"LandedCostApportionment"}}},"additional":null},"LandedCostLine":{"kind":"object","properties":{"amount":{"kind":"string"},"capitalise":{"kind":"boolean"},"cost_type":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"ordinal":{"kind":"integer"},"vendor_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"LandedCostPolicy":{"kind":"object","properties":{"options":{"kind":"array","items":{"kind":"ref","name":"LandedCostPolicyOption"}},"residual_treatment":{"kind":"string"}},"additional":null},"LandedCostPolicyOption":{"kind":"object","properties":{"description":{"kind":"string"},"is_default":{"kind":"boolean"},"residual_treatment":{"kind":"string"}},"additional":null},"Lead":{"kind":"object","properties":{"contact_id":{"kind":"string"},"converted_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"credit_score":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"currency":{"kind":"string"},"estimated_deal_amount":{"kind":"string"},"id":{"kind":"string"},"lead_code":{"kind":"string"},"lead_source":{"kind":"string"},"stage":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"LeadList":{"kind":"object","properties":{"leads":{"kind":"array","items":{"kind":"ref","name":"Lead"}}},"additional":null},"LedgerWebhookEnvelope":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"data":{"kind":"value"},"event_id":{"kind":"string"},"event_type":{"kind":"string"},"timestamp":{"kind":"string"}},"additional":null},"LifecycleState":{"kind":"enum","values":["open","closed","finalized"]},"LineVariance":{"kind":"object","properties":{"committed_quantity":{"kind":"int64"},"committed_value":{"kind":"int64"},"excess_quantity":{"kind":"int64"},"excess_value":{"kind":"int64"},"quote_line_id":{"kind":"string"},"quoted_quantity":{"kind":"int64"},"quoted_value":{"kind":"int64"},"remaining_quantity":{"kind":"int64"},"remaining_value":{"kind":"int64"},"requested_quantity":{"kind":"int64"},"requested_value":{"kind":"int64"},"reserved_quantity":{"kind":"int64"},"reserved_value":{"kind":"int64"},"warning":{"kind":"boolean"}},"additional":null},"LinkSubsidiaryCompanyBookRequest":{"kind":"object","properties":{"consolidation_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"subsidiary_company_book_id":{"kind":"string"}},"additional":null},"LockHolderInfo":{"kind":"object","properties":{"display_name":{"kind":"string"},"email":{"kind":"string"},"lock_expires_at":{"kind":"string"},"locked_at":{"kind":"string"},"minutes_remaining":{"kind":"int64"},"principal_id":{"kind":"string"}},"additional":null},"LogTimesheetEntryRequest":{"kind":"object","properties":{"billable_rate_minor":{"kind":"int64"},"customer_contact_id":{"kind":"string"},"entry_date":{"kind":"string"},"hours_logged":{"kind":"number"},"is_billable":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"project_code":{"kind":"string"},"staff_principal_id":{"kind":"string"}},"additional":null},"MaintenanceStatus":{"kind":"enum","values":["active","maintenance_mode","deprecated","archived"]},"ManualJournal":{"kind":"object","properties":{"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"content_revision":{"kind":"int64"},"content_sha256":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"evidence":{"kind":"array","items":{"kind":"ref","name":"EvidenceInput"}},"external_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"financial_date":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"JournalLineInput"}},"state":{"kind":"string"},"state_revision":{"kind":"int64"},"version_id":{"kind":"string"}},"additional":null},"ManualJournalContent":{"kind":"object","properties":{"currency":{"kind":"string"},"description":{"kind":"string"},"evidence":{"kind":"array","items":{"kind":"ref","name":"EvidenceInput"}},"external_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"financial_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"JournalLineInput"}}},"additional":null},"MatchGoodsReceiptBillRequest":{"kind":"object","properties":{"bill_date":{"kind":"string"},"due_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"MatchedBillLineRequest"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"prices_include_tax":{"kind":"boolean"},"vendor_invoice_number":{"kind":"string"}},"additional":null},"MatchedBillLineRequest":{"kind":"object","properties":{"receipt_line_id":{"kind":"string"},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"withholding_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"MembershipList":{"kind":"object","properties":{"memberships":{"kind":"array","items":{"kind":"ref","name":"MembershipListItem"}},"pending_invitations":{"kind":"array","items":{"kind":"ref","name":"PendingInvitationListItem"}}},"additional":null},"MembershipListItem":{"kind":"object","properties":{"active":{"kind":"boolean"},"created_at":{"kind":"string"},"latest_verified_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_active":{"kind":"boolean"},"principal_id":{"kind":"string"},"role_ids":{"kind":"array","items":{"kind":"ref","name":"RoleId"}},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"MembershipView":{"kind":"object","properties":{"active":{"kind":"boolean"},"company_book_id":{"kind":"string"},"owner_active":{"kind":"boolean"},"principal_id":{"kind":"string"},"role_assignment_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_id":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"RoleId"}]},"state_revision":{"kind":"int64"}},"additional":null},"MerchantBillingItem":{"kind":"object","properties":{"base_monthly_fee_idr":{"kind":"int64"},"billing_status":{"kind":"string"},"company_book_id":{"kind":"string"},"company_name":{"kind":"string"},"current_cycle_pos_gmv_idr":{"kind":"int64"},"current_cycle_pos_tx_count":{"kind":"int64"},"environment":{"kind":"string"},"per_pos_transaction_fee_idr":{"kind":"int64"},"projected_monthly_total_idr":{"kind":"int64"}},"additional":null},"MerchantRouteVersionResponse":{"kind":"object","properties":{"active":{"kind":"boolean"},"clearing_account_code":{"kind":"string"},"clearing_account_name":{"kind":"string"},"connection_id":{"kind":"string"},"connection_version_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"effective_from":{"kind":"string"},"external_merchant_id":{"kind":"string"},"merchant_route_id":{"kind":"string"},"provenance":{"kind":"string"},"semantic_account_role":{"kind":"string"},"settlement_route_key":{"kind":"string"},"supersedes_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"integer"},"version_id":{"kind":"string"}},"additional":null},"MigrateRealCompanyOpeningBalancesRequest":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"total_asset_opening_balance_minor":{"kind":"int64"},"total_equity_opening_balance_minor":{"kind":"int64"},"total_liability_opening_balance_minor":{"kind":"int64"}},"additional":null},"MigrateTenantInfrastructureRequest":{"kind":"object","properties":{"migrated_journal_count":{"kind":"int64"},"migration_payload_uri":{"kind":"string"},"proof_sentinel_checksum":{"kind":"string"},"source_deployment_mode":{"kind":"string"},"status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"target_deployment_mode":{"kind":"string"}},"additional":null},"MonthlyDepreciationBatchResultView":{"kind":"object","properties":{"assets_processed_count":{"kind":"integer"},"company_book_id":{"kind":"string"},"period_date":{"kind":"string"},"processed_at":{"kind":"string"},"schedules_created_count":{"kind":"integer"},"status":{"kind":"string"},"total_depreciation_amount_minor":{"kind":"int64"}},"additional":null},"MonthlyPayrollRunView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"status":{"kind":"string"},"total_bpjs_employee_minor":{"kind":"int64"},"total_bpjs_employer_minor":{"kind":"int64"},"total_gross_salary_minor":{"kind":"int64"},"total_pph21_withheld_minor":{"kind":"int64"}},"additional":null},"NotificationDelivery":{"kind":"object","properties":{"channel":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"provider":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_message_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"recipient_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"retry_count":{"kind":"integer"},"sent_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state":{"kind":"string"},"subject":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"NotificationDeliveryEnqueuedView":{"kind":"object","properties":{"notification_delivery_id":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"NsfpPoolView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"current_assigned_number":{"kind":"string"},"id":{"kind":"string"},"nsfp_end_number":{"kind":"string"},"nsfp_start_number":{"kind":"string"},"status":{"kind":"string"},"tax_year":{"kind":"integer"}},"additional":null},"OffboardingInventoryView":{"kind":"object","properties":{"active_document_locks_count":{"kind":"int64"},"assigned_roles_count":{"kind":"int64"},"blockade_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"calendar_events_count":{"kind":"int64"},"can_safely_offboard":{"kind":"boolean"},"is_owner":{"kind":"boolean"},"latest_verified_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"pending_attentions_count":{"kind":"int64"},"source_principal_id":{"kind":"string"},"user_drafts_count":{"kind":"int64"}},"additional":null},"OffboardingTransferResult":{"kind":"object","properties":{"attentions_transferred":{"kind":"int64"},"calendar_events_transferred":{"kind":"int64"},"company_book_id":{"kind":"string"},"document_locks_released":{"kind":"int64"},"drafts_transferred":{"kind":"int64"},"handover_id":{"kind":"string"},"membership_deactivated":{"kind":"boolean"},"source_principal_id":{"kind":"string"},"successor_principal_id":{"kind":"string"},"transferred_at":{"kind":"string"}},"additional":null},"OnboardSingaporeEntityRequest":{"kind":"object","properties":{"base_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_name":{"kind":"string"},"corporate_secretary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"directors":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"gst_registered":{"kind":"boolean"},"registered_address":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sleek_api_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"uen":{"kind":"string"}},"additional":null},"OnboardingDraftView":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"},"confirmed_company_book_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"draft_payload":{"kind":"value"},"id":{"kind":"string"},"state_revision":{"kind":"int64"},"step_index":{"kind":"integer"}},"additional":null},"OnboardingPreviewRequest":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"}},"additional":null},"OnboardingPreviewResponse":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"},"display_name":{"kind":"string"},"enabled_capabilities":{"kind":"array","items":{"kind":"string"}},"functional_currency":{"kind":"string"},"is_confirmable":{"kind":"boolean"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"operating_model":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"readiness_gaps":{"kind":"array","items":{"kind":"string"}},"required_facts":{"kind":"array","items":{"kind":"string"}},"starter_coa_preview":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"StarterCoaPreview"}]}},"additional":null},"OpenItem":{"kind":"object","properties":{"amount_allocated":{"kind":"int64"},"amount_open":{"kind":"int64"},"amount_open_transaction":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"direction":{"kind":"string"},"document_date":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"original_amount":{"kind":"int64"},"parent_open_item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_capability":{"kind":"string"},"source_doc_id":{"kind":"string"},"source_doc_type":{"kind":"string"},"status":{"kind":"string"},"transaction_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OpenPosCashierSessionRequest":{"kind":"object","properties":{"cashier_principal_id":{"kind":"string"},"opening_cash_float_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"terminal_id":{"kind":"string"}},"additional":null},"OpeningBalancesMigrationView":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"migrated_at":{"kind":"string"},"migration_id":{"kind":"string"},"opening_balances_migrated":{"kind":"boolean"},"status":{"kind":"string"},"total_credits_minor":{"kind":"int64"},"total_debits_minor":{"kind":"int64"}},"additional":null},"OwnerCapacityList":{"kind":"object","properties":{"owner_capacities":{"kind":"array","items":{"kind":"ref","name":"OwnerCapacityView"}}},"additional":null},"OwnerCapacityView":{"kind":"object","properties":{"id":{"kind":"string"},"principal_id":{"kind":"string"},"state":{"kind":"string"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"}},"additional":null},"PartnerManagedClientItemView":{"kind":"object","properties":{"client_name":{"kind":"string"},"company_book_id":{"kind":"string"},"environment_mode":{"kind":"string"},"linked_at":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"PartnerManagedClientListView":{"kind":"object","properties":{"clients":{"kind":"array","items":{"kind":"ref","name":"PartnerManagedClientItemView"}},"matured_commission_balance_minor":{"kind":"int64"},"partner_id":{"kind":"string"},"partner_name":{"kind":"string"},"partner_tier":{"kind":"string"},"total_clients":{"kind":"integer"}},"additional":null},"Payment":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"PaymentAllocation"}},"amount":{"kind":"int64"},"amount_allocated":{"kind":"int64"},"bank_account_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"direction":{"kind":"string"},"id":{"kind":"string"},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_date":{"kind":"string"},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_number":{"kind":"string"},"payment_purpose":{"kind":"string"},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"resolved_gl_account_code":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"PaymentAllocation":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"applied_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"applied_posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_id":{"kind":"string"},"document_type":{"kind":"string"},"fx_gain_loss":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"id":{"kind":"string"},"payment_id":{"kind":"string"}},"additional":null},"PaymentList":{"kind":"object","properties":{"payments":{"kind":"array","items":{"kind":"ref","name":"Payment"}}},"additional":null},"PayrollCalculationApprovalView":{"kind":"object","properties":{"approved_at":{"kind":"string"},"approved_by_principal_id":{"kind":"string"},"company_book_id":{"kind":"string"},"id":{"kind":"string"},"payroll_run_id":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"PayrollCalculationRunView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"total_bpjs_deduction_minor":{"kind":"int64"},"total_gross_salary_minor":{"kind":"int64"},"total_net_payout_minor":{"kind":"int64"},"total_pph21_tax_minor":{"kind":"int64"}},"additional":null},"PayrollRun":{"kind":"object","properties":{"bpjs_total":{"kind":"int64"},"created_at":{"kind":"string"},"deductions_total":{"kind":"int64"},"functional_currency":{"kind":"string"},"gross_total":{"kind":"int64"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PayrollRunLine"}},"net_total":{"kind":"int64"},"pay_date":{"kind":"string"},"period":{"kind":"string"},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"pph21_total":{"kind":"int64"},"status":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"PayrollRunApprovalView":{"kind":"object","properties":{"approved_at":{"kind":"string"},"company_book_id":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"}},"additional":null},"PayrollRunLine":{"kind":"object","properties":{"allowances":{"kind":"int64"},"bank_account_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bonus":{"kind":"int64"},"bpjs_employee":{"kind":"int64"},"bpjs_employer":{"kind":"int64"},"employee_contact_id":{"kind":"string"},"gross":{"kind":"int64"},"id":{"kind":"string"},"net_pay":{"kind":"int64"},"other_deductions":{"kind":"int64"},"overtime":{"kind":"int64"},"pph21":{"kind":"int64"}},"additional":null},"PayrollRunList":{"kind":"object","properties":{"runs":{"kind":"array","items":{"kind":"ref","name":"PayrollRun"}}},"additional":null},"PendingCurationItemView":{"kind":"object","properties":{"id":{"kind":"string"},"status":{"kind":"string"},"submitted_at":{"kind":"string"},"submitter_name":{"kind":"string"},"target_id":{"kind":"string"},"target_name":{"kind":"string"},"target_type":{"kind":"string"}},"additional":null},"PendingCurationListView":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"PendingCurationItemView"}},"total_count":{"kind":"integer"}},"additional":null},"PendingInvitationListItem":{"kind":"object","properties":{"delivery_state":{"kind":"string"},"expires_at":{"kind":"string"},"id":{"kind":"string"},"invited_by_principal_id":{"kind":"string"},"normalized_email":{"kind":"string"},"proposed_role_id":{"kind":"ref","name":"RoleId"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"}},"additional":null},"PeriodDeltaAdjustmentView":{"kind":"object","properties":{"adjusted_by_principal_id":{"kind":"string"},"adjustment_reason":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"delta_amount_minor":{"kind":"int64"},"delta_journal_id":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"original_amount_minor":{"kind":"int64"},"target_journal_id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"PeriodState":{"kind":"enum","values":["open","locked","closing","closed","finalized"]},"PersonInCharge":{"kind":"object","properties":{"contact_id":{"kind":"string"},"effective_from":{"kind":"string"},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"string"},"name":{"kind":"string"},"organization_contact_id":{"kind":"string"},"organization_name":{"kind":"string"},"relationship_id":{"kind":"string"},"relationship_type":{"kind":"string"},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PhysicalBusinessEventRuleView":{"kind":"object","properties":{"classification_result":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"metric_trigger_condition":{"kind":"string"},"rule_name":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"PhysicalDeviceView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"device_identifier":{"kind":"string"},"device_type":{"kind":"string"},"firmware_version":{"kind":"string"},"id":{"kind":"string"},"mac_address":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"PhysicalEventStreamView":{"kind":"object","properties":{"classification":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"device_id":{"kind":"string"},"event_type":{"kind":"string"},"id":{"kind":"string"},"metric_payload":{"kind":"value"},"processed_at":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"PlaceAuctionBidRequest":{"kind":"object","properties":{"bid_amount_minor":{"kind":"int64"},"bid_deposit_hold_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bidder_principal_id":{"kind":"string"}},"additional":null},"PlaceInService":{"kind":"object","properties":{"date":{"kind":"string"}},"additional":null},"PlatformAdminOverviewView":{"kind":"object","properties":{"engine_health_status":{"kind":"string"},"open_support_tickets_count":{"kind":"integer"},"pending_curation_submissions_count":{"kind":"integer"},"total_active_books":{"kind":"integer"},"total_mrr_minor":{"kind":"int64"},"total_tenants":{"kind":"integer"}},"additional":null},"PlatformSystemHealthView":{"kind":"object","properties":{"checked_at":{"kind":"string"},"otel_collector_ready":{"kind":"boolean"},"postgres_ready":{"kind":"boolean"},"status":{"kind":"string"},"tigerbeetle_ready":{"kind":"boolean"},"uptime_seconds":{"kind":"int64"}},"additional":null},"PlatformTenantListView":{"kind":"object","properties":{"tenants":{"kind":"array","items":{"kind":"ref","name":"PlatformTenantSummary"}},"total_count":{"kind":"integer"}},"additional":null},"PlatformTenantSummary":{"kind":"object","properties":{"book_count":{"kind":"integer"},"created_at":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"tenant_name":{"kind":"string"}},"additional":null},"PocProjectBudgetView":{"kind":"object","properties":{"actual_cost_incurred_minor":{"kind":"int64"},"billed_to_date_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"completion_percentage":{"kind":"number"},"contract_asset_liability_minor":{"kind":"int64"},"contract_value_minor":{"kind":"int64"},"created_at":{"kind":"string"},"id":{"kind":"string"},"project_id":{"kind":"string"},"recognized_revenue_to_date_minor":{"kind":"int64"},"total_budgeted_cost_minor":{"kind":"int64"}},"additional":null},"PointLedgerEntryView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"loyalty_account_id":{"kind":"string"},"points_delta":{"kind":"int64"},"reference_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tenant_id":{"kind":"string"},"transaction_type":{"kind":"string"},"unearned_liability_amount_minor":{"kind":"int64"}},"additional":null},"PolicyInput":{"kind":"object","properties":{"catalog_key":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"qualified_assessment_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"qualified_assessment_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PolicyView":{"kind":"object","properties":{"approved_by":{"kind":"string"},"authority_url":{"kind":"string"},"catalog_key":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"entity_applicability":{"kind":"string"},"explanation":{"kind":"string"},"financial_effect":{"kind":"string"},"framework":{"kind":"string"},"id":{"kind":"string"},"jurisdiction":{"kind":"string"},"policy_key":{"kind":"string"},"policy_value":{"kind":"value"},"qualified_assessment_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"qualified_assessment_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"requires_professional_judgment":{"kind":"boolean"},"source_locator":{"kind":"string"},"source_revision":{"kind":"string"},"source_title":{"kind":"string"},"supported_alternatives":{"kind":"array","items":{"kind":"string"}},"treatment_classification":{"kind":"ref","name":"TreatmentClassification"},"version":{"kind":"int64"}},"additional":null},"PosCashierSessionView":{"kind":"object","properties":{"cash_over_short_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"cashier_principal_id":{"kind":"string"},"closed_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"closing_cash_counted_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"expected_cash_total_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"id":{"kind":"string"},"opened_at":{"kind":"string"},"opening_cash_float_minor":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"terminal_id":{"kind":"string"}},"additional":null},"PosHandoverEvidenceRequest":{"kind":"object","properties":{"control_transferred":{"kind":"boolean"},"evidence_reference":{"kind":"string"},"occurred_at":{"kind":"string"}},"additional":null},"PosOrderItemView":{"kind":"object","properties":{"cogs_amount_minor":{"kind":"int64"},"created_at":{"kind":"string"},"id":{"kind":"string"},"line_discount_minor":{"kind":"int64"},"pos_order_id":{"kind":"string"},"product_id":{"kind":"string"},"quantity":{"kind":"integer"},"unit_price_minor":{"kind":"int64"}},"additional":null},"PosOrderView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"content_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"correction_kind":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"corrects_pos_order_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"discount_amount_minor":{"kind":"int64"},"final_total_minor":{"kind":"int64"},"financial_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"functional_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"handover_actor_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"handover_evidence_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"handover_occurred_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"items":{"kind":"array","items":{"kind":"ref","name":"PosOrderItemView"}},"payment_method":{"kind":"string"},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"session_id":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"string"},"subtotal_minor":{"kind":"int64"},"tax_amount_minor":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"PosSaleQuoteLineRequest":{"kind":"object","properties":{"item_id":{"kind":"string"},"modifier_ids":{"kind":"array","items":{"kind":"string"}},"quantity":{"kind":"int64"}},"additional":null},"PosSaleQuoteLineView":{"kind":"object","properties":{"discount_allocated_minor":{"kind":"string"},"item_id":{"kind":"string"},"modifier_ids":{"kind":"array","items":{"kind":"string"}},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"}},"additional":null},"PosSaleQuoteTenderEligibilityView":{"kind":"object","properties":{"eligible":{"kind":"boolean"},"reason_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tender_type":{"kind":"string"}},"additional":null},"PosSaleQuoteView":{"kind":"object","properties":{"amount_due_minor":{"kind":"string"},"currency":{"kind":"string"},"digest_sha256":{"kind":"string"},"discount_total_minor":{"kind":"string"},"expires_at":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuoteLineView"}},"preset_id":{"kind":"string"},"preset_version":{"kind":"int64"},"quote_id":{"kind":"string"},"revision":{"kind":"int64"},"rounding_total_minor":{"kind":"string"},"service_charge_total_minor":{"kind":"string"},"subtotal_minor":{"kind":"string"},"tax_total_minor":{"kind":"string"},"tender_eligibility":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuoteTenderEligibilityView"}},"tip_total_minor":{"kind":"string"}},"additional":null},"PosTenderRefundAllocationResponse":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"component_id":{"kind":"string"},"original_journal_line_id":{"kind":"string"}},"additional":null},"PosTerminalView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"outlet_location_id":{"kind":"string"},"receipt_footer":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"receipt_header":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"terminal_code":{"kind":"string"},"terminal_name":{"kind":"string"}},"additional":null},"PostPeriodDeltaAdjustmentRequest":{"kind":"object","properties":{"adjustment_reason":{"kind":"string"},"delta_amount_minor":{"kind":"int64"},"delta_journal_id":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"original_amount_minor":{"kind":"int64"},"target_journal_id":{"kind":"string"}},"additional":null},"PostPosOrderAcceptedResponse":{"kind":"union","variants":[{"kind":"ref","name":"PostPosOrderResponse"},{"kind":"ref","name":"PostPosOrderApprovalRequiredResponse"}]},"PostPosOrderApprovalRequiredResponse":{"kind":"object","properties":{"order_id":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"PostPosOrderRequest":{"kind":"object","properties":{"expected_source_token":{"kind":"string"}},"additional":null},"PostPosOrderResponse":{"kind":"object","properties":{"finality":{"kind":"string"},"order_id":{"kind":"string"},"posting_id":{"kind":"string"}},"additional":null},"PostedMonth":{"kind":"object","properties":{"charge":{"kind":"int64"},"month":{"kind":"string"}},"additional":null},"Posting":{"kind":"object","properties":{"book_id":{"kind":"string"},"finality":{"kind":"string"},"financial_date":{"kind":"string"},"functional_currency":{"kind":"string"},"id":{"kind":"string"},"journal_entry":{"kind":"ref","name":"PostingJournalEntry"},"posting_time":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_capability":{"kind":"string"},"source_object_id":{"kind":"string"},"source_version":{"kind":"int64"},"stable_effect_key":{"kind":"string"},"state_revision":{"kind":"int64"}},"additional":null},"PostingJournalEntry":{"kind":"object","properties":{"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PostingJournalLine"}}},"additional":null},"PostingJournalLine":{"kind":"object","properties":{"account_id":{"kind":"string"},"amount_minor":{"kind":"int64"},"direction":{"kind":"string"},"id":{"kind":"string"},"ordinal":{"kind":"integer"}},"additional":null},"PostingSummary":{"kind":"object","properties":{"finality":{"kind":"string"},"posting_id":{"kind":"string"}},"additional":null},"PredictVariableConsiderationRequest":{"kind":"object","properties":{"customer_id":{"kind":"string"},"discount_term_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"early_discount_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"gross_amount_minor":{"kind":"int64"},"net_due_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"sales_document_id":{"kind":"string"}},"additional":null},"PreviewCollision":{"kind":"object","properties":{"component_key":{"kind":"string"},"decision":{"kind":"string"},"line_key":{"kind":"string"},"semantic_role":{"kind":"string"}},"additional":null},"PreviewLine":{"kind":"object","properties":{"account_class":{"kind":"string"},"code":{"kind":"string"},"line_key":{"kind":"string"},"name":{"kind":"string"},"normal_balance":{"kind":"string"},"ordinal":{"kind":"integer"},"semantic_role":{"kind":"string"}},"additional":null},"ProcessPosRetailOrderItemRequest":{"kind":"object","properties":{"line_discount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"product_id":{"kind":"string"},"quantity":{"kind":"integer"},"unit_price_minor":{"kind":"int64"}},"additional":null},"ProcessPosRetailOrderRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"discount_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"items":{"kind":"array","items":{"kind":"ref","name":"ProcessPosRetailOrderItemRequest"}},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"session_id":{"kind":"string"}},"additional":null},"ProfitDistributionResultView":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"disbursed_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_contact_id":{"kind":"string"},"payout_amount_minor":{"kind":"int64"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"ProfitSharingCalculationView":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"calculated_at":{"kind":"string"},"calculated_payout_amount_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"hurdle_amount_minor":{"kind":"int64"},"id":{"kind":"string"},"partner_contact_id":{"kind":"string"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"retained_earnings_minor":{"kind":"int64"},"share_percentage":{"kind":"number"},"split_type":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"total_net_profit_minor":{"kind":"int64"}},"additional":null},"ProjectRetentionSummaryView":{"kind":"object","properties":{"accumulated_released_minor":{"kind":"int64"},"accumulated_withheld_minor":{"kind":"int64"},"defect_liability_days":{"kind":"integer"},"defect_liability_end_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"retention_rate_pct":{"kind":"number"},"status":{"kind":"string"},"unmatured_balance_minor":{"kind":"int64"}},"additional":null},"ProjectSCurveMetricsView":{"kind":"object","properties":{"cost_variance_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"cpi":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"current_period_index":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"estimate_at_completion_eac_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"estimate_to_complete_etc_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"is_onerous_contract_risk":{"kind":"boolean"},"schedule_variance_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"spi":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"ProjectSCurvePointView":{"kind":"object","properties":{"ac_cost_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"ac_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"ev_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"ev_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"period_index":{"kind":"integer"},"period_label":{"kind":"string"},"pv_cost_minor":{"kind":"int64"},"pv_pct":{"kind":"number"},"status":{"kind":"string"}},"additional":null},"ProjectSCurveSeriesResponse":{"kind":"object","properties":{"budget_at_completion_bac_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"contract_value_minor":{"kind":"int64"},"metrics":{"kind":"ref","name":"ProjectSCurveMetricsView"},"project_id":{"kind":"string"},"retention":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ProjectRetentionSummaryView"}]},"series":{"kind":"array","items":{"kind":"ref","name":"ProjectSCurvePointView"}}},"additional":null},"PrometheusMetricsView":{"kind":"object","properties":{"active_provider":{"kind":"string"},"metrics":{"kind":"string"},"otel_endpoint":{"kind":"string"}},"additional":null},"ProviderSettlementBankMatch":{"kind":"object","properties":{"action":{"kind":"string"},"active":{"kind":"boolean"},"amount_minor":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"decision_id":{"kind":"string"},"destination_bank_account_id":{"kind":"string"},"match_id":{"kind":"string"},"revision":{"kind":"integer"},"settlement_batch_id":{"kind":"string"},"settlement_financial_effect_id":{"kind":"string"},"settlement_posting_id":{"kind":"string"},"statement_id":{"kind":"string"},"statement_line_id":{"kind":"string"}},"additional":null},"PublishDirectoryProfile":{"kind":"object","properties":{"discoverable":{"kind":"boolean"},"display_name":{"kind":"string"},"handle":{"kind":"string"}},"additional":null},"PurchaseDocument":{"kind":"object","properties":{"amount_paid":{"kind":"int64"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"document_type":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PurchaseLine"}},"matched_po_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_receipt_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"settlement_status":{"kind":"string"},"status":{"kind":"string"},"subtotal":{"kind":"int64"},"tax_total":{"kind":"int64"},"total":{"kind":"int64"},"updated_at":{"kind":"string"},"vendor_invoice_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PurchaseDocumentList":{"kind":"object","properties":{"documents":{"kind":"array","items":{"kind":"ref","name":"PurchaseDocument"}}},"additional":null},"PurchaseLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"quantity_invoiced":{"kind":"int64"},"quantity_received":{"kind":"int64"},"source_goods_receipt_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_purchase_order_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_supplier_quote_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"PurchaseOrderDecisionRequest":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PurchaseOrderDetachRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"PurchaseOrderLineView":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"line_total":{"kind":"int64"},"quantity":{"kind":"int64"},"quantity_invoiced":{"kind":"int64"},"quantity_received":{"kind":"int64"},"source_quote_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"PurchaseOrderState":{"kind":"enum","values":["draft","submitted","approved","issued","void","cancelled"]},"PurchaseOrderView":{"kind":"object","properties":{"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"conversion_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_number":{"kind":"string"},"exception_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PurchaseOrderLineView"}},"source_quote_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"PurchaseOrderState"},"total":{"kind":"int64"}},"additional":null},"QrisGenerateRequest":{"kind":"object","properties":{"amount_idr":{"kind":"int64"},"biller_split_fee_idr":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"transaction_id":{"kind":"string"}},"additional":null},"QrisGenerateResponse":{"kind":"object","properties":{"expires_at":{"kind":"string"},"payment_id":{"kind":"string"},"qr_image_url":{"kind":"string"},"qris_string":{"kind":"string"}},"additional":null},"QrisSettlementAllocationRequest":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"provider_event_receipt_id":{"kind":"string"}},"additional":null},"QrisSettlementDeductionRequest":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"kind":{"kind":"string"}},"additional":null},"QrisStatusResponse":{"kind":"object","properties":{"amount_received_idr":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"paid_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_id":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"QualifyCredit":{"kind":"object","properties":{"credit_score":{"kind":"integer"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"QuoteConsumptionLineView":{"kind":"object","properties":{"committed_quantity":{"kind":"int64"},"committed_value":{"kind":"int64"},"quote_line_id":{"kind":"string"},"quoted_quantity":{"kind":"int64"},"quoted_value":{"kind":"int64"},"remaining_quantity":{"kind":"int64"},"remaining_value":{"kind":"int64"},"reserved_quantity":{"kind":"int64"},"reserved_value":{"kind":"int64"}},"additional":null},"QuoteConsumptionView":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"QuoteConsumptionLineView"}},"source_quote_id":{"kind":"string"}},"additional":null},"QuoteOrderAllocation":{"kind":"object","properties":{"quantity":{"kind":"int64"},"quote_line_id":{"kind":"string"}},"additional":null},"QuoteRevisionLineRequest":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"source_quote_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"QuoteRevisionRequest":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"QuoteRevisionLineRequest"}},"supplier_reference":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"QuoteState":{"kind":"enum","values":["draft","sent","accepted","rejected","expired","withdrawn"]},"ReceivePurchaseOrderRequest":{"kind":"object","properties":{"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"receipt_date":{"kind":"string"}},"additional":null},"ReconcileCodSettlementRequest":{"kind":"object","properties":{"awb_tracking_number":{"kind":"string"},"collected_amount_minor":{"kind":"int64"},"gateway_fee_minor":{"kind":"int64"},"settlement_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"Reconciliation":{"kind":"object","properties":{"clean":{"kind":"boolean"},"discrepancies":{"kind":"array","items":{"kind":"ref","name":"EngineDiscrepancy"}},"invariant":{"kind":"string"},"pending_count":{"kind":"int64"}},"additional":null},"ReconciliationConflict":{"kind":"union","variants":[{"kind":"ref","name":"Reconciliation"},{"kind":"ref","name":"ErrorEnvelope"}]},"ReconciliationRequest":{"kind":"object","properties":{"book_id":{"kind":"string"}},"additional":null},"RecordRestructuringEventRequest":{"kind":"object","properties":{"carveout_perimeter_json":{"kind":"value"},"effective_date":{"kind":"string"},"event_type":{"kind":"string"},"goodwill_recognized_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"target_entity_name":{"kind":"string"},"transaction_valuation_minor":{"kind":"int64"}},"additional":null},"RecurringBillingBatchResultView":{"kind":"object","properties":{"batch_id":{"kind":"string"},"billing_as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"invoices_generated_count":{"kind":"integer"},"processed_at":{"kind":"string"},"status":{"kind":"string"},"subscriptions_evaluated_count":{"kind":"integer"},"total_billed_minor":{"kind":"int64"}},"additional":null},"RedeemCustomerLoyaltyPointsRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"string"},"points":{"kind":"int64"},"reference_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RedeemNonFiatUnitsRequest":{"kind":"object","properties":{"counterparty_entity_id":{"kind":"string"},"unit_type":{"kind":"string"},"units_amount":{"kind":"number"}},"additional":null},"RefundPayload":{"kind":"object","properties":{"reason":{"kind":"string"},"refunded_amount":{"kind":"int64"},"tx_id":{"kind":"string"}},"additional":null},"RefundResponse":{"kind":"object","properties":{"refund_id":{"kind":"string"},"refunded_at":{"kind":"string"},"status":{"kind":"string"}},"additional":null},"RegisterDeveloperRequest":{"kind":"object","properties":{"developer_email":{"kind":"string"},"developer_name":{"kind":"string"},"support_email":{"kind":"string"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RegisterFixedAssetRequest":{"kind":"object","properties":{"accumulated_depr_account_number":{"kind":"string"},"acquisition_cost_minor":{"kind":"int64"},"acquisition_date":{"kind":"string"},"asset_account_number":{"kind":"string"},"asset_code":{"kind":"string"},"asset_name":{"kind":"string"},"depreciation_expense_account_number":{"kind":"string"},"depreciation_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salvage_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"useful_life_months":{"kind":"integer"}},"additional":null},"RegisterPhysicalDeviceRequest":{"kind":"object","properties":{"device_identifier":{"kind":"string"},"device_type":{"kind":"string"},"firmware_version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"mac_address":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RegisterPosTerminalRequest":{"kind":"object","properties":{"outlet_location_id":{"kind":"string"},"receipt_footer":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"receipt_header":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"terminal_code":{"kind":"string"},"terminal_name":{"kind":"string"}},"additional":null},"ReleaseTemporaryPostingLock":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"ReopenAccountingPeriod":{"kind":"object","properties":{"correction_purpose":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ReparentCompanyBookRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"new_parent_book_id":{"kind":"string"},"previous_parent_book_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reparenting_reason":{"kind":"string"}},"additional":null},"ReplaceAccount":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"manual_entry_allowed":{"kind":"boolean"},"name":{"kind":"string"}},"additional":null},"RequestConnection":{"kind":"object","properties":{"handle":{"kind":"string"},"message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RequestOwnerRequest":{"kind":"object","properties":{"principal_id":{"kind":"string"}},"additional":null},"ResetDeveloperSandboxBookRequest":{"kind":"object","properties":{"reason":{"kind":"string"},"seed_version":{"kind":"string"}},"additional":null},"ResolveBankStatementLine":{"kind":"object","properties":{"action":{"kind":"string"},"payment_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ResolveContactRequest":{"kind":"object","properties":{"display_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"entry_mode":{"kind":"string"},"phone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ResolveContactResponse":{"kind":"object","properties":{"active_vouchers_count":{"kind":"integer"},"contact_id":{"kind":"string"},"loyalty_points":{"kind":"int64"},"loyalty_tier":{"kind":"string"}},"additional":null},"RespondFindingRequest":{"kind":"object","properties":{"response_text":{"kind":"string"}},"additional":null},"RevaluationRequest":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"currency":{"kind":"string"},"exchange_rate":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"rate_type":{"kind":"string"}},"additional":null},"RevaluationRun":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"exchange_rate":{"kind":"number"},"id":{"kind":"string"},"status":{"kind":"string"},"total_fx_gain_loss":{"kind":"int64"},"total_items_revalued":{"kind":"integer"}},"additional":null},"RevalueAsset":{"kind":"object","properties":{"date":{"kind":"string"},"reason":{"kind":"string"},"revalued_amount":{"kind":"int64"}},"additional":null},"ReversalRequest":{"kind":"object","properties":{"approval_request_id":{"kind":"string"},"content_sha256":{"kind":"string"},"id":{"kind":"string"},"original_posting_id":{"kind":"string"},"reason":{"kind":"string"},"requested_by_principal_id":{"kind":"string"},"reversal_financial_date":{"kind":"string"},"state":{"kind":"string"},"state_revision":{"kind":"int64"}},"additional":null},"RevokeDeveloperKeyRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"RoleAssignmentList":{"kind":"object","properties":{"assignments":{"kind":"array","items":{"kind":"ref","name":"RoleAssignmentView"}}},"additional":null},"RoleAssignmentView":{"kind":"object","properties":{"active":{"kind":"boolean"},"elevated":{"kind":"boolean"},"id":{"kind":"string"},"principal_id":{"kind":"string"},"role_display_name":{"kind":"string"},"role_id":{"kind":"string"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"}},"additional":null},"RoleDeactivationPreview":{"kind":"object","properties":{"affected_assignments":{"kind":"int64"},"referenced":{"kind":"boolean"},"role_id":{"kind":"string"}},"additional":null},"RoleId":{"kind":"string"},"RoleList":{"kind":"object","properties":{"roles":{"kind":"array","items":{"kind":"ref","name":"RoleView"}}},"additional":null},"RoleView":{"kind":"object","properties":{"active":{"kind":"boolean"},"archived":{"kind":"boolean"},"authority_revision":{"kind":"int64"},"authority_revision_id":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"display_name":{"kind":"string"},"elevated":{"kind":"boolean"},"id":{"kind":"string"},"permission_group_id":{"kind":"string"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"},"system":{"kind":"boolean"},"system_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RotateDeveloperKeyRequest":{"kind":"object","properties":{"grace_period_hours":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"RunBadDebtProvisioningRequest":{"kind":"object","properties":{"as_of_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provision_rate_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"RunBankFeedRuleMatchingRequest":{"kind":"object","properties":{"min_confidence_threshold":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"rule_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"statement_line_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]}},"additional":null},"RunBankFeedRuleMatchingResultView":{"kind":"object","properties":{"auto_reconciled":{"kind":"int64"},"company_book_id":{"kind":"string"},"matches":{"kind":"array","items":{"kind":"ref","name":"BankFeedMatchView"}},"total_evaluated":{"kind":"int64"},"total_matched":{"kind":"int64"}},"additional":null},"RunIntercompanyEliminationsRequest":{"kind":"object","properties":{"auto_eliminate_matching_intercompany_tx":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"}},"additional":null},"RunMonthlyDepreciationBatchRequest":{"kind":"object","properties":{"asset_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"period_date":{"kind":"string"}},"additional":null},"RunRecurringBillingBatchRequest":{"kind":"object","properties":{"billing_as_of_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dry_run":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"SaaSUsageMeteringView":{"kind":"object","properties":{"api_request_count":{"kind":"int64"},"billing_period_end":{"kind":"string"},"billing_period_start":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"journal_posting_count":{"kind":"int64"},"status":{"kind":"string"},"storage_bytes_used":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"SalesDocument":{"kind":"object","properties":{"amount_paid":{"kind":"int64"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"document_type":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"SalesLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salesperson_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"settlement_status":{"kind":"string"},"status":{"kind":"string"},"subtotal":{"kind":"int64"},"tax_total":{"kind":"int64"},"total":{"kind":"int64"},"updated_at":{"kind":"string"}},"additional":null},"SalesDocumentList":{"kind":"object","properties":{"documents":{"kind":"array","items":{"kind":"ref","name":"SalesDocument"}}},"additional":null},"SalesLeaderboardEntry":{"kind":"object","properties":{"conversion_rate_percentage":{"kind":"number"},"gross_margin_contribution_minor":{"kind":"integer"},"qualified_leads_count":{"kind":"int64"},"rank":{"kind":"integer"},"sales_rep_name":{"kind":"string"},"sales_rep_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_collected_cash_minor":{"kind":"integer"},"total_invoiced_revenue_minor":{"kind":"integer"},"total_leads_assigned":{"kind":"int64"}},"additional":null},"SalesLeaderboardView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"entries":{"kind":"array","items":{"kind":"ref","name":"SalesLeaderboardEntry"}}},"additional":null},"SalesLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"revenue_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"SalesOpportunityView":{"kind":"object","properties":{"assigned_sales_rep_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"estimated_amount_minor":{"kind":"int64"},"id":{"kind":"string"},"opportunity_name":{"kind":"string"},"pipeline_stage":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"win_probability_pct":{"kind":"number"}},"additional":null},"SalesQuoteView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"converted_sales_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"expiry_date":{"kind":"string"},"grand_total_minor":{"kind":"int64"},"id":{"kind":"string"},"opportunity_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"quote_number":{"kind":"string"},"status":{"kind":"string"},"subtotal_minor":{"kind":"int64"},"tax_total_minor":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"SandboxRolloverReceipt":{"kind":"object","properties":{"committed_at":{"kind":"string"},"environment_mode":{"kind":"string"},"lifecycle_status":{"kind":"string"},"predecessor_company_book_id":{"kind":"string"},"seed_version":{"kind":"string"},"successor_company_book_id":{"kind":"string"},"successor_generation":{"kind":"int64"}},"additional":null},"SaveDraftInput":{"kind":"object","properties":{"draft_payload":{"kind":"value"},"expected_revision":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"step_index":{"kind":"integer"}},"additional":null},"SelectTemplateRequest":{"kind":"object","properties":{"document_kind":{"kind":"string"},"effective_from":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"template_id":{"kind":"string"},"template_version":{"kind":"string"}},"additional":null},"SendDocumentEmailRequest":{"kind":"object","properties":{"message_body":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"recipient_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"subject":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ServiceBilling":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceBillingAllocation"}},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"invoice":{"kind":"ref","name":"SalesDocument"},"reason":{"kind":"string"},"source_sales_order_id":{"kind":"string"}},"additional":null},"ServiceBillingAllocation":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"service_billing_line_id":{"kind":"string"},"service_fulfillment_line_id":{"kind":"string"}},"additional":null},"ServiceBillingAllocationInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"service_fulfillment_line_id":{"kind":"string"}},"additional":null},"ServiceContractAssessment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"classification":{"kind":"ref","name":"ServiceRevenueClassification"},"contract_modification":{"kind":"boolean"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"finalized_at":{"kind":"string"},"fixed_transaction_price":{"kind":"int64"},"id":{"kind":"string"},"paragraph_35_a_met":{"kind":"boolean"},"paragraph_35_b_met":{"kind":"boolean"},"paragraph_35_c_met":{"kind":"boolean"},"performance_obligations":{"kind":"array","items":{"kind":"ref","name":"ServicePerformanceObligation"}},"principal_agent_issue":{"kind":"boolean"},"qualified_assessment_reference":{"kind":"string"},"qualified_assessment_sha256":{"kind":"string"},"sales_order_id":{"kind":"string"},"sales_order_state_revision":{"kind":"int64"},"source_customer_quote_id":{"kind":"string"},"source_quote_revision":{"kind":"int64"},"variable_consideration":{"kind":"boolean"}},"additional":null},"ServiceEvidence":{"kind":"object","properties":{"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ServiceFakturMonetaryAssessment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"aggregation_level":{"kind":"string"},"calculation_contract_identity":{"kind":"string"},"commercial_terms_reference":{"kind":"string"},"commercial_terms_sha256":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dpp":{"kind":"int64"},"dpp_method":{"kind":"string"},"dpp_method_version":{"kind":"string"},"faktur_date":{"kind":"string"},"faktur_evidence_reference":{"kind":"string"},"faktur_evidence_sha256":{"kind":"string"},"faktur_reference":{"kind":"string"},"faktur_status":{"kind":"string"},"finalized_at":{"kind":"string"},"gross_customer_amount":{"kind":"int64"},"id":{"kind":"string"},"nominal_ppn_rate_basis_points":{"kind":"integer"},"official_source_checked_on":{"kind":"string"},"official_source_reference":{"kind":"string"},"official_source_sha256":{"kind":"string"},"output_ppn":{"kind":"int64"},"penggantian":{"kind":"int64"},"rounding_contract_reference":{"kind":"string"},"rounding_contract_sha256":{"kind":"string"},"rounding_mode":{"kind":"string"},"sales_order_id":{"kind":"string"},"service_contract_assessment_id":{"kind":"string"},"service_invoice_id":{"kind":"string"},"service_recognition_readiness_assessment_id":{"kind":"string"},"service_tax_point_assessment_id":{"kind":"string"},"tax_point_date":{"kind":"string"}},"additional":null},"ServiceFulfillment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_decided_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"customer_status":{"kind":"ref","name":"CustomerStatus"},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ServiceFulfillmentLine"}},"performed_from":{"kind":"string"},"performed_through":{"kind":"string"},"sales_order_id":{"kind":"string"}},"additional":null},"ServiceFulfillmentCustomerDecision":{"kind":"object","properties":{"customer_status":{"kind":"ref","name":"CustomerStatus"},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ServiceFulfillmentLine":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceFulfillmentLineInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceFulfillmentMutation":{"kind":"object","properties":{"fulfillment":{"kind":"ref","name":"ServiceFulfillment"},"sales_order":{"kind":"ref","name":"ServiceOrder"}},"additional":null},"ServiceObligationBillingAllocation":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"},"service_fulfillment_line_id":{"kind":"string"},"service_invoice_allocation_id":{"kind":"string"},"service_invoice_id":{"kind":"string"},"service_invoice_line_id":{"kind":"string"}},"additional":null},"ServiceObligationBillingAllocationInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"service_invoice_allocation_id":{"kind":"string"}},"additional":null},"ServiceObligationOrderLineAllocation":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceObligationOrderLineAllocationInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceObligationSatisfaction":{"kind":"object","properties":{"control_transferred":{"kind":"boolean"},"customer_acceptance_reference":{"kind":"string"},"customer_acceptance_sha256":{"kind":"string"},"id":{"kind":"string"},"paragraph_38_control_reference":{"kind":"string"},"paragraph_38_control_sha256":{"kind":"string"},"performance_obligation_id":{"kind":"string"},"point_in_time_satisfied":{"kind":"boolean"},"qualified_evidence_reference":{"kind":"string"},"qualified_evidence_sha256":{"kind":"string"},"satisfaction_date":{"kind":"string"}},"additional":null},"ServiceObligationSatisfactionInput":{"kind":"object","properties":{"control_transferred":{"kind":"boolean"},"customer_acceptance_reference":{"kind":"string"},"customer_acceptance_sha256":{"kind":"string"},"paragraph_38_control_reference":{"kind":"string"},"paragraph_38_control_sha256":{"kind":"string"},"performance_obligation_id":{"kind":"string"},"point_in_time_satisfied":{"kind":"boolean"},"qualified_evidence_reference":{"kind":"string"},"qualified_evidence_sha256":{"kind":"string"},"satisfaction_date":{"kind":"string"}},"additional":null},"ServiceOrder":{"kind":"object","properties":{"confirmed_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"confirmed_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ServiceOrderLine"}},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"ServiceOrderState"},"subtotal":{"kind":"int64"}},"additional":null},"ServiceOrderLifecycle":{"kind":"object","properties":{"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"},"target_status":{"kind":"ref","name":"ServiceOrderState"}},"additional":null},"ServiceOrderLine":{"kind":"object","properties":{"accepted_or_pending_quantity":{"kind":"int64"},"confirmed_quantity":{"kind":"int64"},"description":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"string"}},"additional":null},"ServiceOrderState":{"kind":"enum","values":["draft","confirmed","partially_fulfilled","fulfilled","on_hold","closed","cancelled"]},"ServicePerformanceObligation":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"billing_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationBillingAllocation"}},"description":{"kind":"string"},"id":{"kind":"string"},"order_line_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationOrderLineAllocation"}},"reference":{"kind":"string"}},"additional":null},"ServicePerformanceObligationInput":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"billing_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationBillingAllocationInput"}},"description":{"kind":"string"},"order_line_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationOrderLineAllocationInput"}},"reference":{"kind":"string"}},"additional":null},"ServiceRecognitionReadinessAssessment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"finalized_at":{"kind":"string"},"fixed_transaction_price":{"kind":"int64"},"id":{"kind":"string"},"obligation_satisfactions":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationSatisfaction"}},"sales_order_id":{"kind":"string"},"sales_order_state_revision":{"kind":"int64"},"service_contract_assessment_id":{"kind":"string"},"source_customer_quote_id":{"kind":"string"},"source_quote_revision":{"kind":"int64"},"tax_point_assessments":{"kind":"array","items":{"kind":"ref","name":"ServiceTaxPointAssessment"}}},"additional":null},"ServiceRevenueClassification":{"kind":"enum","values":["point_in_time","over_time"]},"ServiceTaxPointAssessment":{"kind":"object","properties":{"currency":{"kind":"string"},"designated_collector":{"kind":"boolean"},"domestic_supply":{"kind":"boolean"},"export_supply":{"kind":"boolean"},"faktur_date":{"kind":"string"},"faktur_reference":{"kind":"string"},"free_trade_zone":{"kind":"boolean"},"id":{"kind":"string"},"other_exclusion":{"kind":"boolean"},"prior_advance_tax":{"kind":"boolean"},"prior_taxed_base":{"kind":"int64"},"prior_term_tax":{"kind":"boolean"},"qualified_basis_reference":{"kind":"string"},"qualified_basis_sha256":{"kind":"string"},"remaining_taxable_base":{"kind":"int64"},"service_invoice_id":{"kind":"string"},"special_regime":{"kind":"boolean"},"statutory_supply_basis":{"kind":"string"},"supplier_pkp":{"kind":"boolean"},"tax_facility":{"kind":"boolean"},"tax_point_date":{"kind":"string"},"taxable_service_jkp":{"kind":"boolean"}},"additional":null},"ServiceTaxPointAssessmentInput":{"kind":"object","properties":{"designated_collector":{"kind":"boolean"},"domestic_supply":{"kind":"boolean"},"export_supply":{"kind":"boolean"},"faktur_date":{"kind":"string"},"faktur_reference":{"kind":"string"},"free_trade_zone":{"kind":"boolean"},"other_exclusion":{"kind":"boolean"},"prior_advance_tax":{"kind":"boolean"},"prior_taxed_base":{"kind":"int64"},"prior_term_tax":{"kind":"boolean"},"qualified_basis_reference":{"kind":"string"},"qualified_basis_sha256":{"kind":"string"},"remaining_taxable_base":{"kind":"int64"},"service_invoice_id":{"kind":"string"},"special_regime":{"kind":"boolean"},"statutory_supply_basis":{"kind":"string"},"supplier_pkp":{"kind":"boolean"},"tax_facility":{"kind":"boolean"},"tax_point_date":{"kind":"string"},"taxable_service_jkp":{"kind":"boolean"}},"additional":null},"SetApprovalPolicy":{"kind":"object","properties":{"mode":{"kind":"string"},"reason":{"kind":"string"},"required_role":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"threshold_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"SetContactCreditLimitRequest":{"kind":"object","properties":{"credit_hold_active":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"credit_limit_minor":{"kind":"int64"},"grace_period_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]}},"additional":null},"SetExperienceEntitlementRequest":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"}},"additional":null},"SetLandedCostPolicy":{"kind":"object","properties":{"residual_treatment":{"kind":"string"}},"additional":null},"SetTimephasedBaselineRequest":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"TimephasedBaselineItemRequest"}}},"additional":null},"ShareDocument":{"kind":"object","properties":{"sales_document_id":{"kind":"string"}},"additional":null},"SharedDocument":{"kind":"object","properties":{"id":{"kind":"string"},"prepared_document_id":{"kind":"string"},"prepared_status":{"kind":"string"},"source_document_number":{"kind":"string"}},"additional":null},"ShippingRateQuoteView":{"kind":"object","properties":{"courier_name":{"kind":"string"},"courier_service_code":{"kind":"string"},"currency":{"kind":"string"},"estimated_days":{"kind":"string"},"is_cod_supported":{"kind":"boolean"},"provider_name":{"kind":"string"},"rate_amount_minor":{"kind":"int64"},"service_name":{"kind":"string"}},"additional":null},"ShippingRatesQuoteListView":{"kind":"object","properties":{"cached_until":{"kind":"string"},"company_book_id":{"kind":"string"},"destination_postal_code":{"kind":"string"},"origin_postal_code":{"kind":"string"},"quotes":{"kind":"array","items":{"kind":"ref","name":"ShippingRateQuoteView"}},"weight_grams":{"kind":"integer"}},"additional":null},"SignoffAccountingPeriodAuditorRequest":{"kind":"object","properties":{"auditor_firm_name":{"kind":"string"},"auditor_license_number":{"kind":"string"},"auditor_public_key_fingerprint":{"kind":"string"},"auditor_signature_scope":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"merkle_root_hash":{"kind":"string"},"pki_signature_hex":{"kind":"string"}},"additional":null},"SingaporeEntityOnboardingView":{"kind":"object","properties":{"agm_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"annual_return_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"base_currency":{"kind":"string"},"coa_template":{"kind":"string"},"company_book_id":{"kind":"string"},"corporate_secretary":{"kind":"string"},"directors":{"kind":"array","items":{"kind":"string"}},"gst_rate_basis_points":{"kind":"integer"},"gst_registered":{"kind":"boolean"},"jurisdiction":{"kind":"string"},"legal_name":{"kind":"string"},"message":{"kind":"string"},"registered_address":{"kind":"string"},"status":{"kind":"string"},"uen":{"kind":"string"}},"additional":null},"SleekCompanyProfileView":{"kind":"object","properties":{"agm_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"annual_return_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"company_type":{"kind":"string"},"corporate_secretary":{"kind":"string"},"directors":{"kind":"array","items":{"kind":"string"}},"legal_name":{"kind":"string"},"registered_address":{"kind":"string"},"registration_date":{"kind":"string"},"status":{"kind":"string"},"uen":{"kind":"string"}},"additional":null},"SleekSignDocumentView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"dispatched_at":{"kind":"string"},"document_id":{"kind":"string"},"document_title":{"kind":"string"},"recipient_email":{"kind":"string"},"signing_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"}},"additional":null},"SleekWebhookAckView":{"kind":"object","properties":{"event_id":{"kind":"string"},"status":{"kind":"string"},"success":{"kind":"boolean"}},"additional":null},"SleekWebhookPayload":{"kind":"object","properties":{"document_id":{"kind":"string"},"event":{"kind":"string"},"signature_hash":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"uen":{"kind":"string"}},"additional":null},"SoftLockAccountingPeriodRequest":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SoftLockAccountingPeriodView":{"kind":"object","properties":{"accounting_period_id":{"kind":"string"},"company_book_id":{"kind":"string"},"id":{"kind":"string"},"locked_at":{"kind":"string"},"locked_by_principal_id":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"}},"additional":null},"SourcedPurchaseOrderListView":{"kind":"object","properties":{"purchase_orders":{"kind":"array","items":{"kind":"ref","name":"PurchaseOrderView"}}},"additional":null},"StarterCoaPreview":{"kind":"object","properties":{"collisions":{"kind":"array","items":{"kind":"ref","name":"PreviewCollision"}},"components":{"kind":"array","items":{"kind":"ref","name":"ComponentRef"}},"lines":{"kind":"array","items":{"kind":"ref","name":"PreviewLine"}},"status":{"kind":"string"}},"additional":null},"StatementOfChangesInEquity":{"kind":"object","properties":{"closing_equity_minor":{"kind":"integer"},"movements":{"kind":"array","items":{"kind":"ref","name":"EquityMovementLine"}},"net_income_minor":{"kind":"integer"},"opening_equity_minor":{"kind":"integer"}},"additional":null},"StockPosition":{"kind":"object","properties":{"avg_cost":{"kind":"int64"},"book_value":{"kind":"int64"},"item_id":{"kind":"string"},"on_hand_qty":{"kind":"int64"}},"additional":null},"StocktakeRequest":{"kind":"object","properties":{"counted_qty":{"kind":"int64"},"note":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SubledgerStatementView":{"kind":"object","properties":{"account_role":{"kind":"string"},"company_book_id":{"kind":"string"},"counterparty_entity_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"in_review_claim_balance_minor":{"kind":"int64"},"matured_claimable_balance_minor":{"kind":"int64"},"non_fiat_units_balance":{"kind":"number"},"paid_out_total_minor":{"kind":"int64"},"tax_withheld_total_minor":{"kind":"int64"},"unmatured_balance_minor":{"kind":"int64"}},"additional":null},"SubmitAppRequest":{"kind":"object","properties":{"app_type":{"kind":"string"},"app_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"string"},"demo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"execution_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"icon_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"pricing_model":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"slug":{"kind":"string"},"summary":{"kind":"string"},"version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SubmitConnectorRequest":{"kind":"object","properties":{"category":{"kind":"string"},"description":{"kind":"string"},"documentation_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"execution_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"icon_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"mcp_protocol_version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"pricing_model":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"release_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"required_permission_scopes":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"slug":{"kind":"string"},"summary":{"kind":"string"},"version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version_semver":{"kind":"string"}},"additional":null},"SubmitPosOrderRequest":{"kind":"object","properties":{"financial_date":{"kind":"string"},"handover":{"kind":"ref","name":"PosHandoverEvidenceRequest"}},"additional":null},"SubmitSubledgerClaimRequest":{"kind":"object","properties":{"account_role":{"kind":"string"},"claim_amount_minor":{"kind":"int64"}},"additional":null},"SubscriptionPlanView":{"kind":"object","properties":{"billing_interval":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"id":{"kind":"string"},"plan_code":{"kind":"string"},"plan_name":{"kind":"string"},"price_minor":{"kind":"int64"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"SuccessorConnectionRequest":{"kind":"object","properties":{"active":{"kind":"boolean"},"effective_from":{"kind":"string"},"integration_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"SuccessorMerchantRouteRequest":{"kind":"object","properties":{"active":{"kind":"boolean"},"effective_from":{"kind":"string"},"external_merchant_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"SupplierQuote":{"kind":"object","properties":{"accepted_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"connector_idempotency_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"document_number":{"kind":"string"},"eligibility":{"kind":"ref","name":"Eligibility"},"external_company_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_content_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_party_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_quote_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_revision_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"SupplierQuoteLineView"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"revision_of_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_system":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"QuoteState"},"subtotal":{"kind":"int64"},"supplier_reference":{"kind":"string"},"total":{"kind":"int64"},"updated_at":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"SupplierQuoteConversion":{"kind":"object","properties":{"action":{"kind":"ref","name":"ConversionAction"},"document_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"SupplierQuoteConversionLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revision":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"QuoteRevisionRequest"}]}},"additional":null},"SupplierQuoteConversionLine":{"kind":"object","properties":{"discount_amount":{"kind":"int64"},"quantity":{"kind":"int64"},"quote_line_id":{"kind":"string"},"unit_price":{"kind":"int64"}},"additional":null},"SupplierQuoteDecision":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SupplierQuoteLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"unit_price":{"kind":"int64"}},"additional":null},"SupplierQuoteLineView":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"unit_price":{"kind":"int64"}},"additional":null},"SupplierQuoteList":{"kind":"object","properties":{"quotes":{"kind":"array","items":{"kind":"ref","name":"SupplierQuote"}}},"additional":null},"SyncOfflineQueueItem":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"client_queue_id":{"kind":"string"},"offline_seq_hash":{"kind":"string"},"transaction_payload":{"kind":"value"},"transaction_type":{"kind":"string"}},"additional":null},"SyncOfflineQueueRequest":{"kind":"object","properties":{"records":{"kind":"array","items":{"kind":"ref","name":"SyncOfflineQueueItem"}}},"additional":null},"SyncOfflineQueueResultView":{"kind":"object","properties":{"processed_count":{"kind":"integer"},"synced_records":{"kind":"array","items":{"kind":"ref","name":"SyncOfflineRecordView"}}},"additional":null},"SyncOfflineRecordView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"client_queue_id":{"kind":"string"},"id":{"kind":"string"},"offline_seq_hash":{"kind":"string"},"status":{"kind":"string"},"synced_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transaction_type":{"kind":"string"}},"additional":null},"SyncSleekCompanyProfileRequest":{"kind":"object","properties":{"api_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"uen":{"kind":"string"}},"additional":null},"TagOwnerRequest":{"kind":"object","properties":{"owner_email":{"kind":"string"},"owner_name":{"kind":"string"}},"additional":null},"TemplateDefinitionView":{"kind":"object","properties":{"category":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"locale":{"kind":"string"},"name":{"kind":"string"},"source_capability":{"kind":"string"},"template_key":{"kind":"string"},"tenant_id":{"kind":"string"},"variable_schema":{"kind":"value"}},"additional":null},"TemplateSelectionView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by":{"kind":"string"},"document_kind":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"provenance":{"kind":"value"},"template_id":{"kind":"string"},"template_version":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"TemplateVersionView":{"kind":"object","properties":{"content_payload":{"kind":"string"},"created_at":{"kind":"string"},"style_metadata":{"kind":"value"},"subject_pattern":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"template_id":{"kind":"string"},"tenant_id":{"kind":"string"},"version":{"kind":"integer"}},"additional":null},"TemporaryLockEvidenceView":{"kind":"object","properties":{"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"locked_at":{"kind":"string"},"owner_principal_id":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"TenantInfrastructureMigrationView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"id":{"kind":"string"},"initiated_by_principal_id":{"kind":"string"},"migrated_at":{"kind":"string"},"migrated_journal_count":{"kind":"int64"},"migration_payload_uri":{"kind":"string"},"proof_sentinel_checksum":{"kind":"string"},"source_deployment_mode":{"kind":"string"},"status":{"kind":"string"},"target_deployment_mode":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"TicketCommentListView":{"kind":"object","properties":{"comments":{"kind":"array","items":{"kind":"ref","name":"TicketCommentView"}}},"additional":null},"TicketCommentView":{"kind":"object","properties":{"author_principal_id":{"kind":"string"},"comment_body":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"is_internal_note":{"kind":"boolean"},"ticket_id":{"kind":"string"}},"additional":null},"TicketListView":{"kind":"object","properties":{"tickets":{"kind":"array","items":{"kind":"ref","name":"TicketView"}}},"additional":null},"TicketPriority":{"kind":"enum","values":["low","medium","high","urgent"]},"TicketStatus":{"kind":"enum","values":["open","in_progress","resolved","closed"]},"TicketTransitionListView":{"kind":"object","properties":{"transitions":{"kind":"array","items":{"kind":"ref","name":"TicketTransitionView"}}},"additional":null},"TicketTransitionView":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"created_at":{"kind":"string"},"from_status":{"kind":"ref","name":"TicketStatus"},"id":{"kind":"string"},"ticket_id":{"kind":"string"},"to_status":{"kind":"ref","name":"TicketStatus"}},"additional":null},"TicketView":{"kind":"object","properties":{"assignee_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"priority":{"kind":"ref","name":"TicketPriority"},"sla_due_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"TicketStatus"},"ticket_number":{"kind":"string"},"title":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"TimephasedBaselineItemRequest":{"kind":"object","properties":{"period_index":{"kind":"integer"},"period_label":{"kind":"string"},"planned_cost_incremental_minor":{"kind":"int64"},"planned_progress_pct":{"kind":"number"}},"additional":null},"TimesheetApprovalRunView":{"kind":"object","properties":{"approved_by_principal_id":{"kind":"string"},"approved_entries_count":{"kind":"integer"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"total_approved_amount_minor":{"kind":"int64"},"total_approved_hours":{"kind":"number"}},"additional":null},"TimesheetEntryView":{"kind":"object","properties":{"billable_rate_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"string"},"entry_date":{"kind":"string"},"hours_logged":{"kind":"number"},"id":{"kind":"string"},"is_billable":{"kind":"boolean"},"project_code":{"kind":"string"},"staff_principal_id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"},"total_billable_minor":{"kind":"int64"}},"additional":null},"TransferAndOffboardRequest":{"kind":"object","properties":{"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"release_document_locks":{"kind":"boolean"},"successor_principal_id":{"kind":"string"},"transfer_attentions":{"kind":"boolean"},"transfer_calendar_events":{"kind":"boolean"},"transfer_drafts":{"kind":"boolean"}},"additional":null},"TransformationConsume":{"kind":"object","properties":{"item_id":{"kind":"string"},"quantity":{"kind":"int64"}},"additional":null},"TransformationOutput":{"kind":"object","properties":{"item_id":{"kind":"string"},"movement_id":{"kind":"string"},"quantity":{"kind":"int64"},"unit_cost":{"kind":"int64"},"value":{"kind":"int64"}},"additional":null},"TransformationProduce":{"kind":"object","properties":{"item_id":{"kind":"string"},"kind":{"kind":"string"},"quantity":{"kind":"int64"},"value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"TransitionAdmissionRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"TransitionBankAccount":{"kind":"object","properties":{"evidence":{"kind":"array","items":{"kind":"ref","name":"BankAccountEvidence"}},"reason":{"kind":"string"},"target_status":{"kind":"string"}},"additional":null},"TransitionBookInput":{"kind":"object","properties":{"effective_at":{"kind":"string"},"reason":{"kind":"string"},"target_state":{"kind":"ref","name":"LifecycleState"}},"additional":null},"TreatmentClassification":{"kind":"enum","values":["required","permitted","workflow"]},"TreatmentView":{"kind":"object","properties":{"annual_rate_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"asset_category_id":{"kind":"string"},"authority_reference":{"kind":"string"},"book_id":{"kind":"string"},"classification_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"id":{"kind":"string"},"method":{"kind":"string"},"policy_reference":{"kind":"string"},"reason":{"kind":"string"},"recorded_at":{"kind":"string"},"recorded_by":{"kind":"string"},"residual_value":{"kind":"int64"},"useful_life_months":{"kind":"integer"},"version":{"kind":"int64"}},"additional":null},"TrialBalance":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"TrialBalanceLine"}},"total_credit_minor":{"kind":"integer"},"total_debit_minor":{"kind":"integer"}},"additional":null},"TrialBalanceLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"balance_minor":{"kind":"integer"},"credit_minor":{"kind":"integer"},"debit_minor":{"kind":"integer"}},"additional":null},"TrialBalanceRenderProjection":{"kind":"object","properties":{"as_of":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"book_id":{"kind":"string"},"company_book_id":{"kind":"string"},"complete":{"kind":"boolean"},"functional_currency":{"kind":"string"},"has_more":{"kind":"boolean"},"lines":{"kind":"array","items":{"kind":"ref","name":"TrialBalanceLine"}},"masking":{"kind":"string"},"membership_read_visibility_revision":{"kind":"string"},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payload_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payload_schema_version":{"kind":"integer"},"payload_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"report_kind":{"kind":"string"},"source_report_id":{"kind":"string"},"source_report_revision":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_credit_minor":{"kind":"integer"},"total_debit_minor":{"kind":"integer"}},"additional":null},"TriggerContinuousCloseRequest":{"kind":"object","properties":{"close_readiness_score":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"daily_fx_revaluation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"daily_micro_depreciation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"reconciliation_matched_count":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"TriggerFederatedNodeSyncRequest":{"kind":"object","properties":{"endpoint_uri":{"kind":"string"},"node_deployment_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"node_name":{"kind":"string"},"public_key_fingerprint":{"kind":"string"}},"additional":null},"UaeTaxSettingsView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"corporate_tax_exemption":{"kind":"boolean"},"created_at":{"kind":"string"},"free_zone_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_free_zone_qfzp":{"kind":"boolean"},"tenant_id":{"kind":"string"},"trn_number":{"kind":"string"},"vat_stagger_period":{"kind":"string"}},"additional":null},"UnifiedIdentityItem":{"kind":"object","properties":{"created_at":{"kind":"string"},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"identity_id":{"kind":"string"},"identity_type":{"kind":"string"},"issuer":{"kind":"string"},"last_active_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"status":{"kind":"string"},"total_requests":{"kind":"int64"}},"additional":null},"UnitReferenceItem":{"kind":"object","properties":{"lot_batch":{"kind":"string"},"unit_id":{"kind":"string"}},"additional":null},"UnitResolverPayload":{"kind":"object","properties":{"acquisition_date":{"kind":"string"},"current_location":{"kind":"string"},"financial_cost_basis":{"kind":"int64"},"item_code":{"kind":"string"},"item_name":{"kind":"string"},"provenance_journal_ref":{"kind":"string"},"serial_number":{"kind":"string"},"unit_references":{"kind":"array","items":{"kind":"ref","name":"UnitReferenceItem"}},"warranty_status":{"kind":"string"}},"additional":null},"UniversalContractView":{"kind":"object","properties":{"capital_ratio":{"kind":"number"},"company_book_id":{"kind":"string"},"contract_mode":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"profit_split_ratio":{"kind":"number"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"UpdateBankAccount":{"kind":"object","properties":{"account_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bank_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bank_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"gl_account_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"institution_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"swift_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdateCalendarEventStatusRequest":{"kind":"object","properties":{"status":{"kind":"ref","name":"CalendarEventStatus"}},"additional":null},"UpdateContact":{"kind":"object","properties":{"active":{"kind":"boolean"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdateInstalledConnectorConfigRequest":{"kind":"object","properties":{"configuration_values":{"kind":"value"},"granted_permission_scopes":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"is_enabled":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"UpdateItem":{"kind":"object","properties":{"active":{"kind":"boolean"},"aliases":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"max_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"min_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"name":{"kind":"string"},"preferred_supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sale_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sale_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sku":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdatePayment":{"kind":"object","properties":{"amount":{"kind":"int64"},"bank_account_id":{"kind":"string"},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"direction":{"kind":"string"},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_date":{"kind":"string"},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdateRoleMetadataRequest":{"kind":"object","properties":{"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"suffix":{"kind":"string"}},"additional":null},"UpdateTicketRequest":{"kind":"object","properties":{"assignee_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"priority":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpsertContactOrganization":{"kind":"object","properties":{"industry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"lei":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpsertContactPerson":{"kind":"object","properties":{"additional_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"birth_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gender":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"gender_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"string"}},"additional":null},"UpsertContactProfile":{"kind":"object","properties":{"about":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"headline":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"photo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UsGaapBalanceSheetView":{"kind":"object","properties":{"as_of":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"current_assets_minor":{"kind":"int64"},"current_liabilities_minor":{"kind":"int64"},"non_current_assets_minor":{"kind":"int64"},"non_current_liabilities_minor":{"kind":"int64"},"presentation_standard":{"kind":"string"},"stockholders_equity_minor":{"kind":"int64"},"total_assets_minor":{"kind":"int64"},"total_liabilities_and_equity_minor":{"kind":"int64"},"total_liabilities_minor":{"kind":"int64"}},"additional":null},"UsGaapIncomeStatementView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"cost_of_goods_sold_minor":{"kind":"int64"},"currency":{"kind":"string"},"from_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gross_profit_minor":{"kind":"int64"},"gross_revenue_minor":{"kind":"int64"},"income_before_tax_minor":{"kind":"int64"},"income_tax_expense_minor":{"kind":"int64"},"net_income_minor":{"kind":"int64"},"non_operating_income_expense_minor":{"kind":"int64"},"operating_expenses_minor":{"kind":"int64"},"operating_income_minor":{"kind":"int64"},"presentation_standard":{"kind":"string"},"to_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UserDraftView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"company_book_id":{"kind":"string"},"draft_payload":{"kind":"value"},"draft_type":{"kind":"string"},"has_draft":{"kind":"boolean"},"id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"user_principal_id":{"kind":"string"}},"additional":null},"UserReferralCodeView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"referee_discount_pct":{"kind":"number"},"referral_code":{"kind":"string"},"referral_code_id":{"kind":"string"},"referrer_principal_id":{"kind":"string"},"referrer_reward_pct":{"kind":"number"},"total_credits_earned_minor":{"kind":"int64"}},"additional":null},"ValidatePosSaleQuoteRequest":{"kind":"object","properties":{},"additional":null},"ValidatePosSaleQuoteView":{"kind":"object","properties":{"quote":{"kind":"ref","name":"PosSaleQuoteView"},"valid":{"kind":"boolean"}},"additional":null},"ValidationViolation":{"kind":"object","properties":{"code":{"kind":"string"},"message":{"kind":"string"},"path":{"kind":"string"}},"additional":null},"VariableConsiderationPredictionView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_id":{"kind":"string"},"id":{"kind":"string"},"predicted_take_up_probability":{"kind":"number"},"reserve_account_code":{"kind":"string"},"reserved_discount_amount_minor":{"kind":"int64"},"sales_document_id":{"kind":"string"},"should_book_day1_reserve":{"kind":"boolean"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"WealthPortfolioView":{"kind":"object","properties":{"asset_class":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"current_valuation_minor":{"kind":"int64"},"family_group_id":{"kind":"string"},"id":{"kind":"string"},"last_valued_at":{"kind":"string"},"portfolio_name":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"WebhookDeliveryView":{"kind":"object","properties":{"created_at":{"kind":"string"},"event_payload":{"kind":"value"},"event_type":{"kind":"string"},"http_status":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"id":{"kind":"int64"},"retry_count":{"kind":"integer"},"sent_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"subscription_id":{"kind":"string"}},"additional":null},"WebhookSubscriptionView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"event_types":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"is_active":{"kind":"boolean"},"last_status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"retry_count":{"kind":"integer"},"target_url":{"kind":"string"}},"additional":null},"WorkOrderPartsIssuedView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"string"},"quantity":{"kind":"integer"},"tenant_id":{"kind":"string"},"total_cost_minor":{"kind":"int64"},"unit_cost_minor":{"kind":"int64"},"work_order_id":{"kind":"string"}},"additional":null},"WorkingCapitalContributionView":{"kind":"object","properties":{"calculated_amount_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"contribution_basis":{"kind":"string"},"contribution_percentage_rate":{"kind":"number"},"created_at":{"kind":"string"},"id":{"kind":"string"},"period_year":{"kind":"integer"},"recipient_contact_id":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"XeroHistoricalDataImportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"import_id":{"kind":"string"},"imported_at":{"kind":"string"},"imported_contacts_count":{"kind":"integer"},"imported_journals_count":{"kind":"integer"},"status":{"kind":"string"},"xero_tenant_id":{"kind":"string"}},"additional":null}};
+{"AcceptInvitationRequest":{"kind":"object","properties":{"token":{"kind":"string"}},"additional":null},"AcceptOrderCommand":{"kind":"object","properties":{"quote_digest_sha256":{"kind":"string"},"quote_id":{"kind":"string"},"quote_revision":{"kind":"int64"},"tender":{"kind":"ref","name":"AcceptTenderCommand"}},"additional":null},"AcceptTenderCommand":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"provider_intent_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tender_type":{"kind":"ref","name":"PosTenderType"}},"additional":null},"AcceptedOrderReceipt":{"kind":"object","properties":{"acceptance_idempotency_key":{"kind":"string"},"accepted_at":{"kind":"string"},"order_id":{"kind":"string"},"quote":{"kind":"ref","name":"FrozenQuoteReceipt"},"tender":{"kind":"ref","name":"AcceptedTenderReceipt"}},"additional":null},"AcceptedTenderReceipt":{"kind":"object","properties":{"acceptance_effect_key":{"kind":"string"},"amount_minor":{"kind":"string"},"currency":{"kind":"string"},"provider_intent_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tender_id":{"kind":"string"},"tender_type":{"kind":"ref","name":"PosTenderType"}},"additional":null},"Account":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"id":{"kind":"string"},"manual_entry_allowed":{"kind":"boolean"},"name":{"kind":"string"},"normal_balance":{"kind":"string"},"state_revision":{"kind":"int64"}},"additional":null},"AccountClass":{"kind":"enum","values":["asset","liability","equity","revenue","expense","other"]},"AccountList":{"kind":"object","properties":{"accounts":{"kind":"array","items":{"kind":"ref","name":"Account"}}},"additional":null},"AccountingBookScopeMode":{"kind":"enum","values":["all_current_and_future"]},"AccountingBookScopeSummary":{"kind":"object","properties":{"mode":{"kind":"ref","name":"AccountingBookScopeMode"}},"additional":null},"AccountingPeriod":{"kind":"object","properties":{"financial_end":{"kind":"string"},"financial_start":{"kind":"string"},"id":{"kind":"string"},"state":{"kind":"ref","name":"PeriodState"},"state_revision":{"kind":"int64"},"temporary_posting_lock":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"TemporaryLockEvidenceView"}]}},"additional":null},"AccountingPeriodList":{"kind":"object","properties":{"has_more":{"kind":"boolean"},"items":{"kind":"array","items":{"kind":"ref","name":"AccountingPeriod"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"AccountingPeriodSoftLockStatus":{"kind":"enum","values":["soft_locked"]},"AccountingPeriodTransition":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"AccountsReceivableAgingReportView":{"kind":"object","properties":{"aging_buckets":{"kind":"ref","name":"ArAgingBucketView"},"as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"generated_at":{"kind":"string"},"total_ar_outstanding_minor":{"kind":"int64"}},"additional":null},"AcquireDocumentLockRequest":{"kind":"object","properties":{"display_name":{"kind":"string"},"email":{"kind":"string"},"ttl_minutes":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"AddRevisionRequest":{"kind":"object","properties":{"content":{"kind":"ref","name":"CadjProposalContent"}},"additional":null},"AddSubsidiaryMemberRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_percentage":{"kind":"number"},"subsidiary_company_book_id":{"kind":"string"}},"additional":null},"AddTicketCommentRequest":{"kind":"object","properties":{"body":{"kind":"string"},"is_internal_note":{"kind":"boolean"}},"additional":null},"AdminReviewSubmissionRequest":{"kind":"object","properties":{"decision":{"kind":"string"},"review_comments":{"kind":"string"},"target_id":{"kind":"string"},"target_type":{"kind":"string"}},"additional":null},"AdmissionCommand":{"kind":"object","properties":{"expected_revision":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"reason":{"kind":"string"},"status":{"kind":"ref","name":"AdmissionStatus"}},"additional":null},"AdmissionStatus":{"kind":"enum","values":["active","suspended","revoked"]},"AdmissionView":{"kind":"object","properties":{"admission_scope":{"kind":"ref","name":"EarlyAccessAdmissionScope"},"application":{"kind":"string"},"client_application_id":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"created_reason":{"kind":"string"},"data_handling_notice":{"kind":"string"},"deployment_environment":{"kind":"string"},"exit_export_route":{"kind":"string"},"expires_at":{"kind":"string"},"id":{"kind":"string"},"participant_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"principal_id":{"kind":"string"},"review_at":{"kind":"string"},"revocation_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoked_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoked_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"starts_at":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"EarlyAccessAdmissionStatus"},"support_contact":{"kind":"string"},"suspended_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"suspended_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"suspension_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tenant_id":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"AgingBucket":{"kind":"object","properties":{"contact_id":{"kind":"string"},"contact_name":{"kind":"string"},"current":{"kind":"int64"},"days_1_30":{"kind":"int64"},"days_31_60":{"kind":"int64"},"days_61_90":{"kind":"int64"},"days_90_plus":{"kind":"int64"},"total_open":{"kind":"int64"}},"additional":null},"AgingBucketSummary":{"kind":"object","properties":{"aging_31_60d":{"kind":"int64"},"aging_61_90d":{"kind":"int64"},"aging_90d_plus":{"kind":"int64"},"current_0_30d":{"kind":"int64"}},"additional":null},"AgingReport":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"buckets":{"kind":"array","items":{"kind":"ref","name":"AgingBucket"}},"direction":{"kind":"ref","name":"OpenItemDirection"},"grand_total":{"kind":"int64"}},"additional":null},"AllocateContractLossRequest":{"kind":"object","properties":{"capital_ratio":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"contract_id":{"kind":"string"},"contract_mode":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"UniversalContractMode"}]},"period_id":{"kind":"string"},"total_loss_minor":{"kind":"int64"}},"additional":null},"AllocateNsfpPoolRequest":{"kind":"object","properties":{"nsfp_end_number":{"kind":"string"},"nsfp_start_number":{"kind":"string"},"tax_year":{"kind":"integer"}},"additional":null},"AllocatePayment":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"document_id":{"kind":"string"},"document_type":{"kind":"ref","name":"PaymentAllocationDocumentType"},"fx_gain_loss":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"ApiError":{"kind":"object","properties":{"code":{"kind":"string"},"details":{"kind":"ref","name":"ApiErrorDetails"},"message":{"kind":"string"},"remediation":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"request_id":{"kind":"string"}},"additional":null},"ApiErrorDetails":{"kind":"object","properties":{"violations":{"kind":"union","variants":[{"kind":"array","items":{"kind":"ref","name":"ValidationViolation"}},{"kind":"null"}]}},"additional":null},"ApiReleaseChannel":{"kind":"enum","values":["preview","stable"]},"ApplyInvoiceEstampRequest":{"kind":"object","properties":{"document_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"provider_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApplyPartnerRequest":{"kind":"object","properties":{"certified_consultants_count":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"contact_email":{"kind":"string"},"description":{"kind":"string"},"industry_specializations":{"kind":"array","items":{"kind":"string"}},"jurisdiction_coverage":{"kind":"array","items":{"kind":"string"}},"logo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_name":{"kind":"string"},"partner_type":{"kind":"string"},"summary":{"kind":"string"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApprovalDecisionRequest":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApprovalDecisionResponse":{"kind":"object","properties":{"approval_request_id":{"kind":"string"},"decision":{"kind":"string"},"state":{"kind":"ref","name":"ApprovalRequestState"}},"additional":null},"ApprovalPolicyMode":{"kind":"enum","values":["always_approve","direct_post","threshold_approve"]},"ApprovalPolicySetting":{"kind":"object","properties":{"configured":{"kind":"boolean"},"mode":{"kind":"ref","name":"ApprovalPolicyMode"},"required_role":{"kind":"string"},"source_capability":{"kind":"string"},"threshold_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"ApprovalRequestState":{"kind":"enum","values":["approved","rejected"]},"ApproveLiveRequest":{"kind":"object","properties":{"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ApprovePayrollCalculationRequest":{"kind":"object","properties":{"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payroll_run_id":{"kind":"string"}},"additional":null},"ApprovePayrollRunRequest":{"kind":"object","properties":{"auto_post_journal":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"ApproveTimesheetBatchRequest":{"kind":"object","properties":{"period_end":{"kind":"string"},"period_start":{"kind":"string"},"timesheet_entry_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"ArAgingBucketView":{"kind":"object","properties":{"current_minor":{"kind":"int64"},"days_1_30_minor":{"kind":"int64"},"days_31_60_minor":{"kind":"int64"},"days_61_90_minor":{"kind":"int64"},"over_90_days_minor":{"kind":"int64"}},"additional":null},"ArApReconciliation":{"kind":"object","properties":{"difference":{"kind":"int64"},"direction":{"kind":"ref","name":"OpenItemDirection"},"gl_account_balance":{"kind":"int64"},"reconciled":{"kind":"boolean"},"subledger_open_total":{"kind":"int64"}},"additional":null},"ArchiveCompanyBook":{"kind":"object","properties":{},"additional":null},"AssessPocProjectRevenueRequest":{"kind":"object","properties":{"actual_cost_incurred_minor":{"kind":"int64"},"billed_to_date_minor":{"kind":"int64"}},"additional":null},"AssetCategoryView":{"kind":"object","properties":{"created_at":{"kind":"string"},"created_by":{"kind":"string"},"id":{"kind":"string"},"name":{"kind":"string"}},"additional":null},"AssignParticipantRequest":{"kind":"object","properties":{"participant_role":{"kind":"ref","name":"AuditParticipantRole"},"principal_id":{"kind":"string"}},"additional":null},"Attention":{"kind":"object","properties":{"action_type":{"kind":"ref","name":"AttentionActionType"},"action_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"detail":{"kind":"value"},"id":{"kind":"string"},"severity":{"kind":"ref","name":"AttentionSeverity"},"source_capability":{"kind":"string"},"source_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_type":{"kind":"string"},"state":{"kind":"ref","name":"AttentionState"},"title":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"AttentionActionType":{"kind":"enum","values":["view","approve","acknowledge","resolve","respond"]},"AttentionList":{"kind":"object","properties":{"attentions":{"kind":"array","items":{"kind":"ref","name":"Attention"}},"unread_count":{"kind":"int64"}},"additional":null},"AttentionSeverity":{"kind":"enum","values":["info","warning","urgent"]},"AttentionState":{"kind":"enum","values":["active","acknowledged","resolved","dismissed"]},"AuctionBidStatus":{"kind":"enum","values":["active"]},"AuctionBidView":{"kind":"object","properties":{"bid_amount_minor":{"kind":"int64"},"bid_deposit_hold_id":{"kind":"string"},"bidder_principal_id":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"lot_id":{"kind":"string"},"status":{"kind":"ref","name":"AuctionBidStatus"},"tenant_id":{"kind":"string"}},"additional":null},"AuctionLotStatus":{"kind":"enum","values":["active"]},"AuctionLotView":{"kind":"object","properties":{"auction_mode":{"kind":"ref","name":"AuctionMode"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"current_highest_bid_minor":{"kind":"int64"},"end_time":{"kind":"string"},"id":{"kind":"string"},"lot_title":{"kind":"string"},"reserve_price_minor":{"kind":"int64"},"starting_price_minor":{"kind":"int64"},"status":{"kind":"ref","name":"AuctionLotStatus"},"tenant_id":{"kind":"string"},"winning_bidder_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"AuctionMode":{"kind":"enum","values":["english"]},"AuctionSettlementStatus":{"kind":"enum","values":["settled"]},"AuctionSettlementView":{"kind":"object","properties":{"buyer_premium_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"lot_id":{"kind":"string"},"net_payout_minor":{"kind":"int64"},"seller_commission_minor":{"kind":"int64"},"status":{"kind":"ref","name":"AuctionSettlementStatus"},"tenant_id":{"kind":"string"},"winning_bid_minor":{"kind":"int64"}},"additional":null},"AuditAdjustmentScope":{"kind":"enum","values":["internal_audit","external_audit"]},"AuditEngagementType":{"kind":"enum","values":["internal_audit","external_audit"]},"AuditFindingClassification":{"kind":"enum","values":["misstatement","control_deficiency","disclosure_gap","scope_limitation","other"]},"AuditFindingContent":{"kind":"object","properties":{"affected_period":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"asserted_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"asserted_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"classification":{"kind":"ref","name":"AuditFindingClassification"},"description":{"kind":"string"}},"additional":null},"AuditFindingDisposition":{"kind":"enum","values":["accepted","rejected","returned_for_revision"]},"AuditParticipantRole":{"kind":"enum","values":["internal_auditor","external_auditor"]},"AuditedCalkNotesView":{"kind":"object","properties":{"accounting_policies_summary":{"kind":"string"},"audit_merkle_root_hash":{"kind":"string"},"audit_working_paper_ref":{"kind":"string"},"company_book_id":{"kind":"string"},"critical_accounting_estimates":{"kind":"string"},"currency":{"kind":"string"},"general_information":{"kind":"string"},"generated_at":{"kind":"string"},"period_end_date":{"kind":"string"},"period_start_date":{"kind":"string"},"reporting_standard":{"kind":"string"},"segment_reporting_notes":{"kind":"array","items":{"kind":"string"}}},"additional":null},"AuditedCashFlowStatementView":{"kind":"object","properties":{"audit_merkle_root_hash":{"kind":"string"},"beginning_cash_balance_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"ending_cash_balance_minor":{"kind":"int64"},"financing_activities_minor":{"kind":"int64"},"generated_at":{"kind":"string"},"investing_activities_minor":{"kind":"int64"},"method":{"kind":"ref","name":"CashFlowMethod"},"net_cash_flow_minor":{"kind":"int64"},"operating_activities_minor":{"kind":"int64"},"period_end_date":{"kind":"string"},"period_start_date":{"kind":"string"},"reporting_standard":{"kind":"string"}},"additional":null},"AuditedChangesInEquityView":{"kind":"object","properties":{"additional_paid_in_capital_minor":{"kind":"int64"},"audit_merkle_root_hash":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"generated_at":{"kind":"string"},"other_comprehensive_income_minor":{"kind":"int64"},"period_end_date":{"kind":"string"},"period_start_date":{"kind":"string"},"reporting_standard":{"kind":"string"},"retained_earnings_minor":{"kind":"int64"},"share_capital_minor":{"kind":"int64"},"total_equity_minor":{"kind":"int64"}},"additional":null},"AuditorDigitalSignatureView":{"kind":"object","properties":{"auditor_firm_name":{"kind":"string"},"auditor_license_number":{"kind":"string"},"auditor_principal_id":{"kind":"string"},"auditor_public_key_fingerprint":{"kind":"string"},"auditor_signature_scope":{"kind":"ref","name":"AuditorSignatureScope"},"company_book_id":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"merkle_root_hash":{"kind":"string"},"pki_signature_hex":{"kind":"string"},"signed_at":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"AuditorRole":{"kind":"enum","values":["audit_lead","auditor","reviewer"]},"AuditorSignatureScope":{"kind":"enum","values":["external_audit","internal_audit"]},"AuditorSignatureStatusView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"is_signed":{"kind":"boolean"},"period_id":{"kind":"string"},"signature":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuditorDigitalSignatureView"}]},"verification_status":{"kind":"ref","name":"AuditorSignatureVerificationStatus"}},"additional":null},"AuditorSignatureVerificationStatus":{"kind":"enum","values":["verified","unsigned"]},"AuditorWorkingPaperView":{"kind":"object","properties":{"adjustment_scope":{"kind":"ref","name":"AuditAdjustmentScope"},"auditor_role":{"kind":"ref","name":"AuditorRole"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"division_code":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"paper_findings_json":{"kind":"value"},"paper_title":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"AuthorityComponentSummary":{"kind":"object","properties":{"display_name":{"kind":"string"},"id":{"kind":"string"},"unrestricted":{"kind":"boolean"}},"additional":null},"AuthorityContextKind":{"kind":"enum","values":["operational_role","owner"]},"AuthorityContextList":{"kind":"object","properties":{"authority_contexts":{"kind":"array","items":{"kind":"ref","name":"AuthorityContextSummary"}},"membership_read_visibility_revision":{"kind":"string"}},"additional":null},"AuthorityContextStatus":{"kind":"enum","values":["active","revoked"]},"AuthorityContextSummary":{"kind":"object","properties":{"accounting_book_scope":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AccountingBookScopeSummary"}]},"authority_context_id":{"kind":"string"},"authority_revision":{"kind":"int64"},"context_group":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuthorityComponentSummary"}]},"document_access_profile":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuthorityComponentSummary"}]},"kind":{"kind":"ref","name":"AuthorityContextKind"},"membership_read_visibility_revision":{"kind":"string"},"role_display_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_system":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"status":{"kind":"ref","name":"AuthorityContextStatus"}},"additional":null},"AuthorityRevisionPreview":{"kind":"object","properties":{"added_actions":{"kind":"array","items":{"kind":"string"}},"affected_principals":{"kind":"int64"},"current_authority_revision_id":{"kind":"string"},"elevated":{"kind":"boolean"},"permission_group_id":{"kind":"string"},"removed_actions":{"kind":"array","items":{"kind":"string"}},"role_id":{"kind":"string"}},"additional":null},"AuthorizedCompanyBookView":{"kind":"object","properties":{"authority_context_count":{"kind":"int64"},"display_name":{"kind":"string"},"functional_currency":{"kind":"string"},"id":{"kind":"string"},"membership_read_visibility_revision":{"kind":"string"},"read_only":{"kind":"boolean"},"status":{"kind":"ref","name":"CompanyBookStatus"}},"additional":null},"AutoSyncDraftRequest":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"draft_payload":{"kind":"value"},"draft_type":{"kind":"string"}},"additional":null},"AutoSyncDraftView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"company_book_id":{"kind":"string"},"draft_payload":{"kind":"value"},"draft_type":{"kind":"string"},"id":{"kind":"string"},"synced":{"kind":"boolean"},"updated_at":{"kind":"string"},"user_principal_id":{"kind":"string"}},"additional":null},"BadDebtProvisioningRunStatus":{"kind":"enum","values":["draft","posted","reversed"]},"BadDebtProvisioningRunView":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provision_allowance_minor":{"kind":"int64"},"status":{"kind":"ref","name":"BadDebtProvisioningRunStatus"},"tenant_id":{"kind":"string"},"total_ar_outstanding_minor":{"kind":"int64"}},"additional":null},"BalanceSheet":{"kind":"object","properties":{"assets":{"kind":"ref","name":"BalanceSheetSection"},"equity":{"kind":"ref","name":"BalanceSheetSection"},"liabilities":{"kind":"ref","name":"BalanceSheetSection"},"total_equity_minor":{"kind":"integer"}},"additional":null},"BalanceSheetLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"balance_minor":{"kind":"integer"}},"additional":null},"BalanceSheetSection":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"BalanceSheetLine"}},"total_minor":{"kind":"integer"}},"additional":null},"BankAccount":{"kind":"object","properties":{"account_name":{"kind":"string"},"account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_type":{"kind":"ref","name":"BankAccountType"},"bank_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bank_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"gl_account_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"institution_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"BankAccountStatus"},"swift_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"BankAccountEvidence":{"kind":"object","properties":{"evidence_type":{"kind":"string"},"integrity_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"locator":{"kind":"string"}},"additional":null},"BankAccountList":{"kind":"object","properties":{"accounts":{"kind":"array","items":{"kind":"ref","name":"BankAccount"}}},"additional":null},"BankAccountStatus":{"kind":"enum","values":["draft","active","restricted","closed","archived"]},"BankAccountTransitionTarget":{"kind":"enum","values":["active","restricted","closed","archived"]},"BankAccountType":{"kind":"enum","values":["bank","cash","ewallet","credit_card","petty_cash"]},"BankCategorizationRuleStatus":{"kind":"enum","values":["active"]},"BankCategorizationRuleView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"description_pattern":{"kind":"string"},"id":{"kind":"string"},"priority":{"kind":"integer"},"rule_name":{"kind":"string"},"status":{"kind":"ref","name":"BankCategorizationRuleStatus"},"target_account_number":{"kind":"string"}},"additional":null},"BankFeedConnectionStatus":{"kind":"enum","values":["active"]},"BankFeedConnectionType":{"kind":"enum","values":["aggregator"]},"BankFeedConnectionView":{"kind":"object","properties":{"bank_name":{"kind":"string"},"company_book_id":{"kind":"string"},"connection_type":{"kind":"ref","name":"BankFeedConnectionType"},"created_at":{"kind":"string"},"external_account_id":{"kind":"string"},"id":{"kind":"string"},"provider_name":{"kind":"string"},"status":{"kind":"ref","name":"BankFeedConnectionStatus"}},"additional":null},"BankFeedMatchConfirmationStatus":{"kind":"enum","values":["confirmed"]},"BankFeedMatchConfirmationView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"confirmed_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"match_id":{"kind":"string"},"matched_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"statement_line_id":{"kind":"string"},"status":{"kind":"ref","name":"BankFeedMatchConfirmationStatus"}},"additional":null},"BankFeedMatchStatus":{"kind":"enum","values":["unmatched","suggested","matched","ignored"]},"BankFeedMatchView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"confidence_score":{"kind":"number"},"created_at":{"kind":"string"},"id":{"kind":"string"},"match_status":{"kind":"ref","name":"BankFeedMatchStatus"},"matched_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"statement_line_id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"BankLineMatch":{"kind":"object","properties":{"line_id":{"kind":"string"},"outcome":{"kind":"ref","name":"BankLineMatchOutcome"},"payment_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"BankLineMatchOutcome":{"kind":"enum","values":["matched","suggested","unmatched"]},"BankMatchRun":{"kind":"object","properties":{"already_resolved":{"kind":"int64"},"lines":{"kind":"array","items":{"kind":"ref","name":"BankLineMatch"}},"matched":{"kind":"int64"},"statement_id":{"kind":"string"},"suggested":{"kind":"int64"},"unmatched":{"kind":"int64"}},"additional":null},"BankReconciliation":{"kind":"object","properties":{"balanced":{"kind":"boolean"},"closing_balance":{"kind":"int64"},"difference":{"kind":"int64"},"finalized_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"movement":{"kind":"int64"},"opening_balance":{"kind":"int64"},"statement_id":{"kind":"string"},"status":{"kind":"ref","name":"BankReconciliationStatus"},"unresolved_lines":{"kind":"int64"}},"additional":null},"BankReconciliationStatus":{"kind":"enum","values":["draft","finalized"]},"BankStatement":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"closing_balance":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"import_source":{"kind":"ref","name":"BankStatementImportSource"},"lines":{"kind":"array","items":{"kind":"ref","name":"BankStatementLine"}},"opening_balance":{"kind":"string"},"reconciliation_status":{"kind":"ref","name":"BankStatementReconciliationStatus"},"statement_date":{"kind":"string"}},"additional":null},"BankStatementChannel":{"kind":"enum","values":["auto","kbb","kopra","cms","direct","octobiz"]},"BankStatementFeedIngestStatus":{"kind":"enum","values":["ingested"]},"BankStatementFeedIngestView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"external_account_id":{"kind":"string"},"ingested_at":{"kind":"string"},"provider_name":{"kind":"string"},"records_ingested":{"kind":"integer"},"status":{"kind":"ref","name":"BankStatementFeedIngestStatus"}},"additional":null},"BankStatementImportSource":{"kind":"enum","values":["manual","csv","mt940","bank_feed"]},"BankStatementLine":{"kind":"object","properties":{"amount":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"id":{"kind":"string"},"match_status":{"kind":"ref","name":"BankStatementLineMatchStatus"},"matched_payment_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ordinal":{"kind":"integer"},"provider_settlement_match":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ProviderSettlementBankMatch"}]},"raw_record":{"kind":"value"},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transaction_date":{"kind":"string"}},"additional":null},"BankStatementLineMatchStatus":{"kind":"enum","values":["unmatched","suggested","matched","ignored"]},"BankStatementLineResolution":{"kind":"enum","values":["accept","ignore"]},"BankStatementList":{"kind":"object","properties":{"statements":{"kind":"array","items":{"kind":"ref","name":"BankStatementSummary"}}},"additional":null},"BankStatementMappingOverride":{"kind":"object","properties":{"column_mapping":{"kind":"value"},"date_format":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"decimal_separator":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"delimiter":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"has_header_row":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"skip_lines":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"thousand_separator":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BankStatementProfile":{"kind":"object","properties":{"active":{"kind":"boolean"},"bank_name":{"kind":"string"},"channel":{"kind":"ref","name":"BankStatementChannel"},"column_mapping":{"kind":"value"},"currency":{"kind":"string"},"date_format":{"kind":"string"},"decimal_separator":{"kind":"string"},"delimiter":{"kind":"string"},"format":{"kind":"string"},"has_header_row":{"kind":"boolean"},"id":{"kind":"string"},"skip_lines":{"kind":"integer"},"thousand_separator":{"kind":"string"}},"additional":null},"BankStatementProfileList":{"kind":"object","properties":{"profiles":{"kind":"array","items":{"kind":"ref","name":"BankStatementProfile"}}},"additional":null},"BankStatementReconciliationStatus":{"kind":"enum","values":["unreconciled","in_progress","reconciled"]},"BankStatementSummary":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"closing_balance":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"import_filename":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"import_source":{"kind":"ref","name":"BankStatementImportSource"},"line_count":{"kind":"int64"},"opening_balance":{"kind":"string"},"reconciliation_status":{"kind":"ref","name":"BankStatementReconciliationStatus"},"statement_date":{"kind":"string"}},"additional":null},"BarcodeLookupRequest":{"kind":"object","properties":{"barcode":{"kind":"string"}},"additional":null},"BarcodeLookupResponse":{"kind":"object","properties":{"barcode":{"kind":"string"},"category":{"kind":"string"},"name":{"kind":"string"},"product_id":{"kind":"string"},"retail_price":{"kind":"int64"},"stock_level":{"kind":"integer"},"uom":{"kind":"string"},"wholesale_min_qty":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"wholesale_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"BasisCompleteness":{"kind":"object","properties":{"elected_topics":{"kind":"array","items":{"kind":"ref","name":"PolicyTopic"}},"missing_topics":{"kind":"array","items":{"kind":"ref","name":"PolicyTopic"}},"required_topics":{"kind":"array","items":{"kind":"ref","name":"PolicyTopic"}},"state":{"kind":"ref","name":"CompletenessState"}},"additional":null},"BasisState":{"kind":"enum","values":["enabled","suspended"]},"BatamFtzSettingsView":{"kind":"object","properties":{"allow_usd_functional_currency":{"kind":"boolean"},"bp_batam_license_number":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customs_registration_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"default_ftz_tax_code":{"kind":"string"},"id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"BatamFtzVatSummaryView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"generated_at":{"kind":"string"},"ppftz_01_document_count":{"kind":"int64"},"ppftz_02_document_count":{"kind":"int64"},"ppftz_03_document_count":{"kind":"int64"},"tax_period":{"kind":"string"},"total_intra_ftz_delivery_minor":{"kind":"int64"},"total_tlddp_delivery_minor":{"kind":"int64"},"total_vat_collected_standard_minor":{"kind":"int64"},"total_vat_non_collectible_07_minor":{"kind":"int64"}},"additional":null},"BetaEnrollmentStatus":{"kind":"enum","values":["active"]},"BetaReleaseChannel":{"kind":"enum","values":["beta","alpha","developer_preview"]},"BillableHoursInvoiceStatus":{"kind":"enum","values":["generated"]},"BillableHoursInvoiceView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"string"},"invoice_id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"sales_invoice_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"BillableHoursInvoiceStatus"},"total_billable_hours":{"kind":"number"},"total_invoice_amount_minor":{"kind":"int64"}},"additional":null},"BillingOverviewResponse":{"kind":"object","properties":{"base_company_fee_idr":{"kind":"int64"},"per_pos_transaction_fee_idr":{"kind":"int64"},"projected_mrr_idr":{"kind":"int64"},"total_active_companies":{"kind":"int64"},"total_live_approved_companies":{"kind":"int64"},"total_pos_transactions_current_month":{"kind":"int64"},"total_sandbox_companies":{"kind":"int64"}},"additional":null},"BookComparisonLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"delta_minor":{"kind":"integer"},"left_balance_minor":{"kind":"integer"},"left_credit_minor":{"kind":"integer"},"left_debit_minor":{"kind":"integer"},"right_balance_minor":{"kind":"integer"},"right_credit_minor":{"kind":"integer"},"right_debit_minor":{"kind":"integer"}},"additional":null},"BookCourierDeliveryRequest":{"kind":"object","properties":{"cod_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"courier_service_code":{"kind":"string"},"is_cod":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"package_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_name":{"kind":"string"},"recipient_address":{"kind":"string"},"recipient_name":{"kind":"string"},"recipient_phone":{"kind":"string"},"recipient_postal_code":{"kind":"string"},"sender_address":{"kind":"string"},"sender_name":{"kind":"string"},"sender_phone":{"kind":"string"},"sender_postal_code":{"kind":"string"},"weight_grams":{"kind":"integer"}},"additional":null},"BookDepreciationResultView":{"kind":"object","properties":{"accumulated":{"kind":"int64"},"book_id":{"kind":"string"},"depreciated_through":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"months_posted":{"kind":"integer"},"nbv":{"kind":"int64"},"posted":{"kind":"array","items":{"kind":"ref","name":"PostedMonth"}}},"additional":null},"BookListView":{"kind":"object","properties":{"books":{"kind":"array","items":{"kind":"ref","name":"BookView"}}},"additional":null},"BookView":{"kind":"object","properties":{"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"lifecycle_changed_by":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lifecycle_effective_at":{"kind":"string"},"lifecycle_reason":{"kind":"string"},"lifecycle_recorded_at":{"kind":"string"},"lifecycle_state":{"kind":"ref","name":"LifecycleState"},"name":{"kind":"string"},"purpose":{"kind":"string"},"state_revision":{"kind":"int64"}},"additional":null},"BookedCourierDeliveryView":{"kind":"object","properties":{"awb_tracking_number":{"kind":"string"},"booked_at":{"kind":"string"},"company_book_id":{"kind":"string"},"courier_service_code":{"kind":"string"},"currency":{"kind":"string"},"delivery_id":{"kind":"string"},"id":{"kind":"string"},"label_barcode_data":{"kind":"string"},"label_pdf_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_name":{"kind":"string"},"shipping_cost_minor":{"kind":"int64"},"status":{"kind":"ref","name":"CourierBookingStatus"},"tracking_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BoundedAccountList":{"kind":"object","properties":{"has_more":{"kind":"boolean"},"items":{"kind":"array","items":{"kind":"ref","name":"Account"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BoundedFinancialLineList":{"kind":"object","properties":{"book_id":{"kind":"string"},"has_more":{"kind":"boolean"},"lines":{"kind":"array","items":{"kind":"ref","name":"FinancialLine"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"BoundedTrialBalanceComparison":{"kind":"object","properties":{"all_reconciled":{"kind":"boolean"},"as_of":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"has_more":{"kind":"boolean"},"left_book_id":{"kind":"string"},"left_reconciliation":{"kind":"ref","name":"Reconciliation"},"left_total_credit_minor":{"kind":"integer"},"left_total_debit_minor":{"kind":"integer"},"lines":{"kind":"array","items":{"kind":"ref","name":"BookComparisonLine"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"right_book_id":{"kind":"string"},"right_reconciliation":{"kind":"ref","name":"Reconciliation"},"right_total_credit_minor":{"kind":"integer"},"right_total_debit_minor":{"kind":"integer"}},"additional":null},"BuiltByTier":{"kind":"enum","values":["official","certified_partner","community"]},"CadjLineInput":{"kind":"object","properties":{"account_code":{"kind":"string"},"amount_minor":{"kind":"int64"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"direction":{"kind":"string"},"ordinal":{"kind":"integer"}},"additional":null},"CadjProposalContent":{"kind":"object","properties":{"correction_route":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"evidence":{"kind":"array","items":{"kind":"ref","name":"EvidenceRefInput"}},"financial_date":{"kind":"string"},"ias8_rationale":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CadjLineInput"}}},"additional":null},"CalculatePayrollRunRequest":{"kind":"object","properties":{"include_commissions":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"include_overtime":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"}},"additional":null},"CalculatePosSaleQuoteRequest":{"kind":"object","properties":{"currency":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuoteLineRequest"}},"outlet_id":{"kind":"string"},"promotion_codes":{"kind":"array","items":{"kind":"string"}},"terminal_id":{"kind":"string"}},"additional":null},"CalculateProfitSharingRequest":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"hurdle_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"partner_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"share_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"split_type":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ProfitSharingSplitType"}]},"total_net_profit_minor":{"kind":"int64"}},"additional":null},"CalculateShippingRatesRequest":{"kind":"object","properties":{"courier_providers":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"destination_postal_code":{"kind":"string"},"items_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"origin_postal_code":{"kind":"string"},"weight_grams":{"kind":"integer"}},"additional":null},"CalculateWorkingCapitalContributionsRequest":{"kind":"object","properties":{"contribution_basis":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"WorkingCapitalContributionBasis"}]},"contribution_percentage_rate":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"net_working_capital_minor":{"kind":"int64"},"period_year":{"kind":"integer"},"recipient_contact_id":{"kind":"string"}},"additional":null},"CalendarCategory":{"kind":"enum","values":["statutory_compliance","tax_filing","accounting_close","treasury_due","payroll","custom_milestone"]},"CalendarEventSeverity":{"kind":"enum","values":["info","warning","critical"]},"CalendarEventSource":{"kind":"enum","values":["custom","statutory","tax","accounting_close","treasury","payroll"]},"CalendarEventStatus":{"kind":"enum","values":["pending","satisfied","overdue","dismissed"]},"CalendarEventView":{"kind":"object","properties":{"action_label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"action_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"ref","name":"CalendarCategory"},"company_book_id":{"kind":"string"},"event_date":{"kind":"string"},"id":{"kind":"string"},"jurisdiction":{"kind":"string"},"severity":{"kind":"ref","name":"CalendarEventSeverity"},"source_capability":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"CalendarEventSource"}]},"source_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"CalendarEventStatus"},"summary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"string"}},"additional":null},"CalendarEventsSummaryView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"critical_count":{"kind":"integer"},"events":{"kind":"array","items":{"kind":"ref","name":"CalendarEventView"}},"pending_count":{"kind":"integer"},"total_events":{"kind":"integer"},"upcoming_30_days_count":{"kind":"integer"}},"additional":null},"CapTableClass":{"kind":"object","properties":{"holdings":{"kind":"array","items":{"kind":"ref","name":"CapTableHolding"}},"instrument_class":{"kind":"string"},"total_percentage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_units":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CapTableHolding":{"kind":"object","properties":{"beneficial":{"kind":"boolean"},"effective_from":{"kind":"string"},"holder":{"kind":"ref","name":"HolderReference"},"percentage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"statement_id":{"kind":"string"},"statement_number":{"kind":"integer"},"units":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"voting_percentage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CapTableView":{"kind":"object","properties":{"as_of":{"kind":"string"},"classes":{"kind":"array","items":{"kind":"ref","name":"CapTableClass"}},"company_id":{"kind":"string"},"derived":{"kind":"boolean"}},"additional":null},"CapabilityReadiness":{"kind":"intersection","variants":[{"kind":"ref","name":"CapabilityReadinessState"},{"kind":"object","properties":{"capability":{"kind":"string"},"company_book_id":{"kind":"string"},"decided_by":{"kind":"string"},"reason":{"kind":"string"}},"additional":null}]},"CapabilityReadinessState":{"kind":"union","variants":[{"kind":"object","properties":{"state":{"kind":"enum","values":["ready"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["missing_required_configuration"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["needs_review"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["recommended_action"]}},"additional":null},{"kind":"object","properties":{"state":{"kind":"enum","values":["not_applicable"]}},"additional":null},{"kind":"object","properties":{"operations":{"kind":"array","items":{"kind":"string"}},"state":{"kind":"enum","values":["blocked"]}},"additional":null}]},"CapabilitySettingInput":{"kind":"object","properties":{"capability_key":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"reason":{"kind":"string"}},"additional":null},"CapabilitySettingView":{"kind":"object","properties":{"capability_key":{"kind":"string"},"changed_by":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"id":{"kind":"string"},"reason":{"kind":"string"},"version":{"kind":"int64"}},"additional":null},"CashFlowLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"integer"},"label":{"kind":"string"}},"additional":null},"CashFlowMethod":{"kind":"enum","values":["direct","indirect"]},"CashFlowSection":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"CashFlowLine"}},"total_minor":{"kind":"integer"}},"additional":null},"CashFlowStatement":{"kind":"object","properties":{"financing":{"kind":"ref","name":"CashFlowSection"},"investing":{"kind":"ref","name":"CashFlowSection"},"net_cash_change_minor":{"kind":"integer"},"operating":{"kind":"ref","name":"CashFlowSection"}},"additional":null},"CausedView":{"kind":"object","properties":{"audit_event_ids":{"kind":"array","items":{"kind":"string"}},"explorer_execution_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"webhook_delivery_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"CertifyProgressRequest":{"kind":"object","properties":{"actual_cost_incurred_minor":{"kind":"int64"},"bast_document_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"certified_physical_progress_pct":{"kind":"number"},"period_index":{"kind":"integer"}},"additional":null},"ChangeRoleAuthorityRequest":{"kind":"object","properties":{"permission_group_id":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ClaimConnectorVendorRequest":{"kind":"object","properties":{"claim_verification_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"counterparty_org_name":{"kind":"string"},"developer_id":{"kind":"string"},"official_domain_email":{"kind":"string"},"sentinel_proof_signature":{"kind":"string"}},"additional":null},"ClaimConnectorVendorView":{"kind":"object","properties":{"claim_id":{"kind":"string"},"claim_status":{"kind":"ref","name":"ConnectorClaimStatus"},"connector_id":{"kind":"string"},"counterparty_org_name":{"kind":"string"},"verified_at":{"kind":"string"}},"additional":null},"ClaimGuestCounterparty":{"kind":"object","properties":{"claim_token":{"kind":"string"}},"additional":null},"ClaimedGuestCounterparty":{"kind":"object","properties":{"connection_id":{"kind":"string"},"prepared_document_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"ClearDraftResultView":{"kind":"object","properties":{"cleared":{"kind":"boolean"},"draft_type":{"kind":"string"}},"additional":null},"CloseAuctionLotRequest":{"kind":"object","properties":{"buyer_premium_rate_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"seller_commission_rate_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"ClosePosCashierSessionRequest":{"kind":"object","properties":{"closing_cash_counted_minor":{"kind":"int64"},"session_id":{"kind":"string"}},"additional":null},"CloseReadinessStatusView":{"kind":"object","properties":{"close_readiness_score":{"kind":"number"},"company_book_id":{"kind":"string"},"daily_fx_revaluation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"daily_micro_depreciation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"ready_for_lock":{"kind":"boolean"},"reconciliation_matched_count":{"kind":"int64"},"status":{"kind":"ref","name":"ContinuousCloseStatus"},"updated_at":{"kind":"string"}},"additional":null},"CodSettlementReconciliationView":{"kind":"object","properties":{"awb_tracking_number":{"kind":"string"},"collected_amount_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"gateway_fee_minor":{"kind":"int64"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"net_payout_minor":{"kind":"int64"},"reconciled_at":{"kind":"string"},"settlement_status":{"kind":"ref","name":"CodSettlementStatus"},"tenant_id":{"kind":"string"}},"additional":null},"CodSettlementStatus":{"kind":"enum","values":["unsettled","partially_settled","settled","overpaid"]},"CommercialSalesOrder":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CommercialSalesOrderLine"}},"quote_conversion_id":{"kind":"string"},"source_customer_quote_id":{"kind":"string"},"status":{"kind":"ref","name":"SalesDocumentStatus"},"subtotal":{"kind":"int64"}},"additional":null},"CommercialSalesOrderLine":{"kind":"object","properties":{"allocated_quantity":{"kind":"int64"},"description":{"kind":"string"},"id":{"kind":"string"},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"source_customer_quote_line_id":{"kind":"string"},"unit_price":{"kind":"int64"}},"additional":null},"CompanyAccountingFrameworkSettingsView":{"kind":"object","properties":{"accounting_framework":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"inventory_costing_method":{"kind":"ref","name":"InventoryCostingMethod"},"tenant_id":{"kind":"string"},"use_us_gaap_presentation":{"kind":"boolean"}},"additional":null},"CompanyBillingProfileView":{"kind":"object","properties":{"base_monthly_fee_idr":{"kind":"int64"},"billing_status":{"kind":"ref","name":"CompanyBillingStatus"},"company_book_id":{"kind":"string"},"environment":{"kind":"string"},"live_approval_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"live_approved_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"live_approved_by":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"per_pos_transaction_fee_idr":{"kind":"int64"}},"additional":null},"CompanyBillingStatus":{"kind":"enum","values":["trial","pending_approval","active","suspended","sandbox"]},"CompanyBook":{"kind":"object","properties":{"archived_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"archived_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"display_name":{"kind":"string"},"functional_currency":{"kind":"string"},"id":{"kind":"string"},"read_only":{"kind":"boolean"},"status":{"kind":"ref","name":"CompanyBookStatus"}},"additional":null},"CompanyBookList":{"kind":"object","properties":{"has_more":{"kind":"boolean"},"items":{"kind":"array","items":{"kind":"ref","name":"AuthorizedCompanyBookView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CompanyBookStatus":{"kind":"enum","values":["active","archived"]},"CompanyEmployeePayslipView":{"kind":"object","properties":{"base_salary_minor":{"kind":"int64"},"bpjs_deduction_minor":{"kind":"int64"},"commissions_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"employee_contact_id":{"kind":"string"},"id":{"kind":"string"},"net_salary_minor":{"kind":"int64"},"overtime_pay_minor":{"kind":"int64"},"payroll_run_id":{"kind":"string"},"pph21_deduction_minor":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"CompanyEnvironmentMode":{"kind":"enum","values":["sandbox","live"]},"CompanyFixedAssetView":{"kind":"object","properties":{"accumulated_depr_account_number":{"kind":"string"},"acquisition_cost_minor":{"kind":"int64"},"acquisition_date":{"kind":"string"},"asset_account_number":{"kind":"string"},"asset_code":{"kind":"string"},"asset_name":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"depreciation_expense_account_number":{"kind":"string"},"depreciation_method":{"kind":"string"},"id":{"kind":"string"},"salvage_value_minor":{"kind":"int64"},"status":{"kind":"ref","name":"FixedAssetStatus"},"tenant_id":{"kind":"string"},"useful_life_months":{"kind":"integer"}},"additional":null},"CompanyInstalledConnectorView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"connector_id":{"kind":"string"},"connector_name":{"kind":"string"},"connector_slug":{"kind":"string"},"granted_permission_scopes":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"installed_at":{"kind":"string"},"installed_version_semver":{"kind":"string"},"is_enabled":{"kind":"boolean"},"tenant_id":{"kind":"string"}},"additional":null},"CompanyLegalHoldStatus":{"kind":"enum","values":["active_hold"]},"CompanyLegalHoldView":{"kind":"object","properties":{"case_reference_number":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"gdpr_deletion_override":{"kind":"boolean"},"id":{"kind":"string"},"merkle_evidence_root_hash":{"kind":"string"},"status":{"kind":"ref","name":"CompanyLegalHoldStatus"},"tenant_id":{"kind":"string"}},"additional":null},"CompanyList":{"kind":"object","properties":{"has_more":{"kind":"boolean"},"items":{"kind":"array","items":{"kind":"ref","name":"CompanySummaryView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CompanyStatus":{"kind":"enum","values":["active","retired"]},"CompanySummaryView":{"kind":"object","properties":{"id":{"kind":"string"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"organization_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"CompanyStatus"}},"additional":null},"CompanyView":{"kind":"object","properties":{"created_at":{"kind":"string"},"current_identity_revision_id":{"kind":"string"},"current_registrations":{"kind":"array","items":{"kind":"ref","name":"RegistrationView"}},"id":{"kind":"string"},"incorporation_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"organization_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"party":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PartyReference"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"CompanyStatus"},"updated_at":{"kind":"string"}},"additional":null},"CompanyWorkOrderView":{"kind":"object","properties":{"assigned_technician_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"string"},"description":{"kind":"string"},"estimated_cost_minor":{"kind":"int64"},"estimated_labor_hours":{"kind":"number"},"id":{"kind":"string"},"status":{"kind":"ref","name":"WorkOrderStatus"},"tenant_id":{"kind":"string"},"work_order_number":{"kind":"string"}},"additional":null},"CompleteWorkOrderRequest":{"kind":"object","properties":{"actual_labor_hours":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"completion_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CompleteWorkOrderResultView":{"kind":"object","properties":{"actual_labor_hours":{"kind":"number"},"company_book_id":{"kind":"string"},"completed_at":{"kind":"string"},"completion_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"status":{"kind":"ref","name":"WorkOrderStatus"},"tenant_id":{"kind":"string"},"work_order_id":{"kind":"string"}},"additional":null},"CompletenessState":{"kind":"enum","values":["complete","capability-scoped"]},"ComponentRef":{"kind":"object","properties":{"component_key":{"kind":"string"},"component_version":{"kind":"int64"}},"additional":null},"ComposeStarterCoaRequest":{"kind":"object","properties":{"enabled_capabilities":{"kind":"array","items":{"kind":"string"}},"jurisdiction":{"kind":"string"},"primary_operating_model":{"kind":"string"}},"additional":null},"ConfigureAccountingFrameworkRequest":{"kind":"object","properties":{"accounting_framework":{"kind":"string"},"effective_from":{"kind":"string"},"inventory_costing_method":{"kind":"ref","name":"InventoryCostingMethod"},"use_us_gaap_presentation":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"ConfigureBatamFtzJurisdictionRequest":{"kind":"object","properties":{"allow_usd_functional_currency":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"bp_batam_license_number":{"kind":"string"},"customs_registration_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"default_ftz_tax_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConfigureHoldingSamplingRuleRequest":{"kind":"object","properties":{"audit_entity_level":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"audit_status":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"HoldingAuditSampleStatus"}]},"holding_perimeter_id":{"kind":"string"},"sample_rule_name":{"kind":"string"},"sampled_journal_id":{"kind":"string"},"subsidiary_company_book_id":{"kind":"string"}},"additional":null},"ConfigureUaeJurisdictionRequest":{"kind":"object","properties":{"corporate_tax_exemption":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"free_zone_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"is_free_zone_qfzp":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"trn_number":{"kind":"string"},"vat_stagger_period":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConfirmBankFeedMatchRequest":{"kind":"object","properties":{"clearing_account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConfirmCashTenderAcceptedResponse":{"kind":"union","variants":[{"kind":"ref","name":"ConfirmCashTenderResponse"},{"kind":"ref","name":"ConfirmCashTenderApprovalRequiredResponse"}]},"ConfirmCashTenderApprovalRequiredResponse":{"kind":"object","properties":{"status":{"kind":"ref","name":"PostingApprovalRequiredStatus"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmCashTenderRequest":{"kind":"object","properties":{"accepted_tender_effect_key":{"kind":"string"}},"additional":null},"ConfirmCashTenderResponse":{"kind":"object","properties":{"finality":{"kind":"string"},"posting_id":{"kind":"string"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmOnboardingRequest":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"}},"additional":null},"ConfirmOnboardingResponse":{"kind":"object","properties":{"company_book":{"kind":"ref","name":"CompanyBook"},"initial_readiness":{"kind":"array","items":{"kind":"ref","name":"CapabilityReadiness"}},"owner_membership_id":{"kind":"string"},"starter_coa_preview":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"StarterCoaPreview"}]}},"additional":null},"ConfirmQrisProviderEventRequest":{"kind":"object","properties":{"accepted_tender_effect_key":{"kind":"string"},"amount_minor":{"kind":"string"},"currency":{"kind":"string"},"external_merchant_id":{"kind":"string"},"occurred_at":{"kind":"string"},"provider_intent_reference":{"kind":"string"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmQrisProviderEventResponse":{"kind":"object","properties":{"confirmation_effect_key":{"kind":"string"},"event_receipt_id":{"kind":"string"},"finality":{"kind":"string"},"posting_id":{"kind":"string"},"provider_event_id":{"kind":"string"},"tender_id":{"kind":"string"}},"additional":null},"ConfirmQrisProviderSettlementRequest":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"QrisSettlementAllocationRequest"}},"currency":{"kind":"string"},"deductions":{"kind":"array","items":{"kind":"ref","name":"QrisSettlementDeductionRequest"}},"external_merchant_id":{"kind":"string"},"gross_amount_minor":{"kind":"string"},"net_payout_minor":{"kind":"string"},"occurred_at":{"kind":"string"},"settlement_reference":{"kind":"string"}},"additional":null},"ConfirmQrisProviderSettlementResponse":{"kind":"object","properties":{"finality":{"kind":"string"},"gross_amount_minor":{"kind":"string"},"net_payout_minor":{"kind":"string"},"posting_id":{"kind":"string"},"provider_event_id":{"kind":"string"},"settlement_id":{"kind":"string"}},"additional":null},"Connection":{"kind":"object","properties":{"counterparty":{"kind":"ref","name":"DirectoryProfile"},"decision_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"direction":{"kind":"ref","name":"ConnectionDirection"},"id":{"kind":"string"},"message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"ConnectionStatus"}},"additional":null},"ConnectionDirection":{"kind":"enum","values":["outgoing","incoming"]},"ConnectionStatus":{"kind":"enum","values":["pending","accepted","declined","blocked"]},"ConnectionVersionResponse":{"kind":"object","properties":{"active":{"kind":"boolean"},"connection_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"effective_from":{"kind":"string"},"provenance":{"kind":"string"},"provider":{"kind":"string"},"provider_display_name":{"kind":"string"},"supersedes_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"integer"},"version_id":{"kind":"string"}},"additional":null},"ConnectorClaimStatus":{"kind":"enum","values":["pending","in_review","verified","revoked"]},"ConnectorClaimVerificationMethod":{"kind":"enum","values":["domain_challenge","dns_txt_record","oauth_signing_challenge","mutual_tls"]},"ConsolidatedTrialBalanceView":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"ConsolidationLineItem"}},"participants":{"kind":"array","items":{"kind":"ref","name":"ConsolidationParticipantView"}},"perimeter_id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"presentation_currency":{"kind":"string"},"total_consolidated_credit_minor":{"kind":"integer"},"total_consolidated_debit_minor":{"kind":"integer"},"total_elimination_credit_minor":{"kind":"integer"},"total_elimination_debit_minor":{"kind":"integer"},"total_gross_credit_minor":{"kind":"integer"},"total_gross_debit_minor":{"kind":"integer"},"zero_net_internal_leakage":{"kind":"boolean"}},"additional":null},"ConsolidationLineItem":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_name":{"kind":"string"},"balance_minor":{"kind":"integer"},"consolidated_credit_minor":{"kind":"integer"},"consolidated_debit_minor":{"kind":"integer"},"elimination_credit_minor":{"kind":"integer"},"elimination_debit_minor":{"kind":"integer"},"gross_credit_minor":{"kind":"integer"},"gross_debit_minor":{"kind":"integer"}},"additional":null},"ConsolidationMemberView":{"kind":"object","properties":{"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_percentage":{"kind":"number"},"perimeter_id":{"kind":"string"},"subsidiary_company_book_id":{"kind":"string"}},"additional":null},"ConsolidationParticipantView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"reporting_book_id":{"kind":"string"},"role":{"kind":"ref","name":"MemberBindingRole"},"source":{"kind":"string"}},"additional":null},"ConsolidationPerimeterView":{"kind":"object","properties":{"created_at":{"kind":"string"},"holding_company_book_id":{"kind":"string"},"id":{"kind":"string"},"perimeter_name":{"kind":"string"},"presentation_currency":{"kind":"string"}},"additional":null},"Contact":{"kind":"object","properties":{"active":{"kind":"boolean"},"created_at":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_self":{"kind":"boolean"},"kind":{"kind":"ref","name":"ContactKind"},"name":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"ContactAddress":{"kind":"object","properties":{"address_country":{"kind":"string"},"address_locality":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"address_region":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"postal_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"street_address":{"kind":"string"}},"additional":null},"ContactBankAccount":{"kind":"object","properties":{"account_number":{"kind":"string"},"active":{"kind":"boolean"},"bank_name":{"kind":"string"},"contact_id":{"kind":"string"},"country":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"swift":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ContactCreditLimitStatus":{"kind":"enum","values":["active","suspended","blocked"]},"ContactCreditLimitView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"credit_hold_active":{"kind":"boolean"},"credit_limit_minor":{"kind":"int64"},"grace_period_days":{"kind":"integer"},"id":{"kind":"string"},"status":{"kind":"ref","name":"ContactCreditLimitStatus"},"tenant_id":{"kind":"string"}},"additional":null},"ContactKind":{"kind":"enum","values":["person","organization"]},"ContactList":{"kind":"object","properties":{"has_more":{"kind":"boolean"},"items":{"kind":"array","items":{"kind":"ref","name":"Contact"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ContactOrganization":{"kind":"object","properties":{"contact_id":{"kind":"string"},"industry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"lei":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ContactPerson":{"kind":"object","properties":{"additional_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"birth_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gender":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"gender_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"string"}},"additional":null},"ContactProfile":{"kind":"object","properties":{"about":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"headline":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"links":{"kind":"array","items":{"kind":"ref","name":"ContactProfileLink"}},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"photo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ContactProfileLink":{"kind":"object","properties":{"active":{"kind":"boolean"},"contact_id":{"kind":"string"},"id":{"kind":"string"},"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"platform":{"kind":"string"},"url":{"kind":"string"}},"additional":null},"ContactReference":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"}},"additional":null},"ContactRelationship":{"kind":"object","properties":{"active":{"kind":"boolean"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"from_contact_id":{"kind":"string"},"id":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"relationship_type":{"kind":"ref","name":"ContactRelationshipType"},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"to_contact_id":{"kind":"string"}},"additional":null},"ContactRelationshipType":{"kind":"enum","values":["director","officer","commissioner","signatory","representative","shareholder","owner","partner","trustee","beneficiary","beneficial_owner","key_person","parent_company","subsidiary","affiliate"]},"ContactRole":{"kind":"object","properties":{"active":{"kind":"boolean"},"contact_id":{"kind":"string"},"credit_limit":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"current":{"kind":"boolean"},"default_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"payment_terms_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"risk_note":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role":{"kind":"ref","name":"ContactRoleKind"}},"additional":null},"ContactRoleKind":{"kind":"enum","values":["customer","supplier","employee","contractor","landlord","tenant","bank","lender","borrower","investor","tax_authority","government_authority","other"]},"ContinuousCloseScheduleView":{"kind":"object","properties":{"close_readiness_score":{"kind":"number"},"company_book_id":{"kind":"string"},"daily_fx_revaluation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"daily_micro_depreciation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"reconciliation_matched_count":{"kind":"int64"},"status":{"kind":"ref","name":"ContinuousCloseStatus"},"tenant_id":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ContinuousCloseStatus":{"kind":"enum","values":["in_progress","ready_for_lock","period_locked"]},"ContractLossAllocationView":{"kind":"object","properties":{"capital_provider_loss_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"contract_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"operator_loss_minor":{"kind":"int64"},"period_id":{"kind":"string"},"tenant_id":{"kind":"string"},"total_loss_minor":{"kind":"int64"}},"additional":null},"ConversionAction":{"kind":"enum","values":["within_quote","adjust_po","revise_quote","new_quote","linked_exception","standalone_exception","detach_to_standalone"]},"ConversionOutcome":{"kind":"object","properties":{"action":{"kind":"ref","name":"ConversionAction"},"conversion_id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"LineVariance"}},"purchase_order_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_quote_id":{"kind":"string"},"status":{"kind":"ref","name":"SupplierQuoteConversionStatus"},"target_quote_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"warning":{"kind":"boolean"}},"additional":null},"ConversionPreview":{"kind":"object","properties":{"expired":{"kind":"boolean"},"lines":{"kind":"array","items":{"kind":"ref","name":"LineVariance"}},"offered_actions":{"kind":"array","items":{"kind":"ref","name":"ConversionAction"}},"source_quote_id":{"kind":"string"},"source_quote_status":{"kind":"ref","name":"QuoteState"},"warning":{"kind":"boolean"},"warning_message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConvertCustomerQuote":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"QuoteOrderAllocation"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"order_date":{"kind":"string"}},"additional":null},"ConvertQuoteToInvoiceRequest":{"kind":"object","properties":{"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"invoice_issue_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ConvertedQuoteToInvoiceView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"converted_at":{"kind":"string"},"quote_id":{"kind":"string"},"sales_invoice_id":{"kind":"string"},"status":{"kind":"ref","name":"QuoteConversionStatus"}},"additional":null},"CorporateRestructuringEventType":{"kind":"enum","values":["merger_acquisition","divestment_carveout","de_merger"]},"CorporateRestructuringEventView":{"kind":"object","properties":{"carveout_perimeter_json":{"kind":"value"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"effective_date":{"kind":"string"},"event_type":{"kind":"ref","name":"CorporateRestructuringEventType"},"goodwill_recognized_minor":{"kind":"int64"},"id":{"kind":"string"},"target_entity_name":{"kind":"string"},"tenant_id":{"kind":"string"},"transaction_valuation_minor":{"kind":"int64"}},"additional":null},"CourierBookingStatus":{"kind":"enum","values":["booked"]},"CreateAccount":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"manual_entry_allowed":{"kind":"boolean"},"name":{"kind":"string"},"normal_balance":{"kind":"string"}},"additional":null},"CreateAccountingPeriod":{"kind":"object","properties":{"financial_end":{"kind":"string"},"financial_start":{"kind":"string"}},"additional":null},"CreateAdmission":{"kind":"object","properties":{"client_application_id":{"kind":"string"},"data_handling_notice":{"kind":"string"},"exit_export_route":{"kind":"string"},"expires_at":{"kind":"string"},"participant_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"principal_id":{"kind":"string"},"reason":{"kind":"string"},"review_at":{"kind":"string"},"starts_at":{"kind":"string"},"support_contact":{"kind":"string"}},"additional":null},"CreateAssetCategoryRequest":{"kind":"object","properties":{"name":{"kind":"string"}},"additional":null},"CreateAssignmentRequest":{"kind":"object","properties":{"principal_id":{"kind":"string"},"role_id":{"kind":"string"}},"additional":null},"CreateAuctionLotRequest":{"kind":"object","properties":{"auction_mode":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuctionMode"}]},"end_time":{"kind":"string"},"lot_title":{"kind":"string"},"reserve_price_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"starting_price_minor":{"kind":"int64"}},"additional":null},"CreateAuditorWorkingPaperRequest":{"kind":"object","properties":{"adjustment_scope":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuditAdjustmentScope"}]},"auditor_role":{"kind":"ref","name":"AuditorRole"},"division_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"paper_findings_json":{"kind":"value"},"paper_title":{"kind":"string"}},"additional":null},"CreateBankAccount":{"kind":"object","properties":{"account_name":{"kind":"string"},"account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_type":{"kind":"ref","name":"BankAccountType"},"bank_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bank_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"gl_account_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"institution_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"swift_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateBankCategorizationRuleRequest":{"kind":"object","properties":{"description_pattern":{"kind":"string"},"priority":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"rule_name":{"kind":"string"},"target_account_number":{"kind":"string"}},"additional":null},"CreateBankFeedConnectionRequest":{"kind":"object","properties":{"bank_name":{"kind":"string"},"connection_type":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"BankFeedConnectionType"}]},"external_account_id":{"kind":"string"},"provider_name":{"kind":"string"}},"additional":null},"CreateBankStatement":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"closing_balance":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateBankStatementLine"}},"opening_balance":{"kind":"string"},"statement_date":{"kind":"string"}},"additional":null},"CreateBankStatementLine":{"kind":"object","properties":{"amount":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transaction_date":{"kind":"string"}},"additional":null},"CreateBookInput":{"kind":"object","properties":{"effective_from":{"kind":"string"},"name":{"kind":"string"},"purpose":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreateBusinessEventRuleRequest":{"kind":"object","properties":{"classification_result":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PhysicalEventClassification"}]},"metric_trigger_condition":{"kind":"string"},"rule_name":{"kind":"string"}},"additional":null},"CreateCompanyBook":{"kind":"object","properties":{"display_name":{"kind":"string"},"enabled_capabilities":{"kind":"array","items":{"kind":"string"}},"functional_currency":{"kind":"string"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"operating_model":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateCompanyRequest":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"incorporation_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"organization_id":{"kind":"string"},"registered_address":{"kind":"object","properties":{},"additional":null}},"additional":null},"CreateConsolidationPerimeterRequest":{"kind":"object","properties":{"perimeter_name":{"kind":"string"},"presentation_currency":{"kind":"string"}},"additional":null},"CreateContact":{"kind":"object","properties":{"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"kind":{"kind":"ref","name":"ContactKind"},"name":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateContactAddress":{"kind":"object","properties":{"address_country":{"kind":"string"},"address_locality":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"address_region":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"is_primary":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"postal_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"street_address":{"kind":"string"}},"additional":null},"CreateContactBankAccount":{"kind":"object","properties":{"account_number":{"kind":"string"},"bank_name":{"kind":"string"},"country":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"is_primary":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"swift":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateContactProfileLink":{"kind":"object","properties":{"label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"platform":{"kind":"string"},"url":{"kind":"string"}},"additional":null},"CreateContactRelationship":{"kind":"object","properties":{"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ownership_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"relationship_type":{"kind":"ref","name":"ContactRelationshipType"},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"to_contact_id":{"kind":"string"}},"additional":null},"CreateContactRole":{"kind":"object","properties":{"credit_limit":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"default_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_terms_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"risk_note":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role":{"kind":"ref","name":"ContactRoleKind"}},"additional":null},"CreateCustomCalendarEventRequest":{"kind":"object","properties":{"action_label":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"action_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"ref","name":"CalendarCategory"},"event_date":{"kind":"string"},"jurisdiction":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"severity":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"CalendarEventSeverity"}]},"summary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"string"}},"additional":null},"CreateCustomerSubscriptionRequest":{"kind":"object","properties":{"auto_renew":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"contact_id":{"kind":"string"},"current_period_end":{"kind":"string"},"current_period_start":{"kind":"string"},"mrr_value_minor":{"kind":"int64"},"next_billing_date":{"kind":"string"},"plan_id":{"kind":"string"}},"additional":null},"CreateDelivery":{"kind":"object","properties":{"carrier":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"delivery_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateDeliveryLine"}},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sales_document_id":{"kind":"string"},"ship_to_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"shipping_address_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tracking_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateDeliveryLine":{"kind":"object","properties":{"description":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"sales_document_line_id":{"kind":"string"}},"additional":null},"CreateDimensionValue":{"kind":"object","properties":{"code":{"kind":"string"},"name":{"kind":"string"},"parent_value_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateDiscountRuleRequest":{"kind":"object","properties":{"discount_category":{"kind":"ref","name":"DiscountCategory"},"discount_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"effective_from":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fixed_discount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"margin_guard_floor_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"min_order_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"rule_name":{"kind":"string"}},"additional":null},"CreateEmployeePayrollProfileRequest":{"kind":"object","properties":{"allowances_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"base_salary_minor":{"kind":"int64"},"employee_name":{"kind":"string"},"npwp_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ptkp_status":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PtkpStatus"}]},"ter_category":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"TerCategory"}]}},"additional":null},"CreateEngagementRequest":{"kind":"object","properties":{"engagement_code":{"kind":"string"},"engagement_type":{"kind":"ref","name":"AuditEngagementType"}},"additional":null},"CreateExpenseClaim":{"kind":"object","properties":{"business_purpose":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"claim_date":{"kind":"string"},"claimant_contact_id":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateExpenseLine"}},"period_end":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_start":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateExpenseLine":{"kind":"object","properties":{"amount":{"kind":"string"},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"expense_date":{"kind":"string"},"tax_amount":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateFindingRequest":{"kind":"object","properties":{"content":{"kind":"ref","name":"AuditFindingContent"},"finding_code":{"kind":"string"}},"additional":null},"CreateFixedAsset":{"kind":"object","properties":{"acquired_date":{"kind":"string"},"asset_category_id":{"kind":"string"},"asset_class":{"kind":"ref","name":"FixedAssetClass"},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"cost":{"kind":"int64"},"custodian_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"depreciation_method":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"TreatmentMethod"}]},"depreciation_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"funding_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gl_asset":{"kind":"string"},"insurer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"parent_asset_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salvage":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"serial_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"useful_life_months":{"kind":"integer"}},"additional":null},"CreateGuestCounterparty":{"kind":"object","properties":{"display_name":{"kind":"string"}},"additional":null},"CreateIdentityRevisionRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registered_address":{"kind":"object","properties":{},"additional":null}},"additional":null},"CreateImportDeclaration":{"kind":"object","properties":{"authority_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"customs_currency":{"kind":"string"},"customs_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"declaration_date":{"kind":"string"},"declaration_number":{"kind":"string"},"duty_total":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"exchange_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"import_tax_total":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"incoterm":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateImportDeclarationLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"other_charges_total":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"port_of_entry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_ids":{"kind":"array","items":{"kind":"string"}}},"additional":null},"CreateImportDeclarationLine":{"kind":"object","properties":{"customs_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"description":{"kind":"string"},"duty_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"import_tax_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"imported_form":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"tariff_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateInventoryLocation":{"kind":"object","properties":{"is_primary":{"kind":"boolean"},"location_code":{"kind":"string"},"location_name":{"kind":"string"}},"additional":null},"CreateInventoryTransfer":{"kind":"object","properties":{"from_location_id":{"kind":"string"},"status":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"InventoryTransferStatus"}]},"to_location_id":{"kind":"string"},"transfer_date":{"kind":"string"},"transfer_number":{"kind":"string"}},"additional":null},"CreateInventoryTransformation":{"kind":"object","properties":{"abnormal_loss_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bom_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"consume":{"kind":"array","items":{"kind":"ref","name":"TransformationConsume"}},"kind":{"kind":"ref","name":"InventoryTransformationKind"},"produce":{"kind":"array","items":{"kind":"ref","name":"TransformationProduce"}},"transformation_date":{"kind":"string"}},"additional":null},"CreateInvitationRequest":{"kind":"object","properties":{"email":{"kind":"string"},"role_id":{"kind":"ref","name":"RoleId"}},"additional":null},"CreateItem":{"kind":"object","properties":{"aliases":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"kind":{"kind":"ref","name":"ItemKind"},"max_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"min_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"name":{"kind":"string"},"parent_item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"preferred_supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sale_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sale_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sku":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateLandedCostApportionment":{"kind":"object","properties":{"apportionment_date":{"kind":"string"},"basis":{"kind":"ref","name":"LandedCostBasis"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateLandedCostLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_id":{"kind":"string"}},"additional":null},"CreateLandedCostLine":{"kind":"object","properties":{"amount":{"kind":"string"},"capitalise":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"cost_type":{"kind":"ref","name":"LandedCostType"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"vendor_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateLead":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"estimated_deal_amount":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lead_code":{"kind":"string"},"lead_source":{"kind":"string"}},"additional":null},"CreateMemberBindingRequest":{"kind":"object","properties":{"basis_key":{"kind":"string"},"book_purpose":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"holding_company_book_id":{"kind":"string"},"perimeter_id":{"kind":"string"},"predecessor_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"presentation_currency":{"kind":"string"},"reporting_book_id":{"kind":"string"},"role":{"kind":"ref","name":"MemberBindingRole"}},"additional":null},"CreateMonthlyPayrollRunRequest":{"kind":"object","properties":{"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"total_bpjs_employee_minor":{"kind":"int64"},"total_bpjs_employer_minor":{"kind":"int64"},"total_gross_salary_minor":{"kind":"int64"},"total_pph21_withheld_minor":{"kind":"int64"}},"additional":null},"CreateMovementManifestRequest":{"kind":"object","properties":{"member_binding_version_id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"predecessor_manifest_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sharing_grant_version_id":{"kind":"string"}},"additional":null},"CreateOfficerRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"person":{"kind":"ref","name":"ContactReference"},"role":{"kind":"ref","name":"OfficerRole"},"supersedes_officer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateOwnershipStatementRequest":{"kind":"object","properties":{"beneficial":{"kind":"boolean"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"holder":{"kind":"ref","name":"HolderReference"},"instrument_class":{"kind":"string"},"percentage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"supersedes_statement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"units":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"voting_percentage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreatePayment":{"kind":"object","properties":{"amount":{"kind":"int64"},"bank_account_id":{"kind":"string"},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"direction":{"kind":"ref","name":"PaymentDirection"},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_date":{"kind":"string"},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreatePayrollLine":{"kind":"object","properties":{"allowances":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bank_account_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bonus":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bpjs_employee":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"bpjs_employer":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"employee_contact_id":{"kind":"string"},"gross":{"kind":"int64"},"other_deductions":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"overtime":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"pph21":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"CreatePayrollRun":{"kind":"object","properties":{"functional_currency":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CreatePayrollLine"}},"pay_date":{"kind":"string"},"period":{"kind":"string"}},"additional":null},"CreatePersonInCharge":{"kind":"object","properties":{"effective_from":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gender":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"gender_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"person_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"relationship_type":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ContactRelationshipType"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreatePocProjectBudgetRequest":{"kind":"object","properties":{"contract_value_minor":{"kind":"int64"},"project_id":{"kind":"string"},"total_budgeted_cost_minor":{"kind":"int64"}},"additional":null},"CreatePosTenderRefundRequest":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreatePosTenderRefundResponse":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"PosTenderRefundAllocationResponse"}},"finality":{"kind":"string"},"original_tender_id":{"kind":"string"},"posting_id":{"kind":"string"},"refund_id":{"kind":"string"}},"additional":null},"CreateProposalRequest":{"kind":"object","properties":{"proposal_code":{"kind":"string"}},"additional":null},"CreateProviderConnectionRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"integration_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"CreateProviderMerchantRouteRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"external_merchant_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"CreatePurchaseDocument":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"document_date":{"kind":"string"},"document_type":{"kind":"ref","name":"CreatePurchaseDocumentType"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreatePurchaseLine"}},"matched_po_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_receipt_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"prices_include_tax":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"vendor_invoice_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreatePurchaseDocumentType":{"kind":"enum","values":["purchase_order","bill","goods_receipt","debit_note"]},"CreatePurchaseLine":{"kind":"object","properties":{"description":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"discount_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"},"withholding_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateRegistrationRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"issuer":{"kind":"string"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"kind":{"kind":"ref","name":"RegistrationKind"},"registration_number":{"kind":"string"},"supersedes_registration_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateReversalRequest":{"kind":"object","properties":{"reason":{"kind":"string"},"reversal_financial_date":{"kind":"string"}},"additional":null},"CreateRoleRequest":{"kind":"object","properties":{"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"permission_group_id":{"kind":"string"},"suffix":{"kind":"string"}},"additional":null},"CreateSalesDocument":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"document_date":{"kind":"string"},"document_type":{"kind":"ref","name":"SalesDocumentType"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CreateSalesLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"prices_include_tax":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salesperson_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateSalesLine":{"kind":"object","properties":{"description":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"discount_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"revenue_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"},"withholding_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateSalesOpportunityRequest":{"kind":"object","properties":{"assigned_sales_rep_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"estimated_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"opportunity_name":{"kind":"string"},"pipeline_stage":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"SalesPipelineStage"}]},"win_probability_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"CreateSalesQuoteRequest":{"kind":"object","properties":{"contact_id":{"kind":"string"},"expiry_date":{"kind":"string"},"grand_total_minor":{"kind":"int64"},"opportunity_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"quote_number":{"kind":"string"},"subtotal_minor":{"kind":"int64"},"tax_total_minor":{"kind":"int64"}},"additional":null},"CreateSecretRequest":{"kind":"object","properties":{"disclosure":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"key":{"kind":"string"},"scope":{"kind":"ref","name":"ScopeRequest"},"source":{"kind":"ref","name":"SecretSourceKind"},"value":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateServiceBilling":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceBillingAllocationInput"}},"document_date":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreateServiceContractAssessment":{"kind":"object","properties":{"classification":{"kind":"ref","name":"ServiceRevenueClassification"},"contract_modification":{"kind":"boolean"},"currency":{"kind":"string"},"fixed_transaction_price":{"kind":"int64"},"paragraph_35_a_met":{"kind":"boolean"},"paragraph_35_b_met":{"kind":"boolean"},"paragraph_35_c_met":{"kind":"boolean"},"performance_obligations":{"kind":"array","items":{"kind":"ref","name":"ServicePerformanceObligationInput"}},"principal_agent_issue":{"kind":"boolean"},"qualified_assessment_reference":{"kind":"string"},"qualified_assessment_sha256":{"kind":"string"},"variable_consideration":{"kind":"boolean"}},"additional":null},"CreateServiceFakturMonetaryAssessment":{"kind":"object","properties":{"aggregation_level":{"kind":"string"},"calculation_contract_identity":{"kind":"string"},"commercial_terms_reference":{"kind":"string"},"commercial_terms_sha256":{"kind":"string"},"currency":{"kind":"string"},"dpp":{"kind":"int64"},"dpp_method":{"kind":"ref","name":"ServiceFakturDppMethod"},"dpp_method_version":{"kind":"string"},"faktur_evidence_reference":{"kind":"string"},"faktur_evidence_sha256":{"kind":"string"},"faktur_status":{"kind":"ref","name":"ServiceFakturStatus"},"gross_customer_amount":{"kind":"int64"},"nominal_ppn_rate_basis_points":{"kind":"integer"},"official_source_checked_on":{"kind":"string"},"official_source_reference":{"kind":"string"},"official_source_sha256":{"kind":"string"},"output_ppn":{"kind":"int64"},"penggantian":{"kind":"int64"},"rounding_contract_reference":{"kind":"string"},"rounding_contract_sha256":{"kind":"string"},"rounding_mode":{"kind":"ref","name":"ServiceFakturRoundingMode"},"service_invoice_id":{"kind":"string"},"service_tax_point_assessment_id":{"kind":"string"}},"additional":null},"CreateServiceFulfillment":{"kind":"object","properties":{"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ServiceFulfillmentLineInput"}},"performed_from":{"kind":"string"},"performed_through":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"CreateServiceRecognitionReadinessAssessment":{"kind":"object","properties":{"obligation_satisfactions":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationSatisfactionInput"}},"tax_point_assessments":{"kind":"array","items":{"kind":"ref","name":"ServiceTaxPointAssessmentInput"}}},"additional":null},"CreateSharingGrantRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_locator":{"kind":"string"},"evidence_sha256":{"kind":"string"},"member_binding_version_id":{"kind":"string"},"predecessor_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateSubscriptionPlanRequest":{"kind":"object","properties":{"billing_interval":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"plan_code":{"kind":"string"},"plan_name":{"kind":"string"},"price_minor":{"kind":"int64"}},"additional":null},"CreateSupplierQuote":{"kind":"object","properties":{"connector_idempotency_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"external_company_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_content_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_party_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_quote_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_revision_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"SupplierQuoteLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"source_system":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"supplier_reference":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"CreateTemplateDefinitionRequest":{"kind":"object","properties":{"category":{"kind":"ref","name":"TemplateCategory"},"locale":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"source_capability":{"kind":"ref","name":"TemplateSourceCapability"},"template_key":{"kind":"string"},"variable_schema":{"kind":"value"}},"additional":null},"CreateTemplateVersionRequest":{"kind":"object","properties":{"content_payload":{"kind":"string"},"style_metadata":{"kind":"value"},"subject_pattern":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"integer"}},"additional":null},"CreateTemporaryPostingLock":{"kind":"object","properties":{"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"string"}},"additional":null},"CreateTicketRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"initial_comment":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"priority":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"string"}},"additional":null},"CreateTreatmentRequest":{"kind":"object","properties":{"annual_rate_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"authority_reference":{"kind":"string"},"classification_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"method":{"kind":"ref","name":"TreatmentMethod"},"policy_reference":{"kind":"string"},"reason":{"kind":"string"},"residual_value":{"kind":"int64"},"useful_life_months":{"kind":"integer"}},"additional":null},"CreateUniversalContractRequest":{"kind":"object","properties":{"capital_ratio":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"contract_mode":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"UniversalContractMode"}]},"profit_split_ratio":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"CreateUserReferralCodeRequest":{"kind":"object","properties":{"custom_referral_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"CreateWealthPortfolioRequest":{"kind":"object","properties":{"asset_class":{"kind":"ref","name":"WealthPortfolioAssetClass"},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"current_valuation_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"family_group_id":{"kind":"string"},"portfolio_name":{"kind":"string"}},"additional":null},"CreateWebhookSubscriptionRequest":{"kind":"object","properties":{"event_types":{"kind":"array","items":{"kind":"string"}},"secret":{"kind":"string"},"target_url":{"kind":"string"}},"additional":null},"CreateWorkOrderRequest":{"kind":"object","properties":{"assigned_technician_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"customer_contact_id":{"kind":"string"},"description":{"kind":"string"},"estimated_cost_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"estimated_labor_hours":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"work_order_number":{"kind":"string"}},"additional":null},"CurrencyLayer":{"kind":"enum","values":["functional","identity","revaluation"]},"CustomerApiDiscovery":{"kind":"object","properties":{"aggregate_digest_sha256":{"kind":"string"},"aggregate_revision":{"kind":"string"},"operations":{"kind":"array","items":{"kind":"ref","name":"DiscoveredOperation"}},"release_channel":{"kind":"ref","name":"ApiReleaseChannel"}},"additional":null},"CustomerEnvironmentKind":{"kind":"enum","values":["development","staging","production"]},"CustomerEnvironmentList":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"CustomerEnvironmentView"}}},"additional":null},"CustomerEnvironmentState":{"kind":"enum","values":["provisioning","ready","suspended","archived","closed"]},"CustomerEnvironmentView":{"kind":"object","properties":{"binding_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"id":{"kind":"string"},"kind":{"kind":"ref","name":"CustomerEnvironmentKind"},"state":{"kind":"ref","name":"CustomerEnvironmentState"},"workspace_id":{"kind":"string"}},"additional":null},"CustomerLoyaltyAccountStatus":{"kind":"enum","values":["active"]},"CustomerLoyaltyAccountView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"current_points_balance":{"kind":"int64"},"customer_contact_id":{"kind":"string"},"id":{"kind":"string"},"lifetime_points_earned":{"kind":"int64"},"status":{"kind":"ref","name":"CustomerLoyaltyAccountStatus"},"tenant_id":{"kind":"string"},"tier_level":{"kind":"ref","name":"LoyaltyTierLevel"}},"additional":null},"CustomerLoyaltyPointsResultView":{"kind":"object","properties":{"account":{"kind":"ref","name":"CustomerLoyaltyAccountView"},"entry":{"kind":"ref","name":"PointLedgerEntryView"}},"additional":null},"CustomerQuote":{"kind":"object","properties":{"accepted_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"customer_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_number":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"CustomerQuoteLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"revision_number":{"kind":"int64"},"revision_of_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"QuoteState"},"subtotal":{"kind":"int64"},"terms":{"kind":"string"},"updated_at":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"CustomerQuoteConversion":{"kind":"object","properties":{"conversion_id":{"kind":"string"},"sales_order":{"kind":"ref","name":"CommercialSalesOrder"},"source_quote_id":{"kind":"string"}},"additional":null},"CustomerQuoteLifecycleRequest":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"target_status":{"kind":"ref","name":"QuoteState"}},"additional":null},"CustomerQuoteLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"CustomerQuoteLineRequest":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"CustomerQuoteRequest":{"kind":"object","properties":{"contact_id":{"kind":"string"},"currency":{"kind":"string"},"customer_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"CustomerQuoteLineRequest"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"terms":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"CustomerStatus":{"kind":"enum","values":["pending","accepted","rejected"]},"CustomerSubscriptionStatus":{"kind":"enum","values":["active"]},"CustomerSubscriptionView":{"kind":"object","properties":{"auto_renew":{"kind":"boolean"},"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"current_period_end":{"kind":"string"},"current_period_start":{"kind":"string"},"id":{"kind":"string"},"mrr_value_minor":{"kind":"int64"},"next_billing_date":{"kind":"string"},"plan_id":{"kind":"string"},"status":{"kind":"ref","name":"CustomerSubscriptionStatus"},"tenant_id":{"kind":"string"}},"additional":null},"DataSovereigntyExportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"download_url":{"kind":"string"},"expires_at":{"kind":"string"},"export_format":{"kind":"string"},"export_id":{"kind":"string"}},"additional":null},"DecideConnection":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DecideProviderSettlementBankMatch":{"kind":"object","properties":{"action":{"kind":"ref","name":"ProviderSettlementBankMatchAction"},"expected_current_decision_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"settlement_financial_effect_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"Decision":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"Delivery":{"kind":"object","properties":{"carrier":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"delivery_date":{"kind":"string"},"delivery_number":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"DeliveryLine"}},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sales_document_id":{"kind":"string"},"ship_to_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"shipping_address_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"DeliveryStatus"},"tracking_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"DeliveryLine":{"kind":"object","properties":{"description":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"sales_document_line_id":{"kind":"string"}},"additional":null},"DeliveryList":{"kind":"object","properties":{"deliveries":{"kind":"array","items":{"kind":"ref","name":"Delivery"}}},"additional":null},"DeliveryState":{"kind":"enum","values":["pending","delivered","failed"]},"DeliveryStatus":{"kind":"enum","values":["pending","shipped","delivered","returned"]},"DepreciateRequest":{"kind":"object","properties":{"book_ids":{"kind":"array","items":{"kind":"string"}},"through":{"kind":"string"}},"additional":null},"DepreciationBatchStatus":{"kind":"enum","values":["batch_completed"]},"DepreciationResult":{"kind":"object","properties":{"asset_id":{"kind":"string"},"books":{"kind":"array","items":{"kind":"ref","name":"BookDepreciationResultView"}}},"additional":null},"DetectBankStatement":{"kind":"object","properties":{"file_content":{"kind":"string"}},"additional":null},"DetectedBankStatementMapping":{"kind":"object","properties":{"delimiter":{"kind":"string"},"has_header_row":{"kind":"boolean"},"headers":{"kind":"array","items":{"kind":"string"}},"preview_rows":{"kind":"array","items":{"kind":"array","items":{"kind":"string"}}},"suggested_mapping":{"kind":"value"},"warnings":{"kind":"array","items":{"kind":"string"}}},"additional":null},"DeveloperKeyItem":{"kind":"object","properties":{"created_at":{"kind":"string"},"environment":{"kind":"string"},"id":{"kind":"string"},"key_name":{"kind":"string"},"key_prefix":{"kind":"string"},"last_used_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"last_used_ip":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"retiring_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoke_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoked_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"scopes":{"kind":"array","items":{"kind":"string"}},"status":{"kind":"ref","name":"DeveloperKeyStatus"},"total_requests":{"kind":"int64"}},"additional":null},"DeveloperKeyMetricsItem":{"kind":"object","properties":{"environment":{"kind":"string"},"key_id":{"kind":"string"},"key_name":{"kind":"string"},"key_prefix":{"kind":"string"},"owner_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"DeveloperKeyStatus"},"total_api_requests":{"kind":"int64"},"total_companies_created":{"kind":"int64"},"total_gmv_amount":{"kind":"int64"},"total_pos_transactions":{"kind":"int64"}},"additional":null},"DeveloperKeyStatus":{"kind":"enum","values":["active","retiring","suspended","revoked","expired"]},"DeviceSyncStatusView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"company_book_id":{"kind":"string"},"last_synced_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"pending_queue_count":{"kind":"int64"},"records":{"kind":"array","items":{"kind":"ref","name":"SyncOfflineRecordView"}},"total_synced_count":{"kind":"int64"}},"additional":null},"DimensionDefinition":{"kind":"object","properties":{"active":{"kind":"boolean"},"applies_to":{"kind":"string"},"code":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"kind":{"kind":"ref","name":"DimensionKind"},"name":{"kind":"string"},"system_seed":{"kind":"boolean"},"updated_at":{"kind":"string"}},"additional":null},"DimensionDefinitionList":{"kind":"object","properties":{"definitions":{"kind":"array","items":{"kind":"ref","name":"DimensionDefinition"}}},"additional":null},"DimensionKind":{"kind":"enum","values":["context","classification"]},"DimensionRequirementInput":{"kind":"object","properties":{"account_class":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AccountClass"}]},"account_role":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"definition_id":{"kind":"string"},"document_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"line_context":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"string"},"required":{"kind":"boolean"},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DimensionRequirementView":{"kind":"object","properties":{"account_class":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AccountClass"}]},"account_role":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"changed_by":{"kind":"string"},"created_at":{"kind":"string"},"definition_id":{"kind":"string"},"document_type":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"id":{"kind":"string"},"line_context":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"string"},"required":{"kind":"boolean"},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"int64"}},"additional":null},"DimensionValue":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"created_at":{"kind":"string"},"definition_id":{"kind":"string"},"id":{"kind":"string"},"name":{"kind":"string"},"parent_value_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"}},"additional":null},"DimensionValueList":{"kind":"object","properties":{"values":{"kind":"array","items":{"kind":"ref","name":"DimensionValue"}}},"additional":null},"DirectoryProfile":{"kind":"object","properties":{"display_name":{"kind":"string"},"handle":{"kind":"string"},"verified":{"kind":"boolean"}},"additional":null},"DisburseH2hIso20022PaymentRequest":{"kind":"object","properties":{"bank_code":{"kind":"string"},"creditor_account_number":{"kind":"string"},"creditor_name":{"kind":"string"},"currency":{"kind":"string"},"debtor_account_number":{"kind":"string"},"end_to_end_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_message_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"instructed_amount_minor":{"kind":"int64"},"raw_pain001_xml":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DisburseH2hIso20022PaymentView":{"kind":"object","properties":{"bank_code":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"disbursed_at":{"kind":"string"},"external_message_id":{"kind":"string"},"id":{"kind":"string"},"instructed_amount_minor":{"kind":"int64"},"message_type":{"kind":"ref","name":"Iso20022MessageType"},"status":{"kind":"ref","name":"H2hDisbursementStatus"},"tenant_id":{"kind":"string"}},"additional":null},"DisburseSalaryPayoutsRequest":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"payroll_run_id":{"kind":"string"}},"additional":null},"DisburseSalaryPayoutsView":{"kind":"object","properties":{"bank_account_id":{"kind":"string"},"company_book_id":{"kind":"string"},"disbursed_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payroll_run_id":{"kind":"string"},"status":{"kind":"ref","name":"PayrollRunStatus"},"total_net_disbursed_minor":{"kind":"int64"}},"additional":null},"DiscountCategory":{"kind":"enum","values":["early_settlement","volume_tier","trade_contract","promotional_campaign","channel_partner"]},"DiscountQuoteStatus":{"kind":"enum","values":["APPROVED","MARGIN_GUARD_VIOLATION"]},"DiscountRuleView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"discount_category":{"kind":"ref","name":"DiscountCategory"},"discount_percentage":{"kind":"number"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fixed_discount_minor":{"kind":"int64"},"id":{"kind":"string"},"margin_guard_floor_percentage":{"kind":"number"},"min_order_value_minor":{"kind":"int64"},"rule_name":{"kind":"string"}},"additional":null},"DiscoveredOperation":{"kind":"object","properties":{"operation_id":{"kind":"string"},"support_state":{"kind":"ref","name":"SupportState"}},"additional":null},"DispatchSleekSignDocumentRequest":{"kind":"object","properties":{"custom_message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_title":{"kind":"string"},"document_type":{"kind":"string"},"recipient_email":{"kind":"string"},"recipient_name":{"kind":"string"}},"additional":null},"DisposeFixedAssetRequest":{"kind":"object","properties":{"disposal_date":{"kind":"string"},"disposal_proceeds_minor":{"kind":"int64"},"gain_loss_account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"proceeds_account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DisposeRequest":{"kind":"object","properties":{"date":{"kind":"string"},"proceeds":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"DisputeSalesInvoiceRequest":{"kind":"object","properties":{"dispute_reason":{"kind":"string"},"disputed_amount_minor":{"kind":"int64"},"payer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DisputeSalesInvoiceResultView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"dispute_reason":{"kind":"string"},"dispute_sub_invoice_id":{"kind":"string"},"disputed_amount_minor":{"kind":"int64"},"id":{"kind":"string"},"original_invoice_id":{"kind":"string"},"status":{"kind":"ref","name":"SalesInvoiceDisputeStatus"},"tenant_id":{"kind":"string"}},"additional":null},"DistributePartnerProfitRequest":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_contact_id":{"kind":"string"},"payout_amount_minor":{"kind":"int64"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"source_bank_account_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"DivisionAuditPaperSummary":{"kind":"object","properties":{"auditor_role":{"kind":"ref","name":"AuditorRole"},"division_code":{"kind":"string"},"papers":{"kind":"array","items":{"kind":"ref","name":"AuditorWorkingPaperView"}},"total_working_papers":{"kind":"int64"}},"additional":null},"DocumentActiveEditorView":{"kind":"object","properties":{"display_name":{"kind":"string"},"editing_since":{"kind":"string"},"email":{"kind":"string"},"lock_expires_at":{"kind":"string"},"principal_id":{"kind":"string"}},"additional":null},"DocumentActiveViewerView":{"kind":"object","properties":{"display_name":{"kind":"string"},"email":{"kind":"string"},"principal_id":{"kind":"string"},"viewing_since":{"kind":"string"}},"additional":null},"DocumentLockView":{"kind":"object","properties":{"document_id":{"kind":"string"},"document_type":{"kind":"ref","name":"LockableDocumentType"},"expires_at":{"kind":"string"},"lock_id":{"kind":"string"},"locked_at":{"kind":"string"},"locked_by_display_name":{"kind":"string"},"locked_by_email":{"kind":"string"},"locked_by_principal_id":{"kind":"string"},"minutes_remaining":{"kind":"int64"}},"additional":null},"DocumentLockedErrorResponse":{"kind":"object","properties":{"error":{"kind":"string"},"lock_holder":{"kind":"ref","name":"LockHolderInfo"},"message":{"kind":"string"}},"additional":null},"DocumentPresenceView":{"kind":"object","properties":{"active_editor":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"DocumentActiveEditorView"}]},"active_viewers":{"kind":"array","items":{"kind":"ref","name":"DocumentActiveViewerView"}},"document_id":{"kind":"string"},"document_type":{"kind":"ref","name":"LockableDocumentType"}},"additional":null},"DocumentSettlementStatus":{"kind":"enum","values":["unsettled","partially_settled","settled","overpaid"]},"DocumentUnlockResultView":{"kind":"object","properties":{"document_id":{"kind":"string"},"document_type":{"kind":"ref","name":"LockableDocumentType"},"unlocked":{"kind":"boolean"}},"additional":null},"EarlyAccessAdmissionScope":{"kind":"enum","values":["flagship-pos-demo"]},"EarlyAccessAdmissionStatus":{"kind":"enum","values":["active","suspended","revoked"]},"EarnCustomerLoyaltyPointsRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"string"},"points":{"kind":"int64"},"reference_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unearned_liability_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"EcosystemBilateralTradeView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"counterparty_book_uri":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"inbound_purchase_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"outbound_sales_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"proof_sentinel_hash":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"EfakturCsvExportView":{"kind":"object","properties":{"batch_id":{"kind":"string"},"company_book_id":{"kind":"string"},"csv_content":{"kind":"string"},"exported_at":{"kind":"string"},"total_documents":{"kind":"int64"}},"additional":null},"EfakturDocumentStatus":{"kind":"enum","values":["draft"]},"EfakturDocumentView":{"kind":"object","properties":{"buyer_name":{"kind":"string"},"buyer_npwp":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"dpp_amount_minor":{"kind":"int64"},"efaktur_status":{"kind":"ref","name":"EfakturDocumentStatus"},"id":{"kind":"string"},"nsfp_assigned_number":{"kind":"string"},"ppn_amount_minor":{"kind":"int64"},"qr_code_verification_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sales_invoice_id":{"kind":"string"}},"additional":null},"EfakturFtzExportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"csv_payload":{"kind":"string"},"generated_at":{"kind":"string"},"tax_period":{"kind":"string"},"total_gross_amount_minor":{"kind":"int64"},"total_records":{"kind":"integer"},"total_tax_amount_minor":{"kind":"int64"}},"additional":null},"Eligibility":{"kind":"enum","values":["current","expired","unavailable"]},"EmployeePayrollProfileStatus":{"kind":"enum","values":["active"]},"EmployeePayrollProfileView":{"kind":"object","properties":{"allowances_minor":{"kind":"int64"},"base_salary_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"employee_name":{"kind":"string"},"id":{"kind":"string"},"npwp_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ptkp_status":{"kind":"ref","name":"PtkpStatus"},"status":{"kind":"ref","name":"EmployeePayrollProfileStatus"},"ter_category":{"kind":"ref","name":"TerCategory"}},"additional":null},"EnableCompanyLegalHoldRequest":{"kind":"object","properties":{"case_reference_number":{"kind":"string"},"gdpr_deletion_override":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"merkle_evidence_root_hash":{"kind":"string"}},"additional":null},"EngineDiscrepancy":{"kind":"object","properties":{"account_id":{"kind":"string"},"engine_account_id":{"kind":"string"},"engine_credit_normal_minor":{"kind":"integer"},"journal_credit_normal_minor":{"kind":"integer"},"kind":{"kind":"ref","name":"EngineDiscrepancyKind"}},"additional":null},"EngineDiscrepancyKind":{"kind":"enum","values":["mismatched","extra_in_journal","missing_in_journal"]},"EnqueueExportJobRequest":{"kind":"object","properties":{"format":{"kind":"string"},"parameters":{"kind":"value"},"report_type":{"kind":"ref","name":"ExportReportType"}},"additional":null},"EnrollBetaChannelRequest":{"kind":"object","properties":{"connector_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"enrolled_channel":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"invite_code_or_token":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"EnrollBetaChannelView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"connector_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"enrolled_at":{"kind":"string"},"enrolled_channel":{"kind":"ref","name":"BetaReleaseChannel"},"enrollment_id":{"kind":"string"},"status":{"kind":"ref","name":"BetaEnrollmentStatus"}},"additional":null},"EnterpriseDivisionAuditMatrixView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"divisions":{"kind":"array","items":{"kind":"ref","name":"DivisionAuditPaperSummary"}},"fiscal_period":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"fiscal_year":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"total_papers":{"kind":"int64"}},"additional":null},"EntityHierarchyReparentingView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"new_parent_book_id":{"kind":"string"},"previous_parent_book_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reparented_by_principal_id":{"kind":"string"},"reparenting_reason":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"EquityMovementLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"integer"},"label":{"kind":"string"}},"additional":null},"ErrorEnvelope":{"kind":"object","properties":{"error":{"kind":"ref","name":"ApiError"}},"additional":null},"EvaluateDiscountQuoteRequest":{"kind":"object","properties":{"discount_rule_ids":{"kind":"array","items":{"kind":"string"}},"estimated_cogs_minor":{"kind":"int64"},"gross_order_value_minor":{"kind":"int64"},"manual_discount_percentage":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"manual_fixed_discount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"EvaluateDiscountQuoteView":{"kind":"object","properties":{"applied_rule_ids":{"kind":"array","items":{"kind":"string"}},"estimated_cogs_minor":{"kind":"int64"},"gross_margin_percentage":{"kind":"number"},"gross_order_value_minor":{"kind":"int64"},"gross_profit_minor":{"kind":"int64"},"margin_guard_floor_percentage":{"kind":"number"},"margin_guard_passed":{"kind":"boolean"},"max_permissible_discount_minor":{"kind":"int64"},"net_order_value_minor":{"kind":"int64"},"status":{"kind":"ref","name":"DiscountQuoteStatus"},"total_discount_minor":{"kind":"int64"}},"additional":null},"EvidenceInput":{"kind":"object","properties":{"evidence_type":{"kind":"string"},"integrity_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"locator":{"kind":"string"},"originating_capability":{"kind":"string"}},"additional":null},"EvidenceRefInput":{"kind":"object","properties":{"evidence_reference_id":{"kind":"string"}},"additional":null},"EvidenceReference":{"kind":"object","properties":{"kind":{"kind":"string"},"locator":{"kind":"string"},"sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ExecuteBilateralTradeRequest":{"kind":"object","properties":{"counterparty_book_uri":{"kind":"string"},"inbound_purchase_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"outbound_sales_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"proof_sentinel_hash":{"kind":"string"},"status":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ExecutionMode":{"kind":"enum","values":["stateless","stateful","legacy_adapter"]},"ExpenseClaim":{"kind":"object","properties":{"business_purpose":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"claim_date":{"kind":"string"},"claim_number":{"kind":"string"},"claimant_contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ExpenseLine"}},"period_end":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_start":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"ExpenseClaimStatus"},"subtotal":{"kind":"string"},"tax_total":{"kind":"string"},"total":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ExpenseClaimList":{"kind":"object","properties":{"claims":{"kind":"array","items":{"kind":"ref","name":"ExpenseClaim"}}},"additional":null},"ExpenseClaimStatus":{"kind":"enum","values":["draft","submitted","approved","posted","paid","cleared","rejected","withdrawn"]},"ExpenseLine":{"kind":"object","properties":{"amount":{"kind":"string"},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"expense_date":{"kind":"string"},"id":{"kind":"string"},"ordinal":{"kind":"integer"},"tax_amount":{"kind":"string"}},"additional":null},"ExperienceEntitlementStatus":{"kind":"enum","values":["trial","active","suspended"]},"ExperienceEntitlementView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"experience":{"kind":"string"},"granted_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"ExperienceEntitlementStatus"},"updated_at":{"kind":"string"}},"additional":null},"ExportDataSovereigntyRequest":{"kind":"object","properties":{"export_format":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"include_audit_trail":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"ExportEfakturFtzScheduleRequest":{"kind":"object","properties":{"include_ppftz_details":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"tax_period":{"kind":"string"}},"additional":null},"ExportFtaAuditFileRequest":{"kind":"object","properties":{"export_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_end":{"kind":"string"},"period_start":{"kind":"string"}},"additional":null},"ExportJobResponse":{"kind":"object","properties":{"artifact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"completed_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"error":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"format":{"kind":"string"},"generation_id":{"kind":"string"},"report_type":{"kind":"ref","name":"ExportReportType"},"status":{"kind":"ref","name":"ExportJobStatus"}},"additional":null},"ExportJobStatus":{"kind":"enum","values":["queued","running","ready","failed"]},"ExportReportType":{"kind":"enum","values":["trial_balance"]},"FederatedNodeSyncView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"endpoint_uri":{"kind":"string"},"id":{"kind":"string"},"last_synced_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"node_deployment_mode":{"kind":"string"},"node_name":{"kind":"string"},"public_key_fingerprint":{"kind":"string"},"status":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"FinancialInsightsSummary":{"kind":"object","properties":{"kpis":{"kind":"ref","name":"FinancialKpiMetrics"},"payables_aging_summary":{"kind":"ref","name":"AgingBucketSummary"},"provenance":{"kind":"ref","name":"FinancialTruthProvenance"},"receivables_aging_summary":{"kind":"ref","name":"AgingBucketSummary"}},"additional":null},"FinancialKpiMetrics":{"kind":"object","properties":{"burn_rate_monthly":{"kind":"int64"},"capital_efficiency_index":{"kind":"number"},"fcf_margin_pct":{"kind":"number"},"gross_margin_pct":{"kind":"number"},"liquid_cash":{"kind":"int64"},"net_income":{"kind":"int64"},"revenue":{"kind":"int64"},"runway_months":{"kind":"integer"}},"additional":null},"FinancialLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"int64"},"direction":{"kind":"string"},"entry_description":{"kind":"string"},"financial_date":{"kind":"string"},"journal_entry_id":{"kind":"string"},"line_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_ordinal":{"kind":"integer"},"posting_id":{"kind":"string"},"posting_time":{"kind":"string"}},"additional":null},"FinancialLineList":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"FinancialLine"}}},"additional":null},"FinancialTruthProvenance":{"kind":"object","properties":{"as_of_timestamp":{"kind":"string"},"provenance_ref":{"kind":"string"},"reconciled_status":{"kind":"ref","name":"FinancialTruthReconciledStatus"}},"additional":null},"FinancialTruthReconciledStatus":{"kind":"enum","values":["reconciled"]},"FindingDispositionRequest":{"kind":"object","properties":{"disposition":{"kind":"ref","name":"AuditFindingDisposition"},"reason":{"kind":"string"}},"additional":null},"FixedAsset":{"kind":"object","properties":{"accumulated_depreciation":{"kind":"int64"},"accumulated_impairment":{"kind":"int64"},"accumulated_revaluation":{"kind":"int64"},"acquired_date":{"kind":"string"},"active":{"kind":"boolean"},"asset_category_id":{"kind":"string"},"asset_class":{"kind":"ref","name":"FixedAssetClass"},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"cost":{"kind":"int64"},"created_at":{"kind":"string"},"custodian_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"depreciated_through":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"depreciation_method":{"kind":"ref","name":"TreatmentMethod"},"depreciation_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"disposal_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"disposal_proceeds":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"funding_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gl_asset":{"kind":"string"},"id":{"kind":"string"},"insurance_expiry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"insurance_policy_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"insured_value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"insurer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"net_book_value":{"kind":"int64"},"parent_asset_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"placed_in_service_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salvage":{"kind":"int64"},"serial_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"FixedAssetStatus"},"supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"string"},"useful_life_months":{"kind":"integer"},"warranty_expiry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"warranty_terms":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"FixedAssetClass":{"kind":"enum","values":["tangible_ppe","intangible","investment_property","right_of_use","biological","other"]},"FixedAssetDisposalResultView":{"kind":"object","properties":{"accumulated_depreciation_minor":{"kind":"int64"},"acquisition_cost_minor":{"kind":"int64"},"asset_id":{"kind":"string"},"company_book_id":{"kind":"string"},"disposal_date":{"kind":"string"},"disposal_proceeds_minor":{"kind":"int64"},"disposed_at":{"kind":"string"},"gain_loss_minor":{"kind":"int64"},"net_book_value_minor":{"kind":"int64"},"status":{"kind":"ref","name":"FixedAssetStatus"}},"additional":null},"FixedAssetList":{"kind":"object","properties":{"assets":{"kind":"array","items":{"kind":"ref","name":"FixedAsset"}}},"additional":null},"FixedAssetReconciliation":{"kind":"object","properties":{"difference":{"kind":"int64"},"gl_accumulated_depreciation":{"kind":"int64"},"gl_asset_cost":{"kind":"int64"},"gl_net_book_value":{"kind":"int64"},"reconciled":{"kind":"boolean"},"register_accumulated_depreciation":{"kind":"int64"},"register_cost":{"kind":"int64"},"register_net_book_value":{"kind":"int64"}},"additional":null},"FixedAssetStatus":{"kind":"enum","values":["active","disposed","impaired","revalued"]},"FrozenComponentAllocation":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"quote_line_id":{"kind":"string"}},"additional":null},"FrozenQuoteComponent":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"FrozenComponentAllocation"}},"amount_minor":{"kind":"string"},"basis_minor":{"kind":"string"},"beneficiary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"calculation_snapshot":{"kind":"value"},"component_id":{"kind":"string"},"component_kind":{"kind":"ref","name":"PosSaleQuoteComponentKind"},"funding_party":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ordinal":{"kind":"integer"},"semantic_account_role":{"kind":"string"}},"additional":null},"FrozenQuoteLine":{"kind":"object","properties":{"base_amount_minor":{"kind":"string"},"discount_allocated_minor":{"kind":"string"},"item_id":{"kind":"string"},"item_snapshot":{"kind":"value"},"modifier_ids":{"kind":"array","items":{"kind":"string"}},"ordinal":{"kind":"integer"},"price_version_id":{"kind":"string"},"quantity":{"kind":"int64"},"unit_price_minor":{"kind":"string"}},"additional":null},"FrozenQuotePolicy":{"kind":"object","properties":{"policy_version_id":{"kind":"string"},"resolution_ordinal":{"kind":"integer"},"resolved_basis":{"kind":"value"}},"additional":null},"FrozenQuotePromotion":{"kind":"object","properties":{"promotion_version_id":{"kind":"string"},"redemption_snapshot":{"kind":"value"}},"additional":null},"FrozenQuoteReceipt":{"kind":"object","properties":{"amount_due_minor":{"kind":"string"},"components":{"kind":"array","items":{"kind":"ref","name":"FrozenQuoteComponent"}},"currency":{"kind":"string"},"digest_sha256":{"kind":"string"},"expires_at":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"FrozenQuoteLine"}},"policies":{"kind":"array","items":{"kind":"ref","name":"FrozenQuotePolicy"}},"preset_id":{"kind":"string"},"preset_version":{"kind":"int64"},"promotions":{"kind":"array","items":{"kind":"ref","name":"FrozenQuotePromotion"}},"quote_id":{"kind":"string"},"revision":{"kind":"int64"}},"additional":null},"FtaAuditFileExportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"export_id":{"kind":"string"},"file_format":{"kind":"string"},"generated_file_content":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"sha256_checksum":{"kind":"string"},"total_general_ledger_records":{"kind":"int64"},"total_purchase_records":{"kind":"int64"},"total_sales_records":{"kind":"int64"},"trn_number":{"kind":"string"}},"additional":null},"FtaVat201ReportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"corporate_tax_applicable_rate_pct":{"kind":"number"},"corporate_tax_threshold_minor":{"kind":"int64"},"currency":{"kind":"string"},"exempt_supplies_amount_minor":{"kind":"int64"},"is_qfzp":{"kind":"boolean"},"net_vat_due_minor":{"kind":"int64"},"reverse_charge_expenses_amount_minor":{"kind":"int64"},"reverse_charge_expenses_recoverable_vat_minor":{"kind":"int64"},"reverse_charge_supplies_amount_minor":{"kind":"int64"},"reverse_charge_supplies_vat_minor":{"kind":"int64"},"standard_rated_expenses_amount_minor":{"kind":"int64"},"standard_rated_expenses_recoverable_vat_minor":{"kind":"int64"},"standard_rated_supplies_amount_minor":{"kind":"int64"},"standard_rated_supplies_vat_minor":{"kind":"int64"},"tax_period_end":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_period_start":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_output_tax_minor":{"kind":"int64"},"total_recoverable_tax_minor":{"kind":"int64"},"tourist_tax_refunds_vat_minor":{"kind":"int64"},"trn_number":{"kind":"string"},"zero_rated_supplies_amount_minor":{"kind":"int64"}},"additional":null},"GenerateBillableHoursInvoiceRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"project_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"GenerateEfakturDocumentRequest":{"kind":"object","properties":{"buyer_name":{"kind":"string"},"buyer_npwp":{"kind":"string"},"dpp_amount_minor":{"kind":"int64"},"ppn_amount_minor":{"kind":"int64"},"sales_invoice_id":{"kind":"string"}},"additional":null},"GovernedPosTenderOutcome":{"kind":"enum","values":["awaiting_provider_confirmation","pending_dispatch","outcome_unknown","applied","definitively_rejected"]},"GovernedPosTenderOutcomeResponse":{"kind":"object","properties":{"accepted_tender_effect_key":{"kind":"string"},"amount_minor":{"kind":"string"},"currency":{"kind":"string"},"order_id":{"kind":"string"},"outcome":{"kind":"ref","name":"GovernedPosTenderOutcome"},"posting_finality":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_source_capability":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PosTenderPostingSourceCapability"}]},"posting_source_object_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_stable_effect_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_event_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_event_receipt_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provider_occurred_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tender_id":{"kind":"string"}},"additional":null},"GuestCounterparty":{"kind":"object","properties":{"claim_token":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"claimed":{"kind":"boolean"},"display_name":{"kind":"string"},"held_document_count":{"kind":"int64"},"id":{"kind":"string"}},"additional":null},"H2hDisbursementStatus":{"kind":"enum","values":["disbursed"]},"H2hStatementProcessedStatus":{"kind":"enum","values":["ingested"]},"HolderKind":{"kind":"enum","values":["contact","company"]},"HolderReference":{"kind":"object","properties":{"company_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ContactReference"}]},"kind":{"kind":"ref","name":"HolderKind"}},"additional":null},"HoldingAuditSampleStatus":{"kind":"enum","values":["sampled_pending_review"]},"HoldingAuditSampleView":{"kind":"object","properties":{"audit_entity_level":{"kind":"string"},"audit_status":{"kind":"ref","name":"HoldingAuditSampleStatus"},"created_at":{"kind":"string"},"holding_perimeter_id":{"kind":"string"},"id":{"kind":"string"},"sample_rule_name":{"kind":"string"},"sampled_by_principal_id":{"kind":"string"},"sampled_journal_id":{"kind":"string"},"subsidiary_company_book_id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"HubAppCategory":{"kind":"enum","values":["pos_retail","erp_accounting","payroll_hr","inventory_warehouse","crm_sales","industry_specific","general","ecommerce_pos","supply_chain"]},"HubAppStatus":{"kind":"enum","values":["draft","submitted","in_review","published","rejected","deprecated"]},"HubAppType":{"kind":"enum","values":["first_party_app","third_party_saas","mobile_app","desktop_client","headless_extension"]},"HubAppView":{"kind":"object","properties":{"app_type":{"kind":"ref","name":"HubAppType"},"app_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"author_name":{"kind":"string"},"built_by_tier":{"kind":"ref","name":"BuiltByTier"},"category":{"kind":"ref","name":"HubAppCategory"},"created_at":{"kind":"string"},"demo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"developer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"execution_mode":{"kind":"ref","name":"ExecutionMode"},"icon_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_official":{"kind":"boolean"},"last_maintained_at":{"kind":"string"},"maintenance_status":{"kind":"ref","name":"MaintenanceStatus"},"name":{"kind":"string"},"pricing_model":{"kind":"string"},"slug":{"kind":"string"},"status":{"kind":"ref","name":"HubAppStatus"},"summary":{"kind":"string"},"verified_badge":{"kind":"boolean"},"version":{"kind":"string"}},"additional":null},"HubConnectorCategory":{"kind":"enum","values":["banking","payment","tax","shipping","pos","iot","crm","ai_agents","custom","mcp_servers","agent_skills","agent_personas","compliance","developer_tooling","accounting","ecommerce","payroll_hr"]},"HubConnectorStatus":{"kind":"enum","values":["draft","submitted","in_review","approved","published","rejected","deprecated"]},"HubConnectorView":{"kind":"object","properties":{"author_name":{"kind":"string"},"built_by_tier":{"kind":"ref","name":"BuiltByTier"},"category":{"kind":"ref","name":"HubConnectorCategory"},"created_at":{"kind":"string"},"description":{"kind":"string"},"developer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"documentation_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"execution_mode":{"kind":"ref","name":"ExecutionMode"},"icon_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_official":{"kind":"boolean"},"last_maintained_at":{"kind":"string"},"maintenance_status":{"kind":"ref","name":"MaintenanceStatus"},"mcp_protocol_version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"pricing_model":{"kind":"string"},"slug":{"kind":"string"},"status":{"kind":"ref","name":"HubConnectorStatus"},"summary":{"kind":"string"},"verified_badge":{"kind":"boolean"},"version":{"kind":"string"}},"additional":null},"HubDeveloperProfileView":{"kind":"object","properties":{"created_at":{"kind":"string"},"developer_email":{"kind":"string"},"developer_name":{"kind":"string"},"id":{"kind":"string"},"support_email":{"kind":"string"},"tenant_id":{"kind":"string"},"verification_status":{"kind":"ref","name":"HubDeveloperVerificationStatus"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"HubDeveloperVerificationStatus":{"kind":"enum","values":["unverified","verified","suspended"]},"HubPartnerStatus":{"kind":"enum","values":["draft","applied","in_review","published","rejected","suspended"]},"HubPartnerTier":{"kind":"enum","values":["registered","certified","premier","chartered"]},"HubPartnerType":{"kind":"enum","values":["implementation_partner","accounting_partner","audit_partner","technology_partner"]},"HubPartnerView":{"kind":"object","properties":{"certified_consultants_count":{"kind":"integer"},"contact_email":{"kind":"string"},"created_at":{"kind":"string"},"description":{"kind":"string"},"developer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"industry_specializations":{"kind":"array","items":{"kind":"string"}},"is_featured":{"kind":"boolean"},"jurisdiction_coverage":{"kind":"array","items":{"kind":"string"}},"logo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_name":{"kind":"string"},"partner_type":{"kind":"ref","name":"HubPartnerType"},"rating_score":{"kind":"number"},"status":{"kind":"ref","name":"HubPartnerStatus"},"summary":{"kind":"string"},"tier":{"kind":"ref","name":"HubPartnerTier"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"HubReviewDecision":{"kind":"enum","values":["approved","rejected","changes_requested"]},"HubSubmissionReviewStatus":{"kind":"enum","values":["draft","submitted","in_review","approved","published","rejected","deprecated"]},"HubSubmissionTargetType":{"kind":"enum","values":["connector","app","partner"]},"IdentityRevisionList":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"IdentityRevisionView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"IdentityRevisionView":{"kind":"object","properties":{"company_id":{"kind":"string"},"effective_from":{"kind":"string"},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"id":{"kind":"string"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"recorded_at":{"kind":"string"},"recorded_by_principal_id":{"kind":"string"},"registered_address":{"kind":"union","variants":[{"kind":"object","properties":{},"additional":null},{"kind":"null"}]},"revision_number":{"kind":"integer"},"supersedes_revision_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ImpairAsset":{"kind":"object","properties":{"date":{"kind":"string"},"reason":{"kind":"string"},"recoverable_amount":{"kind":"int64"}},"additional":null},"ImportBankStatement":{"kind":"object","properties":{"closing_balance":{"kind":"string"},"file_content":{"kind":"string"},"filename":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"format":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"mapping":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"BankStatementMappingOverride"}]},"opening_balance":{"kind":"string"},"profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"statement_date":{"kind":"string"}},"additional":null},"ImportCoaRequest":{"kind":"object","properties":{"dry_run":{"kind":"boolean"},"file_content_base64":{"kind":"string"},"file_format":{"kind":"string"}},"additional":null},"ImportCoaResponse":{"kind":"object","properties":{"created_account_ids":{"kind":"array","items":{"kind":"string"}},"imported_accounts_count":{"kind":"integer"},"is_dry_run":{"kind":"boolean"},"mapped_roles_count":{"kind":"integer"},"preview_rows":{"kind":"union","variants":[{"kind":"array","items":{"kind":"ref","name":"ImportedAccountRow"}},{"kind":"null"}]}},"additional":null},"ImportDeclaration":{"kind":"object","properties":{"assessed_total":{"kind":"int64"},"authority_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"customs_currency":{"kind":"string"},"customs_value":{"kind":"int64"},"declaration_date":{"kind":"string"},"declaration_number":{"kind":"string"},"duty_total":{"kind":"int64"},"exchange_rate":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"import_tax_total":{"kind":"int64"},"incoterm":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"lines":{"kind":"array","items":{"kind":"ref","name":"ImportDeclarationLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"other_charges_total":{"kind":"int64"},"port_of_entry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_ids":{"kind":"array","items":{"kind":"string"}},"status":{"kind":"ref","name":"ImportDeclarationStatus"},"updated_at":{"kind":"string"}},"additional":null},"ImportDeclarationLine":{"kind":"object","properties":{"customs_value":{"kind":"int64"},"description":{"kind":"string"},"duty_amount":{"kind":"int64"},"id":{"kind":"string"},"import_tax_amount":{"kind":"int64"},"imported_form":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"tariff_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ImportDeclarationList":{"kind":"object","properties":{"declarations":{"kind":"array","items":{"kind":"ref","name":"ImportDeclaration"}}},"additional":null},"ImportDeclarationStatus":{"kind":"enum","values":["draft","submitted","posted","void"]},"ImportXeroHistoricalDataRequest":{"kind":"object","properties":{"import_contacts":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"import_journals":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"xero_tenant_id":{"kind":"string"}},"additional":null},"ImportedAccountRow":{"kind":"object","properties":{"account_class":{"kind":"ref","name":"AccountClass"},"account_code":{"kind":"string"},"name":{"kind":"string"},"normal_balance":{"kind":"string"},"parent_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_mapping":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"IncomeStatement":{"kind":"object","properties":{"expenses":{"kind":"array","items":{"kind":"ref","name":"IncomeStatementLine"}},"net_income_minor":{"kind":"integer"},"revenue":{"kind":"array","items":{"kind":"ref","name":"IncomeStatementLine"}},"total_expenses_minor":{"kind":"integer"},"total_revenue_minor":{"kind":"integer"}},"additional":null},"IncomeStatementLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"amount_minor":{"kind":"integer"}},"additional":null},"IngestBankStatementFeedRequest":{"kind":"object","properties":{"external_account_id":{"kind":"string"},"provider_name":{"kind":"string"},"raw_statement_data":{"kind":"string"}},"additional":null},"IngestH2hCamt053StatementRequest":{"kind":"object","properties":{"bank_code":{"kind":"string"},"external_message_id":{"kind":"string"},"raw_xml_payload":{"kind":"string"},"statement_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"IngestH2hCamt053StatementView":{"kind":"object","properties":{"bank_code":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"external_message_id":{"kind":"string"},"id":{"kind":"string"},"ingested_at":{"kind":"string"},"message_type":{"kind":"ref","name":"Iso20022MessageType"},"processed_status":{"kind":"ref","name":"H2hStatementProcessedStatus"},"statement_lines_parsed":{"kind":"int64"},"tenant_id":{"kind":"string"},"total_closing_balance_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"IngestPhysicalEventRequest":{"kind":"object","properties":{"classification":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PhysicalEventClassification"}]},"device_id":{"kind":"string"},"event_type":{"kind":"ref","name":"PhysicalEventType"},"metric_payload":{"kind":"value"}},"additional":null},"InputClass":{"kind":"enum","values":["primary","adjustment","complete-derived"]},"InstallConnectorRequest":{"kind":"object","properties":{"configuration_values":{"kind":"value"},"connector_id":{"kind":"string"},"granted_permission_scopes":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]}},"additional":null},"InventoryCostingMethod":{"kind":"enum","values":["fifo","moving_average","lifo"]},"InventoryLocation":{"kind":"object","properties":{"created_at":{"kind":"string"},"id":{"kind":"string"},"is_primary":{"kind":"boolean"},"location_code":{"kind":"string"},"location_name":{"kind":"string"}},"additional":null},"InventoryMovement":{"kind":"object","properties":{"created_at":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"string"},"movement_date":{"kind":"string"},"movement_type":{"kind":"ref","name":"InventoryMovementType"},"quantity":{"kind":"int64"},"running_avg_cost":{"kind":"int64"},"running_book_value":{"kind":"int64"},"running_qty":{"kind":"int64"},"source_capability":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_value":{"kind":"int64"},"unit_cost":{"kind":"int64"}},"additional":null},"InventoryMovementType":{"kind":"enum","values":["receipt","issue","return","adjustment","stocktake","transfer_in","transfer_out","landed_cost","transformation_in","transformation_out"]},"InventoryReconciliation":{"kind":"object","properties":{"difference":{"kind":"int64"},"gl_inventory":{"kind":"int64"},"movement_book_value":{"kind":"int64"},"reconciled":{"kind":"boolean"},"register_book_value":{"kind":"int64"},"register_movement_difference":{"kind":"int64"}},"additional":null},"InventoryTransfer":{"kind":"object","properties":{"created_at":{"kind":"string"},"from_location_id":{"kind":"string"},"id":{"kind":"string"},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"InventoryTransferStatus"},"to_location_id":{"kind":"string"},"transfer_date":{"kind":"string"},"transfer_number":{"kind":"string"}},"additional":null},"InventoryTransferStatus":{"kind":"enum","values":["draft","posted","cancelled"]},"InventoryTransformation":{"kind":"object","properties":{"abnormal_loss_value":{"kind":"int64"},"bom_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"by_product_value":{"kind":"int64"},"consumed_movement_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"input_value":{"kind":"int64"},"kind":{"kind":"ref","name":"InventoryTransformationKind"},"outputs":{"kind":"array","items":{"kind":"ref","name":"TransformationOutput"}},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transformation_date":{"kind":"string"},"unassigned_value":{"kind":"int64"}},"additional":null},"InventoryTransformationKind":{"kind":"enum","values":["assemble","disassemble","repack","blend"]},"InvitationView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"expires_at":{"kind":"string"},"id":{"kind":"string"},"normalized_email":{"kind":"string"},"proposed_role_id":{"kind":"ref","name":"RoleId"},"state_revision":{"kind":"int64"}},"additional":null},"InvoiceEstampResultView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"document_amount_minor":{"kind":"int64"},"document_id":{"kind":"string"},"estamp_serial_number":{"kind":"string"},"id":{"kind":"string"},"provider_name":{"kind":"string"},"stamped_at":{"kind":"string"},"status":{"kind":"ref","name":"InvoiceEstampStatus"},"tenant_id":{"kind":"string"}},"additional":null},"InvoiceEstampStatus":{"kind":"enum","values":["stamped"]},"InvoicePaymentLinkStatus":{"kind":"enum","values":["active"]},"InvoicePaymentLinkView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"invoice_id":{"kind":"string"},"payment_link_url":{"kind":"string"},"provider_name":{"kind":"string"},"status":{"kind":"ref","name":"InvoicePaymentLinkStatus"}},"additional":null},"Iso20022MessageType":{"kind":"enum","values":["pain.001","camt.053"]},"IssueDeveloperKeyRequest":{"kind":"object","properties":{"environment":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"key_name":{"kind":"string"},"owner_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"scopes":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]}},"additional":null},"IssueDeveloperKeyResponse":{"kind":"object","properties":{"environment":{"kind":"string"},"key_id":{"kind":"string"},"key_name":{"kind":"string"},"key_prefix":{"kind":"string"},"note":{"kind":"string"},"raw_secret_token":{"kind":"string"},"scopes":{"kind":"array","items":{"kind":"string"}}},"additional":null},"IssueNonFiatUnitsRequest":{"kind":"object","properties":{"counterparty_entity_id":{"kind":"string"},"units_amount":{"kind":"number"}},"additional":null},"IssueWorkOrderPartsRequest":{"kind":"object","properties":{"item_id":{"kind":"string"},"quantity":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"unit_cost_minor":{"kind":"int64"}},"additional":null},"Item":{"kind":"object","properties":{"active":{"kind":"boolean"},"aliases":{"kind":"array","items":{"kind":"string"}},"avg_cost":{"kind":"int64"},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"book_value":{"kind":"int64"},"created_at":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"kind":{"kind":"ref","name":"ItemKind"},"max_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"min_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"name":{"kind":"string"},"on_hand_qty":{"kind":"int64"},"parent_item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"preferred_supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_price":{"kind":"int64"},"sale_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sale_price":{"kind":"int64"},"sku":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"ItemKind":{"kind":"enum","values":["inventory","service","non_inventory"]},"ItemList":{"kind":"object","properties":{"has_more":{"kind":"boolean"},"items":{"kind":"array","items":{"kind":"ref","name":"Item"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"JournalLineInput":{"kind":"object","properties":{"account_id":{"kind":"string"},"amount_minor":{"kind":"int64"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"direction":{"kind":"string"},"ordinal":{"kind":"integer"}},"additional":null},"LandedCostAllocation":{"kind":"object","properties":{"allocated_cost":{"kind":"string"},"basis_amount":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_line_id":{"kind":"string"}},"additional":null},"LandedCostApportionment":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"LandedCostAllocation"}},"apportionment_date":{"kind":"string"},"basis":{"kind":"ref","name":"LandedCostBasis"},"capitalised_total":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"LandedCostLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_document_id":{"kind":"string"},"residual_total":{"kind":"string"},"residual_treatment":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ResidualTreatment"}]},"status":{"kind":"ref","name":"LandedCostApportionmentStatus"},"total_cost":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"LandedCostApportionmentList":{"kind":"object","properties":{"apportionments":{"kind":"array","items":{"kind":"ref","name":"LandedCostApportionment"}}},"additional":null},"LandedCostApportionmentStatus":{"kind":"enum","values":["draft","submitted","posted","void"]},"LandedCostBasis":{"kind":"enum","values":["value","quantity","weight","volume"]},"LandedCostLine":{"kind":"object","properties":{"amount":{"kind":"string"},"capitalise":{"kind":"boolean"},"cost_type":{"kind":"ref","name":"LandedCostType"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"ordinal":{"kind":"integer"},"vendor_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"LandedCostPolicy":{"kind":"object","properties":{"options":{"kind":"array","items":{"kind":"ref","name":"LandedCostPolicyOption"}},"residual_treatment":{"kind":"ref","name":"ResidualTreatment"}},"additional":null},"LandedCostPolicyOption":{"kind":"object","properties":{"description":{"kind":"string"},"is_default":{"kind":"boolean"},"residual_treatment":{"kind":"ref","name":"ResidualTreatment"}},"additional":null},"LandedCostType":{"kind":"enum","values":["freight","insurance","duty","brokerage","handling","storage","financing","other"]},"Lead":{"kind":"object","properties":{"contact_id":{"kind":"string"},"converted_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"credit_score":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"currency":{"kind":"string"},"estimated_deal_amount":{"kind":"string"},"id":{"kind":"string"},"lead_code":{"kind":"string"},"lead_source":{"kind":"string"},"stage":{"kind":"ref","name":"LeadStage"},"updated_at":{"kind":"string"}},"additional":null},"LeadList":{"kind":"object","properties":{"leads":{"kind":"array","items":{"kind":"ref","name":"Lead"}}},"additional":null},"LeadStage":{"kind":"enum","values":["prospect","qualified","converted","lost"]},"LedgerWebhookEnvelope":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"data":{"kind":"value"},"event_id":{"kind":"string"},"event_type":{"kind":"ref","name":"WebhookEventType"},"timestamp":{"kind":"string"}},"additional":null},"LifecycleState":{"kind":"enum","values":["open","closed","finalized"]},"LineVariance":{"kind":"object","properties":{"committed_quantity":{"kind":"int64"},"committed_value":{"kind":"int64"},"excess_quantity":{"kind":"int64"},"excess_value":{"kind":"int64"},"quote_line_id":{"kind":"string"},"quoted_quantity":{"kind":"int64"},"quoted_value":{"kind":"int64"},"remaining_quantity":{"kind":"int64"},"remaining_value":{"kind":"int64"},"requested_quantity":{"kind":"int64"},"requested_value":{"kind":"int64"},"reserved_quantity":{"kind":"int64"},"reserved_value":{"kind":"int64"},"warning":{"kind":"boolean"}},"additional":null},"LockHolderInfo":{"kind":"object","properties":{"display_name":{"kind":"string"},"email":{"kind":"string"},"lock_expires_at":{"kind":"string"},"locked_at":{"kind":"string"},"minutes_remaining":{"kind":"int64"},"principal_id":{"kind":"string"}},"additional":null},"LockableDocumentType":{"kind":"enum","values":["quotation","sales_order","invoice","sales_invoice","credit_note","purchase_order","bill","purchase_bill","goods_receipt","debit_note","supplier_quote","customer_quote","manual_journal"]},"LogTimesheetEntryRequest":{"kind":"object","properties":{"billable_rate_minor":{"kind":"int64"},"customer_contact_id":{"kind":"string"},"entry_date":{"kind":"string"},"hours_logged":{"kind":"number"},"is_billable":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"project_code":{"kind":"string"},"staff_principal_id":{"kind":"string"}},"additional":null},"LoyaltyPointTransactionType":{"kind":"enum","values":["earn","redeem","expire","adjustment"]},"LoyaltyTierLevel":{"kind":"enum","values":["bronze","silver","gold","platinum"]},"MaintenanceStatus":{"kind":"enum","values":["active","maintenance_mode","deprecated","archived"]},"ManualJournal":{"kind":"object","properties":{"accounting_book_id":{"kind":"string"},"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"content_revision":{"kind":"int64"},"content_sha256":{"kind":"string"},"currency":{"kind":"string"},"description":{"kind":"string"},"evidence":{"kind":"array","items":{"kind":"ref","name":"EvidenceInput"}},"external_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"financial_date":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"JournalLineInput"}},"state":{"kind":"ref","name":"ManualJournalState"},"state_revision":{"kind":"int64"},"version_id":{"kind":"string"}},"additional":null},"ManualJournalContent":{"kind":"object","properties":{"accounting_book_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"string"},"description":{"kind":"string"},"evidence":{"kind":"array","items":{"kind":"ref","name":"EvidenceInput"}},"external_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"financial_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"JournalLineInput"}}},"additional":null},"ManualJournalState":{"kind":"enum","values":["draft","submitted","approved","rejected"]},"MatchGoodsReceiptBillRequest":{"kind":"object","properties":{"bill_date":{"kind":"string"},"due_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"MatchedBillLineRequest"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"prices_include_tax":{"kind":"boolean"},"vendor_invoice_number":{"kind":"string"}},"additional":null},"MatchedBillLineRequest":{"kind":"object","properties":{"receipt_line_id":{"kind":"string"},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"withholding_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"MemberBindingRole":{"kind":"enum","values":["parent","subsidiary"]},"MemberBindingView":{"kind":"object","properties":{"basis_key":{"kind":"string"},"binding_id":{"kind":"string"},"book_purpose":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"holding_company_book_id":{"kind":"string"},"id":{"kind":"string"},"member_company_book_id":{"kind":"string"},"perimeter_id":{"kind":"string"},"predecessor_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"presentation_currency":{"kind":"string"},"reporting_book_id":{"kind":"string"},"role":{"kind":"ref","name":"MemberBindingRole"},"version":{"kind":"int64"}},"additional":null},"MembershipChange":{"kind":"object","properties":{"expected_revision":{"kind":"int64"},"role":{"kind":"ref","name":"Role"}},"additional":null},"MembershipList":{"kind":"object","properties":{"memberships":{"kind":"array","items":{"kind":"ref","name":"MembershipListItem"}},"pending_invitations":{"kind":"array","items":{"kind":"ref","name":"PendingInvitationListItem"}}},"additional":null},"MembershipListItem":{"kind":"object","properties":{"active":{"kind":"boolean"},"created_at":{"kind":"string"},"latest_verified_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"owner_active":{"kind":"boolean"},"principal_id":{"kind":"string"},"role_ids":{"kind":"array","items":{"kind":"ref","name":"RoleId"}},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"MembershipView":{"kind":"object","properties":{"active":{"kind":"boolean"},"company_book_id":{"kind":"string"},"owner_active":{"kind":"boolean"},"principal_id":{"kind":"string"},"role_assignment_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"role_id":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"RoleId"}]},"state_revision":{"kind":"int64"}},"additional":null},"MerchantBillingItem":{"kind":"object","properties":{"base_monthly_fee_idr":{"kind":"int64"},"billing_status":{"kind":"ref","name":"CompanyBillingStatus"},"company_book_id":{"kind":"string"},"company_name":{"kind":"string"},"current_cycle_pos_gmv_idr":{"kind":"int64"},"current_cycle_pos_tx_count":{"kind":"int64"},"environment":{"kind":"string"},"per_pos_transaction_fee_idr":{"kind":"int64"},"projected_monthly_total_idr":{"kind":"int64"}},"additional":null},"MerchantRouteSemanticAccountRole":{"kind":"enum","values":["payment_provider_clearing"]},"MerchantRouteVersionResponse":{"kind":"object","properties":{"active":{"kind":"boolean"},"clearing_account_code":{"kind":"string"},"clearing_account_name":{"kind":"string"},"connection_id":{"kind":"string"},"connection_version_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"effective_from":{"kind":"string"},"external_merchant_id":{"kind":"string"},"merchant_route_id":{"kind":"string"},"provenance":{"kind":"string"},"semantic_account_role":{"kind":"ref","name":"MerchantRouteSemanticAccountRole"},"settlement_route_key":{"kind":"string"},"supersedes_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"integer"},"version_id":{"kind":"string"}},"additional":null},"MetricsProvider":{"kind":"enum","values":["grafana_prometheus"]},"MigrateRealCompanyOpeningBalancesRequest":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"total_asset_opening_balance_minor":{"kind":"int64"},"total_equity_opening_balance_minor":{"kind":"int64"},"total_liability_opening_balance_minor":{"kind":"int64"}},"additional":null},"MigrateTenantInfrastructureRequest":{"kind":"object","properties":{"migration_payload_uri":{"kind":"string"},"proof_sentinel_checksum":{"kind":"string"},"source_deployment_mode":{"kind":"ref","name":"NodeDeploymentMode"},"target_deployment_mode":{"kind":"ref","name":"NodeDeploymentMode"}},"additional":null},"MonthlyDepreciationBatchResultView":{"kind":"object","properties":{"assets_processed_count":{"kind":"integer"},"company_book_id":{"kind":"string"},"period_date":{"kind":"string"},"processed_at":{"kind":"string"},"schedules_created_count":{"kind":"integer"},"status":{"kind":"ref","name":"DepreciationBatchStatus"},"total_depreciation_amount_minor":{"kind":"int64"}},"additional":null},"MonthlyPayrollRunView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"status":{"kind":"ref","name":"PayrollRunStatus"},"total_bpjs_employee_minor":{"kind":"int64"},"total_bpjs_employer_minor":{"kind":"int64"},"total_gross_salary_minor":{"kind":"int64"},"total_pph21_withheld_minor":{"kind":"int64"}},"additional":null},"MovementManifestItemView":{"kind":"object","properties":{"account_content_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_state_revision":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"direction":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"financial_date":{"kind":"string"},"inclusion":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"journal_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"ordinal":{"kind":"integer"},"posting_content_sha256":{"kind":"string"},"posting_finality":{"kind":"string"},"posting_id":{"kind":"string"},"posting_state_revision":{"kind":"int64"},"posting_time":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_capability":{"kind":"string"},"source_content_sha256":{"kind":"string"},"source_object_id":{"kind":"string"},"source_version":{"kind":"int64"},"stable_effect_key":{"kind":"string"}},"additional":null},"MovementManifestView":{"kind":"object","properties":{"accounting_period_state_revision":{"kind":"int64"},"applied_credit_minor":{"kind":"int64"},"applied_debit_minor":{"kind":"int64"},"applied_line_count":{"kind":"integer"},"authority_context_id":{"kind":"string"},"authority_context_kind":{"kind":"string"},"authority_revision_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"basis_key":{"kind":"string"},"book_purpose":{"kind":"string"},"content_sha256":{"kind":"string"},"created_at":{"kind":"string"},"cutoff_at":{"kind":"string"},"excluded_posting_count":{"kind":"integer"},"holding_company_book_id":{"kind":"string"},"id":{"kind":"string"},"identity_fx_evidence_id":{"kind":"string"},"identity_fx_evidence_sha256":{"kind":"string"},"items":{"kind":"array","items":{"kind":"ref","name":"MovementManifestItemView"}},"manifest_id":{"kind":"string"},"member_binding_version_id":{"kind":"string"},"member_binding_version_number":{"kind":"int64"},"member_company_book_id":{"kind":"string"},"perimeter_id":{"kind":"string"},"period_end":{"kind":"string"},"period_id":{"kind":"string"},"period_start":{"kind":"string"},"permission_group_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"permission_group_version":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"predecessor_manifest_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"presentation_currency":{"kind":"string"},"reconciliation_snapshot_id":{"kind":"string"},"reconciliation_snapshot_sha256":{"kind":"string"},"reporting_basis_snapshot":{"kind":"ref","name":"ResolvedReportingBasis"},"reporting_basis_snapshot_sha256":{"kind":"string"},"reporting_basis_version_id":{"kind":"string"},"reporting_book_id":{"kind":"string"},"reporting_book_state_revision":{"kind":"int64"},"sharing_grant_evidence_sha256":{"kind":"string"},"sharing_grant_version_id":{"kind":"string"},"sharing_grant_version_number":{"kind":"int64"},"source_sha256":{"kind":"string"},"version":{"kind":"int64"}},"additional":null},"MutationOutcome":{"kind":"enum","values":["accepted","pending"]},"NodeDeploymentMode":{"kind":"enum","values":["on_premise","saas_shared","dedicated_db"]},"NotificationChannel":{"kind":"enum","values":["in_app","email","push","sms","whatsapp","telegram"]},"NotificationDelivery":{"kind":"object","properties":{"channel":{"kind":"ref","name":"NotificationChannel"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"provider":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"NotificationProvider"}]},"provider_message_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"recipient_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"retry_count":{"kind":"integer"},"sent_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_capability":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"NotificationSourceCapability"}]},"source_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state":{"kind":"ref","name":"NotificationDeliveryState"},"subject":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"NotificationDeliveryEnqueuedView":{"kind":"object","properties":{"notification_delivery_id":{"kind":"string"},"status":{"kind":"ref","name":"NotificationDeliveryState"}},"additional":null},"NotificationDeliveryState":{"kind":"enum","values":["pending","sending","accepted","sent","delivered","read","failed"]},"NotificationProvider":{"kind":"enum","values":["smtp","ses","fcm","twilio","wabusiness"]},"NotificationSourceCapability":{"kind":"enum","values":["sales","purchase","contacts","membership"]},"NsfpPoolStatus":{"kind":"enum","values":["active"]},"NsfpPoolView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"current_assigned_number":{"kind":"string"},"id":{"kind":"string"},"nsfp_end_number":{"kind":"string"},"nsfp_start_number":{"kind":"string"},"status":{"kind":"ref","name":"NsfpPoolStatus"},"tax_year":{"kind":"integer"}},"additional":null},"OffboardingInventoryView":{"kind":"object","properties":{"active_document_locks_count":{"kind":"int64"},"assigned_roles_count":{"kind":"int64"},"blockade_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"calendar_events_count":{"kind":"int64"},"can_safely_offboard":{"kind":"boolean"},"is_owner":{"kind":"boolean"},"latest_verified_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"pending_attentions_count":{"kind":"int64"},"source_principal_id":{"kind":"string"},"user_drafts_count":{"kind":"int64"}},"additional":null},"OffboardingTransferResult":{"kind":"object","properties":{"attentions_transferred":{"kind":"int64"},"calendar_events_transferred":{"kind":"int64"},"company_book_id":{"kind":"string"},"document_locks_released":{"kind":"int64"},"drafts_transferred":{"kind":"int64"},"handover_id":{"kind":"string"},"membership_deactivated":{"kind":"boolean"},"source_principal_id":{"kind":"string"},"successor_principal_id":{"kind":"string"},"transferred_at":{"kind":"string"}},"additional":null},"OfficerList":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"OfficerView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OfficerMutationResult":{"kind":"object","properties":{"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"officer":{"kind":"ref","name":"OfficerView"},"outcome":{"kind":"ref","name":"MutationOutcome"}},"additional":null},"OfficerRole":{"kind":"enum","values":["director","secretary","commissioner","signatory","chief_executive","chief_financial","other"]},"OfficerView":{"kind":"object","properties":{"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_id":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"id":{"kind":"string"},"person":{"kind":"ref","name":"ContactReference"},"recorded_at":{"kind":"string"},"recorded_by_principal_id":{"kind":"string"},"role":{"kind":"ref","name":"OfficerRole"},"status":{"kind":"ref","name":"RecordStatus"},"supersedes_officer_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OnboardSingaporeEntityRequest":{"kind":"object","properties":{"base_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_name":{"kind":"string"},"corporate_secretary":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"directors":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"gst_registered":{"kind":"boolean"},"registered_address":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sleek_api_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"uen":{"kind":"string"}},"additional":null},"OnboardingDraftView":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"},"confirmed_company_book_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"draft_payload":{"kind":"value"},"id":{"kind":"string"},"state_revision":{"kind":"int64"},"step_index":{"kind":"integer"}},"additional":null},"OnboardingPreviewRequest":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"}},"additional":null},"OnboardingPreviewResponse":{"kind":"object","properties":{"admitted_relationship_id":{"kind":"string"},"display_name":{"kind":"string"},"enabled_capabilities":{"kind":"array","items":{"kind":"string"}},"functional_currency":{"kind":"string"},"is_confirmable":{"kind":"boolean"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"operating_model":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"readiness_gaps":{"kind":"array","items":{"kind":"string"}},"required_facts":{"kind":"array","items":{"kind":"string"}},"starter_coa_preview":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"StarterCoaPreview"}]}},"additional":null},"OpenItem":{"kind":"object","properties":{"amount_allocated":{"kind":"int64"},"amount_open":{"kind":"int64"},"amount_open_transaction":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"direction":{"kind":"ref","name":"OpenItemDirection"},"document_date":{"kind":"string"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"original_amount":{"kind":"int64"},"parent_open_item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_capability":{"kind":"ref","name":"OpenItemSourceCapability"},"source_doc_id":{"kind":"string"},"source_doc_type":{"kind":"ref","name":"OpenItemSourceDocType"},"status":{"kind":"ref","name":"OpenItemStatus"},"transaction_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OpenItemDirection":{"kind":"enum","values":["receivable","payable"]},"OpenItemSourceCapability":{"kind":"enum","values":["sales","purchase"]},"OpenItemSourceDocType":{"kind":"enum","values":["sales_invoice","purchase_bill","debit_note"]},"OpenItemStatus":{"kind":"enum","values":["open","partially_paid","cleared","void"]},"OpenPosCashierSessionRequest":{"kind":"object","properties":{"cashier_principal_id":{"kind":"string"},"opening_cash_float_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"terminal_id":{"kind":"string"}},"additional":null},"OpeningBalancesMigrationStatus":{"kind":"enum","values":["posted"]},"OpeningBalancesMigrationView":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"migrated_at":{"kind":"string"},"migration_id":{"kind":"string"},"opening_balances_migrated":{"kind":"boolean"},"status":{"kind":"ref","name":"OpeningBalancesMigrationStatus"},"total_credits_minor":{"kind":"int64"},"total_debits_minor":{"kind":"int64"}},"additional":null},"OrganizationCreate":{"kind":"object","properties":{"name":{"kind":"string"},"slug":{"kind":"string"}},"additional":null},"OrganizationInvitationAccept":{"kind":"object","properties":{"token":{"kind":"string"}},"additional":null},"OrganizationInvitationCreate":{"kind":"object","properties":{"email":{"kind":"string"},"role":{"kind":"ref","name":"Role"}},"additional":null},"OrganizationInvitationIssued":{"kind":"object","properties":{"invitation":{"kind":"ref","name":"OrganizationInvitationView"},"token":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OrganizationInvitationView":{"kind":"object","properties":{"email":{"kind":"string"},"expires_at":{"kind":"string"},"id":{"kind":"string"},"organization_id":{"kind":"string"},"role":{"kind":"ref","name":"Role"},"state_revision":{"kind":"int64"}},"additional":null},"OrganizationMembershipPage":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"OrganizationMembershipView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OrganizationMembershipView":{"kind":"object","properties":{"active":{"kind":"boolean"},"organization_id":{"kind":"string"},"principal_id":{"kind":"string"},"role":{"kind":"ref","name":"Role"},"state_revision":{"kind":"int64"}},"additional":null},"OrganizationPage":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"OrganizationView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OrganizationStatus":{"kind":"enum","values":["active","archived"]},"OrganizationUpdate":{"kind":"object","properties":{"expected_revision":{"kind":"int64"},"name":{"kind":"string"}},"additional":null},"OrganizationView":{"kind":"object","properties":{"id":{"kind":"string"},"name":{"kind":"string"},"slug":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"OrganizationStatus"}},"additional":null},"OrganizationWorkspaceCreated":{"kind":"object","properties":{"environment":{"kind":"ref","name":"CustomerEnvironmentView"},"id":{"kind":"string"},"name":{"kind":"string"},"organization_id":{"kind":"string"},"slug":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"WorkspaceStatus"}},"additional":null},"OrganizationWorkspacePage":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"OrganizationWorkspaceView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OrganizationWorkspaceView":{"kind":"object","properties":{"id":{"kind":"string"},"name":{"kind":"string"},"organization_id":{"kind":"string"},"slug":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"WorkspaceStatus"}},"additional":null},"OwnedCompanyBookList":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"OwnedCompanyBookView"}}},"additional":null},"OwnedCompanyBookView":{"kind":"object","properties":{"active":{"kind":"boolean"},"company_owner_source":{"kind":"string"},"display_name":{"kind":"string"},"functional_currency":{"kind":"string"},"id":{"kind":"string"}},"additional":null},"OwnerCapacityList":{"kind":"object","properties":{"owner_capacities":{"kind":"array","items":{"kind":"ref","name":"OwnerCapacityView"}}},"additional":null},"OwnerCapacityState":{"kind":"enum","values":["requested","active","revoked"]},"OwnerCapacityView":{"kind":"object","properties":{"id":{"kind":"string"},"principal_id":{"kind":"string"},"state":{"kind":"ref","name":"OwnerCapacityState"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"}},"additional":null},"OwnershipStatementList":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"OwnershipStatementView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"OwnershipStatementMutationResult":{"kind":"object","properties":{"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"outcome":{"kind":"ref","name":"MutationOutcome"},"statement":{"kind":"ref","name":"OwnershipStatementView"}},"additional":null},"OwnershipStatementView":{"kind":"object","properties":{"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"beneficial":{"kind":"boolean"},"company_id":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"holder":{"kind":"ref","name":"HolderReference"},"id":{"kind":"string"},"instrument_class":{"kind":"string"},"percentage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"recorded_at":{"kind":"string"},"recorded_by_principal_id":{"kind":"string"},"statement_number":{"kind":"integer"},"status":{"kind":"ref","name":"RecordStatus"},"supersedes_statement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"units":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"voting_percentage":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PartnerManagedClientItemView":{"kind":"object","properties":{"client_name":{"kind":"string"},"company_book_id":{"kind":"string"},"environment_mode":{"kind":"ref","name":"CompanyEnvironmentMode"},"linked_at":{"kind":"string"},"status":{"kind":"ref","name":"PartnerManagedClientStatus"}},"additional":null},"PartnerManagedClientListView":{"kind":"object","properties":{"clients":{"kind":"array","items":{"kind":"ref","name":"PartnerManagedClientItemView"}},"matured_commission_balance_minor":{"kind":"int64"},"partner_id":{"kind":"string"},"partner_name":{"kind":"string"},"partner_tier":{"kind":"ref","name":"PartnerTier"},"total_clients":{"kind":"integer"}},"additional":null},"PartnerManagedClientStatus":{"kind":"enum","values":["active","suspended","terminated"]},"PartnerTier":{"kind":"enum","values":["certified_accountant"]},"PartyReference":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"}},"additional":null},"Payment":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"PaymentAllocation"}},"amount":{"kind":"int64"},"amount_allocated":{"kind":"int64"},"bank_account_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"direction":{"kind":"ref","name":"PaymentDirection"},"id":{"kind":"string"},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_date":{"kind":"string"},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_number":{"kind":"string"},"payment_purpose":{"kind":"string"},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"resolved_gl_account_code":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"PaymentStatus"},"updated_at":{"kind":"string"}},"additional":null},"PaymentAllocation":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"applied_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"applied_posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_id":{"kind":"string"},"document_type":{"kind":"ref","name":"PaymentAllocationDocumentType"},"fx_gain_loss":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"id":{"kind":"string"},"payment_id":{"kind":"string"}},"additional":null},"PaymentAllocationDocumentType":{"kind":"enum","values":["sales_invoice","purchase_bill"]},"PaymentDirection":{"kind":"enum","values":["receive","spend"]},"PaymentList":{"kind":"object","properties":{"payments":{"kind":"array","items":{"kind":"ref","name":"Payment"}}},"additional":null},"PaymentStatus":{"kind":"enum","values":["draft","submitted","posted","void"]},"PayrollCalculationApprovalView":{"kind":"object","properties":{"approved_at":{"kind":"string"},"approved_by_principal_id":{"kind":"string"},"company_book_id":{"kind":"string"},"id":{"kind":"string"},"payroll_run_id":{"kind":"string"},"status":{"kind":"ref","name":"PayrollRunStatus"}},"additional":null},"PayrollCalculationRunView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"status":{"kind":"ref","name":"PayrollRunStatus"},"tenant_id":{"kind":"string"},"total_bpjs_deduction_minor":{"kind":"int64"},"total_gross_salary_minor":{"kind":"int64"},"total_net_payout_minor":{"kind":"int64"},"total_pph21_tax_minor":{"kind":"int64"}},"additional":null},"PayrollRun":{"kind":"object","properties":{"bpjs_total":{"kind":"int64"},"created_at":{"kind":"string"},"deductions_total":{"kind":"int64"},"functional_currency":{"kind":"string"},"gross_total":{"kind":"int64"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PayrollRunLine"}},"net_total":{"kind":"int64"},"pay_date":{"kind":"string"},"period":{"kind":"string"},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"pph21_total":{"kind":"int64"},"status":{"kind":"ref","name":"PayrollRunStatus"},"updated_at":{"kind":"string"}},"additional":null},"PayrollRunApprovalView":{"kind":"object","properties":{"approved_at":{"kind":"string"},"company_book_id":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"PayrollRunStatus"}},"additional":null},"PayrollRunLine":{"kind":"object","properties":{"allowances":{"kind":"int64"},"bank_account_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bonus":{"kind":"int64"},"bpjs_employee":{"kind":"int64"},"bpjs_employer":{"kind":"int64"},"employee_contact_id":{"kind":"string"},"gross":{"kind":"int64"},"id":{"kind":"string"},"net_pay":{"kind":"int64"},"other_deductions":{"kind":"int64"},"overtime":{"kind":"int64"},"pph21":{"kind":"int64"}},"additional":null},"PayrollRunList":{"kind":"object","properties":{"runs":{"kind":"array","items":{"kind":"ref","name":"PayrollRun"}}},"additional":null},"PayrollRunStatus":{"kind":"enum","values":["draft","submitted","posted","reversed"]},"PendingCurationItemView":{"kind":"object","properties":{"id":{"kind":"string"},"status":{"kind":"ref","name":"HubSubmissionReviewStatus"},"submitted_at":{"kind":"string"},"submitter_name":{"kind":"string"},"target_id":{"kind":"string"},"target_name":{"kind":"string"},"target_type":{"kind":"ref","name":"HubSubmissionTargetType"}},"additional":null},"PendingCurationListView":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"PendingCurationItemView"}},"total_count":{"kind":"integer"}},"additional":null},"PendingInvitationListItem":{"kind":"object","properties":{"delivery_state":{"kind":"ref","name":"DeliveryState"},"expires_at":{"kind":"string"},"id":{"kind":"string"},"invited_by_principal_id":{"kind":"string"},"normalized_email":{"kind":"string"},"proposed_role_id":{"kind":"ref","name":"RoleId"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"}},"additional":null},"PeriodDeltaAdjustmentView":{"kind":"object","properties":{"adjusted_by_principal_id":{"kind":"string"},"adjustment_reason":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"delta_amount_minor":{"kind":"int64"},"delta_journal_id":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"id":{"kind":"string"},"original_amount_minor":{"kind":"int64"},"target_journal_id":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"PeriodState":{"kind":"enum","values":["open","locked","closing","closed","finalized"]},"PersonInCharge":{"kind":"object","properties":{"contact_id":{"kind":"string"},"effective_from":{"kind":"string"},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"string"},"name":{"kind":"string"},"organization_contact_id":{"kind":"string"},"organization_name":{"kind":"string"},"relationship_id":{"kind":"string"},"relationship_type":{"kind":"ref","name":"ContactRelationshipType"},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"title":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PhysicalBusinessEventRuleView":{"kind":"object","properties":{"classification_result":{"kind":"ref","name":"PhysicalEventClassification"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"metric_trigger_condition":{"kind":"string"},"rule_name":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"PhysicalDeviceStatus":{"kind":"enum","values":["active"]},"PhysicalDeviceType":{"kind":"enum","values":["scale","barcode_scanner","rfid_reader","temperature_sensor","gps_tracker","other"]},"PhysicalDeviceView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"device_identifier":{"kind":"string"},"device_type":{"kind":"ref","name":"PhysicalDeviceType"},"firmware_version":{"kind":"string"},"id":{"kind":"string"},"mac_address":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"PhysicalDeviceStatus"},"tenant_id":{"kind":"string"}},"additional":null},"PhysicalEventClassification":{"kind":"enum","values":["financial_posting","informational_alert"]},"PhysicalEventStreamView":{"kind":"object","properties":{"classification":{"kind":"ref","name":"PhysicalEventClassification"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"device_id":{"kind":"string"},"event_type":{"kind":"ref","name":"PhysicalEventType"},"id":{"kind":"string"},"metric_payload":{"kind":"value"},"processed_at":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"PhysicalEventType":{"kind":"enum","values":["weight_capture","item_scan","temperature_reading","location_ping","door_status","other"]},"PlaceAuctionBidRequest":{"kind":"object","properties":{"bid_amount_minor":{"kind":"int64"},"bid_deposit_hold_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bidder_principal_id":{"kind":"string"}},"additional":null},"PlaceInService":{"kind":"object","properties":{"date":{"kind":"string"}},"additional":null},"PlatformAdminOverviewView":{"kind":"object","properties":{"engine_health_status":{"kind":"ref","name":"PlatformHealthStatus"},"open_support_tickets_count":{"kind":"integer"},"pending_curation_submissions_count":{"kind":"integer"},"total_active_books":{"kind":"integer"},"total_mrr_minor":{"kind":"int64"},"total_tenants":{"kind":"integer"}},"additional":null},"PlatformAdmissionView":{"kind":"object","properties":{"principal_id":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"AdmissionStatus"}},"additional":null},"PlatformHealthStatus":{"kind":"enum","values":["optimal","degraded","down"]},"PlatformSystemHealthView":{"kind":"object","properties":{"checked_at":{"kind":"string"},"otel_collector_ready":{"kind":"boolean"},"postgres_ready":{"kind":"boolean"},"status":{"kind":"ref","name":"PlatformHealthStatus"},"tigerbeetle_ready":{"kind":"boolean"},"uptime_seconds":{"kind":"int64"}},"additional":null},"PlatformTenantListView":{"kind":"object","properties":{"tenants":{"kind":"array","items":{"kind":"ref","name":"PlatformTenantSummary"}},"total_count":{"kind":"integer"}},"additional":null},"PlatformTenantStatus":{"kind":"enum","values":["active","suspended"]},"PlatformTenantSummary":{"kind":"object","properties":{"book_count":{"kind":"integer"},"created_at":{"kind":"string"},"status":{"kind":"ref","name":"PlatformTenantStatus"},"tenant_id":{"kind":"string"},"tenant_name":{"kind":"string"}},"additional":null},"PocProjectBudgetView":{"kind":"object","properties":{"actual_cost_incurred_minor":{"kind":"int64"},"billed_to_date_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"completion_percentage":{"kind":"number"},"contract_asset_liability_minor":{"kind":"int64"},"contract_value_minor":{"kind":"int64"},"created_at":{"kind":"string"},"id":{"kind":"string"},"project_id":{"kind":"string"},"recognized_revenue_to_date_minor":{"kind":"int64"},"total_budgeted_cost_minor":{"kind":"int64"}},"additional":null},"PointLedgerEntryView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"loyalty_account_id":{"kind":"string"},"points_delta":{"kind":"int64"},"reference_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tenant_id":{"kind":"string"},"transaction_type":{"kind":"ref","name":"LoyaltyPointTransactionType"},"unearned_liability_amount_minor":{"kind":"int64"}},"additional":null},"PolicyElection":{"kind":"object","properties":{"effective_from":{"kind":"string"},"id":{"kind":"string"},"topic":{"kind":"ref","name":"PolicyTopic"},"treatment_ref":{"kind":"string"}},"additional":null},"PolicyElectionInput":{"kind":"object","properties":{"reason":{"kind":"string"},"topic":{"kind":"ref","name":"PolicyTopic"},"treatment_ref":{"kind":"string"}},"additional":null},"PolicyInput":{"kind":"object","properties":{"catalog_key":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"qualified_assessment_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"qualified_assessment_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PolicyTopic":{"kind":"enum","values":["fixed_asset_depreciation","inventory_costing"]},"PolicyView":{"kind":"object","properties":{"approved_by":{"kind":"string"},"authority_url":{"kind":"string"},"catalog_key":{"kind":"string"},"created_at":{"kind":"string"},"effective_from":{"kind":"string"},"enabled":{"kind":"boolean"},"entity_applicability":{"kind":"string"},"explanation":{"kind":"string"},"financial_effect":{"kind":"string"},"framework":{"kind":"string"},"id":{"kind":"string"},"jurisdiction":{"kind":"string"},"policy_key":{"kind":"string"},"policy_value":{"kind":"value"},"qualified_assessment_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"qualified_assessment_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"requires_professional_judgment":{"kind":"boolean"},"source_locator":{"kind":"string"},"source_revision":{"kind":"string"},"source_title":{"kind":"string"},"supported_alternatives":{"kind":"array","items":{"kind":"string"}},"treatment_classification":{"kind":"ref","name":"TreatmentClassification"},"version":{"kind":"int64"}},"additional":null},"PosCashierSessionStatus":{"kind":"enum","values":["open","closed"]},"PosCashierSessionView":{"kind":"object","properties":{"cash_over_short_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"cashier_principal_id":{"kind":"string"},"closed_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"closing_cash_counted_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"expected_cash_total_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"id":{"kind":"string"},"opened_at":{"kind":"string"},"opening_cash_float_minor":{"kind":"int64"},"status":{"kind":"ref","name":"PosCashierSessionStatus"},"tenant_id":{"kind":"string"},"terminal_id":{"kind":"string"}},"additional":null},"PosHandoverEvidenceRequest":{"kind":"object","properties":{"control_transferred":{"kind":"boolean"},"evidence_reference":{"kind":"string"},"occurred_at":{"kind":"string"}},"additional":null},"PosOrderCorrectionKind":{"kind":"enum","values":["return","correction"]},"PosOrderItemView":{"kind":"object","properties":{"cogs_amount_minor":{"kind":"int64"},"created_at":{"kind":"string"},"id":{"kind":"string"},"line_discount_minor":{"kind":"int64"},"pos_order_id":{"kind":"string"},"product_id":{"kind":"string"},"quantity":{"kind":"integer"},"unit_price_minor":{"kind":"int64"}},"additional":null},"PosOrderPaymentMethod":{"kind":"enum","values":["cash"]},"PosOrderStatus":{"kind":"enum","values":["draft","submitted","posted","corrected"]},"PosOrderView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"content_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"correction_kind":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PosOrderCorrectionKind"}]},"corrects_pos_order_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"discount_amount_minor":{"kind":"int64"},"final_total_minor":{"kind":"int64"},"financial_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"functional_currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"handover_actor_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"handover_evidence_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"handover_occurred_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"items":{"kind":"array","items":{"kind":"ref","name":"PosOrderItemView"}},"payment_method":{"kind":"ref","name":"PosOrderPaymentMethod"},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"session_id":{"kind":"string"},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"PosOrderStatus"},"subtotal_minor":{"kind":"int64"},"tax_amount_minor":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"PosSaleQuoteComponentKind":{"kind":"enum","values":["base","modifier","discount","tax","service_charge","tip","rounding"]},"PosSaleQuoteFreeLineView":{"kind":"object","properties":{"quantity":{"kind":"int64"},"sku":{"kind":"string"},"unit_price_minor":{"kind":"string"}},"additional":null},"PosSaleQuoteLineRequest":{"kind":"object","properties":{"item_id":{"kind":"string"},"modifier_ids":{"kind":"array","items":{"kind":"string"}},"quantity":{"kind":"int64"}},"additional":null},"PosSaleQuoteLineView":{"kind":"object","properties":{"discount_allocated_minor":{"kind":"string"},"item_id":{"kind":"string"},"modifier_ids":{"kind":"array","items":{"kind":"string"}},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"}},"additional":null},"PosSaleQuotePromotionStatus":{"kind":"enum","values":["applied","not_applied_single_rule_v1","below_min_spend","quantity_below_threshold","member_daily_limit_reached","member_total_limit_reached","global_limit_reached"]},"PosSaleQuotePromotionView":{"kind":"object","properties":{"code":{"kind":"string"},"discount_minor":{"kind":"string"},"free_lines":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuoteFreeLineView"}},"rule_id":{"kind":"string"},"status":{"kind":"ref","name":"PosSaleQuotePromotionStatus"}},"additional":null},"PosSaleQuoteTenderEligibilityView":{"kind":"object","properties":{"eligible":{"kind":"boolean"},"reason_code":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PosTenderIneligibilityReason"}]},"tender_type":{"kind":"ref","name":"PosTenderType"}},"additional":null},"PosSaleQuoteView":{"kind":"object","properties":{"amount_due_minor":{"kind":"string"},"currency":{"kind":"string"},"digest_sha256":{"kind":"string"},"discount_total_minor":{"kind":"string"},"expires_at":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuoteLineView"}},"preset_id":{"kind":"string"},"preset_version":{"kind":"int64"},"promotions":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuotePromotionView"}},"quote_id":{"kind":"string"},"revision":{"kind":"int64"},"rounding_total_minor":{"kind":"string"},"service_charge_total_minor":{"kind":"string"},"subtotal_minor":{"kind":"string"},"tax_total_minor":{"kind":"string"},"tender_eligibility":{"kind":"array","items":{"kind":"ref","name":"PosSaleQuoteTenderEligibilityView"}},"tip_total_minor":{"kind":"string"}},"additional":null},"PosTenderIneligibilityReason":{"kind":"enum","values":["not_in972_scope"]},"PosTenderPostingSourceCapability":{"kind":"enum","values":["pos_tender_sale"]},"PosTenderRefundAllocationResponse":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"component_id":{"kind":"string"},"original_journal_line_id":{"kind":"string"}},"additional":null},"PosTenderType":{"kind":"enum","values":["cash","qris","debit","credit"]},"PosTerminalStatus":{"kind":"enum","values":["active"]},"PosTerminalView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"outlet_location_id":{"kind":"string"},"receipt_footer":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"receipt_header":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"PosTerminalStatus"},"tenant_id":{"kind":"string"},"terminal_code":{"kind":"string"},"terminal_name":{"kind":"string"}},"additional":null},"PostPeriodDeltaAdjustmentRequest":{"kind":"object","properties":{"adjustment_reason":{"kind":"string"},"delta_amount_minor":{"kind":"int64"},"delta_journal_id":{"kind":"string"},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"original_amount_minor":{"kind":"int64"},"target_journal_id":{"kind":"string"}},"additional":null},"PostPosOrderAcceptedResponse":{"kind":"union","variants":[{"kind":"ref","name":"PostPosOrderResponse"},{"kind":"ref","name":"PostPosOrderApprovalRequiredResponse"}]},"PostPosOrderApprovalRequiredResponse":{"kind":"object","properties":{"order_id":{"kind":"string"},"status":{"kind":"ref","name":"PostingApprovalRequiredStatus"}},"additional":null},"PostPosOrderRequest":{"kind":"object","properties":{"expected_source_token":{"kind":"string"}},"additional":null},"PostPosOrderResponse":{"kind":"object","properties":{"finality":{"kind":"string"},"order_id":{"kind":"string"},"posting_id":{"kind":"string"}},"additional":null},"PostedMonth":{"kind":"object","properties":{"charge":{"kind":"int64"},"month":{"kind":"string"}},"additional":null},"Posting":{"kind":"object","properties":{"book_id":{"kind":"string"},"finality":{"kind":"string"},"financial_date":{"kind":"string"},"functional_currency":{"kind":"string"},"id":{"kind":"string"},"journal_entry":{"kind":"ref","name":"PostingJournalEntry"},"posting_time":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_capability":{"kind":"string"},"source_object_id":{"kind":"string"},"source_version":{"kind":"int64"},"stable_effect_key":{"kind":"string"},"state_revision":{"kind":"int64"}},"additional":null},"PostingApprovalRequiredStatus":{"kind":"enum","values":["approval_required"]},"PostingJournalEntry":{"kind":"object","properties":{"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PostingJournalLine"}}},"additional":null},"PostingJournalLine":{"kind":"object","properties":{"account_id":{"kind":"string"},"amount_minor":{"kind":"int64"},"direction":{"kind":"string"},"id":{"kind":"string"},"ordinal":{"kind":"integer"}},"additional":null},"PostingSummary":{"kind":"object","properties":{"finality":{"kind":"string"},"posting_id":{"kind":"string"}},"additional":null},"PredictVariableConsiderationRequest":{"kind":"object","properties":{"customer_id":{"kind":"string"},"discount_term_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"early_discount_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"gross_amount_minor":{"kind":"int64"},"net_due_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"sales_document_id":{"kind":"string"}},"additional":null},"PreparedDocumentStatus":{"kind":"enum","values":["draft"]},"PreviewCollision":{"kind":"object","properties":{"component_key":{"kind":"string"},"decision":{"kind":"string"},"line_key":{"kind":"string"},"semantic_role":{"kind":"string"}},"additional":null},"PreviewLine":{"kind":"object","properties":{"account_class":{"kind":"ref","name":"StarterCoaAccountClass"},"code":{"kind":"string"},"line_key":{"kind":"string"},"name":{"kind":"string"},"normal_balance":{"kind":"string"},"ordinal":{"kind":"integer"},"semantic_role":{"kind":"string"}},"additional":null},"ProcessPosRetailOrderItemRequest":{"kind":"object","properties":{"line_discount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"product_id":{"kind":"string"},"quantity":{"kind":"integer"},"unit_price_minor":{"kind":"int64"}},"additional":null},"ProcessPosRetailOrderRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"discount_amount_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"items":{"kind":"array","items":{"kind":"ref","name":"ProcessPosRetailOrderItemRequest"}},"payment_method":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"PosOrderPaymentMethod"}]},"session_id":{"kind":"string"}},"additional":null},"ProfitDistributionResultView":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"disbursed_at":{"kind":"string"},"id":{"kind":"string"},"journal_entry_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"partner_contact_id":{"kind":"string"},"payout_amount_minor":{"kind":"int64"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"status":{"kind":"ref","name":"ProfitDistributionStatus"},"tenant_id":{"kind":"string"}},"additional":null},"ProfitDistributionStatus":{"kind":"enum","values":["disbursed"]},"ProfitSharingCalculationStatus":{"kind":"enum","values":["calculated"]},"ProfitSharingCalculationView":{"kind":"object","properties":{"agreement_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"calculated_at":{"kind":"string"},"calculated_payout_amount_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"hurdle_amount_minor":{"kind":"int64"},"id":{"kind":"string"},"partner_contact_id":{"kind":"string"},"period_month":{"kind":"integer"},"period_year":{"kind":"integer"},"retained_earnings_minor":{"kind":"int64"},"share_percentage":{"kind":"number"},"split_type":{"kind":"ref","name":"ProfitSharingSplitType"},"status":{"kind":"ref","name":"ProfitSharingCalculationStatus"},"tenant_id":{"kind":"string"},"total_net_profit_minor":{"kind":"int64"}},"additional":null},"ProfitSharingSplitType":{"kind":"enum","values":["fixed_percentage","waterfall_hurdle"]},"ProjectRetentionStatus":{"kind":"enum","values":["active","released","defect_liability_expired"]},"ProjectRetentionSummaryView":{"kind":"object","properties":{"accumulated_released_minor":{"kind":"int64"},"accumulated_withheld_minor":{"kind":"int64"},"defect_liability_days":{"kind":"integer"},"defect_liability_end_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"retention_rate_pct":{"kind":"number"},"status":{"kind":"ref","name":"ProjectRetentionStatus"},"unmatured_balance_minor":{"kind":"int64"}},"additional":null},"ProjectSCurveMetricsView":{"kind":"object","properties":{"cost_variance_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"cpi":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"current_period_index":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"estimate_at_completion_eac_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"estimate_to_complete_etc_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"is_onerous_contract_risk":{"kind":"boolean"},"schedule_variance_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"spi":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"ProjectSCurvePeriodStatus":{"kind":"enum","values":["planned","current","closed"]},"ProjectSCurvePointView":{"kind":"object","properties":{"ac_cost_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"ac_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"ev_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"ev_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"period_index":{"kind":"integer"},"period_label":{"kind":"string"},"pv_cost_minor":{"kind":"int64"},"pv_pct":{"kind":"number"},"status":{"kind":"ref","name":"ProjectSCurvePeriodStatus"}},"additional":null},"ProjectSCurveSeriesResponse":{"kind":"object","properties":{"budget_at_completion_bac_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"contract_value_minor":{"kind":"int64"},"metrics":{"kind":"ref","name":"ProjectSCurveMetricsView"},"project_id":{"kind":"string"},"retention":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"ProjectRetentionSummaryView"}]},"series":{"kind":"array","items":{"kind":"ref","name":"ProjectSCurvePointView"}}},"additional":null},"PrometheusMetricsView":{"kind":"object","properties":{"active_provider":{"kind":"ref","name":"MetricsProvider"},"metrics":{"kind":"string"},"otel_endpoint":{"kind":"string"}},"additional":null},"ProviderSettlementBankMatch":{"kind":"object","properties":{"action":{"kind":"ref","name":"ProviderSettlementBankMatchDecision"},"active":{"kind":"boolean"},"amount_minor":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"decision_id":{"kind":"string"},"destination_bank_account_id":{"kind":"string"},"match_id":{"kind":"string"},"revision":{"kind":"integer"},"settlement_batch_id":{"kind":"string"},"settlement_financial_effect_id":{"kind":"string"},"settlement_posting_id":{"kind":"string"},"statement_id":{"kind":"string"},"statement_line_id":{"kind":"string"}},"additional":null},"ProviderSettlementBankMatchAction":{"kind":"enum","values":["match","withdraw"]},"ProviderSettlementBankMatchDecision":{"kind":"enum","values":["matched","withdrawn"]},"PtkpStatus":{"kind":"enum","values":["TK/0","TK/1","TK/2","TK/3","K/0","K/1","K/2","K/3","K/I/0","K/I/1","K/I/2","K/I/3"]},"PublishDirectoryProfile":{"kind":"object","properties":{"discoverable":{"kind":"boolean"},"display_name":{"kind":"string"},"handle":{"kind":"string"}},"additional":null},"PurchaseDocument":{"kind":"object","properties":{"amount_paid":{"kind":"int64"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"document_type":{"kind":"ref","name":"PurchaseDocumentType"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PurchaseLine"}},"matched_po_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"matched_receipt_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"received_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"settlement_status":{"kind":"ref","name":"DocumentSettlementStatus"},"status":{"kind":"ref","name":"PurchaseDocumentStatus"},"subtotal":{"kind":"int64"},"tax_total":{"kind":"int64"},"total":{"kind":"int64"},"updated_at":{"kind":"string"},"vendor_invoice_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PurchaseDocumentList":{"kind":"object","properties":{"documents":{"kind":"array","items":{"kind":"ref","name":"PurchaseDocument"}}},"additional":null},"PurchaseDocumentStatus":{"kind":"enum","values":["draft","submitted","posted","paid","void","approved","issued","cancelled","accepted","rejected"]},"PurchaseDocumentType":{"kind":"enum","values":["supplier_quote","purchase_order","bill","goods_receipt","debit_note"]},"PurchaseLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"expense_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"quantity_invoiced":{"kind":"int64"},"quantity_received":{"kind":"int64"},"source_goods_receipt_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_purchase_order_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_supplier_quote_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"PurchaseOrderDecisionRequest":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"PurchaseOrderDetachRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"PurchaseOrderLineView":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"line_total":{"kind":"int64"},"quantity":{"kind":"int64"},"quantity_invoiced":{"kind":"int64"},"quantity_received":{"kind":"int64"},"source_quote_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"PurchaseOrderState":{"kind":"enum","values":["draft","submitted","approved","issued","void","cancelled"]},"PurchaseOrderView":{"kind":"object","properties":{"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"conversion_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"document_number":{"kind":"string"},"exception_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"PurchaseOrderLineView"}},"source_quote_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"PurchaseOrderState"},"total":{"kind":"int64"}},"additional":null},"QrisGenerateRequest":{"kind":"object","properties":{"amount_idr":{"kind":"int64"},"biller_split_fee_idr":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"transaction_id":{"kind":"string"}},"additional":null},"QrisGenerateResponse":{"kind":"object","properties":{"expires_at":{"kind":"string"},"payment_id":{"kind":"string"},"qr_image_url":{"kind":"string"},"qris_string":{"kind":"string"}},"additional":null},"QrisSettlementAllocationRequest":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"provider_event_receipt_id":{"kind":"string"}},"additional":null},"QrisSettlementDeductionKind":{"kind":"enum","values":["mdr","fee_tax"]},"QrisSettlementDeductionRequest":{"kind":"object","properties":{"amount_minor":{"kind":"string"},"kind":{"kind":"ref","name":"QrisSettlementDeductionKind"}},"additional":null},"QualifyCredit":{"kind":"object","properties":{"credit_score":{"kind":"integer"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"QuoteConsumptionLineView":{"kind":"object","properties":{"committed_quantity":{"kind":"int64"},"committed_value":{"kind":"int64"},"quote_line_id":{"kind":"string"},"quoted_quantity":{"kind":"int64"},"quoted_value":{"kind":"int64"},"remaining_quantity":{"kind":"int64"},"remaining_value":{"kind":"int64"},"reserved_quantity":{"kind":"int64"},"reserved_value":{"kind":"int64"}},"additional":null},"QuoteConsumptionView":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"QuoteConsumptionLineView"}},"source_quote_id":{"kind":"string"}},"additional":null},"QuoteConversionStatus":{"kind":"enum","values":["converted"]},"QuoteOrderAllocation":{"kind":"object","properties":{"quantity":{"kind":"int64"},"quote_line_id":{"kind":"string"}},"additional":null},"QuoteRevisionLineRequest":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"source_quote_line_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"QuoteRevisionRequest":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"QuoteRevisionLineRequest"}},"supplier_reference":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"QuoteState":{"kind":"enum","values":["draft","sent","accepted","rejected","expired","withdrawn"]},"ReceivePurchaseOrderRequest":{"kind":"object","properties":{"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"receipt_date":{"kind":"string"}},"additional":null},"ReconcileCodSettlementRequest":{"kind":"object","properties":{"awb_tracking_number":{"kind":"string"},"collected_amount_minor":{"kind":"int64"},"gateway_fee_minor":{"kind":"int64"},"settlement_notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"Reconciliation":{"kind":"object","properties":{"clean":{"kind":"boolean"},"discrepancies":{"kind":"array","items":{"kind":"ref","name":"EngineDiscrepancy"}},"invariant":{"kind":"string"},"pending_count":{"kind":"int64"}},"additional":null},"ReconciliationConflict":{"kind":"union","variants":[{"kind":"ref","name":"Reconciliation"},{"kind":"ref","name":"ErrorEnvelope"}]},"ReconciliationRequest":{"kind":"object","properties":{"book_id":{"kind":"string"}},"additional":null},"RecordRestructuringEventRequest":{"kind":"object","properties":{"carveout_perimeter_json":{"kind":"value"},"effective_date":{"kind":"string"},"event_type":{"kind":"ref","name":"CorporateRestructuringEventType"},"goodwill_recognized_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"target_entity_name":{"kind":"string"},"transaction_valuation_minor":{"kind":"int64"}},"additional":null},"RecordStatus":{"kind":"enum","values":["accepted","pending_approval","rejected"]},"RecurringBillingBatchResultView":{"kind":"object","properties":{"batch_id":{"kind":"string"},"billing_as_of_date":{"kind":"string"},"company_book_id":{"kind":"string"},"invoices_generated_count":{"kind":"integer"},"processed_at":{"kind":"string"},"status":{"kind":"ref","name":"RecurringBillingBatchStatus"},"subscriptions_evaluated_count":{"kind":"integer"},"total_billed_minor":{"kind":"int64"}},"additional":null},"RecurringBillingBatchStatus":{"kind":"enum","values":["simulated","completed"]},"RedeemCustomerLoyaltyPointsRequest":{"kind":"object","properties":{"customer_contact_id":{"kind":"string"},"points":{"kind":"int64"},"reference_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RedeemNonFiatUnitsRequest":{"kind":"object","properties":{"counterparty_entity_id":{"kind":"string"},"units_amount":{"kind":"number"}},"additional":null},"RedeemSecretResponse":{"kind":"object","properties":{"key":{"kind":"string"},"note":{"kind":"string"},"revealed_at":{"kind":"string"},"secret_id":{"kind":"string"},"value":{"kind":"string"}},"additional":null},"RefundPayload":{"kind":"object","properties":{"reason":{"kind":"string"},"refunded_amount":{"kind":"int64"},"tx_id":{"kind":"string"}},"additional":null},"RegisterDeveloperRequest":{"kind":"object","properties":{"developer_email":{"kind":"string"},"developer_name":{"kind":"string"},"support_email":{"kind":"string"},"website_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RegisterFixedAssetRequest":{"kind":"object","properties":{"accumulated_depr_account_number":{"kind":"string"},"acquisition_cost_minor":{"kind":"int64"},"acquisition_date":{"kind":"string"},"asset_account_number":{"kind":"string"},"asset_code":{"kind":"string"},"asset_name":{"kind":"string"},"depreciation_expense_account_number":{"kind":"string"},"depreciation_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salvage_value_minor":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"useful_life_months":{"kind":"integer"}},"additional":null},"RegisterPhysicalDeviceRequest":{"kind":"object","properties":{"device_identifier":{"kind":"string"},"device_type":{"kind":"ref","name":"PhysicalDeviceType"},"firmware_version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"mac_address":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RegisterPosTerminalRequest":{"kind":"object","properties":{"outlet_location_id":{"kind":"string"},"receipt_footer":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"receipt_header":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"terminal_code":{"kind":"string"},"terminal_name":{"kind":"string"}},"additional":null},"RegistrationKind":{"kind":"enum","values":["company_number","tax_id","vat_gst","social_security","licence","other"]},"RegistrationList":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"RegistrationView"}},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RegistrationView":{"kind":"object","properties":{"company_id":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_references":{"kind":"array","items":{"kind":"ref","name":"EvidenceReference"}},"id":{"kind":"string"},"issuer":{"kind":"string"},"jurisdiction_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"kind":{"kind":"ref","name":"RegistrationKind"},"recorded_at":{"kind":"string"},"recorded_by_principal_id":{"kind":"string"},"registration_number":{"kind":"string"},"supersedes_registration_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ReleaseTemporaryPostingLock":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"ReopenAccountingPeriod":{"kind":"object","properties":{"correction_purpose":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ReparentCompanyBookRequest":{"kind":"object","properties":{"effective_from":{"kind":"string"},"new_parent_book_id":{"kind":"string"},"previous_parent_book_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reparenting_reason":{"kind":"string"}},"additional":null},"ReplaceAccount":{"kind":"object","properties":{"active":{"kind":"boolean"},"code":{"kind":"string"},"manual_entry_allowed":{"kind":"boolean"},"name":{"kind":"string"}},"additional":null},"ReportKind":{"kind":"enum","values":["trial_balance"]},"ReportingBasisVersionInput":{"kind":"object","properties":{"currency_layer":{"kind":"ref","name":"CurrencyLayer"},"effective_from":{"kind":"string"},"input_class":{"kind":"ref","name":"InputClass"},"policy_manifest":{"kind":"value"},"policy_provenance":{"kind":"value"},"policy_version_id":{"kind":"string"},"predecessor_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"qualified_assessment_reference":{"kind":"string"},"qualified_assessment_sha256":{"kind":"string"},"reason":{"kind":"string"},"state":{"kind":"ref","name":"BasisState"},"treatment_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ReportingBasisVersionListView":{"kind":"object","properties":{"reporting_basis_versions":{"kind":"array","items":{"kind":"ref","name":"ReportingBasisVersionView"}}},"additional":null},"ReportingBasisVersionView":{"kind":"object","properties":{"accounting_book_id":{"kind":"string"},"authority_context_id":{"kind":"string"},"completeness":{"kind":"ref","name":"BasisCompleteness"},"content_sha256":{"kind":"string"},"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"currency_layer":{"kind":"ref","name":"CurrencyLayer"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"elections":{"kind":"array","items":{"kind":"ref","name":"PolicyElection"}},"id":{"kind":"string"},"input_class":{"kind":"ref","name":"InputClass"},"policy_manifest":{"kind":"value"},"policy_provenance":{"kind":"value"},"policy_version_id":{"kind":"string"},"predecessor_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"qualified_assessment_reference":{"kind":"string"},"qualified_assessment_sha256":{"kind":"string"},"reason":{"kind":"string"},"state":{"kind":"ref","name":"BasisState"},"treatment_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"int64"}},"additional":null},"RequestConnection":{"kind":"object","properties":{"handle":{"kind":"string"},"message":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RequestOwnerRequest":{"kind":"object","properties":{"principal_id":{"kind":"string"}},"additional":null},"RequestRecordDetailView":{"kind":"object","properties":{"caused":{"kind":"ref","name":"CausedView"},"request":{"kind":"value"},"request_payload":{"kind":"value"},"response_payload":{"kind":"value"}},"additional":null},"RequestRecordListView":{"kind":"object","properties":{"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"requests":{"kind":"array","items":{"kind":"value"}}},"additional":null},"ResetDeveloperSandboxBookRequest":{"kind":"object","properties":{"reason":{"kind":"string"},"seed_version":{"kind":"string"}},"additional":null},"ResidualTreatment":{"kind":"enum","values":["expense_to_cogs","capitalise_remaining"]},"ResolveBankStatementLine":{"kind":"object","properties":{"action":{"kind":"ref","name":"BankStatementLineResolution"},"payment_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ResolveContactRequest":{"kind":"object","properties":{"display_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"entry_mode":{"kind":"string"},"phone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ResolveContactResponse":{"kind":"object","properties":{"active_vouchers_count":{"kind":"integer"},"contact_id":{"kind":"string"},"loyalty_points":{"kind":"int64"},"loyalty_tier":{"kind":"ref","name":"LoyaltyTierLevel"}},"additional":null},"ResolvedReportingBasis":{"kind":"object","properties":{"accounting_book_id":{"kind":"string"},"content_sha256":{"kind":"string"},"currency_layer":{"kind":"string"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"input_class":{"kind":"string"},"policy_manifest":{"kind":"value"},"policy_provenance":{"kind":"value"},"policy_version_id":{"kind":"string"},"qualified_assessment_reference":{"kind":"string"},"qualified_assessment_sha256":{"kind":"string"},"treatment_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"version":{"kind":"int64"}},"additional":null},"RespondFindingRequest":{"kind":"object","properties":{"response_text":{"kind":"string"}},"additional":null},"RevaluationRateType":{"kind":"enum","values":["period_end","bi_rate","manual"]},"RevaluationRequest":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"currency":{"kind":"string"},"exchange_rate":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"rate_type":{"kind":"ref","name":"RevaluationRateType"}},"additional":null},"RevaluationRun":{"kind":"object","properties":{"as_of_date":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"exchange_rate":{"kind":"number"},"id":{"kind":"string"},"status":{"kind":"ref","name":"RevaluationRunStatus"},"total_fx_gain_loss":{"kind":"int64"},"total_items_revalued":{"kind":"integer"}},"additional":null},"RevaluationRunStatus":{"kind":"enum","values":["pending","recorded","posted","reversed","failed"]},"RevalueAsset":{"kind":"object","properties":{"date":{"kind":"string"},"reason":{"kind":"string"},"revalued_amount":{"kind":"int64"}},"additional":null},"RevealGrantOutcome":{"kind":"object","properties":{"reveal":{"kind":"ref","name":"RevealGrantView"},"secret_id":{"kind":"string"}},"additional":null},"RevealGrantRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"RevealGrantState":{"kind":"enum","values":["pending","redeemed","expired","revoked"]},"RevealGrantView":{"kind":"object","properties":{"expires_at":{"kind":"string"},"redemptions_remaining":{"kind":"integer"},"reveal_id":{"kind":"string"},"state":{"kind":"ref","name":"RevealGrantState"}},"additional":null},"RevealRedeemPath":{"kind":"object","properties":{"reveal":{"kind":"string"},"secret":{"kind":"string"}},"additional":null},"ReversalRequest":{"kind":"object","properties":{"approval_request_id":{"kind":"string"},"content_sha256":{"kind":"string"},"id":{"kind":"string"},"original_posting_id":{"kind":"string"},"reason":{"kind":"string"},"requested_by_principal_id":{"kind":"string"},"reversal_financial_date":{"kind":"string"},"state":{"kind":"ref","name":"ReversalState"},"state_revision":{"kind":"int64"}},"additional":null},"ReversalState":{"kind":"enum","values":["submitted","approved","rejected","posted"]},"RevisionCommand":{"kind":"object","properties":{"expected_revision":{"kind":"int64"}},"additional":null},"RevokeDeveloperKeyRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"RevokeSecretRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"RevokeSharingGrantRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"Role":{"kind":"enum","values":["owner","admin","member"]},"RoleAssignmentList":{"kind":"object","properties":{"assignments":{"kind":"array","items":{"kind":"ref","name":"RoleAssignmentView"}}},"additional":null},"RoleAssignmentView":{"kind":"object","properties":{"active":{"kind":"boolean"},"elevated":{"kind":"boolean"},"id":{"kind":"string"},"principal_id":{"kind":"string"},"role_display_name":{"kind":"string"},"role_id":{"kind":"string"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"}},"additional":null},"RoleDeactivationPreview":{"kind":"object","properties":{"affected_assignments":{"kind":"int64"},"referenced":{"kind":"boolean"},"role_id":{"kind":"string"}},"additional":null},"RoleId":{"kind":"string"},"RoleList":{"kind":"object","properties":{"roles":{"kind":"array","items":{"kind":"ref","name":"RoleView"}}},"additional":null},"RoleView":{"kind":"object","properties":{"active":{"kind":"boolean"},"archived":{"kind":"boolean"},"authority_revision":{"kind":"int64"},"authority_revision_id":{"kind":"string"},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"display_name":{"kind":"string"},"elevated":{"kind":"boolean"},"id":{"kind":"string"},"permission_group_id":{"kind":"string"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"},"system":{"kind":"boolean"},"system_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RotateDeveloperKeyRequest":{"kind":"object","properties":{"grace_period_hours":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"RotateSecretRequest":{"kind":"object","properties":{"reason":{"kind":"string"},"source":{"kind":"ref","name":"SecretSourceKind"},"value":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"RunBadDebtProvisioningRequest":{"kind":"object","properties":{"as_of_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"provision_rate_pct":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]}},"additional":null},"RunBankFeedRuleMatchingRequest":{"kind":"object","properties":{"min_confidence_threshold":{"kind":"union","variants":[{"kind":"number"},{"kind":"null"}]},"rule_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"statement_line_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]}},"additional":null},"RunBankFeedRuleMatchingResultView":{"kind":"object","properties":{"auto_reconciled":{"kind":"int64"},"company_book_id":{"kind":"string"},"matches":{"kind":"array","items":{"kind":"ref","name":"BankFeedMatchView"}},"total_evaluated":{"kind":"int64"},"total_matched":{"kind":"int64"}},"additional":null},"RunMonthlyDepreciationBatchRequest":{"kind":"object","properties":{"asset_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"period_date":{"kind":"string"}},"additional":null},"RunRecurringBillingBatchRequest":{"kind":"object","properties":{"billing_as_of_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dry_run":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"SaaSUsageMeteringView":{"kind":"object","properties":{"api_request_count":{"kind":"int64"},"billing_period_end":{"kind":"string"},"billing_period_start":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"journal_posting_count":{"kind":"int64"},"status":{"kind":"ref","name":"UsageMeteringStatus"},"storage_bytes_used":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"SalesDocument":{"kind":"object","properties":{"amount_paid":{"kind":"int64"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"array","items":{"kind":"string"}},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"document_type":{"kind":"ref","name":"SalesDocumentType"},"due_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"SalesLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"parent_document_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"posting_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"salesperson_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"settlement_status":{"kind":"ref","name":"DocumentSettlementStatus"},"status":{"kind":"ref","name":"SalesDocumentStatus"},"subtotal":{"kind":"int64"},"tax_total":{"kind":"int64"},"total":{"kind":"int64"},"updated_at":{"kind":"string"}},"additional":null},"SalesDocumentList":{"kind":"object","properties":{"documents":{"kind":"array","items":{"kind":"ref","name":"SalesDocument"}}},"additional":null},"SalesDocumentStatus":{"kind":"enum","values":["draft","submitted","posted","paid","void","overdue","sent","accepted","rejected","expired","withdrawn","confirmed","partially_fulfilled","fulfilled","on_hold","closed","cancelled","issued"]},"SalesDocumentType":{"kind":"enum","values":["quotation","sales_order","invoice","credit_note"]},"SalesInvoiceDisputeStatus":{"kind":"enum","values":["disputed"]},"SalesLeaderboardEntry":{"kind":"object","properties":{"conversion_rate_percentage":{"kind":"number"},"gross_margin_contribution_minor":{"kind":"integer"},"qualified_leads_count":{"kind":"int64"},"rank":{"kind":"integer"},"sales_rep_name":{"kind":"string"},"sales_rep_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_collected_cash_minor":{"kind":"integer"},"total_invoiced_revenue_minor":{"kind":"integer"},"total_leads_assigned":{"kind":"int64"}},"additional":null},"SalesLeaderboardView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"entries":{"kind":"array","items":{"kind":"ref","name":"SalesLeaderboardEntry"}}},"additional":null},"SalesLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"revenue_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_profile_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"unit_price":{"kind":"int64"}},"additional":null},"SalesOpportunityStatus":{"kind":"enum","values":["open"]},"SalesOpportunityView":{"kind":"object","properties":{"assigned_sales_rep_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"estimated_amount_minor":{"kind":"int64"},"id":{"kind":"string"},"opportunity_name":{"kind":"string"},"pipeline_stage":{"kind":"ref","name":"SalesPipelineStage"},"status":{"kind":"ref","name":"SalesOpportunityStatus"},"tenant_id":{"kind":"string"},"win_probability_pct":{"kind":"number"}},"additional":null},"SalesPipelineStage":{"kind":"enum","values":["qualified"]},"SalesQuoteStatus":{"kind":"enum","values":["draft"]},"SalesQuoteView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"contact_id":{"kind":"string"},"converted_sales_invoice_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"expiry_date":{"kind":"string"},"grand_total_minor":{"kind":"int64"},"id":{"kind":"string"},"opportunity_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"quote_number":{"kind":"string"},"status":{"kind":"ref","name":"SalesQuoteStatus"},"subtotal_minor":{"kind":"int64"},"tax_total_minor":{"kind":"int64"},"tenant_id":{"kind":"string"}},"additional":null},"SandboxGenerationStatus":{"kind":"enum","values":["current","retired"]},"SandboxRolloverReceipt":{"kind":"object","properties":{"committed_at":{"kind":"string"},"environment_mode":{"kind":"ref","name":"CompanyEnvironmentMode"},"lifecycle_status":{"kind":"ref","name":"SandboxGenerationStatus"},"predecessor_company_book_id":{"kind":"string"},"seed_version":{"kind":"string"},"successor_company_book_id":{"kind":"string"},"successor_generation":{"kind":"int64"}},"additional":null},"SaveDraftInput":{"kind":"object","properties":{"draft_payload":{"kind":"value"},"expected_revision":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"step_index":{"kind":"integer"}},"additional":null},"ScopeRequest":{"kind":"object","properties":{"application_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"environment":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"kind":{"kind":"ref","name":"SecretScopeKind"},"product":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SecretDisclosure":{"kind":"enum","values":["write_only","revealable"]},"SecretEnvironment":{"kind":"enum","values":["development","staging","production","sandbox"]},"SecretList":{"kind":"object","properties":{"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"secrets":{"kind":"array","items":{"kind":"ref","name":"SecretMetadataView"}}},"additional":null},"SecretMetadataView":{"kind":"object","properties":{"created_at":{"kind":"string"},"created_by_principal_id":{"kind":"string"},"disclosure":{"kind":"ref","name":"SecretDisclosure"},"key":{"kind":"string"},"last_revealed_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reveal":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"RevealGrantView"}]},"revoked_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revoked_reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"rotated_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"scope":{"kind":"ref","name":"SecretScope"},"secret_id":{"kind":"string"},"state":{"kind":"ref","name":"SecretState"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"},"version":{"kind":"integer"}},"additional":null},"SecretPath":{"kind":"object","properties":{"secret":{"kind":"string"}},"additional":null},"SecretScope":{"kind":"object","properties":{"application_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"environment":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"SecretEnvironment"}]},"kind":{"kind":"ref","name":"SecretScopeKind"},"product":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"workspace_id":{"kind":"string"}},"additional":null},"SecretScopeKind":{"kind":"enum","values":["environment","application","product"]},"SecretSourceKind":{"kind":"enum","values":["supplied","generated"]},"SecretState":{"kind":"enum","values":["active","pending","revoked"]},"SelectTemplateRequest":{"kind":"object","properties":{"document_kind":{"kind":"ref","name":"TemplateDocumentKind"},"effective_from":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"template_id":{"kind":"string"},"template_version":{"kind":"string"}},"additional":null},"SendDocumentEmailRequest":{"kind":"object","properties":{"message_body":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"recipient_email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"subject":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"ServiceBilling":{"kind":"object","properties":{"allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceBillingAllocation"}},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"invoice":{"kind":"ref","name":"SalesDocument"},"reason":{"kind":"string"},"source_sales_order_id":{"kind":"string"}},"additional":null},"ServiceBillingAllocation":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"service_billing_line_id":{"kind":"string"},"service_fulfillment_line_id":{"kind":"string"}},"additional":null},"ServiceBillingAllocationInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"service_fulfillment_line_id":{"kind":"string"}},"additional":null},"ServiceContractAssessment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"classification":{"kind":"ref","name":"ServiceRevenueClassification"},"contract_modification":{"kind":"boolean"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"finalized_at":{"kind":"string"},"fixed_transaction_price":{"kind":"int64"},"id":{"kind":"string"},"paragraph_35_a_met":{"kind":"boolean"},"paragraph_35_b_met":{"kind":"boolean"},"paragraph_35_c_met":{"kind":"boolean"},"performance_obligations":{"kind":"array","items":{"kind":"ref","name":"ServicePerformanceObligation"}},"principal_agent_issue":{"kind":"boolean"},"qualified_assessment_reference":{"kind":"string"},"qualified_assessment_sha256":{"kind":"string"},"sales_order_id":{"kind":"string"},"sales_order_state_revision":{"kind":"int64"},"source_customer_quote_id":{"kind":"string"},"source_quote_revision":{"kind":"int64"},"variable_consideration":{"kind":"boolean"}},"additional":null},"ServiceEvidence":{"kind":"object","properties":{"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ServiceFakturDppMethod":{"kind":"enum","values":["eleven_twelfths_penggantian"]},"ServiceFakturMonetaryAssessment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"aggregation_level":{"kind":"string"},"calculation_contract_identity":{"kind":"string"},"commercial_terms_reference":{"kind":"string"},"commercial_terms_sha256":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"dpp":{"kind":"int64"},"dpp_method":{"kind":"ref","name":"ServiceFakturDppMethod"},"dpp_method_version":{"kind":"string"},"faktur_date":{"kind":"string"},"faktur_evidence_reference":{"kind":"string"},"faktur_evidence_sha256":{"kind":"string"},"faktur_reference":{"kind":"string"},"faktur_status":{"kind":"ref","name":"ServiceFakturStatus"},"finalized_at":{"kind":"string"},"gross_customer_amount":{"kind":"int64"},"id":{"kind":"string"},"nominal_ppn_rate_basis_points":{"kind":"integer"},"official_source_checked_on":{"kind":"string"},"official_source_reference":{"kind":"string"},"official_source_sha256":{"kind":"string"},"output_ppn":{"kind":"int64"},"penggantian":{"kind":"int64"},"rounding_contract_reference":{"kind":"string"},"rounding_contract_sha256":{"kind":"string"},"rounding_mode":{"kind":"ref","name":"ServiceFakturRoundingMode"},"sales_order_id":{"kind":"string"},"service_contract_assessment_id":{"kind":"string"},"service_invoice_id":{"kind":"string"},"service_recognition_readiness_assessment_id":{"kind":"string"},"service_tax_point_assessment_id":{"kind":"string"},"tax_point_date":{"kind":"string"}},"additional":null},"ServiceFakturRoundingMode":{"kind":"enum","values":["nearest_rupiah_half_up"]},"ServiceFakturStatus":{"kind":"enum","values":["original"]},"ServiceFulfillment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_decided_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"customer_status":{"kind":"ref","name":"CustomerStatus"},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ServiceFulfillmentLine"}},"performed_from":{"kind":"string"},"performed_through":{"kind":"string"},"sales_order_id":{"kind":"string"}},"additional":null},"ServiceFulfillmentCustomerDecision":{"kind":"object","properties":{"customer_status":{"kind":"ref","name":"CustomerStatus"},"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"ServiceFulfillmentLine":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceFulfillmentLineInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceFulfillmentMutation":{"kind":"object","properties":{"fulfillment":{"kind":"ref","name":"ServiceFulfillment"},"sales_order":{"kind":"ref","name":"ServiceOrder"}},"additional":null},"ServiceObligationBillingAllocation":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"},"service_fulfillment_line_id":{"kind":"string"},"service_invoice_allocation_id":{"kind":"string"},"service_invoice_id":{"kind":"string"},"service_invoice_line_id":{"kind":"string"}},"additional":null},"ServiceObligationBillingAllocationInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"service_invoice_allocation_id":{"kind":"string"}},"additional":null},"ServiceObligationOrderLineAllocation":{"kind":"object","properties":{"id":{"kind":"string"},"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceObligationOrderLineAllocationInput":{"kind":"object","properties":{"quantity":{"kind":"int64"},"sales_order_line_id":{"kind":"string"}},"additional":null},"ServiceObligationSatisfaction":{"kind":"object","properties":{"control_transferred":{"kind":"boolean"},"customer_acceptance_reference":{"kind":"string"},"customer_acceptance_sha256":{"kind":"string"},"id":{"kind":"string"},"paragraph_38_control_reference":{"kind":"string"},"paragraph_38_control_sha256":{"kind":"string"},"performance_obligation_id":{"kind":"string"},"point_in_time_satisfied":{"kind":"boolean"},"qualified_evidence_reference":{"kind":"string"},"qualified_evidence_sha256":{"kind":"string"},"satisfaction_date":{"kind":"string"}},"additional":null},"ServiceObligationSatisfactionInput":{"kind":"object","properties":{"control_transferred":{"kind":"boolean"},"customer_acceptance_reference":{"kind":"string"},"customer_acceptance_sha256":{"kind":"string"},"paragraph_38_control_reference":{"kind":"string"},"paragraph_38_control_sha256":{"kind":"string"},"performance_obligation_id":{"kind":"string"},"point_in_time_satisfied":{"kind":"boolean"},"qualified_evidence_reference":{"kind":"string"},"qualified_evidence_sha256":{"kind":"string"},"satisfaction_date":{"kind":"string"}},"additional":null},"ServiceOrder":{"kind":"object","properties":{"confirmed_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"confirmed_by_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"document_date":{"kind":"string"},"document_number":{"kind":"string"},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"ServiceOrderLine"}},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"ServiceOrderState"},"subtotal":{"kind":"int64"}},"additional":null},"ServiceOrderLifecycle":{"kind":"object","properties":{"evidence_digest":{"kind":"string"},"evidence_reference":{"kind":"string"},"reason":{"kind":"string"},"target_status":{"kind":"ref","name":"ServiceOrderState"}},"additional":null},"ServiceOrderLine":{"kind":"object","properties":{"accepted_or_pending_quantity":{"kind":"int64"},"confirmed_quantity":{"kind":"int64"},"description":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"string"}},"additional":null},"ServiceOrderState":{"kind":"enum","values":["draft","confirmed","partially_fulfilled","fulfilled","on_hold","closed","cancelled"]},"ServicePerformanceObligation":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"billing_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationBillingAllocation"}},"description":{"kind":"string"},"id":{"kind":"string"},"order_line_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationOrderLineAllocation"}},"reference":{"kind":"string"}},"additional":null},"ServicePerformanceObligationInput":{"kind":"object","properties":{"allocated_amount":{"kind":"int64"},"billing_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationBillingAllocationInput"}},"description":{"kind":"string"},"order_line_allocations":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationOrderLineAllocationInput"}},"reference":{"kind":"string"}},"additional":null},"ServiceRecognitionReadinessAssessment":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"finalized_at":{"kind":"string"},"fixed_transaction_price":{"kind":"int64"},"id":{"kind":"string"},"obligation_satisfactions":{"kind":"array","items":{"kind":"ref","name":"ServiceObligationSatisfaction"}},"sales_order_id":{"kind":"string"},"sales_order_state_revision":{"kind":"int64"},"service_contract_assessment_id":{"kind":"string"},"source_customer_quote_id":{"kind":"string"},"source_quote_revision":{"kind":"int64"},"tax_point_assessments":{"kind":"array","items":{"kind":"ref","name":"ServiceTaxPointAssessment"}}},"additional":null},"ServiceRevenueClassification":{"kind":"enum","values":["point_in_time","over_time"]},"ServiceTaxPointAssessment":{"kind":"object","properties":{"currency":{"kind":"string"},"designated_collector":{"kind":"boolean"},"domestic_supply":{"kind":"boolean"},"export_supply":{"kind":"boolean"},"faktur_date":{"kind":"string"},"faktur_reference":{"kind":"string"},"free_trade_zone":{"kind":"boolean"},"id":{"kind":"string"},"other_exclusion":{"kind":"boolean"},"prior_advance_tax":{"kind":"boolean"},"prior_taxed_base":{"kind":"int64"},"prior_term_tax":{"kind":"boolean"},"qualified_basis_reference":{"kind":"string"},"qualified_basis_sha256":{"kind":"string"},"remaining_taxable_base":{"kind":"int64"},"service_invoice_id":{"kind":"string"},"special_regime":{"kind":"boolean"},"statutory_supply_basis":{"kind":"ref","name":"StatutorySupplyBasis"},"supplier_pkp":{"kind":"boolean"},"tax_facility":{"kind":"boolean"},"tax_point_date":{"kind":"string"},"taxable_service_jkp":{"kind":"boolean"}},"additional":null},"ServiceTaxPointAssessmentInput":{"kind":"object","properties":{"designated_collector":{"kind":"boolean"},"domestic_supply":{"kind":"boolean"},"export_supply":{"kind":"boolean"},"faktur_date":{"kind":"string"},"faktur_reference":{"kind":"string"},"free_trade_zone":{"kind":"boolean"},"other_exclusion":{"kind":"boolean"},"prior_advance_tax":{"kind":"boolean"},"prior_taxed_base":{"kind":"int64"},"prior_term_tax":{"kind":"boolean"},"qualified_basis_reference":{"kind":"string"},"qualified_basis_sha256":{"kind":"string"},"remaining_taxable_base":{"kind":"int64"},"service_invoice_id":{"kind":"string"},"special_regime":{"kind":"boolean"},"statutory_supply_basis":{"kind":"ref","name":"StatutorySupplyBasis"},"supplier_pkp":{"kind":"boolean"},"tax_facility":{"kind":"boolean"},"tax_point_date":{"kind":"string"},"taxable_service_jkp":{"kind":"boolean"}},"additional":null},"SetApprovalPolicy":{"kind":"object","properties":{"mode":{"kind":"ref","name":"ApprovalPolicyMode"},"reason":{"kind":"string"},"required_role":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"threshold_amount":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"SetContactCreditLimitRequest":{"kind":"object","properties":{"credit_hold_active":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]},"credit_limit_minor":{"kind":"int64"},"grace_period_days":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]}},"additional":null},"SetExperienceEntitlementRequest":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"ExperienceEntitlementStatus"}},"additional":null},"SetLandedCostPolicy":{"kind":"object","properties":{"residual_treatment":{"kind":"ref","name":"ResidualTreatment"}},"additional":null},"SetTimephasedBaselineRequest":{"kind":"object","properties":{"items":{"kind":"array","items":{"kind":"ref","name":"TimephasedBaselineItemRequest"}}},"additional":null},"ShareDocument":{"kind":"object","properties":{"sales_document_id":{"kind":"string"}},"additional":null},"SharedDocument":{"kind":"object","properties":{"id":{"kind":"string"},"prepared_document_id":{"kind":"string"},"prepared_status":{"kind":"ref","name":"PreparedDocumentStatus"},"source_document_number":{"kind":"string"}},"additional":null},"SharingGrantView":{"kind":"object","properties":{"created_at":{"kind":"string"},"data_class":{"kind":"string"},"effective_from":{"kind":"string"},"effective_to":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"evidence_locator":{"kind":"string"},"evidence_sha256":{"kind":"string"},"grant_id":{"kind":"string"},"holding_company_book_id":{"kind":"string"},"id":{"kind":"string"},"member_binding_version_id":{"kind":"string"},"member_company_book_id":{"kind":"string"},"perimeter_id":{"kind":"string"},"predecessor_version_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reporting_book_id":{"kind":"string"},"state":{"kind":"string"},"version":{"kind":"int64"}},"additional":null},"ShippingRateQuoteView":{"kind":"object","properties":{"courier_name":{"kind":"string"},"courier_service_code":{"kind":"string"},"currency":{"kind":"string"},"estimated_days":{"kind":"string"},"is_cod_supported":{"kind":"boolean"},"provider_name":{"kind":"string"},"rate_amount_minor":{"kind":"int64"},"service_name":{"kind":"string"}},"additional":null},"ShippingRatesQuoteListView":{"kind":"object","properties":{"cached_until":{"kind":"string"},"company_book_id":{"kind":"string"},"destination_postal_code":{"kind":"string"},"origin_postal_code":{"kind":"string"},"quotes":{"kind":"array","items":{"kind":"ref","name":"ShippingRateQuoteView"}},"weight_grams":{"kind":"integer"}},"additional":null},"SignoffAccountingPeriodAuditorRequest":{"kind":"object","properties":{"auditor_firm_name":{"kind":"string"},"auditor_license_number":{"kind":"string"},"auditor_public_key_fingerprint":{"kind":"string"},"auditor_signature_scope":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"AuditorSignatureScope"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"merkle_root_hash":{"kind":"string"},"pki_signature_hex":{"kind":"string"}},"additional":null},"SingaporeEntityOnboardingView":{"kind":"object","properties":{"agm_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"annual_return_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"base_currency":{"kind":"string"},"coa_template":{"kind":"string"},"company_book_id":{"kind":"string"},"corporate_secretary":{"kind":"string"},"directors":{"kind":"array","items":{"kind":"string"}},"gst_rate_basis_points":{"kind":"integer"},"gst_registered":{"kind":"boolean"},"jurisdiction":{"kind":"string"},"legal_name":{"kind":"string"},"message":{"kind":"string"},"registered_address":{"kind":"string"},"status":{"kind":"string"},"uen":{"kind":"string"}},"additional":null},"SleekCompanyProfileView":{"kind":"object","properties":{"agm_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"annual_return_due":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"company_book_id":{"kind":"string"},"company_type":{"kind":"string"},"corporate_secretary":{"kind":"string"},"directors":{"kind":"array","items":{"kind":"string"}},"legal_name":{"kind":"string"},"registered_address":{"kind":"string"},"registration_date":{"kind":"string"},"status":{"kind":"string"},"uen":{"kind":"string"}},"additional":null},"SleekSignDocumentView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"dispatched_at":{"kind":"string"},"document_id":{"kind":"string"},"document_title":{"kind":"string"},"recipient_email":{"kind":"string"},"signing_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"}},"additional":null},"SleekWebhookAckStatus":{"kind":"enum","values":["processed"]},"SleekWebhookAckView":{"kind":"object","properties":{"event_id":{"kind":"string"},"status":{"kind":"ref","name":"SleekWebhookAckStatus"},"success":{"kind":"boolean"}},"additional":null},"SleekWebhookPayload":{"kind":"object","properties":{"document_id":{"kind":"string"},"event":{"kind":"string"},"signature_hash":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"string"},"uen":{"kind":"string"}},"additional":null},"SoftLockAccountingPeriodRequest":{"kind":"object","properties":{"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SoftLockAccountingPeriodView":{"kind":"object","properties":{"accounting_period_id":{"kind":"string"},"company_book_id":{"kind":"string"},"id":{"kind":"string"},"locked_at":{"kind":"string"},"locked_by_principal_id":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"AccountingPeriodSoftLockStatus"}},"additional":null},"SourcedPurchaseOrderListView":{"kind":"object","properties":{"purchase_orders":{"kind":"array","items":{"kind":"ref","name":"PurchaseOrderView"}}},"additional":null},"StarterCoaAccountClass":{"kind":"enum","values":["asset","liability","equity","revenue","expense"]},"StarterCoaPreview":{"kind":"object","properties":{"collisions":{"kind":"array","items":{"kind":"ref","name":"PreviewCollision"}},"components":{"kind":"array","items":{"kind":"ref","name":"ComponentRef"}},"lines":{"kind":"array","items":{"kind":"ref","name":"PreviewLine"}},"status":{"kind":"ref","name":"StarterCoaPreviewStatus"}},"additional":null},"StarterCoaPreviewStatus":{"kind":"enum","values":["applicable","needs_review","unsupported"]},"StatementOfChangesInEquity":{"kind":"object","properties":{"closing_equity_minor":{"kind":"integer"},"movements":{"kind":"array","items":{"kind":"ref","name":"EquityMovementLine"}},"net_income_minor":{"kind":"integer"},"opening_equity_minor":{"kind":"integer"}},"additional":null},"StatutorySupplyBasis":{"kind":"enum","values":["commercial_sales_invoice"]},"StockPosition":{"kind":"object","properties":{"avg_cost":{"kind":"int64"},"book_value":{"kind":"int64"},"item_id":{"kind":"string"},"on_hand_qty":{"kind":"int64"}},"additional":null},"StocktakeRequest":{"kind":"object","properties":{"counted_qty":{"kind":"int64"},"note":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SubledgerAccountRole":{"kind":"enum","values":["commission_payable","non_fiat_units"]},"SubledgerStatementView":{"kind":"object","properties":{"account_role":{"kind":"ref","name":"SubledgerAccountRole"},"company_book_id":{"kind":"string"},"counterparty_entity_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"in_review_claim_balance_minor":{"kind":"int64"},"matured_claimable_balance_minor":{"kind":"int64"},"non_fiat_units_balance":{"kind":"number"},"paid_out_total_minor":{"kind":"int64"},"tax_withheld_total_minor":{"kind":"int64"},"unmatured_balance_minor":{"kind":"int64"}},"additional":null},"SubmitAppRequest":{"kind":"object","properties":{"app_type":{"kind":"string"},"app_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"category":{"kind":"string"},"demo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"string"},"execution_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"icon_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"pricing_model":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"slug":{"kind":"string"},"summary":{"kind":"string"},"version":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SubmitPosOrderRequest":{"kind":"object","properties":{"financial_date":{"kind":"string"},"handover":{"kind":"ref","name":"PosHandoverEvidenceRequest"}},"additional":null},"SubmitSubledgerClaimRequest":{"kind":"object","properties":{"account_role":{"kind":"string"},"claim_amount_minor":{"kind":"int64"}},"additional":null},"SubscriptionPlanStatus":{"kind":"enum","values":["active"]},"SubscriptionPlanView":{"kind":"object","properties":{"billing_interval":{"kind":"string"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"id":{"kind":"string"},"plan_code":{"kind":"string"},"plan_name":{"kind":"string"},"price_minor":{"kind":"int64"},"status":{"kind":"ref","name":"SubscriptionPlanStatus"},"tenant_id":{"kind":"string"}},"additional":null},"SuccessorConnectionRequest":{"kind":"object","properties":{"active":{"kind":"boolean"},"effective_from":{"kind":"string"},"integration_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"SuccessorMerchantRouteRequest":{"kind":"object","properties":{"active":{"kind":"boolean"},"effective_from":{"kind":"string"},"external_merchant_id":{"kind":"string"},"provenance":{"kind":"string"}},"additional":null},"SupplierQuote":{"kind":"object","properties":{"accepted_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"approval_request_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"connector_idempotency_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"contact_id":{"kind":"string"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"document_number":{"kind":"string"},"eligibility":{"kind":"ref","name":"Eligibility"},"external_company_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_content_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_party_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_quote_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"external_revision_ref":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"SupplierQuoteLineView"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quote_date":{"kind":"string"},"revision_of_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"source_system":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"QuoteState"},"subtotal":{"kind":"int64"},"supplier_reference":{"kind":"string"},"total":{"kind":"int64"},"updated_at":{"kind":"string"},"valid_until":{"kind":"string"}},"additional":null},"SupplierQuoteConversion":{"kind":"object","properties":{"action":{"kind":"ref","name":"ConversionAction"},"document_date":{"kind":"string"},"lines":{"kind":"array","items":{"kind":"ref","name":"SupplierQuoteConversionLine"}},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"revision":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"QuoteRevisionRequest"}]}},"additional":null},"SupplierQuoteConversionLine":{"kind":"object","properties":{"discount_amount":{"kind":"int64"},"quantity":{"kind":"int64"},"quote_line_id":{"kind":"string"},"unit_price":{"kind":"int64"}},"additional":null},"SupplierQuoteConversionStatus":{"kind":"enum","values":["awaiting_quote_approval","completed","rejected","cancelled"]},"SupplierQuoteDecision":{"kind":"object","properties":{"decision":{"kind":"string"},"reason":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"SupplierQuoteLine":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"quantity":{"kind":"int64"},"unit_price":{"kind":"int64"}},"additional":null},"SupplierQuoteLineView":{"kind":"object","properties":{"description":{"kind":"string"},"discount_amount":{"kind":"int64"},"id":{"kind":"string"},"item_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"line_total":{"kind":"int64"},"ordinal":{"kind":"integer"},"quantity":{"kind":"int64"},"unit_price":{"kind":"int64"}},"additional":null},"SupplierQuoteList":{"kind":"object","properties":{"quotes":{"kind":"array","items":{"kind":"ref","name":"SupplierQuote"}}},"additional":null},"SupportState":{"kind":"enum","values":["contract_generated","implemented","proved","supported","deprecated","retired","drifted","invalidated","suspended"]},"SyncOfflineQueueItem":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"client_queue_id":{"kind":"string"},"offline_seq_hash":{"kind":"string"},"transaction_payload":{"kind":"value"},"transaction_type":{"kind":"string"}},"additional":null},"SyncOfflineQueueRequest":{"kind":"object","properties":{"records":{"kind":"array","items":{"kind":"ref","name":"SyncOfflineQueueItem"}}},"additional":null},"SyncOfflineQueueResultView":{"kind":"object","properties":{"processed_count":{"kind":"integer"},"synced_records":{"kind":"array","items":{"kind":"ref","name":"SyncOfflineRecordView"}}},"additional":null},"SyncOfflineRecordView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"client_queue_id":{"kind":"string"},"id":{"kind":"string"},"offline_seq_hash":{"kind":"string"},"status":{"kind":"string"},"synced_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"transaction_type":{"kind":"string"}},"additional":null},"SyncSleekCompanyProfileRequest":{"kind":"object","properties":{"api_key":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"uen":{"kind":"string"}},"additional":null},"TagOwnerRequest":{"kind":"object","properties":{"owner_email":{"kind":"string"},"owner_name":{"kind":"string"}},"additional":null},"TemplateCategory":{"kind":"enum","values":["document","email","message"]},"TemplateDefinitionView":{"kind":"object","properties":{"category":{"kind":"ref","name":"TemplateCategory"},"created_at":{"kind":"string"},"id":{"kind":"string"},"locale":{"kind":"string"},"name":{"kind":"string"},"source_capability":{"kind":"ref","name":"TemplateSourceCapability"},"template_key":{"kind":"string"},"tenant_id":{"kind":"string"},"variable_schema":{"kind":"value"}},"additional":null},"TemplateDocumentKind":{"kind":"enum","values":["trial_balance","balance_sheet","income_statement","cash_flow","sales_invoice"]},"TemplateSelectionView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"created_by":{"kind":"string"},"document_kind":{"kind":"ref","name":"TemplateDocumentKind"},"effective_from":{"kind":"string"},"id":{"kind":"string"},"provenance":{"kind":"value"},"template_id":{"kind":"string"},"template_version":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"TemplateSourceCapability":{"kind":"enum","values":["accounting","approval","ar_ap","audit_adjustment","bank","company_book","company_connection","company_settings","contact","contacts","delivery","expense_claim","financial_kernel","fixed_asset","fixed_asset_depreciation","fixed_asset_disposal","fixed_asset_impairment","fixed_asset_revaluation","import_declaration","inventory","inventory_transformation","journal","landed_cost","manual_journal","order","payment","payments","payroll","pos","product","purchase","sales","stocktake","tax","ticket"]},"TemplateVersionView":{"kind":"object","properties":{"content_payload":{"kind":"string"},"created_at":{"kind":"string"},"style_metadata":{"kind":"value"},"subject_pattern":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"template_id":{"kind":"string"},"tenant_id":{"kind":"string"},"version":{"kind":"integer"}},"additional":null},"TemporaryLockEvidenceView":{"kind":"object","properties":{"expires_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"locked_at":{"kind":"string"},"owner_principal_id":{"kind":"string"},"reason":{"kind":"string"}},"additional":null},"TenantInfrastructureMigrationStatus":{"kind":"enum","values":["requested"]},"TenantInfrastructureMigrationView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"id":{"kind":"string"},"initiated_by_principal_id":{"kind":"string"},"migrated_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"migrated_journal_count":{"kind":"int64"},"migration_payload_uri":{"kind":"string"},"proof_sentinel_checksum":{"kind":"string"},"requested_at":{"kind":"string"},"source_deployment_mode":{"kind":"ref","name":"NodeDeploymentMode"},"status":{"kind":"ref","name":"TenantInfrastructureMigrationStatus"},"target_deployment_mode":{"kind":"ref","name":"NodeDeploymentMode"},"tenant_id":{"kind":"string"}},"additional":null},"TerCategory":{"kind":"enum","values":["A","B","C"]},"TicketCommentListView":{"kind":"object","properties":{"comments":{"kind":"array","items":{"kind":"ref","name":"TicketCommentView"}}},"additional":null},"TicketCommentView":{"kind":"object","properties":{"author_principal_id":{"kind":"string"},"comment_body":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"is_internal_note":{"kind":"boolean"},"ticket_id":{"kind":"string"}},"additional":null},"TicketListView":{"kind":"object","properties":{"tickets":{"kind":"array","items":{"kind":"ref","name":"TicketView"}}},"additional":null},"TicketPriority":{"kind":"enum","values":["low","medium","high","urgent"]},"TicketStatus":{"kind":"enum","values":["open","in_progress","resolved","closed"]},"TicketTransitionListView":{"kind":"object","properties":{"transitions":{"kind":"array","items":{"kind":"ref","name":"TicketTransitionView"}}},"additional":null},"TicketTransitionView":{"kind":"object","properties":{"actor_principal_id":{"kind":"string"},"created_at":{"kind":"string"},"from_status":{"kind":"ref","name":"TicketStatus"},"id":{"kind":"string"},"ticket_id":{"kind":"string"},"to_status":{"kind":"ref","name":"TicketStatus"}},"additional":null},"TicketView":{"kind":"object","properties":{"assignee_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"priority":{"kind":"ref","name":"TicketPriority"},"sla_due_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"state_revision":{"kind":"int64"},"status":{"kind":"ref","name":"TicketStatus"},"ticket_number":{"kind":"string"},"title":{"kind":"string"},"updated_at":{"kind":"string"}},"additional":null},"TimephasedBaselineItemRequest":{"kind":"object","properties":{"period_index":{"kind":"integer"},"period_label":{"kind":"string"},"planned_cost_incremental_minor":{"kind":"int64"},"planned_progress_pct":{"kind":"number"}},"additional":null},"TimesheetApprovalRunStatus":{"kind":"enum","values":["approved"]},"TimesheetApprovalRunView":{"kind":"object","properties":{"approved_by_principal_id":{"kind":"string"},"approved_entries_count":{"kind":"integer"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"period_end":{"kind":"string"},"period_start":{"kind":"string"},"status":{"kind":"ref","name":"TimesheetApprovalRunStatus"},"tenant_id":{"kind":"string"},"total_approved_amount_minor":{"kind":"int64"},"total_approved_hours":{"kind":"number"}},"additional":null},"TimesheetEntryStatus":{"kind":"enum","values":["submitted"]},"TimesheetEntryView":{"kind":"object","properties":{"billable_rate_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_contact_id":{"kind":"string"},"entry_date":{"kind":"string"},"hours_logged":{"kind":"number"},"id":{"kind":"string"},"is_billable":{"kind":"boolean"},"project_code":{"kind":"string"},"staff_principal_id":{"kind":"string"},"status":{"kind":"ref","name":"TimesheetEntryStatus"},"tenant_id":{"kind":"string"},"total_billable_minor":{"kind":"int64"}},"additional":null},"TransferAndOffboardRequest":{"kind":"object","properties":{"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"release_document_locks":{"kind":"boolean"},"successor_principal_id":{"kind":"string"},"transfer_attentions":{"kind":"boolean"},"transfer_calendar_events":{"kind":"boolean"},"transfer_drafts":{"kind":"boolean"}},"additional":null},"TransformationConsume":{"kind":"object","properties":{"item_id":{"kind":"string"},"quantity":{"kind":"int64"}},"additional":null},"TransformationOutput":{"kind":"object","properties":{"item_id":{"kind":"string"},"movement_id":{"kind":"string"},"quantity":{"kind":"int64"},"unit_cost":{"kind":"int64"},"value":{"kind":"int64"}},"additional":null},"TransformationProduce":{"kind":"object","properties":{"item_id":{"kind":"string"},"kind":{"kind":"ref","name":"TransformationProduceKind"},"quantity":{"kind":"int64"},"value":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"TransformationProduceKind":{"kind":"enum","values":["primary","by_product"]},"TransitionAdmissionRequest":{"kind":"object","properties":{"reason":{"kind":"string"}},"additional":null},"TransitionBankAccount":{"kind":"object","properties":{"evidence":{"kind":"array","items":{"kind":"ref","name":"BankAccountEvidence"}},"reason":{"kind":"string"},"target_status":{"kind":"ref","name":"BankAccountTransitionTarget"}},"additional":null},"TransitionBookInput":{"kind":"object","properties":{"effective_at":{"kind":"string"},"reason":{"kind":"string"},"target_state":{"kind":"ref","name":"LifecycleState"}},"additional":null},"TreatmentClassification":{"kind":"enum","values":["required","permitted","workflow"]},"TreatmentMethod":{"kind":"enum","values":["straight_line","declining_balance"]},"TreatmentView":{"kind":"object","properties":{"annual_rate_basis_points":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"asset_category_id":{"kind":"string"},"authority_reference":{"kind":"string"},"book_id":{"kind":"string"},"classification_reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"effective_from":{"kind":"string"},"id":{"kind":"string"},"method":{"kind":"ref","name":"TreatmentMethod"},"policy_reference":{"kind":"string"},"reason":{"kind":"string"},"recorded_at":{"kind":"string"},"recorded_by":{"kind":"string"},"residual_value":{"kind":"int64"},"useful_life_months":{"kind":"integer"},"version":{"kind":"int64"}},"additional":null},"TrialBalance":{"kind":"object","properties":{"lines":{"kind":"array","items":{"kind":"ref","name":"TrialBalanceLine"}},"total_credit_minor":{"kind":"integer"},"total_debit_minor":{"kind":"integer"}},"additional":null},"TrialBalanceLine":{"kind":"object","properties":{"account_code":{"kind":"string"},"account_id":{"kind":"string"},"account_name":{"kind":"string"},"balance_minor":{"kind":"integer"},"credit_minor":{"kind":"integer"},"debit_minor":{"kind":"integer"}},"additional":null},"TrialBalanceRenderProjection":{"kind":"object","properties":{"as_of":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"book_id":{"kind":"string"},"company_book_id":{"kind":"string"},"complete":{"kind":"boolean"},"functional_currency":{"kind":"string"},"has_more":{"kind":"boolean"},"lines":{"kind":"array","items":{"kind":"ref","name":"TrialBalanceLine"}},"masking":{"kind":"string"},"membership_read_visibility_revision":{"kind":"string"},"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payload_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payload_schema_version":{"kind":"integer"},"payload_sha256":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"report_kind":{"kind":"ref","name":"ReportKind"},"source_report_id":{"kind":"string"},"source_report_revision":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"total_credit_minor":{"kind":"integer"},"total_debit_minor":{"kind":"integer"}},"additional":null},"TriggerContinuousCloseRequest":{"kind":"object","properties":{"daily_fx_revaluation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"daily_micro_depreciation_last_run":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"fiscal_period":{"kind":"integer"},"fiscal_year":{"kind":"integer"},"reconciliation_matched_count":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]}},"additional":null},"TriggerFederatedNodeSyncRequest":{"kind":"object","properties":{"endpoint_uri":{"kind":"string"},"node_deployment_mode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"node_name":{"kind":"string"},"public_key_fingerprint":{"kind":"string"}},"additional":null},"UaeTaxSettingsView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"corporate_tax_exemption":{"kind":"boolean"},"created_at":{"kind":"string"},"free_zone_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"id":{"kind":"string"},"is_free_zone_qfzp":{"kind":"boolean"},"tenant_id":{"kind":"string"},"trn_number":{"kind":"string"},"vat_stagger_period":{"kind":"string"}},"additional":null},"UnifiedIdentityItem":{"kind":"object","properties":{"created_at":{"kind":"string"},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"identity_id":{"kind":"string"},"identity_type":{"kind":"ref","name":"UnifiedIdentityType"},"issuer":{"kind":"string"},"last_active_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"status":{"kind":"ref","name":"UnifiedIdentityStatus"},"total_requests":{"kind":"int64"}},"additional":null},"UnifiedIdentityStatus":{"kind":"enum","values":["active","retiring","suspended","revoked","expired","deactivated"]},"UnifiedIdentityType":{"kind":"enum","values":["developer_api_key","oidc_principal"]},"UnitReferenceItem":{"kind":"object","properties":{"lot_batch":{"kind":"string"},"unit_id":{"kind":"string"}},"additional":null},"UnitResolverPayload":{"kind":"object","properties":{"acquisition_date":{"kind":"string"},"current_location":{"kind":"string"},"financial_cost_basis":{"kind":"int64"},"item_code":{"kind":"string"},"item_name":{"kind":"string"},"provenance_journal_ref":{"kind":"string"},"serial_number":{"kind":"string"},"unit_references":{"kind":"array","items":{"kind":"ref","name":"UnitReferenceItem"}},"warranty_status":{"kind":"string"}},"additional":null},"UniversalContractMode":{"kind":"enum","values":["proportional_capital_risk","sole_capital_provider_risk"]},"UniversalContractStatus":{"kind":"enum","values":["active"]},"UniversalContractView":{"kind":"object","properties":{"capital_ratio":{"kind":"number"},"company_book_id":{"kind":"string"},"contract_mode":{"kind":"ref","name":"UniversalContractMode"},"created_at":{"kind":"string"},"id":{"kind":"string"},"profit_split_ratio":{"kind":"number"},"status":{"kind":"ref","name":"UniversalContractStatus"},"tenant_id":{"kind":"string"}},"additional":null},"UpdateBankAccount":{"kind":"object","properties":{"account_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_number":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"account_type":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"BankAccountType"}]},"bank_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"bank_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"currency":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"gl_account_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"institution_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"swift_code":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdateCalendarEventStatusRequest":{"kind":"object","properties":{"status":{"kind":"ref","name":"CalendarEventStatus"}},"additional":null},"UpdateContact":{"kind":"object","properties":{"active":{"kind":"boolean"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"email":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"name":{"kind":"string"},"notes":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"tax_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"telephone":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdateInstalledConnectorConfigRequest":{"kind":"object","properties":{"configuration_values":{"kind":"value"},"granted_permission_scopes":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"is_enabled":{"kind":"union","variants":[{"kind":"boolean"},{"kind":"null"}]}},"additional":null},"UpdateItem":{"kind":"object","properties":{"active":{"kind":"boolean"},"aliases":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"barcode":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"max_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"min_stock_level":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"name":{"kind":"string"},"preferred_supplier_contact_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"purchase_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sale_account":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"sale_price":{"kind":"union","variants":[{"kind":"int64"},{"kind":"null"}]},"sku":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"taxable":{"kind":"boolean"},"unit":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdatePayment":{"kind":"object","properties":{"amount":{"kind":"int64"},"bank_account_id":{"kind":"string"},"contact_id":{"kind":"string"},"currency":{"kind":"string"},"dimension_value_ids":{"kind":"union","variants":[{"kind":"array","items":{"kind":"string"}},{"kind":"null"}]},"direction":{"kind":"ref","name":"PaymentDirection"},"memo":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"payment_date":{"kind":"string"},"payment_method":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"reference":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpdateRoleMetadataRequest":{"kind":"object","properties":{"description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"suffix":{"kind":"string"}},"additional":null},"UpdateTicketRequest":{"kind":"object","properties":{"assignee_principal_id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"priority":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"TicketStatus"}]}},"additional":null},"UpsertContactOrganization":{"kind":"object","properties":{"industry":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"legal_name":{"kind":"string"},"lei":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"registration_no":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UpsertContactPerson":{"kind":"object","properties":{"additional_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"birth_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"family_name":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gender":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"gender_description":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"given_name":{"kind":"string"}},"additional":null},"UpsertContactProfile":{"kind":"object","properties":{"about":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"headline":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"location":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"photo_url":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"website":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UsGaapBalanceSheetView":{"kind":"object","properties":{"as_of":{"kind":"string"},"company_book_id":{"kind":"string"},"currency":{"kind":"string"},"current_assets_minor":{"kind":"int64"},"current_liabilities_minor":{"kind":"int64"},"non_current_assets_minor":{"kind":"int64"},"non_current_liabilities_minor":{"kind":"int64"},"presentation_standard":{"kind":"string"},"stockholders_equity_minor":{"kind":"int64"},"total_assets_minor":{"kind":"int64"},"total_liabilities_and_equity_minor":{"kind":"int64"},"total_liabilities_minor":{"kind":"int64"}},"additional":null},"UsGaapIncomeStatementView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"cost_of_goods_sold_minor":{"kind":"int64"},"currency":{"kind":"string"},"from_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"gross_profit_minor":{"kind":"int64"},"gross_revenue_minor":{"kind":"int64"},"income_before_tax_minor":{"kind":"int64"},"income_tax_expense_minor":{"kind":"int64"},"net_income_minor":{"kind":"int64"},"non_operating_income_expense_minor":{"kind":"int64"},"operating_expenses_minor":{"kind":"int64"},"operating_income_minor":{"kind":"int64"},"presentation_standard":{"kind":"string"},"to_date":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]}},"additional":null},"UsageMeteringStatus":{"kind":"enum","values":["active"]},"UserDraftView":{"kind":"object","properties":{"client_device_signature":{"kind":"string"},"company_book_id":{"kind":"string"},"draft_payload":{"kind":"value"},"draft_type":{"kind":"string"},"has_draft":{"kind":"boolean"},"id":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"updated_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"user_principal_id":{"kind":"string"}},"additional":null},"UserReferralCodeView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"referee_discount_pct":{"kind":"number"},"referral_code":{"kind":"string"},"referral_code_id":{"kind":"string"},"referrer_principal_id":{"kind":"string"},"referrer_reward_pct":{"kind":"number"},"total_credits_earned_minor":{"kind":"int64"}},"additional":null},"ValidatePosSaleQuoteRequest":{"kind":"object","properties":{},"additional":null},"ValidatePosSaleQuoteView":{"kind":"object","properties":{"quote":{"kind":"ref","name":"PosSaleQuoteView"},"valid":{"kind":"boolean"}},"additional":null},"ValidationViolation":{"kind":"object","properties":{"code":{"kind":"string"},"message":{"kind":"string"},"path":{"kind":"string"}},"additional":null},"VariableConsiderationPredictionView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"customer_id":{"kind":"string"},"id":{"kind":"string"},"predicted_take_up_probability":{"kind":"number"},"reserve_account_code":{"kind":"string"},"reserved_discount_amount_minor":{"kind":"int64"},"sales_document_id":{"kind":"string"},"should_book_day1_reserve":{"kind":"boolean"},"status":{"kind":"ref","name":"VariableConsiderationReserveStatus"},"tenant_id":{"kind":"string"}},"additional":null},"VariableConsiderationReserveStatus":{"kind":"enum","values":["active_reserve","no_reserve_required"]},"WealthPortfolioAssetClass":{"kind":"enum","values":["real_estate","private_equity","liquid_market","art_collectible"]},"WealthPortfolioView":{"kind":"object","properties":{"asset_class":{"kind":"ref","name":"WealthPortfolioAssetClass"},"created_at":{"kind":"string"},"currency":{"kind":"string"},"current_valuation_minor":{"kind":"int64"},"family_group_id":{"kind":"string"},"id":{"kind":"string"},"last_valued_at":{"kind":"string"},"portfolio_name":{"kind":"string"},"tenant_id":{"kind":"string"}},"additional":null},"WebhookDeliveryStatus":{"kind":"enum","values":["pending","delivered","failed","retrying"]},"WebhookDeliveryView":{"kind":"object","properties":{"created_at":{"kind":"string"},"event_payload":{"kind":"value"},"event_type":{"kind":"ref","name":"WebhookEventType"},"http_status":{"kind":"union","variants":[{"kind":"integer"},{"kind":"null"}]},"id":{"kind":"int64"},"retry_count":{"kind":"integer"},"sent_at":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"status":{"kind":"ref","name":"WebhookDeliveryStatus"},"subscription_id":{"kind":"string"}},"additional":null},"WebhookEventType":{"kind":"enum","values":["posting.applied","invoice.created","payment.received","contact.created"]},"WebhookSubscriptionView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"event_types":{"kind":"array","items":{"kind":"string"}},"id":{"kind":"string"},"is_active":{"kind":"boolean"},"last_status":{"kind":"union","variants":[{"kind":"null"},{"kind":"ref","name":"WebhookDeliveryStatus"}]},"retry_count":{"kind":"integer"},"target_url":{"kind":"string"}},"additional":null},"WorkOrderPartsIssuedView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"created_at":{"kind":"string"},"id":{"kind":"string"},"item_id":{"kind":"string"},"quantity":{"kind":"integer"},"tenant_id":{"kind":"string"},"total_cost_minor":{"kind":"int64"},"unit_cost_minor":{"kind":"int64"},"work_order_id":{"kind":"string"}},"additional":null},"WorkOrderStatus":{"kind":"enum","values":["open","completed"]},"WorkingCapitalContributionBasis":{"kind":"enum","values":["net_working_capital"]},"WorkingCapitalContributionStatus":{"kind":"enum","values":["calculated"]},"WorkingCapitalContributionView":{"kind":"object","properties":{"calculated_amount_minor":{"kind":"int64"},"company_book_id":{"kind":"string"},"contribution_basis":{"kind":"ref","name":"WorkingCapitalContributionBasis"},"contribution_percentage_rate":{"kind":"number"},"created_at":{"kind":"string"},"id":{"kind":"string"},"period_year":{"kind":"integer"},"recipient_contact_id":{"kind":"string"},"status":{"kind":"ref","name":"WorkingCapitalContributionStatus"},"tenant_id":{"kind":"string"}},"additional":null},"WorkspaceList":{"kind":"object","properties":{"next_cursor":{"kind":"union","variants":[{"kind":"string"},{"kind":"null"}]},"workspaces":{"kind":"array","items":{"kind":"ref","name":"WorkspaceView"}}},"additional":null},"WorkspaceSecretsPath":{"kind":"object","properties":{"workspace":{"kind":"string"}},"additional":null},"WorkspaceStatus":{"kind":"enum","values":["active","suspended","archived"]},"WorkspaceView":{"kind":"object","properties":{"binding_model":{"kind":"string"},"created_at":{"kind":"string"},"display_name":{"kind":"string"},"organization_id":{"kind":"string"},"state_revision":{"kind":"int64"},"state_token":{"kind":"string"},"status":{"kind":"ref","name":"WorkspaceStatus"},"workspace_id":{"kind":"string"}},"additional":null},"XeroHistoricalDataImportView":{"kind":"object","properties":{"company_book_id":{"kind":"string"},"import_id":{"kind":"string"},"imported_at":{"kind":"string"},"imported_contacts_count":{"kind":"integer"},"imported_journals_count":{"kind":"integer"},"status":{"kind":"ref","name":"XeroImportStatus"},"xero_tenant_id":{"kind":"string"}},"additional":null},"XeroImportStatus":{"kind":"enum","values":["completed"]}};
 // ============================================================================
 // HFE CLIENT CONFIGURATION & RUNTIME
 // ============================================================================
@@ -7055,6 +8185,15 @@ export class HfeClient {
         {"201":{"schema":{"kind":"ref","name":"AcceptedOrderReceipt"},"contentType":"application/json"}}
       ) as Promise<{ status: 201; body: AcceptedOrderReceipt; }>,
 
+    acceptOrganizationInvitation: (options: { headers: { "Idempotency-Key": string; }; body: OrganizationInvitationAccept; }): Promise<{ status: 200; body: OrganizationMembershipView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/organization-invitations/accept",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"OrganizationInvitationAccept"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationMembershipView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationMembershipView; }>,
+
     acquireDocumentLock: (options: { path: { book: string; type: string; id: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: AcquireDocumentLockRequest; }): Promise<{ status: 200; body: DocumentLockView; }> =>
       this.requestOperation(
         "POST",
@@ -7199,6 +8338,15 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"CompanyBook"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: CompanyBook; }>,
 
+    archiveOrganization: (options: { path: { organization: string; }; headers: { "Idempotency-Key": string; }; body: RevisionCommand; }): Promise<{ status: 200; body: OrganizationView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/organizations/{organization}/archive",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"RevisionCommand"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationView; }>,
+
     assessPocProjectRevenue: (options: { path: { book: string; project_id: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: AssessPocProjectRevenueRequest; }): Promise<{ status: 200; body: PocProjectBudgetView; }> =>
       this.requestOperation(
         "POST",
@@ -7315,6 +8463,24 @@ export class HfeClient {
         {"kind":"ref","name":"CertifyProgressRequest"},
         {"200":{"schema":{"kind":"ref","name":"ProjectSCurveSeriesResponse"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: ProjectSCurveSeriesResponse; }>,
+
+    changeOrganizationMembership: (options: { path: { organization: string; principal: string; }; headers: { "Idempotency-Key": string; }; body: MembershipChange; }): Promise<{ status: 200; body: OrganizationMembershipView; }> =>
+      this.requestOperation(
+        "PUT",
+        "/v1/organizations/{organization}/memberships/{principal}",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"MembershipChange"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationMembershipView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationMembershipView; }>,
+
+    changePlatformAdmission: (options: { path: { principal: string; }; headers: { "Idempotency-Key": string; }; body: AdmissionCommand; }): Promise<{ status: 200; body: PlatformAdmissionView; }> =>
+      this.requestOperation(
+        "PUT",
+        "/v1/admin/platform-admissions/{principal}",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"AdmissionCommand"},
+        {"200":{"schema":{"kind":"ref","name":"PlatformAdmissionView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: PlatformAdmissionView; }>,
 
     claimConnectorVendor: (options: { path: { slug: string; }; headers: { "Idempotency-Key": string; }; body: ClaimConnectorVendorRequest; }): Promise<{ status: 200; body: ClaimConnectorVendorView; }> =>
       this.requestOperation(
@@ -7631,6 +8797,15 @@ export class HfeClient {
         {"201":{"schema":{"kind":"ref","name":"PhysicalBusinessEventRuleView"},"contentType":"application/json"}}
       ) as Promise<{ status: 201; body: PhysicalBusinessEventRuleView; }>,
 
+    createCompany: (options: { headers: { "Idempotency-Key": string; "X-CBook-Authority-Context": string; }; body: CreateCompanyRequest; }): Promise<{ status: 201; body: CompanyView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/companies",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateCompanyRequest"},
+        {"201":{"schema":{"kind":"ref","name":"CompanyView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: CompanyView; }>,
+
     createCompanyBook: (options: { headers: { "Idempotency-Key": string; }; body: CreateCompanyBook; }): Promise<{ status: 201; body: CompanyBook; }> =>
       this.requestOperation(
         "POST",
@@ -7657,6 +8832,24 @@ export class HfeClient {
         {"kind":"ref","name":"CreateInvitationRequest"},
         {"200":{"schema":{"kind":"ref","name":"InvitationView"},"contentType":"application/json"},"201":{"schema":{"kind":"ref","name":"InvitationView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: InvitationView; } | { status: 201; body: InvitationView; }>,
+
+    createCompanyBookReportingBasisElection: (options: { path: { book: string; accounting_book: string; version: Int64String; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: PolicyElectionInput; }): Promise<{ status: 201; body: ReportingBasisVersionView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/company-books/{book}/settings/books/{accounting_book}/reporting-basis-versions/{version}/elections",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"PolicyElectionInput"},
+        {"201":{"schema":{"kind":"ref","name":"ReportingBasisVersionView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: ReportingBasisVersionView; }>,
+
+    createCompanyBookReportingBasisVersion: (options: { path: { book: string; accounting_book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: ReportingBasisVersionInput; }): Promise<{ status: 201; body: ReportingBasisVersionView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/company-books/{book}/settings/books/{accounting_book}/reporting-basis-versions",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"ReportingBasisVersionInput"},
+        {"201":{"schema":{"kind":"ref","name":"ReportingBasisVersionView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: ReportingBasisVersionView; }>,
 
     createCompanyBookRole: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: CreateRoleRequest; }): Promise<{ status: 201; body: RoleView; }> =>
       this.requestOperation(
@@ -7694,6 +8887,60 @@ export class HfeClient {
         {"201":{"schema":{"kind":"ref","name":"DimensionRequirementView"},"contentType":"application/json"}}
       ) as Promise<{ status: 201; body: DimensionRequirementView; }>,
 
+    createCompanyIdentityRevision: (options: { path: { company: string; }; headers: { "Idempotency-Key": string; "If-Match": string; "X-CBook-Authority-Context"?: string | null; }; body: CreateIdentityRevisionRequest; }): Promise<{ status: 201; body: IdentityRevisionView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/companies/{company}/identity-revisions",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateIdentityRevisionRequest"},
+        {"201":{"schema":{"kind":"ref","name":"IdentityRevisionView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: IdentityRevisionView; }>,
+
+    createCompanyOfficer: (options: { path: { company: string; }; headers: { "Idempotency-Key": string; "If-Match": string; "X-CBook-Authority-Context"?: string | null; }; body: CreateOfficerRequest; }): Promise<{ status: 201; body: OfficerMutationResult; } | { status: 202; body: OfficerMutationResult; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/companies/{company}/officers",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateOfficerRequest"},
+        {"201":{"schema":{"kind":"ref","name":"OfficerMutationResult"},"contentType":"application/json"},"202":{"schema":{"kind":"ref","name":"OfficerMutationResult"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: OfficerMutationResult; } | { status: 202; body: OfficerMutationResult; }>,
+
+    createCompanyOwnershipStatement: (options: { path: { company: string; }; headers: { "Idempotency-Key": string; "If-Match": string; "X-CBook-Authority-Context"?: string | null; }; body: CreateOwnershipStatementRequest; }): Promise<{ status: 201; body: OwnershipStatementMutationResult; } | { status: 202; body: OwnershipStatementMutationResult; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/companies/{company}/ownership-statements",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateOwnershipStatementRequest"},
+        {"201":{"schema":{"kind":"ref","name":"OwnershipStatementMutationResult"},"contentType":"application/json"},"202":{"schema":{"kind":"ref","name":"OwnershipStatementMutationResult"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: OwnershipStatementMutationResult; } | { status: 202; body: OwnershipStatementMutationResult; }>,
+
+    createCompanyRegistration: (options: { path: { company: string; }; headers: { "Idempotency-Key": string; "If-Match": string; "X-CBook-Authority-Context"?: string | null; }; body: CreateRegistrationRequest; }): Promise<{ status: 201; body: RegistrationView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/companies/{company}/registrations",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateRegistrationRequest"},
+        {"201":{"schema":{"kind":"ref","name":"RegistrationView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: RegistrationView; }>,
+
+    createConsolidationMemberBinding: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: CreateMemberBindingRequest; }): Promise<{ status: 201; body: MemberBindingView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/company-books/{book}/consolidation/member-bindings",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateMemberBindingRequest"},
+        {"201":{"schema":{"kind":"ref","name":"MemberBindingView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: MemberBindingView; }>,
+
+    createConsolidationMovementManifest: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: CreateMovementManifestRequest; }): Promise<{ status: 201; body: MovementManifestView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/company-books/{book}/consolidation/movement-manifests",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateMovementManifestRequest"},
+        {"201":{"schema":{"kind":"ref","name":"MovementManifestView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: MovementManifestView; }>,
+
     createConsolidationPerimeter: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: CreateConsolidationPerimeterRequest; }): Promise<{ status: 201; body: ConsolidationPerimeterView; }> =>
       this.requestOperation(
         "POST",
@@ -7702,6 +8949,15 @@ export class HfeClient {
         {"kind":"ref","name":"CreateConsolidationPerimeterRequest"},
         {"201":{"schema":{"kind":"ref","name":"ConsolidationPerimeterView"},"contentType":"application/json"}}
       ) as Promise<{ status: 201; body: ConsolidationPerimeterView; }>,
+
+    createConsolidationSharingGrant: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: CreateSharingGrantRequest; }): Promise<{ status: 201; body: SharingGrantView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/company-books/{book}/consolidation/sharing-grants",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateSharingGrantRequest"},
+        {"201":{"schema":{"kind":"ref","name":"SharingGrantView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: SharingGrantView; }>,
 
     createContact: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: CreateContact; }): Promise<{ status: 201; body: Contact; }> =>
       this.requestOperation(
@@ -7973,6 +9229,33 @@ export class HfeClient {
         {"201":{"schema":{"kind":"ref","name":"MonthlyPayrollRunView"},"contentType":"application/json"}}
       ) as Promise<{ status: 201; body: MonthlyPayrollRunView; }>,
 
+    createOrganization: (options: { headers: { "Idempotency-Key": string; }; body: OrganizationCreate; }): Promise<{ status: 200; body: OrganizationView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/organizations",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"OrganizationCreate"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationView; }>,
+
+    createOrganizationInvitation: (options: { path: { organization: string; }; headers: { "Idempotency-Key": string; }; body: OrganizationInvitationCreate; }): Promise<{ status: 200; body: OrganizationInvitationIssued; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/organizations/{organization}/invitations",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"OrganizationInvitationCreate"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationInvitationIssued"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationInvitationIssued; }>,
+
+    createOrganizationWorkspace: (options: { path: { organization: string; }; headers: { "Idempotency-Key": string; }; body: OrganizationCreate; }): Promise<{ status: 200; body: OrganizationWorkspaceCreated; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/organizations/{organization}/workspaces",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"OrganizationCreate"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationWorkspaceCreated"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationWorkspaceCreated; }>,
+
     createPayment: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: CreatePayment; }): Promise<{ status: 201; body: Payment; }> =>
       this.requestOperation(
         "POST",
@@ -8234,6 +9517,15 @@ export class HfeClient {
         {"201":{"schema":{"kind":"ref","name":"CompanyWorkOrderView"},"contentType":"application/json"}}
       ) as Promise<{ status: 201; body: CompanyWorkOrderView; }>,
 
+    createWorkspaceSecret: (options: { path: { workspace: string; }; headers: { "Idempotency-Key": string; }; body: CreateSecretRequest; }): Promise<{ status: 201; body: SecretMetadataView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/workspaces/{workspace}/secrets",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"CreateSecretRequest"},
+        {"201":{"schema":{"kind":"ref","name":"SecretMetadataView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: SecretMetadataView; }>,
+
     deactivateCompanyBookRole: (options: { path: { book: string; role: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; "If-Match": string; }; }): Promise<{ status: 200; body: RoleView; }> =>
       this.requestOperation(
         "POST",
@@ -8360,9 +9652,9 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"DisburseSalaryPayoutsView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: DisburseSalaryPayoutsView; }>,
 
-    dismissAttention: (options: { path: { book: string; attention_id: string; }; }): Promise<{ status: 200; body: undefined; }> =>
+    dismissAttention: (options: { path: { book: string; attention_id: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; }): Promise<{ status: 200; body: undefined; }> =>
       this.requestOperation(
-        "GET",
+        "POST",
         "/v1/company-books/{book}/attentions/{attention_id}/dismiss",
         options as unknown as OperationOptions,
         undefined,
@@ -8657,7 +9949,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"AccountsReceivableAgingReportView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: AccountsReceivableAgingReportView; }>,
 
-    getAgingReport: (options: { path: { book: string; }; query?: { direction?: string; as_of?: string; }; }): Promise<{ status: 200; body: AgingReport; }> =>
+    getAgingReport: (options: { path: { book: string; }; query?: { direction?: OpenItemDirection; as_of?: string; }; }): Promise<{ status: 200; body: AgingReport; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/aging",
@@ -8792,6 +10084,15 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"CloseReadinessStatusView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: CloseReadinessStatusView; }>,
 
+    getCompany: (options: { path: { company: string; }; }): Promise<{ status: 200; body: CompanyView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies/{company}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"CompanyView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: CompanyView; }>,
+
     getCompanyBillingProfile: (options: { path: { book: string; }; }): Promise<{ status: 200; body: CompanyBillingProfileView; }> =>
       this.requestOperation(
         "GET",
@@ -8810,6 +10111,15 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"AuthorityContextSummary"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: AuthorityContextSummary; }>,
 
+    getCompanyBookReportingBasisVersion: (options: { path: { book: string; accounting_book: string; version: Int64String; }; }): Promise<{ status: 200; body: ReportingBasisVersionView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/company-books/{book}/settings/books/{accounting_book}/reporting-basis-versions/{version}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"ReportingBasisVersionView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: ReportingBasisVersionView; }>,
+
     getCompanyBookRole: (options: { path: { book: string; role: string; }; }): Promise<{ status: 200; body: RoleView; }> =>
       this.requestOperation(
         "GET",
@@ -8818,6 +10128,15 @@ export class HfeClient {
         undefined,
         {"200":{"schema":{"kind":"ref","name":"RoleView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: RoleView; }>,
+
+    getCompanyCapTable: (options: { path: { company: string; }; query?: { as_of?: string; }; }): Promise<{ status: 200; body: CapTableView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies/{company}/cap-table",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"CapTableView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: CapTableView; }>,
 
     getCompanyUsageMetering: (options: { path: { book: string; }; }): Promise<{ status: 200; body: SaaSUsageMeteringView; }> =>
       this.requestOperation(
@@ -8828,16 +10147,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"SaaSUsageMeteringView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: SaaSUsageMeteringView; }>,
 
-    getConsolidatedBalanceSheet: (options: { path: { book: string; }; query?: { period_year?: number; period_month?: number; }; }): Promise<{ status: 200; body: ConsolidatedBalanceSheetView; }> =>
-      this.requestOperation(
-        "GET",
-        "/v1/company-books/{book}/consolidation/balance-sheet",
-        options as unknown as OperationOptions,
-        undefined,
-        {"200":{"schema":{"kind":"ref","name":"ConsolidatedBalanceSheetView"},"contentType":"application/json"}}
-      ) as Promise<{ status: 200; body: ConsolidatedBalanceSheetView; }>,
-
-    getConsolidatedTrialBalance: (options: { path: { book: string; id: string; }; }): Promise<{ status: 200; body: ConsolidatedTrialBalanceView; }> =>
+    getConsolidatedTrialBalance: (options: { path: { book: string; id: string; }; query: { period_start: string; period_end: string; }; }): Promise<{ status: 200; body: ConsolidatedTrialBalanceView; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/consolidation-perimeters/{id}/trial-balance",
@@ -8854,6 +10164,24 @@ export class HfeClient {
         undefined,
         {"200":{"schema":{"kind":"ref","name":"Contact"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: Contact; }>,
+
+    getCustomerApiDiscovery: (options: { query?: { organization_id?: string; company_book_id?: string; }; headers?: { "X-CBook-Authority-Context"?: string | null; }; }): Promise<{ status: 200; body: CustomerApiDiscovery; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/api-discovery",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"CustomerApiDiscovery"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: CustomerApiDiscovery; }>,
+
+    getCustomerEnvironment: (options: { path: { organization: string; environment: string; }; }): Promise<{ status: 200; body: CustomerEnvironmentView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/organizations/{organization}/environments/{environment}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"CustomerEnvironmentView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: CustomerEnvironmentView; }>,
 
     getCustomerQuote: (options: { path: { book: string; quote_id: string; }; }): Promise<{ status: 200; body: CustomerQuote; }> =>
       this.requestOperation(
@@ -9125,6 +10453,24 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"OnboardingDraftView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: OnboardingDraftView; }>,
 
+    getOrganization: (options: { path: { organization: string; }; }): Promise<{ status: 200; body: OrganizationView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/organizations/{organization}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OrganizationView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationView; }>,
+
+    getOrganizationWorkspace: (options: { path: { organization: string; workspace: string; }; }): Promise<{ status: 200; body: OrganizationWorkspaceView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/organizations/{organization}/workspaces/{workspace}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OrganizationWorkspaceView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationWorkspaceView; }>,
+
     getPayment: (options: { path: { book: string; payment_id: string; }; }): Promise<{ status: 200; body: Payment; }> =>
       this.requestOperation(
         "GET",
@@ -9341,7 +10687,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"array","items":{"kind":"ref","name":"CapabilityReadiness"}},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: CapabilityReadiness[]; }>,
 
-    getStatementOfCashFlows: (options: { path: { book: string; }; query?: { method?: string; period_start_date?: string; period_end_date?: string; }; }): Promise<{ status: 200; body: AuditedCashFlowStatementView; }> =>
+    getStatementOfCashFlows: (options: { path: { book: string; }; query?: { method?: CashFlowMethod; period_start_date?: string; period_end_date?: string; }; }): Promise<{ status: 200; body: AuditedCashFlowStatementView; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/reports/cash-flow",
@@ -9457,6 +10803,33 @@ export class HfeClient {
         undefined,
         {"200":{"schema":{"kind":"ref","name":"UserDraftView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: UserDraftView; }>,
+
+    getWorkbenchRequest: (options: { path: { request_id: string; }; }): Promise<{ status: 200; body: RequestRecordDetailView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/workbench/requests/{request_id}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"RequestRecordDetailView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: RequestRecordDetailView; }>,
+
+    getWorkspace: (options: { path: { workspace: string; }; }): Promise<{ status: 200; body: WorkspaceView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/workspaces/{workspace}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"WorkspaceView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: WorkspaceView; }>,
+
+    grantSecretReveal: (options: { path: { secret: string; }; headers: { "Idempotency-Key": string; }; body: RevealGrantRequest; }): Promise<{ status: 201; body: RevealGrantOutcome; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/secrets/{secret}/reveals",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"RevealGrantRequest"},
+        {"201":{"schema":{"kind":"ref","name":"RevealGrantOutcome"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: RevealGrantOutcome; }>,
 
     handleSleekWebhook: (options: { headers: { "Idempotency-Key": string; }; body: SleekWebhookPayload; }): Promise<{ status: 200; body: SleekWebhookAckView; }> =>
       this.requestOperation(
@@ -9584,16 +10957,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"WorkOrderPartsIssuedView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: WorkOrderPartsIssuedView; }>,
 
-    linkSubsidiaryCompanyBook: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: LinkSubsidiaryCompanyBookRequest; }): Promise<{ status: 201; body: CompanyGroupHierarchyView; }> =>
-      this.requestOperation(
-        "POST",
-        "/v1/company-books/{book}/consolidation/hierarchies",
-        options as unknown as OperationOptions,
-        {"kind":"ref","name":"LinkSubsidiaryCompanyBookRequest"},
-        {"201":{"schema":{"kind":"ref","name":"CompanyGroupHierarchyView"},"contentType":"application/json"}}
-      ) as Promise<{ status: 201; body: CompanyGroupHierarchyView; }>,
-
-    listAccountingPeriods: (options: { path: { book: string; }; }): Promise<{ status: 200; body: AccountingPeriodList; }> =>
+    listAccountingPeriods: (options: { path: { book: string; }; query?: { limit?: number; cursor?: string; }; }): Promise<{ status: 200; body: AccountingPeriodList; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/accounting-periods",
@@ -9674,7 +11038,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"value"},"contentType":null}}
       ) as Promise<{ status: 200; body: undefined; }>,
 
-    listBankAccounts: (options: { path: { book: string; }; query?: { account_type?: string; status?: string; limit?: Int64String; }; }): Promise<{ status: 200; body: BankAccountList; }> =>
+    listBankAccounts: (options: { path: { book: string; }; query?: { account_type?: BankAccountType; status?: BankAccountStatus; limit?: Int64String; }; }): Promise<{ status: 200; body: BankAccountList; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/bank-accounts",
@@ -9692,7 +11056,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"BankStatementProfileList"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: BankStatementProfileList; }>,
 
-    listBankStatements: (options: { path: { book: string; account_id: string; }; query?: { reconciliation_status?: string; limit?: Int64String; }; }): Promise<{ status: 200; body: BankStatementList; }> =>
+    listBankStatements: (options: { path: { book: string; account_id: string; }; query?: { reconciliation_status?: BankStatementReconciliationStatus; limit?: Int64String; }; }): Promise<{ status: 200; body: BankStatementList; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/bank-accounts/{account_id}/statements",
@@ -9700,6 +11064,15 @@ export class HfeClient {
         undefined,
         {"200":{"schema":{"kind":"ref","name":"BankStatementList"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: BankStatementList; }>,
+
+    listCompanies: (options: { query?: { cursor?: string; limit?: number; }; }): Promise<{ status: 200; body: CompanyList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"CompanyList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: CompanyList; }>,
 
     listCompanyBookAccountingBooks: (options: { path: { book: string; }; }): Promise<{ status: 200; body: BookListView; }> =>
       this.requestOperation(
@@ -9736,6 +11109,15 @@ export class HfeClient {
         undefined,
         {"200":{"schema":{"kind":"ref","name":"OwnerCapacityList"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: OwnerCapacityList; }>,
+
+    listCompanyBookReportingBasisVersions: (options: { path: { book: string; accounting_book: string; }; }): Promise<{ status: 200; body: ReportingBasisVersionListView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/company-books/{book}/settings/books/{accounting_book}/reporting-basis-versions",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"ReportingBasisVersionListView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: ReportingBasisVersionListView; }>,
 
     listCompanyBookRoleAssignments: (options: { path: { book: string; }; }): Promise<{ status: 200; body: RoleAssignmentList; }> =>
       this.requestOperation(
@@ -9781,6 +11163,51 @@ export class HfeClient {
         undefined,
         {"200":{"schema":{"kind":"value"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: undefined; }>,
+
+    listCompanyIdentityRevisions: (options: { path: { company: string; }; query?: { cursor?: string; limit?: number; }; }): Promise<{ status: 200; body: IdentityRevisionList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies/{company}/identity-revisions",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"IdentityRevisionList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: IdentityRevisionList; }>,
+
+    listCompanyOfficers: (options: { path: { company: string; }; query?: { as_of?: string; cursor?: string; limit?: number; }; }): Promise<{ status: 200; body: OfficerList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies/{company}/officers",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OfficerList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OfficerList; }>,
+
+    listCompanyOwnedBooks: (options: { path: { company: string; }; }): Promise<{ status: 200; body: OwnedCompanyBookList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies/{company}/books",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OwnedCompanyBookList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OwnedCompanyBookList; }>,
+
+    listCompanyOwnershipStatements: (options: { path: { company: string; }; query?: { as_of?: string; cursor?: string; limit?: number; }; }): Promise<{ status: 200; body: OwnershipStatementList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies/{company}/ownership-statements",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OwnershipStatementList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OwnershipStatementList; }>,
+
+    listCompanyRegistrations: (options: { path: { company: string; }; query?: { as_of?: string; cursor?: string; limit?: number; }; }): Promise<{ status: 200; body: RegistrationList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/companies/{company}/registrations",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"RegistrationList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: RegistrationList; }>,
 
     listCompanyTemplateSelections: (options: { path: { book: string; }; query?: { document_kind?: string; }; }): Promise<{ status: 200; body: TemplateSelectionView[]; }> =>
       this.requestOperation(
@@ -9836,7 +11263,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"array","items":{"kind":"ref","name":"ContactRole"}},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: ContactRole[]; }>,
 
-    listContacts: (options: { path: { book: string; }; query?: { role?: string; q?: string; include_inactive?: boolean; limit?: Int64String; }; }): Promise<{ status: 200; body: ContactList; }> =>
+    listContacts: (options: { path: { book: string; }; query?: { role?: string; q?: string; include_inactive?: boolean; limit?: Int64String; cursor?: string; }; }): Promise<{ status: 200; body: ContactList; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/contacts",
@@ -9998,7 +11425,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"array","items":{"kind":"ref","name":"InventoryMovement"}},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: InventoryMovement[]; }>,
 
-    listItems: (options: { path: { book: string; }; query?: { kind?: string; q?: string; include_inactive?: boolean; limit?: Int64String; }; }): Promise<{ status: 200; body: ItemList; }> =>
+    listItems: (options: { path: { book: string; }; query?: { kind?: string; q?: string; include_inactive?: boolean; limit?: Int64String; cursor?: string; }; }): Promise<{ status: 200; body: ItemList; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/items",
@@ -10052,6 +11479,33 @@ export class HfeClient {
         {"200":{"schema":{"kind":"array","items":{"kind":"ref","name":"OpenItem"}},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: OpenItem[]; }>,
 
+    listOrganizationMemberships: (options: { path: { organization: string; }; query?: { after?: string; limit?: number; }; }): Promise<{ status: 200; body: OrganizationMembershipPage; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/organizations/{organization}/memberships",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OrganizationMembershipPage"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationMembershipPage; }>,
+
+    listOrganizationWorkspaces: (options: { path: { organization: string; }; query?: { after?: string; limit?: number; }; }): Promise<{ status: 200; body: OrganizationWorkspacePage; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/organizations/{organization}/workspaces",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OrganizationWorkspacePage"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationWorkspacePage; }>,
+
+    listOrganizations: (options: { query?: { after?: string; limit?: number; }; }): Promise<{ status: 200; body: OrganizationPage; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/organizations",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"OrganizationPage"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationPage; }>,
+
     listPartnerManagedClients: (options: { query?: { partner_id?: string; status?: string; }; }): Promise<{ status: 200; body: PartnerManagedClientListView; }> =>
       this.requestOperation(
         "GET",
@@ -10061,7 +11515,7 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"PartnerManagedClientListView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: PartnerManagedClientListView; }>,
 
-    listPayments: (options: { path: { book: string; }; query?: { direction?: string; contact_id?: string; status?: string; limit?: Int64String; }; }): Promise<{ status: 200; body: PaymentList; }> =>
+    listPayments: (options: { path: { book: string; }; query?: { direction?: PaymentDirection; contact_id?: string; status?: PaymentStatus; limit?: Int64String; }; }): Promise<{ status: 200; body: PaymentList; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/payments",
@@ -10249,6 +11703,42 @@ export class HfeClient {
         undefined,
         {"200":{"schema":{"kind":"array","items":{"kind":"ref","name":"WebhookSubscriptionView"}},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: WebhookSubscriptionView[]; }>,
+
+    listWorkbenchRequests: (options: { query?: { workspace?: string; application?: string; credential_id?: string; actor_kind?: string; method?: string; route_template?: string; status_class?: string; outcome?: string; error_code?: string; from?: string; to?: string; since?: string; limit?: Int64String; cursor?: string; }; }): Promise<{ status: 200; body: RequestRecordListView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/workbench/requests",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"RequestRecordListView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: RequestRecordListView; }>,
+
+    listWorkspaceEnvironments: (options: { path: { organization: string; workspace: string; }; }): Promise<{ status: 200; body: CustomerEnvironmentList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/organizations/{organization}/workspaces/{workspace}/environments",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"CustomerEnvironmentList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: CustomerEnvironmentList; }>,
+
+    listWorkspaceSecrets: (options: { path: { workspace: string; }; }): Promise<{ status: 200; body: SecretList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/workspaces/{workspace}/secrets",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"SecretList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: SecretList; }>,
+
+    listWorkspaces: (options: { query?: { organization?: string; limit?: number; cursor?: string; }; }): Promise<{ status: 200; body: WorkspaceList; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/workspaces",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"WorkspaceList"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: WorkspaceList; }>,
 
     logTimesheetEntry: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: LogTimesheetEntryRequest; }): Promise<{ status: 201; body: TimesheetEntryView; }> =>
       this.requestOperation(
@@ -10538,6 +12028,15 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"ContactProfile"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: ContactProfile; }>,
 
+    readSecretMetadata: (options: { path: { secret: string; }; }): Promise<{ status: 200; body: SecretMetadataView; }> =>
+      this.requestOperation(
+        "GET",
+        "/v1/secrets/{secret}",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"SecretMetadataView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: SecretMetadataView; }>,
+
     receivePurchaseOrder: (options: { path: { book: string; po_id: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: ReceivePurchaseOrderRequest; }): Promise<{ status: 201; body: PurchaseDocument; }> =>
       this.requestOperation(
         "POST",
@@ -10547,7 +12046,7 @@ export class HfeClient {
         {"201":{"schema":{"kind":"ref","name":"PurchaseDocument"},"contentType":"application/json"}}
       ) as Promise<{ status: 201; body: PurchaseDocument; }>,
 
-    reconcileArAp: (options: { path: { book: string; }; query?: { direction?: string; }; }): Promise<{ status: 200; body: ArApReconciliation; }> =>
+    reconcileArAp: (options: { path: { book: string; }; query?: { direction?: OpenItemDirection; }; }): Promise<{ status: 200; body: ArApReconciliation; }> =>
       this.requestOperation(
         "GET",
         "/v1/company-books/{book}/reconciliation/ar-ap",
@@ -10636,6 +12135,15 @@ export class HfeClient {
         {"kind":"ref","name":"RedeemNonFiatUnitsRequest"},
         {"200":{"schema":{"kind":"ref","name":"SubledgerStatementView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: SubledgerStatementView; }>,
+
+    redeemSecretReveal: (options: { path: { secret: string; reveal: string; }; headers: { "Idempotency-Key": string; }; }): Promise<{ status: 200; body: RedeemSecretResponse; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/secrets/{secret}/reveals/{reveal}/redeem",
+        options as unknown as OperationOptions,
+        undefined,
+        {"200":{"schema":{"kind":"ref","name":"RedeemSecretResponse"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: RedeemSecretResponse; }>,
 
     registerFixedAsset: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: RegisterFixedAssetRequest; }): Promise<{ status: 201; body: CompanyFixedAssetView; }> =>
       this.requestOperation(
@@ -10916,6 +12424,15 @@ export class HfeClient {
         {"200":{"schema":{"kind":"ref","name":"RoleAssignmentView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: RoleAssignmentView; }>,
 
+    revokeConsolidationSharingGrant: (options: { path: { book: string; grant: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: RevokeSharingGrantRequest; }): Promise<{ status: 201; body: SharingGrantView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/company-books/{book}/consolidation/sharing-grants/{grant}/revoke",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"RevokeSharingGrantRequest"},
+        {"201":{"schema":{"kind":"ref","name":"SharingGrantView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 201; body: SharingGrantView; }>,
+
     revokeDeveloperKey: (options: { path: { id: string; }; headers: { "Idempotency-Key": string; }; body: RevokeDeveloperKeyRequest; }): Promise<{ status: 200; body: undefined; }> =>
       this.requestOperation(
         "POST",
@@ -10943,6 +12460,33 @@ export class HfeClient {
         {"204":{"schema":{"kind":"value"},"contentType":null}}
       ) as Promise<{ status: 204; body: undefined; }>,
 
+    revokeOrganizationInvitation: (options: { path: { organization: string; invitation: string; }; headers: { "Idempotency-Key": string; }; body: RevisionCommand; }): Promise<{ status: 200; body: OrganizationInvitationView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/organizations/{organization}/invitations/{invitation}/revoke",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"RevisionCommand"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationInvitationView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationInvitationView; }>,
+
+    revokeOrganizationMembership: (options: { path: { organization: string; principal: string; }; headers: { "Idempotency-Key": string; }; body: RevisionCommand; }): Promise<{ status: 200; body: OrganizationMembershipView; }> =>
+      this.requestOperation(
+        "DELETE",
+        "/v1/organizations/{organization}/memberships/{principal}",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"RevisionCommand"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationMembershipView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationMembershipView; }>,
+
+    revokeWorkspaceSecret: (options: { path: { secret: string; }; headers: { "Idempotency-Key": string; "If-Match": string; }; body: RevokeSecretRequest; }): Promise<{ status: 200; body: SecretMetadataView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/secrets/{secret}/revoke",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"RevokeSecretRequest"},
+        {"200":{"schema":{"kind":"ref","name":"SecretMetadataView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: SecretMetadataView; }>,
+
     rotateDeveloperKey: (options: { path: { id: string; }; headers: { "Idempotency-Key": string; }; body: RotateDeveloperKeyRequest; }): Promise<{ status: 200; body: IssueDeveloperKeyResponse; }> =>
       this.requestOperation(
         "POST",
@@ -10951,6 +12495,15 @@ export class HfeClient {
         {"kind":"ref","name":"RotateDeveloperKeyRequest"},
         {"200":{"schema":{"kind":"ref","name":"IssueDeveloperKeyResponse"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: IssueDeveloperKeyResponse; }>,
+
+    rotateWorkspaceSecret: (options: { path: { secret: string; }; headers: { "Idempotency-Key": string; "If-Match": string; }; body: RotateSecretRequest; }): Promise<{ status: 200; body: SecretMetadataView; }> =>
+      this.requestOperation(
+        "POST",
+        "/v1/secrets/{secret}/rotate",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"RotateSecretRequest"},
+        {"200":{"schema":{"kind":"ref","name":"SecretMetadataView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: SecretMetadataView; }>,
 
     runBadDebtProvisioning: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: RunBadDebtProvisioningRequest; }): Promise<{ status: 200; body: BadDebtProvisioningRunView; }> =>
       this.requestOperation(
@@ -10969,15 +12522,6 @@ export class HfeClient {
         {"kind":"ref","name":"RunBankFeedRuleMatchingRequest"},
         {"200":{"schema":{"kind":"ref","name":"RunBankFeedRuleMatchingResultView"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: RunBankFeedRuleMatchingResultView; }>,
-
-    runIntercompanyEliminations: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: RunIntercompanyEliminationsRequest; }): Promise<{ status: 201; body: IntercompanyEliminationRunView; }> =>
-      this.requestOperation(
-        "POST",
-        "/v1/company-books/{book}/consolidation/runs",
-        options as unknown as OperationOptions,
-        {"kind":"ref","name":"RunIntercompanyEliminationsRequest"},
-        {"201":{"schema":{"kind":"ref","name":"IntercompanyEliminationRunView"},"contentType":"application/json"}}
-      ) as Promise<{ status: 201; body: IntercompanyEliminationRunView; }>,
 
     runMonthlyDepreciationBatch: (options: { path: { book: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; }; body: RunMonthlyDepreciationBatchRequest; }): Promise<{ status: 200; body: MonthlyDepreciationBatchResultView; }> =>
       this.requestOperation(
@@ -11419,6 +12963,15 @@ export class HfeClient {
         {"kind":"ref","name":"UpdateItem"},
         {"200":{"schema":{"kind":"ref","name":"Item"},"contentType":"application/json"}}
       ) as Promise<{ status: 200; body: Item; }>,
+
+    updateOrganization: (options: { path: { organization: string; }; headers: { "Idempotency-Key": string; }; body: OrganizationUpdate; }): Promise<{ status: 200; body: OrganizationView; }> =>
+      this.requestOperation(
+        "PATCH",
+        "/v1/organizations/{organization}",
+        options as unknown as OperationOptions,
+        {"kind":"ref","name":"OrganizationUpdate"},
+        {"200":{"schema":{"kind":"ref","name":"OrganizationView"},"contentType":"application/json"}}
+      ) as Promise<{ status: 200; body: OrganizationView; }>,
 
     updatePayment: (options: { path: { book: string; payment_id: string; }; headers: { "X-CBook-Authority-Context": string; "Idempotency-Key": string; "If-Match": string; }; body: UpdatePayment; }): Promise<{ status: 200; body: Payment; }> =>
       this.requestOperation(

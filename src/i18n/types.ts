@@ -72,6 +72,10 @@ export interface TranslationDictionary {
     totalBill: string
     payCash: string
     payQris: string
+    qrisIssuerLabel: string
+    qrisRrnLabel: string
+    qrisRrnPlaceholder: string
+    qrisRrnHelper: string
     payCard: string
     payCc: string
     payDebit: string
@@ -178,6 +182,24 @@ export interface TranslationDictionary {
     orderStatusBrewing: string
     orderStatusCooking: string
     orderStatusServed: string
+    orderedItemsHeader: string
+    addItemPill: string
+    editItemModifier: string
+    noNotesYet: string
+    otherFeesLabel: string
+    pbjtTaxLabel: string
+    serviceChargeLabel: string
+    roundingLabel: string
+    orderSummaryTitle: string
+    orderSuccessPayFirst: string
+    orderSuccessOpenTab: string
+    queueNumberBadge: string
+    roundNumberBadge: string
+    kdsPreparingStatus: string
+    payThisOrderOnly: string
+    payFullTableSession: string
+    addMoreItemsForNextRound: string
+    tableSessionTotalLabel: string
   }
   kds: {
     activeWorkOrders: string
@@ -258,6 +280,18 @@ export interface TranslationDictionary {
     openTabDesc: string
     initialCashFloat: string
     initialCashFloatSub: string
+    enabledPaymentMethodsTitle: string
+    enabledPaymentMethodsSub: string
+    enableCashTender: string
+    enableCashTenderDesc: string
+    enableQrisTender: string
+    enableQrisTenderDesc: string
+    enableCardTender: string
+    enableCardTenderDesc: string
+    cardModeAll: string; cardModeDebitOnly: string; cardModeCreditOnly: string
+    tenderActive: string; tenderInactive: string
+    enableRoomChargeTender: string
+    enableRoomChargeTenderDesc: string
 
     // Zone 3: Perangkat Keras & Kasir
     zone3Heading: string

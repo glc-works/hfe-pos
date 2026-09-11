@@ -171,16 +171,17 @@ export async function prepareGovernedRetailQuote(
   requirePositiveRevision(body.preset_version, 'preset_version')
   assertQuoteLines(payload.items, body.lines)
 
-  const tenderEligibility = body.tender_eligibility.map((entry) => ({
-    tenderType: entry.tender_type as GovernedTenderType,
-    eligible: entry.eligible,
-    reasonCode: entry.reason_code ?? undefined,
+  const allTenderEligibility = body.tender_eligibility.map((e) => ({
+    tenderType: e.tender_type as GovernedTenderType,
+    eligible: e.eligible,
+    reasonCode: e.reason_code ?? undefined,
   }))
-
-  if (tenderEligibility.length !== 2 || tenderEligibility.some((entry) => entry.tenderType !== 'cash' && entry.tenderType !== 'qris')) {
+  const tenderEligibility = allTenderEligibility.filter((e) => e.tenderType === 'cash' || e.tenderType === 'qris')
+  if (allTenderEligibility.some((e) => e.tenderType !== 'cash' && e.tenderType !== 'qris' && e.eligible)) {
     throw new Error('CORE quote contains an unknown tender eligibility.')
   }
-  if (new Set(tenderEligibility.map((entry) => entry.tenderType)).size !== tenderEligibility.length) {
+  if (tenderEligibility.length !== 2) throw new Error('CORE quote is missing cash or QRIS tender eligibility.')
+  if (new Set(tenderEligibility.map((e) => e.tenderType)).size !== tenderEligibility.length) {
     throw new Error('CORE quote contains duplicate tender eligibility evidence.')
   }
 
@@ -450,7 +451,6 @@ export async function completeGovernedCashTender(
     expectedBookId: targetBook,
     sourceCapability: 'pos_tender_sale',
     sourceObjectId: evidence.tenderId,
-    stableEffectKey: evidence.acceptanceEffectKey,
     expectedCurrency: evidence.quote.currency,
   }, durable.body as any)
 

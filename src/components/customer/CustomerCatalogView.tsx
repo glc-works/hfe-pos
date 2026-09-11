@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { Search, X, Sparkles } from 'lucide-react'
-import { MenuItem, CafeThemeConfig, HfeCompanyProfile, CartItem, OrderTicket } from '../../types/pos'
+import { MenuItem, CafeThemeConfig, HfeCompanyProfile, CartItem, OrderTicket, QrStepView } from '../../types/pos'
 import { getCategoryIcon } from './CustomerHeader'
 import { ProductCard } from '../shared/ProductCard'
 import { ProductDetailModal } from '../landing/ProductDetailModal'
@@ -23,7 +23,7 @@ export interface CustomerCatalogViewProps {
   handleAddToCart: (item: MenuItem) => void
   handleUpdateQty?: (index: number, delta: number) => void
   onOpenModifierSheet?: (item: MenuItem) => void
-  setQrStepView: (step: 'catalog' | 'checkout') => void
+  setQrStepView: (step: QrStepView) => void
   categoryRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>
 }
 

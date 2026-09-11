@@ -22,11 +22,16 @@ describe('i18n & Multi-Language Localization Engine', () => {
     expect(translations.id.pos.skuCatalog).toContain('Katalog Menu')
     expect(translations.en.pos.skuCatalog).toContain('Menu Catalog')
 
-    expect(translations.id.cart.cashierCart).toBe('Keranjang Kasir')
-    expect(translations.en.cart.cashierCart).toBe('Cashier Cart')
+    expect(translations.id.cart.cashierCart).toBe('Keranjang')
+    expect(translations.en.cart.cashierCart).toBe('Cart')
 
     expect(translations.id.cart.exactCash).toBe('Uang Pas')
     expect(translations.en.cart.exactCash).toBe('Exact Cash')
+
+    expect(translations.id.cart.qrisIssuerLabel).toBe('Penyedia QRIS:')
+    expect(translations.en.cart.qrisIssuerLabel).toBe('QRIS Provider:')
+    expect(translations.id.cart.qrisRrnLabel).toBe('No. Referensi / RRN Bukti Bayar')
+    expect(translations.en.cart.qrisRrnLabel).toBe('Reference / RRN Number')
   })
 
   it('should properly support fine-dining KDS course pacing keys', () => {

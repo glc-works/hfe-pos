@@ -20,6 +20,8 @@ export interface ReceiptData {
   paymentMethod: 'cash' | 'qris' | 'card' | 'kasbon'
   cashGiven?: number
   changeReturned?: number
+  qrisProvider?: string
+  qrisRrn?: string
   sha256Hash?: string
   glPostingId?: string
   transactionRef?: string
@@ -95,6 +97,14 @@ export function formatThermalReceiptText(data: ReceiptData): string {
   if (data.paymentMethod === 'cash' && data.cashGiven) {
     text += `Tunai Diterima: Rp ${data.cashGiven.toLocaleString('id-ID')}\n`
     text += `Kembalian     : Rp ${(data.changeReturned || 0).toLocaleString('id-ID')}\n`
+  }
+  if (data.paymentMethod === 'qris') {
+    if (data.qrisProvider) {
+      text += `Penyedia QRIS : ${data.qrisProvider.toUpperCase()}\n`
+    }
+    if (data.qrisRrn) {
+      text += `No. Ref / RRN : ${data.qrisRrn}\n`
+    }
   }
   text += `${doubleLine}\n`
   text += `${centerText('Terima Kasih Atas Kunjungan Anda!')}\n`

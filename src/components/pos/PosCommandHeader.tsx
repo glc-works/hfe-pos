@@ -3,7 +3,7 @@ import {
   Users,
   Store,
   BookOpen,
-  Camera,
+  Banknote,
   ArrowRightLeft,
   ChevronDown,
   Bell,
@@ -22,7 +22,6 @@ import { TouchFilterSheet } from '../shared/TouchFilterSheet'
 import { useTranslation } from '../../context/LanguageContext'
 import { useViewport } from '../../context/ViewportContext'
 import { useNotification } from '../../context/NotificationContext'
-import { useTheme } from '../../context/ThemeContext'
 import { useMerchantConfig } from '../../context/MerchantConfigContext'
 import { PropertyZoneConfig, PropertyZoneId, TableStatus } from '../../types/pos'
 import { SegmentedControl, KbdBadge, Badge } from '@/ui'
@@ -91,7 +90,6 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
   const { t } = useTranslation()
   const { isMobile } = useViewport()
   const { unreadCount, openServiceTicketsCount } = useNotification()
-  const { themeMode, toggleThemeMode } = useTheme()
   const { workflowToggles } = useMerchantConfig()
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false)
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
@@ -169,21 +167,8 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
           )}
         </div>
 
-        {/* 3. RIGHT: UNIVERSAL ACTION SHORTCUT BUTTONS (100% INVARIANT) */}
+        {/* 3. RIGHT: ESSENTIAL ACTION SHORTCUTS (CLEAN 4-BUTTON BENCHMARK) */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {/* 1-Tap Day / Night Mode Switcher Button */}
-          <button
-            type="button"
-            onClick={toggleThemeMode}
-            className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-amber-500 dark:text-amber-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
-            title={themeMode === 'light' ? 'Beralih ke Dark Mode (🌙)' : 'Beralih ke Day Mode (☀️)'}
-          >
-            <span className="text-xs">{themeMode === 'light' ? '🌙' : '☀️'}</span>
-            <span className="hidden lg:inline text-[11px] text-slate-700 dark:text-slate-200">
-              {themeMode === 'light' ? 'Malam' : 'Siang'}
-            </span>
-          </button>
-
           {onOpenShiftDrawer && (
             <button
               type="button"
@@ -191,8 +176,9 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               className="p-1 sm:px-2 sm:py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
               title="Laci Kas & Rekonsiliasi Tutup Shift"
             >
-              <Store className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden md:inline text-[11px]">Shift & Laci</span>
+              <Banknote className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden md:inline text-[11px]">Laci</span>
+              <span className="hidden lg:inline text-[11px]">Kas</span>
             </button>
           )}
 
@@ -200,11 +186,10 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
             <button
               type="button"
               onClick={onLockTerminal}
-              className="p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+              className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-sm active:scale-95 cursor-pointer"
               title="Kunci Layar Kasir / Ganti Staf"
             >
               <Lock className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-              <span className="hidden lg:inline text-[11px]">Kunci</span>
             </button>
           )}
 
@@ -240,25 +225,6 @@ export const PosCommandHeader: React.FC<PosCommandHeaderProps> = ({
               )}
             </button>
           )}
-
-          <button
-            type="button"
-            onClick={onOpenScanner}
-            className="hidden sm:flex p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
-            title="Scan Barcode Produk SKU"
-          >
-            <Camera className="w-3.5 h-3.5 shrink-0" />
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenGuestBinding}
-            className="hidden sm:flex p-1 sm:px-2 sm:py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold transition-all items-center gap-1 shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
-            title="Sambut Tamu & Alokasi Meja"
-          >
-            <Users className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
-            <span className="hidden lg:inline text-[11px]">Sambut</span>
-          </button>
         </div>
       </div>
 

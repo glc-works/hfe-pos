@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import {
   ShoppingBag, Contact, Minus, Plus, AlertTriangle,
-  CreditCard, CheckCircle2, Edit3, Receipt, Navigation
+  CreditCard, CheckCircle2, Edit3, Receipt, Navigation,
+  ChevronDown, ChevronUp
 } from 'lucide-react'
 import {
   CartItem, PaymentPolicy, PB1TaxMode, CafeThemeConfig, Voucher,
-  HfeCompanyProfile, OrderFulfillmentMode, DeliveryAddressInfo
+  HfeCompanyProfile, OrderFulfillmentMode, DeliveryAddressInfo, QrStepView
 } from '../../types/pos'
 import { VoucherSelectionDrawer } from '../pos/VoucherSelectionDrawer'
 import { PayFirstPaymentSection } from './PayFirstPaymentSection'
@@ -29,6 +30,7 @@ export interface CustomerCheckoutViewProps {
   isCustomerSessionActive?: boolean
   onJoinMembership?: (phone: string) => void
   onResetGuestSession?: () => void
+  onOpenModifierModal?: (item: CartItem, index: number) => void
   promoCodeInput: string
   setPromoCodeInput: (val: string) => void
   appliedPromo: { code: string; discount: number } | null
@@ -43,7 +45,7 @@ export interface CustomerCheckoutViewProps {
   setPaymentPolicy: (val: PaymentPolicy) => void
   rawSubtotal: number
   grandTotalBill: number
-  setQrStepView: (v: 'catalog' | 'checkout') => void
+  setQrStepView: (v: QrStepView) => void
   handleUpdateQty: (index: number, delta: number) => void
   handleApplyPromo: () => void
   handleSubmitOrder: () => void
@@ -67,7 +69,7 @@ const defaultAddress: DeliveryAddressInfo = {
 export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
   selectedTable, scannedSeat, activeTheme, cart, hfeCompanyProfile,
   hasPaidOrder = false, isCustomerSessionActive = false, onJoinMembership,
-  onResetGuestSession, promoCodeInput, setPromoCodeInput, appliedPromo,
+  onResetGuestSession, onOpenModifierModal, promoCodeInput, setPromoCodeInput, appliedPromo,
   redeemedVoucher, serviceFeeRate, calculatedServiceFee, taxPB1Mode,
   calculatedPB1Tax, selectedTipAmount, setSelectedTipAmount, paymentPolicy,
   setPaymentPolicy, rawSubtotal, grandTotalBill, setQrStepView,
@@ -85,6 +87,7 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
   const [itemNotes, setItemNotes] = useState<Record<number, string>>({})
   const [editingNoteIndex, setEditingNoteIndex] = useState<number | null>(null)
   const [useLoyaltyPoints, setUseLoyaltyPoints] = useState<boolean>(false)
+  const [isOtherFeesExpanded, setIsOtherFeesExpanded] = useState<boolean>(false)
 
   const isDelivery = fulfillmentMode === 'delivery'
   const isLight = activeTheme.mode === 'light'
@@ -97,6 +100,9 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
   const inputBorder = isLight ? '#cbd5e1' : '#475569'
   const buttonInactiveBg = isLight ? '#ffffff' : '#1e293b'
   const buttonInactiveBorder = isLight ? '#e2e8f0' : '#334155'
+
+  const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const otherFeesTotal = (calculatedServiceFee || 0) + (taxPB1Mode === 1 ? (calculatedPB1Tax || 0) : 0)
 
   const effectiveDeliveryFee = isDelivery ? (deliveryFee > 0 ? deliveryFee : Math.max(10000, Math.round(deliveryAddress.distanceKm * 3000))) : 0
   const effectivePackagingFee = isDelivery ? (packagingFee > 0 ? packagingFee : 3000) : packagingFee
@@ -155,24 +161,32 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
         className="theme-customer-card border rounded-2xl p-4 flex flex-col gap-4 shadow-xl"
         style={{ borderColor: cardBorderColor, backgroundColor: activeTheme.cardBgHex }}
       >
-        <h3 
-          className="text-sm font-bold flex items-center gap-2 border-b pb-3"
-          style={{ color: textColor, borderColor: cardBorderColor }}
+        {/* Header with [ + Add Item ] pill button */}
+        <div 
+          className="flex items-center justify-between border-b pb-3"
+          style={{ borderColor: cardBorderColor }}
         >
-          {isDelivery ? (
-            <>
-              <Navigation className="w-5 h-5 text-amber-500 shrink-0" />
-              <span>Ringkasan Menu Pesanan Antar</span>
-            </>
-          ) : (
-            <>
-              <ShoppingBag className="w-5 h-5 text-amber-500 shrink-0" />
-              <span>Ringkasan Pesanan & Pelunasan Meja</span>
-            </>
-          )}
-        </h3>
+          <div className="flex items-center gap-2 min-w-0">
+            {isDelivery ? (
+              <Navigation className="w-4 h-4 text-amber-500 shrink-0" />
+            ) : (
+              <ShoppingBag className="w-4 h-4 text-amber-500 shrink-0" />
+            )}
+            <h3 className="text-sm font-bold truncate" style={{ color: textColor }}>
+              {isDelivery ? 'Menu Pesanan Antar' : t.customer.orderedItemsHeader} ({totalCartItems})
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => setQrStepView('catalog')}
+            className="text-xs font-bold px-2.5 py-1 rounded-full border border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 transition-all flex items-center gap-1 shrink-0 select-none"
+          >
+            <Plus className="w-3 h-3" />
+            <span>{t.customer.addItemPill}</span>
+          </button>
+        </div>
 
-        {/* Items Breakdown */}
+        {/* Items Breakdown with [ 📝 Edit ] and Stepper */}
         <div className="flex flex-col gap-3 divide-y" style={{ borderColor: cardBorderColor }}>
           {cart.map((item, idx) => (
             <div key={idx} className="pt-3 first:pt-0 flex flex-col gap-1.5">
@@ -180,6 +194,17 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <h4 className="font-bold text-sm leading-snug" style={{ color: textColor }}>{item.name}</h4>
+                    {onOpenModifierModal && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenModifierModal(item, idx)}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-border/80 bg-background/80 hover:bg-accent text-muted-foreground flex items-center gap-1 transition-all active:scale-95"
+                        title="Edit varian"
+                      >
+                        <Edit3 className="w-2.5 h-2.5 text-amber-500" />
+                        <span>{t.customer.editItemModifier}</span>
+                      </button>
+                    )}
                     {item.seatNumber && (
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border" style={{ backgroundColor: subCardBg, color: secondaryTextColor, borderColor: subCardBorder }}>{item.seatNumber}</span>
                     )}
@@ -189,17 +214,22 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
                       </span>
                     )}
                   </div>
+                  {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                      {item.selectedModifiers.map(m => m.name).join(', ')}
+                    </p>
+                  )}
                   <div className="mt-1"><PriceTag amount={item.price * item.quantity} size="sm" variant="accent" /></div>
                 </div>
                 
-                <div className="flex items-center gap-1.5 border rounded-xl p-1 shrink-0" style={{ backgroundColor: subCardBg, borderColor: subCardBorder }}>
-                  <button onClick={() => handleUpdateQty(idx, -1)} className="w-6 h-6 rounded-lg flex items-center justify-center border" style={{ backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }} title="Kurangi"><Minus className="w-3 h-3" /></button>
+                <div className="flex items-center gap-1.5 border rounded-full p-1 shrink-0" style={{ backgroundColor: subCardBg, borderColor: subCardBorder }}>
+                  <button onClick={() => handleUpdateQty(idx, -1)} className="w-6 h-6 rounded-full flex items-center justify-center border" style={{ backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }} title="Kurangi"><Minus className="w-3 h-3" /></button>
                   <span className="font-bold font-mono text-xs w-5 text-center" style={{ color: textColor }}>{item.quantity}</span>
-                  <button onClick={() => handleUpdateQty(idx, 1)} className="w-6 h-6 rounded-lg flex items-center justify-center border" style={{ backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }} title="Tambah"><Plus className="w-3 h-3" /></button>
+                  <button onClick={() => handleUpdateQty(idx, 1)} className="w-6 h-6 rounded-full flex items-center justify-center border" style={{ backgroundColor: buttonInactiveBg, color: textColor, borderColor: buttonInactiveBorder }} title="Tambah"><Plus className="w-3 h-3" /></button>
                 </div>
               </div>
 
-              {/* Note Line */}
+              {/* Note Line with clickable [ No notes yet ] */}
               <div className="flex items-center gap-2 flex-wrap text-[11px] pt-0.5">
                 {editingNoteIndex === idx ? (
                   <div className="flex items-center gap-1.5 w-full">
@@ -215,9 +245,9 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
                     <button onClick={() => setEditingNoteIndex(null)} className="text-xs px-2.5 py-1 rounded-lg font-bold border" style={{ backgroundColor: activeTheme.primaryAccentHex, color: isLight ? '#ffffff' : '#020617' }}>Selesai</button>
                   </div>
                 ) : (
-                  <button onClick={() => setEditingNoteIndex(idx)} className="text-[11px] flex items-center gap-1 hover:underline" style={{ color: secondaryTextColor }}>
-                    <Edit3 className="w-3 h-3" />
-                    {itemNotes[idx] ? <span className="font-medium italic" style={{ color: textColor }}>"{itemNotes[idx]}"</span> : <span>Tambah Catatan</span>}
+                  <button onClick={() => setEditingNoteIndex(idx)} className="text-[11px] flex items-center gap-1 hover:underline text-muted-foreground">
+                    <Edit3 className="w-3 h-3 text-muted-foreground" />
+                    {itemNotes[idx] ? <span className="font-medium italic text-foreground">"{itemNotes[idx]}"</span> : <span className="text-muted-foreground/80">{t.customer.noNotesYet}</span>}
                   </button>
                 )}
                 {item.allergenNotes && (
@@ -229,15 +259,6 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
             </div>
           ))}
         </div>
-
-        {/* Add More Items Button */}
-        <button
-          onClick={() => setQrStepView('catalog')}
-          className="w-full py-2.5 px-3 rounded-xl border border-dashed hover:opacity-90 font-bold text-xs flex items-center justify-center gap-2 shadow-sm"
-          style={{ borderColor: cardBorderColor, color: textColor, backgroundColor: subCardBg }}
-        >
-          <Plus className="w-4 h-4 text-amber-500" /> + Tambah Menu Lainnya
-        </button>
 
         {/* 💳 2. PAYMENT METHOD SELECTOR (DELIVERY INTERACTIVE CARD OR DINE-IN) */}
         {isDelivery ? (
@@ -265,17 +286,17 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
           </div>
         )}
 
-        {/* 🧾 3. TRANSPARENT FINANCIAL BREAKDOWN */}
+        {/* 🧾 3. TRANSPARENT FINANCIAL BREAKDOWN WITH ESB PARITY */}
         <div className="pt-3 border-t flex flex-col gap-1.5 text-xs" style={{ borderColor: cardBorderColor }}>
           <div className="flex justify-between" style={{ color: secondaryTextColor }}>
-            <span>Subtotal Pesanan:</span>
-            <span>{formatPrice(rawSubtotal)}</span>
+            <span>Subtotal:</span>
+            <span className="font-mono">{formatPrice(rawSubtotal)}</span>
           </div>
 
           {appliedPromo && (
             <div className="flex justify-between text-emerald-500 font-semibold">
               <span>Promo ({appliedPromo.code}):</span>
-              <span>-{formatPrice(appliedPromo.discount)}</span>
+              <span className="font-mono">-{formatPrice(appliedPromo.discount)}</span>
             </div>
           )}
 
@@ -292,10 +313,46 @@ export const CustomerCheckoutView: React.FC<CustomerCheckoutViewProps> = ({
             </>
           )}
 
-          {taxPB1Mode === 1 && (
-            <div className="flex justify-between font-medium text-amber-500">
-              <span>Pajak Restoran PB1 10%:</span>
-              <span>+{formatPrice(calculatedPB1Tax)}</span>
+          {/* EXPLICIT ROUNDING ROW */}
+          <div className="flex justify-between text-muted-foreground">
+            <span>{t.customer.roundingLabel}:</span>
+            <span className="font-mono text-xs font-semibold">{formatPrice(0)}</span>
+          </div>
+
+          {/* COLLAPSIBLE OTHER FEES ACCORDION (SERVICE CHARGE + PBJT 10%) */}
+          {otherFeesTotal > 0 && (
+            <div className="flex flex-col border rounded-xl overflow-hidden my-0.5" style={{ borderColor: subCardBorder, backgroundColor: subCardBg }}>
+              <button
+                type="button"
+                onClick={() => setIsOtherFeesExpanded(!isOtherFeesExpanded)}
+                className="flex items-center justify-between p-2.5 text-xs font-bold transition-all hover:bg-black/5 dark:hover:bg-white/5 select-none"
+                style={{ color: textColor }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <span>{t.customer.otherFeesLabel}</span>
+                  {isOtherFeesExpanded ? <ChevronUp className="w-3.5 h-3.5 text-amber-500" /> : <ChevronDown className="w-3.5 h-3.5 text-amber-500" />}
+                </span>
+                <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                  +{formatPrice(otherFeesTotal)}
+                </span>
+              </button>
+
+              {isOtherFeesExpanded && (
+                <div className="px-3 pb-2.5 pt-1 border-t flex flex-col gap-1 text-[11px] bg-background/50" style={{ borderColor: subCardBorder, color: secondaryTextColor }}>
+                  {calculatedServiceFee > 0 && (
+                    <div className="flex justify-between">
+                      <span>{t.customer.serviceChargeLabel} ({serviceFeeRate}%):</span>
+                      <span className="font-mono">+{formatPrice(calculatedServiceFee)}</span>
+                    </div>
+                  )}
+                  {taxPB1Mode === 1 && calculatedPB1Tax > 0 && (
+                    <div className="flex justify-between">
+                      <span>{t.customer.pbjtTaxLabel}:</span>
+                      <span className="font-mono">+{formatPrice(calculatedPB1Tax)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

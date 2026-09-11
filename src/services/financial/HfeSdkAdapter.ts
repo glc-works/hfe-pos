@@ -179,7 +179,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
           quantity: item.qty,
           unit_price_minor: String(item.price) as Int64String,
         })),
-        payment_method: payload.payment_method,
+        payment_method: payload.payment_method as 'cash',
         session_id: context.sessionId,
       },
     })
@@ -326,7 +326,7 @@ export class HfeSdkAdapter implements HfePosFinancialPort {
           quantity: item.qty,
           unit_price_minor: String(item.price) as Int64String,
         })),
-        payment_method: payload.payment_method,
+        payment_method: payload.payment_method as 'cash',
         session_id: context.sessionId,
       },
     })

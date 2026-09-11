@@ -13,6 +13,7 @@ export interface PosCardTenderFormProps {
   cardLast4?: string
   cardNetwork: 'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'discover' | 'unionpay' | 'other'
   approvalCode: string
+  cardMode?: 'all' | 'debit_only' | 'credit_only'
   setInternalCardType: (type: 'cc' | 'debit') => void
   setPosPayMethod: (method: PosPayMethod) => void
   setSelectedBank: (bank: string) => void
@@ -31,6 +32,7 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
   cardLast4 = '',
   cardNetwork: _cardNetwork,
   approvalCode,
+  cardMode = 'all',
   setInternalCardType,
   setPosPayMethod,
   setSelectedBank,
@@ -42,6 +44,10 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
   const { t } = useTranslation()
   const effectiveLast4 = cardLast4 || cardLast3
   const binInfo = identifyCardBin(cardPrefix)
+  const isCardModeMismatch = binInfo.isExactMatch && cardPrefix.length >= 4 && (
+    (cardMode === 'debit_only' && binInfo.cardType === 'credit') ||
+    (cardMode === 'credit_only' && binInfo.cardType === 'debit')
+  )
 
   // Combined card number digits: up to 16 digits
   const fullNumberRaw = (cardPrefix + effectiveLast4).replace(/\D/g, '').slice(0, 16)
@@ -60,7 +66,9 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
       if (detected.bankName !== 'Bank Umum') {
         setSelectedBank(detected.bankName)
       }
-      const resolvedType = detected.cardType === 'credit' ? 'cc' : 'debit'
+      let resolvedType: 'cc' | 'debit' = detected.cardType === 'credit' ? 'cc' : 'debit'
+      if (cardMode === 'debit_only') resolvedType = 'debit'
+      else if (cardMode === 'credit_only') resolvedType = 'cc'
       setInternalCardType(resolvedType)
       setPosPayMethod(resolvedType)
     }
@@ -103,17 +111,21 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
 
           <span
             className={`text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded-full border shadow-sm shrink-0 ${
-              binInfo.cardType === 'credit'
-                ? 'bg-purple-500/20 text-purple-300 border-purple-400/40'
-                : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
+              isCardModeMismatch
+                ? 'bg-rose-500/20 text-rose-300 border-rose-400/40'
+                : binInfo.cardType === 'credit'
+                  ? 'bg-purple-500/20 text-purple-300 border-purple-400/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
             }`}
           >
-            {binInfo.cardType === 'credit' ? t.cart.creditCardBadge : t.cart.debitCardBadge}
+            {isCardModeMismatch
+              ? (cardMode === 'debit_only' ? 'Kredit (Hanya Debit)' : 'Debit (Hanya Kredit)')
+              : (binInfo.cardType === 'credit' ? t.cart.creditCardBadge : t.cart.debitCardBadge)}
           </span>
         </div>
 
         {/* Card Center: Unified In-Situ Card Number Input (16-Digit 4x4 Standard) */}
-        <div className="flex flex-col gap-1 relative z-10">
+        <div className="flex flex-col gap-1.5 relative z-10">
           <div className="relative flex items-center">
             <CreditCard className="w-4 h-4 text-indigo-400 absolute left-3 pointer-events-none" />
             <input
@@ -125,6 +137,12 @@ export const PosCardTenderForm: React.FC<PosCardTenderFormProps> = ({
               className="w-full bg-slate-950/60 border border-indigo-500/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/50 rounded-xl pl-9 pr-3 py-2 text-sm sm:text-base text-white font-mono text-center placeholder-slate-500 focus:outline-none shadow-inner tracking-widest font-bold"
             />
           </div>
+
+          {isCardModeMismatch && (
+            <p className="text-[11px] font-semibold text-rose-300 bg-rose-950/60 border border-rose-500/30 rounded-lg py-1 px-2 text-center">
+              ⚠️ {cardMode === 'debit_only' ? 'Toko hanya menerima Kartu Debit. Silakan gunakan kartu debit.' : 'Toko hanya menerima Kartu Kredit. Silakan gunakan kartu kredit.'}
+            </p>
+          )}
         </div>
 
         {/* Card Footer: Live Verification Status + Inline EDC Approval Code */}

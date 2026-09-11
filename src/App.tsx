@@ -32,7 +32,7 @@ const ConnectHubAdminView = lazy(() => import('./views/ConnectHubAdminView').the
 const CompanyBookView = lazy(() => import('./views/CompanyBookView').then(m => ({ default: m.CompanyBookView })))
 import { BUILTIN_THEMES, createRuntimeProductCatalog, INITIAL_CUSTOMER_PROFILES, STATIONS } from './data/mockData'
 import { createRuntimeInitialOrders } from './data/runtimeDemoData'
-import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket } from './types/pos'
+import { StaffSurfaceMode, KdsViewModeType, MenuItem, OrderTicket, QrStepView } from './types/pos'
 import { usePosAuth } from './hooks/usePosAuth'
 import { normalizeSurfaceHost, resolveInitialStaffSurface } from './utils/surfaceHost'
 import { useHfeFinancialPort } from './hooks/useHfeFinancialPort'
@@ -52,7 +52,7 @@ function AppMain() {
     }
     return 'barista-pos'
   })
-  const [qrStepView, setQrStepView] = useState<'catalog' | 'checkout'>('catalog')
+  const [qrStepView, setQrStepView] = useState<QrStepView>('catalog')
   const [isCustomerSessionActive, setIsCustomerSessionActive] = useState<boolean>(false)
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false)
   const [aiStylesheetInput, setAiStylesheetInput] = useState('')
@@ -256,6 +256,7 @@ function AppMain() {
             customerAppDisplayMode={table.customerAppDisplayMode} cart={cart.cart}
             totalCartCount={cart.totalCartCount} grandTotalBill={cart.grandTotalBill}
             previousOrders={orders} tablesGrid={table.tablesGrid} qrStepView={qrStepView}
+            lastSubmittedOrder={cart.lastSubmittedOrder}
             promoCodeInput={cart.promoCodeInput} appliedPromo={cart.appliedPromo}
             redeemedVoucher={cart.redeemedVoucher} serviceFeeRate={cart.serviceFeeRate}
             calculatedServiceFee={cart.calculatedServiceFee} taxPB1Mode={cart.taxPB1Mode}

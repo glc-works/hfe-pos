@@ -138,6 +138,7 @@ function quoteEvidence(): PosSaleQuoteView {
     expires_at: new Date(Date.now() + 5 * 60_000).toISOString(),
     lines: [{ ordinal: 0, item_id: 'MN-001', quantity: '1' as Int64String, modifier_ids: [], discount_allocated_minor: '0' }],
     tender_eligibility: [{ tender_type: 'cash', eligible: true }, { tender_type: 'qris', eligible: true }],
+    promotions: [],
   }
 }
 

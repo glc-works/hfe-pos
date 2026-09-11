@@ -118,13 +118,13 @@ export async function reconcileGovernedTenderOutcome(
   if (body.currency !== query.currency) throw new Error(`Currency outcome mismatch: expected ${query.currency} but got ${body.currency}.`)
   if (body.accepted_tender_effect_key !== query.acceptedTenderEffectKey) throw new Error('Accepted tender effect key mismatch.')
 
-  if (body.outcome === 'pending') {
+  if (body.outcome === 'pending_dispatch' || body.outcome === 'awaiting_provider_confirmation' || body.outcome === 'outcome_unknown' || (body.outcome as string) === 'pending') {
     return {
       tx_id: query.orderId, status: 'pending', created_at: new Date().toISOString(),
       grand_total: exactMinor(query.amountMinor, 'outcome.amount_minor'), idempotency_key: query.idempotencyKey || query.tenderId,
     }
   }
-  if (body.outcome === 'failed') throw new Error('Governed tender outcome reported failed by provider.')
+  if (body.outcome === 'definitively_rejected' || (body.outcome as string) === 'failed') throw new Error('Governed tender outcome reported failed by provider.')
   if (body.outcome === 'applied') {
     if (!body.posting_id) throw new Error('Applied governed tender outcome missing posting_id.')
     if (body.posting_finality !== 'applied') throw new Error(`Applied governed tender outcome posting finality mismatch: ${body.posting_finality || 'missing'}.`)

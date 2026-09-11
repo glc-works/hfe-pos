@@ -351,7 +351,13 @@ export const PRODUCT_CATALOG: MenuItem[] = [
 
 export function createRuntimeProductCatalog(): MenuItem[] {
   if (!isConnectedFirstPartyRuntime()) return PRODUCT_CATALOG
-  return [{ ...PRODUCT_CATALOG[0], id: requiredRuntimeUuid('VITE_HFE_FLAGSHIP_PRODUCT_ID') }]
+  return [{
+    ...PRODUCT_CATALOG[0],
+    id: requiredRuntimeUuid('VITE_HFE_FLAGSHIP_PRODUCT_ID'),
+    hasModifiers: false,
+    modifierGroups: [],
+    modifierPolicy: 'never',
+  }]
 }
 
 export const PROPERTY_ZONES: PropertyZoneConfig[] = [

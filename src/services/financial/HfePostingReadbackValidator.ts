@@ -28,6 +28,34 @@ export interface RawCorePosting {
   finality: 'applied' | 'pending' | 'rejected' | 'voided' | string
   posted_at?: string
   lines?: ReadbackJournalLine[]
+  journal_entry?: {
+    lines?: Array<{
+      account_id?: string
+      account_code?: string
+      amount_minor?: number | string
+      direction?: string
+      debit_minor?: number | string
+      credit_minor?: number | string
+    }>
+  }
+}
+
+function journalLinesFromPosting(actualPosting: RawCorePosting): ReadbackJournalLine[] {
+  if (actualPosting.lines?.length) return actualPosting.lines
+  return (actualPosting.journal_entry?.lines || []).map((line) => {
+    if (line.direction === 'debit' || line.direction === 'credit') {
+      return {
+        account_code: line.account_code || line.account_id || '',
+        debit_minor: line.direction === 'debit' ? line.amount_minor ?? 0 : 0,
+        credit_minor: line.direction === 'credit' ? line.amount_minor ?? 0 : 0,
+      }
+    }
+    return {
+      account_code: line.account_code || line.account_id || '',
+      debit_minor: line.debit_minor ?? 0,
+      credit_minor: line.credit_minor ?? 0,
+    }
+  })
 }
 
 export interface ReadbackValidationResult {
@@ -48,7 +76,8 @@ export class HfePostingReadbackValidator {
     expected: ExpectedPostingContext,
     actualPosting: RawCorePosting
   ): ReadbackValidationResult {
-    const journalLinesCount = actualPosting?.lines?.length || 0
+    const projectedLines = actualPosting ? journalLinesFromPosting(actualPosting) : []
+    const journalLinesCount = projectedLines.length
     const invalid = (mismatchReason: string, isMismatch = true): ReadbackValidationResult => ({
       isValid: false,
       finality: actualPosting?.finality || 'unknown',
@@ -90,10 +119,10 @@ export class HfePostingReadbackValidator {
     if (expected.expectedCurrency && !journalLinesCount) {
       return invalid('Posting journal evidence requires positive balanced lines.')
     }
-    if (actualPosting.lines?.length) {
+    if (projectedLines.length) {
       let totalDebit = 0n
       let totalCredit = 0n
-      for (const line of actualPosting.lines) {
+      for (const line of projectedLines) {
         const parseMinor = (value: number | string): bigint => {
           const text = String(value)
           if (!/^(0|[1-9][0-9]*)$/.test(text) || (typeof value === 'number' && !Number.isSafeInteger(value))) {

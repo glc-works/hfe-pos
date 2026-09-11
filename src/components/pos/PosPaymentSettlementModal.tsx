@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import {
   X, Banknote, QrCode, CreditCard, Building2, CheckCircle2,
-  Calculator, Sparkles, ArrowRight, RotateCcw, AlertTriangle, ShieldCheck
+  Sparkles, ArrowRight, AlertTriangle, ShieldCheck, Crown
 } from 'lucide-react'
-import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, CardTenderMetadata } from '../../types/pos'
+import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, QrisTenderMetadata } from '../../types/pos'
+import type { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'
-import { Button, PriceTag } from '@/ui'
+import { useMerchantConfig } from '../../context/MerchantConfigContext'
+import { Button } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
-import { formatExactMinorCurrency } from '../../utils/localeNumberFormat'
+import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
+import { identifyCardBin } from '../../utils/cardBinEngine'
+import { PosQrisTenderForm } from './PosQrisTenderForm'
+import { PosCardTenderForm } from './PosCardTenderForm'
+import { PosCashTenderForm } from './PosCashTenderForm'
 
 export interface PosPaymentSettlementModalProps {
   show: boolean
@@ -29,6 +35,9 @@ export interface PosPaymentSettlementModalProps {
   onConfirmSettlement: () => Promise<void> | void
   onOpenRoomChargeModal?: () => void
   onOpenSplitPaymentModal?: () => void
+  qrisMetadata?: QrisTenderMetadata
+  setQrisMetadata?: (meta: QrisTenderMetadata) => void
+  selectedCustomer?: CustomerContact | null
 }
 
 export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps> = ({
@@ -49,18 +58,45 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   checkoutPhase,
   onConfirmSettlement,
   onOpenRoomChargeModal,
-  onOpenSplitPaymentModal
+  onOpenSplitPaymentModal,
+  qrisMetadata,
+  setQrisMetadata,
+  selectedCustomer
 }) => {
   const { t, formatPrice, language } = useTranslation()
+  const { enabledPaymentMethods } = useMerchantConfig()
 
   const payableAmount = authoritativeQuote
     ? Number(authoritativeQuote.amountDueMinor) / 100
     : grandTotal
 
   const [selectedBank, setSelectedBank] = useState<string>('BCA')
-  const [cardPrefix, setCardPrefix] = useState<string>('45563321')
+  const [cardPrefix, setCardPrefix] = useState<string>(
+    enabledPaymentMethods.cardMode === 'credit_only' ? '47264700' : '45563321'
+  )
   const [cardLast4, setCardLast4] = useState<string>('9876')
   const [approvalCode, setApprovalCode] = useState<string>('APPR-8899')
+  const [internalCardType, setInternalCardType] = useState<'cc' | 'debit'>(
+    enabledPaymentMethods.cardMode === 'debit_only' ? 'debit' : 'cc'
+  )
+  const [cardNetwork, setCardNetwork] = useState<'visa' | 'mastercard' | 'gpn' | 'jcb' | 'amex' | 'discover' | 'unionpay' | 'other'>('visa')
+
+  const [qrisProvider, setQrisProvider] = useState<string>(qrisMetadata?.provider || 'BCA')
+  const [rrnRefNumber, setRrnRefNumber] = useState<string>(qrisMetadata?.rrnRefNumber || '')
+  const [senderName, setSenderName] = useState<string>(qrisMetadata?.senderName || '')
+
+  const handleQrisProviderChange = (prov: string) => {
+    setQrisProvider(prov)
+    setQrisMetadata?.({ provider: prov, rrnRefNumber, senderName })
+  }
+  const handleRrnChange = (rrn: string) => {
+    setRrnRefNumber(rrn)
+    setQrisMetadata?.({ provider: qrisProvider, rrnRefNumber: rrn, senderName })
+  }
+  const handleSenderNameChange = (name: string) => {
+    setSenderName(name)
+    setQrisMetadata?.({ provider: qrisProvider, rrnRefNumber, senderName: name })
+  }
 
   // Auto-default cash given to exact amount on open if empty
   useEffect(() => {
@@ -69,18 +105,41 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
     }
   }, [show, posPayMethod, payableAmount, posCashGiven, setPosCashGiven])
 
+  // Sync card type with card mode policy
+  useEffect(() => {
+    if (enabledPaymentMethods.cardMode === 'debit_only') {
+      if (internalCardType !== 'debit') setInternalCardType('debit')
+      if (posPayMethod === 'card' || posPayMethod === 'cc') setPosPayMethod('debit')
+    } else if (enabledPaymentMethods.cardMode === 'credit_only') {
+      if (internalCardType !== 'cc') setInternalCardType('cc')
+      if (posPayMethod === 'card' || posPayMethod === 'debit') setPosPayMethod('cc')
+    }
+  }, [enabledPaymentMethods.cardMode, internalCardType, posPayMethod, setPosPayMethod])
+
+  const cardButtonLabel = enabledPaymentMethods.cardMode === 'debit_only'
+    ? t.cart.debitCardBadge
+    : enabledPaymentMethods.cardMode === 'credit_only'
+      ? t.cart.creditCardBadge
+      : 'Kartu EDC'
+
+  const binInfo = identifyCardBin(cardPrefix)
+  const isCardMismatch = (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') &&
+    binInfo.isExactMatch && cardPrefix.length >= 4 && (
+      (enabledPaymentMethods.cardMode === 'debit_only' && binInfo.cardType === 'credit') ||
+      (enabledPaymentMethods.cardMode === 'credit_only' && binInfo.cardType === 'debit')
+    )
+
   if (!show) return null
 
   const cashGivenNum = Number(posCashGiven.replace(/\D/g, '')) || 0
-  const changeAmount = Math.max(0, cashGivenNum - payableAmount)
   const isCashSufficient = posPayMethod !== 'cash' || cashGivenNum >= payableAmount
 
-  const quickPresets = [
-    { label: 'Uang Pas', amount: payableAmount },
-    { label: 'Rp 50.000', amount: 50000 },
-    { label: 'Rp 100.000', amount: 100000 },
-    { label: 'Rp 200.000', amount: 200000 }
-  ].filter(p => p.amount >= payableAmount || p.label === 'Uang Pas')
+  const connectedRuntime = isConnectedFirstPartyRuntime()
+  const isTenderEligible = (tenderType: 'cash' | 'qris') => !authoritativeQuote || (
+    authoritativeQuote.tenderEligibility.filter((entry) => entry.tenderType === tenderType).length === 1 &&
+    authoritativeQuote.tenderEligibility.some((entry) => entry.tenderType === tenderType && entry.eligible)
+  )
+  const isCardEligible = !connectedRuntime && !authoritativeQuote
 
   const isSubmitting = checkoutPhase?.kind === 'quoting' || checkoutPhase?.kind === 'accepting'
 
@@ -94,11 +153,18 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
               💳
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                Konfirmasi Pembayaran Kasir
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                <span>Konfirmasi Pembayaran Kasir</span>
                 {selectedTable && (
                   <span className="text-xs px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono font-bold">
                     Meja {selectedTable.name}
+                  </span>
+                )}
+                {selectedCustomer && (
+                  <span className="text-xs px-2 py-0.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-bold flex items-center gap-1">
+                    <Crown className="w-3 h-3 text-amber-500 shrink-0" />
+                    <span>{selectedCustomer.name}</span>
+                    <span className="font-mono text-[10px] uppercase opacity-80">({selectedCustomer.tier})</span>
                   </span>
                 )}
               </h3>
@@ -147,116 +213,108 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">
               Pilih Metode Pembayaran:
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              <button
-                type="button"
-                onClick={() => setPosPayMethod('cash')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer ${
-                  posPayMethod === 'cash'
-                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-sm ring-2 ring-emerald-500/20 font-black'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <Banknote className="w-5 h-5 text-emerald-500" />
-                <span>💵 Tunai</span>
-              </button>
+            <div className={`grid gap-2 ${
+              enabledPaymentMethods.roomCharge ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'
+            }`}>
+              {enabledPaymentMethods.cash && (
+                <button
+                  data-testid="settlement-tender-cash"
+                  type="button"
+                  disabled={!isTenderEligible('cash')}
+                  onClick={() => isTenderEligible('cash') && setPosPayMethod('cash')}
+                  className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                    !isTenderEligible('cash')
+                      ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                      : posPayMethod === 'cash'
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-sm ring-2 ring-emerald-500/20 font-black cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
+                  }`}
+                >
+                  <Banknote className="w-5 h-5 text-emerald-500" />
+                  <span>Tunai</span>
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setPosPayMethod('qris')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer ${
-                  posPayMethod === 'qris'
-                    ? 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm ring-2 ring-indigo-500/20 font-black'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <QrCode className="w-5 h-5 text-indigo-500" />
-                <span>📱 QRIS</span>
-              </button>
+              {enabledPaymentMethods.qris && (
+                <button
+                  data-testid="settlement-tender-qris"
+                  type="button"
+                  disabled={!isTenderEligible('qris')}
+                  onClick={() => isTenderEligible('qris') && setPosPayMethod('qris')}
+                  className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                    !isTenderEligible('qris')
+                      ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                      : posPayMethod === 'qris'
+                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm ring-2 ring-indigo-500/20 font-black cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
+                  }`}
+                >
+                  <QrCode className="w-5 h-5 text-indigo-500" />
+                  <span>QRIS</span>
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setPosPayMethod('card')}
-                className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer ${
-                  posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300 shadow-sm ring-2 ring-amber-500/20 font-black'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
-              >
-                <CreditCard className="w-5 h-5 text-amber-500" />
-                <span>💳 Kartu EDC</span>
-              </button>
+              {enabledPaymentMethods.card && (
+                <button
+                  data-testid="settlement-tender-card"
+                  type="button"
+                  disabled={!isCardEligible}
+                  onClick={() => {
+                    if (isCardEligible) {
+                      if (enabledPaymentMethods.cardMode === 'debit_only') {
+                        setPosPayMethod('debit')
+                        setInternalCardType('debit')
+                      } else if (enabledPaymentMethods.cardMode === 'credit_only') {
+                        setPosPayMethod('cc')
+                        setInternalCardType('cc')
+                      } else {
+                        setPosPayMethod('card')
+                      }
+                    }
+                  }}
+                  className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                    !isCardEligible
+                      ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                      : posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit'
+                        ? 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300 shadow-sm ring-2 ring-amber-500/20 font-black cursor-pointer'
+                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer'
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5 text-amber-500" />
+                  <span>{cardButtonLabel}</span>
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  onClose()
-                  onOpenRoomChargeModal?.()
-                }}
-                className="p-2.5 rounded-2xl border bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer"
-              >
-                <Building2 className="w-5 h-5 text-purple-500" />
-                <span>🏨 Kamar Hotel</span>
-              </button>
+              {enabledPaymentMethods.roomCharge && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose()
+                    onOpenRoomChargeModal?.()
+                  }}
+                  className="p-2.5 rounded-2xl border bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold cursor-pointer"
+                >
+                  <Building2 className="w-5 h-5 text-purple-500" />
+                  <span>Kamar Hotel</span>
+                </button>
+              )}
             </div>
           </div>
 
           {/* Tender Form Specifics */}
           {posPayMethod === 'cash' && (
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Nominal Uang Tunai Diterima:
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
-                    Rp
-                  </span>
-                  <input
-                    type="number"
-                    value={posCashGiven}
-                    onChange={(e) => setPosCashGiven(e.target.value)}
-                    placeholder={payableAmount.toString()}
-                    className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-base font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              {/* Quick Cash Presets */}
-              <div className="flex flex-wrap gap-1.5">
-                {quickPresets.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setPosCashGiven(preset.amount.toString())}
-                    className="px-2.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 text-slate-800 dark:text-slate-200 transition-all cursor-pointer active:scale-95 shadow-sm"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Change / Kembalian Calculation */}
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                  Uang Kembalian:
-                </span>
-                <span className={`text-base font-black font-mono ${
-                  changeAmount > 0
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : isCashSufficient
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-rose-500'
-                }`}>
-                  {isCashSufficient ? formatPrice(changeAmount) : 'Uang Kurang!'}
-                </span>
-              </div>
-
+            <div className="space-y-2">
+              <PosCashTenderForm
+                authoritativeQuote={authoritativeQuote}
+                posCashGiven={posCashGiven}
+                setPosCashGiven={setPosCashGiven}
+                grandTotal={payableAmount}
+              />
               {!isCashSufficient && cashGivenNum > 0 && (
                 <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-2 animate-fadeIn">
-                  <div className="text-[11px] text-rose-500 font-medium">
-                    Kurang <span className="font-bold font-mono">{formatPrice(payableAmount - cashGivenNum)}</span>
+                  <div className="text-[11px] text-rose-500 font-medium flex items-center gap-1">
+                    <span className="font-bold">Uang Kurang!</span>
+                    <span>(Kurang <span className="font-bold font-mono">{formatPrice(payableAmount - cashGivenNum)}</span>)</span>
                   </div>
                   <button
                     type="button"
@@ -274,51 +332,33 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
           )}
 
           {posPayMethod === 'qris' && (
-            <div className="bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/50 rounded-2xl p-4 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 mx-auto flex items-center justify-center text-xl font-bold">
-                📱
-              </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                QRIS Dinamis Otomatis
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
-                Setelah tombol ditekan, kode QRIS resmi akan tampil untuk discan oleh pelanggan (BCA/GoPay/OVO/ShopeePay).
-              </p>
-            </div>
+            <PosQrisTenderForm
+              selectedProvider={qrisMetadata?.provider || qrisProvider}
+              setSelectedProvider={handleQrisProviderChange}
+              rrnRefNumber={qrisMetadata?.rrnRefNumber ?? rrnRefNumber}
+              setRrnRefNumber={handleRrnChange}
+              senderName={qrisMetadata?.senderName ?? senderName}
+              setSenderName={handleSenderNameChange}
+            />
           )}
 
           {(posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (
-            <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                    Bank EDC:
-                  </label>
-                  <select
-                    value={selectedBank}
-                    onChange={(e) => setSelectedBank(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white"
-                  >
-                    <option value="BCA">BCA EDC</option>
-                    <option value="Mandiri">Mandiri EDC</option>
-                    <option value="BRI">BRI EDC</option>
-                    <option value="BNI">BNI EDC</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                    Approval Code EDC:
-                  </label>
-                  <input
-                    type="text"
-                    value={approvalCode}
-                    onChange={(e) => setApprovalCode(e.target.value)}
-                    placeholder="APPR-1234"
-                    className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
+            <PosCardTenderForm
+              posPayMethod={posPayMethod}
+              internalCardType={internalCardType}
+              selectedBank={selectedBank}
+              cardPrefix={cardPrefix}
+              cardLast4={cardLast4}
+              cardNetwork={cardNetwork}
+              approvalCode={approvalCode}
+              cardMode={enabledPaymentMethods.cardMode}
+              setInternalCardType={setInternalCardType}
+              setPosPayMethod={setPosPayMethod}
+              setSelectedBank={setSelectedBank}
+              onCardPrefixChange={(val) => setCardPrefix(val.replace(/\D/g, '').slice(0, 8))}
+              onCardLast4Change={(val) => setCardLast4(val.replace(/\D/g, '').slice(0, 4))}
+              setApprovalCode={setApprovalCode}
+            />
           )}
         </div>
 
@@ -337,16 +377,31 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
             variant="emerald"
             size="lg"
             onClick={() => {
-              if (isCashSufficient) {
+              const isCurrentTenderEligible =
+                posPayMethod === 'cash' ? (enabledPaymentMethods.cash && isTenderEligible('cash')) :
+                posPayMethod === 'qris' ? (enabledPaymentMethods.qris && isTenderEligible('qris')) :
+                (posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') ? (enabledPaymentMethods.card && isCardEligible) :
+                true
+
+              if (isCashSufficient && !isCardMismatch && isCurrentTenderEligible) {
                 onConfirmSettlement()
                 onClose()
               }
             }}
-            disabled={!isCashSufficient || isSubmitting}
+            disabled={
+              !isCashSufficient ||
+              isSubmitting ||
+              isCardMismatch ||
+              (posPayMethod === 'cash' && (!enabledPaymentMethods.cash || !isTenderEligible('cash'))) ||
+              (posPayMethod === 'qris' && (!enabledPaymentMethods.qris || !isTenderEligible('qris'))) ||
+              ((posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (!enabledPaymentMethods.card || !isCardEligible))
+            }
             className="rounded-2xl font-black text-xs sm:text-sm px-6 shadow-xl flex items-center gap-2"
           >
             {isSubmitting ? (
               <span>Memproses Pembayaran...</span>
+            ) : isCardMismatch ? (
+              <span>Kartu Tidak Sesuai Kebijakan Toko</span>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4 text-slate-950 shrink-0" />

@@ -15,6 +15,29 @@ import {
   ToGrowAccountProfile,
 } from '../services/hfeAuthApi'
 import { completeSocialSignIn } from '../services/toGrowSocialSignIn'
+import {
+  isConnectedFirstPartyRuntime,
+  requiredRuntimeUuid,
+  requiredRuntimeValue,
+} from '../config/firstPartyRuntime'
+
+function localConnectedOperator(): { token: string; user: StaffUserSession } | null {
+  if (!isConnectedFirstPartyRuntime()) return null
+  const token = import.meta.env.VITE_HFE_BEARER_TOKEN?.trim()
+  const principal = import.meta.env.VITE_HFE_CASHIER_PRINCIPAL_ID?.trim()
+  if (!token || !principal) return null
+  return {
+    token,
+    user: {
+      user_id: requiredRuntimeUuid('VITE_HFE_CASHIER_PRINCIPAL_ID'),
+      name: 'Local cashier',
+      role: 'cashier',
+      branch_id: requiredRuntimeValue('VITE_HFE_BRANCH_ID'),
+      token,
+      authority_context_id: requiredRuntimeUuid('VITE_HFE_AUTHORITY_CONTEXT_ID'),
+    },
+  }
+}
 
 const AUTH_TOKEN_KEY = 'hfe_pos_auth_token'
 const AUTH_USER_KEY = 'hfe_pos_auth_user'
@@ -55,7 +78,7 @@ export function usePosAuth() {
         }
       }
     }
-    return null
+    return localConnectedOperator()?.user ?? null
   })
 
   const [toGrowUser, setToGrowUser] = useState<ToGrowAccountProfile | null>(() => {
@@ -74,9 +97,10 @@ export function usePosAuth() {
 
   const [authToken, setAuthToken] = useState<string | null>(() => {
     if (typeof sessionStorage !== 'undefined') {
-      return sessionStorage.getItem(AUTH_TOKEN_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null)
+      const saved = sessionStorage.getItem(AUTH_TOKEN_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null)
+      if (saved) return saved
     }
-    return null
+    return localConnectedOperator()?.token ?? null
   })
 
   const [firstPartySession, setFirstPartySession] = useState<FirstPartyIdentitySession | null>(() => {

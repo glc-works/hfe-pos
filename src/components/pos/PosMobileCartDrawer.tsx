@@ -1,6 +1,7 @@
 import React from 'react'
 import { ShoppingBag, X, UtensilsCrossed, ChevronDown, Bike } from 'lucide-react'
-import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode } from '../../types/pos'
+import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, QrisTenderMetadata } from '../../types/pos'
+import { CustomerContact } from '../../hooks/useCustomerContacts'
 import { PosCartSection } from './PosCartSection'
 import { useTranslation } from '../../context/LanguageContext'
 import { IconButton } from '@/ui'
@@ -19,6 +20,11 @@ export interface PosMobileCartDrawerProps {
   grandTotal: number
   packagingFee?: number
   fulfillmentMode?: OrderFulfillmentMode
+  selectedCustomer?: CustomerContact | null
+  onOpenCustomerPicker?: () => void
+  onClearCustomer?: () => void
+  qrisMetadata?: QrisTenderMetadata
+  setQrisMetadata?: (meta: QrisTenderMetadata) => void
   authoritativeQuote?: ReviewedPosQuote | null
   checkoutPhase?: GovernedCheckoutPhase
   onClose: () => void
@@ -44,6 +50,11 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
   grandTotal,
   packagingFee = 0,
   fulfillmentMode = 'dine_in',
+  selectedCustomer,
+  onOpenCustomerPicker,
+  onClearCustomer,
+  qrisMetadata,
+  setQrisMetadata,
   authoritativeQuote,
   checkoutPhase,
   onClose,
@@ -132,6 +143,11 @@ export const PosMobileCartDrawer: React.FC<PosMobileCartDrawerProps> = ({
             grandTotal={grandTotal}
             packagingFee={packagingFee}
             fulfillmentMode={fulfillmentMode}
+            selectedCustomer={selectedCustomer}
+            onOpenCustomerPicker={onOpenCustomerPicker}
+            onClearCustomer={onClearCustomer}
+            qrisMetadata={qrisMetadata}
+            setQrisMetadata={setQrisMetadata}
             authoritativeQuote={authoritativeQuote}
             checkoutPhase={checkoutPhase}
             setPosPayMethod={setPosPayMethod}

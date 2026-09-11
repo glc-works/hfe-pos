@@ -15,6 +15,7 @@ export interface CardBinInfo {
   formattedLabel: string
   badgeColor: string
   brandColor: string
+  isExactMatch: boolean
 }
 
 interface BinEntry {
@@ -120,7 +121,8 @@ export function identifyCardBin(rawInput: string): CardBinInfo {
           countryCode: entry.countryCode,
           formattedLabel: `${entry.bankName} ${entry.cardTier}`,
           badgeColor: entry.cardType === 'credit' ? 'bg-indigo-500' : 'bg-emerald-500',
-          brandColor: entry.brandColor
+          brandColor: entry.brandColor,
+          isExactMatch: true
         }
       }
     }
@@ -174,6 +176,7 @@ export function identifyCardBin(rawInput: string): CardBinInfo {
     countryCode: 'GLOBAL',
     formattedLabel: `${defaultBank} • ${network.toUpperCase()}`,
     badgeColor: cardType === 'credit' ? 'bg-indigo-500' : 'bg-emerald-500',
-    brandColor: '#4F46E5'
+    brandColor: '#4F46E5',
+    isExactMatch: false
   }
 }
