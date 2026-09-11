@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import { X, DollarSign, ArrowUpRight, Calculator, Printer, CheckCircle2, AlertTriangle, ShieldCheck, Lock, Banknote, Coins, FlaskConical } from 'lucide-react'
+import { X, DollarSign, ArrowUpRight, Calculator, Printer, CheckCircle2, AlertTriangle, ShieldCheck, Lock, Banknote, Coins } from 'lucide-react'
 import { reconcileShift, ReconcileShiftResponse } from '../../services/hfeWorkflowsApi'
-import { ShiftClosingBomSummary } from './ShiftClosingBomSummary'
 
 interface ShiftDrawerModalProps {
   isOpen: boolean
@@ -31,7 +30,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
   userRole = 'owner',
   onReconciled,
 }) => {
-  const [activeTab, setActiveTab] = useState<'float' | 'cash_out' | 'reconcile' | 'bom_margin'>('reconcile')
+  const [activeTab, setActiveTab] = useState<'float' | 'cash_out' | 'reconcile'>('reconcile')
   const [currentMode, setCurrentMode] = useState<'solo' | 'team'>(
     userRole === 'cashier' || userRole === 'barista' ? 'team' : operationalMode
   )
@@ -155,11 +154,10 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
         </div>
 
         {/* TAB NAVIGATION */}
-        <div className="grid grid-cols-4 bg-muted p-1 rounded-xl border border-border text-[11px] font-semibold">
+        <div className="grid grid-cols-3 bg-muted p-1 rounded-xl border border-border text-[11px] font-semibold">
           <button type="button" onClick={() => setActiveTab('float')} className={`py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === 'float' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Float</button>
           <button type="button" onClick={() => setActiveTab('cash_out')} className={`py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === 'cash_out' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Kas Kecil ({cashOutList.length})</button>
           <button type="button" onClick={() => setActiveTab('reconcile')} className={`py-1.5 rounded-lg transition-all cursor-pointer ${activeTab === 'reconcile' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>Z-Report</button>
-          <button type="button" onClick={() => setActiveTab('bom_margin')} className={`py-1.5 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${activeTab === 'bom_margin' ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}><FlaskConical className="w-3 h-3" /> BoM &amp; Margin</button>
         </div>
 
         {/* TAB 1: FLOAT AWAL */}
@@ -401,32 +399,7 @@ export const ShiftDrawerModal: React.FC<ShiftDrawerModalProps> = ({
                 </div>
               </div>
             )}
-
-            {/* Realtime BoM Preview Quick Link */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('bom_margin')}
-              className="p-2 bg-muted/40 hover:bg-muted/70 border border-border/80 rounded-2xl flex items-center justify-between text-xs transition-colors cursor-pointer text-left"
-            >
-              <div className="flex items-center gap-2">
-                <FlaskConical className="w-4 h-4 text-amber-500 shrink-0" />
-                <div>
-                  <span className="font-bold text-[11px] text-foreground block">🧪 Cek Estimasi HPP BoM &amp; Margin Laba</span>
-                  <span className="text-[10px] text-muted-foreground">Hitung konsumsi bahan baku teoritis &amp; komisi ojol 20%</span>
-                </div>
-              </div>
-              <span className="text-[11px] font-bold text-amber-500 shrink-0">Buka ➔</span>
-            </button>
           </div>
-        )}
-
-        {/* TAB 4: BOM & MARGIN SUMMARY */}
-        {activeTab === 'bom_margin' && (
-          <ShiftClosingBomSummary
-            cashVariance={numericPhysicalCount > 0 ? variance : 0}
-            totalGrossSales={totalCashSales + 398000}
-            cashSales={totalCashSales}
-          />
         )}
 
         {reconcileResult && (
