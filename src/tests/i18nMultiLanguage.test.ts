@@ -22,8 +22,8 @@ describe('i18n & Multi-Language Localization Engine', () => {
     expect(translations.id.pos.skuCatalog).toContain('Katalog Menu')
     expect(translations.en.pos.skuCatalog).toContain('Menu Catalog')
 
-    expect(translations.id.cart.cashierCart).toBe('Keranjang Kasir')
-    expect(translations.en.cart.cashierCart).toBe('Cashier Cart')
+    expect(translations.id.cart.cashierCart).toBe('Keranjang')
+    expect(translations.en.cart.cashierCart).toBe('Cart')
 
     expect(translations.id.cart.exactCash).toBe('Uang Pas')
     expect(translations.en.cart.exactCash).toBe('Exact Cash')

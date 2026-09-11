@@ -65,7 +65,7 @@ export const enTranslations: TranslationDictionary = {
     minSpendLabel: 'Min Spend'
   },
   cart: {
-    cashierCart: 'Cashier Cart',
+    cashierCart: 'Cart',
     emptyCartTitle: 'No items selected yet.',
     subtotal: 'Subtotal',
     pb1Tax: 'PB1 Tax (10%)',

@@ -108,24 +108,11 @@ export const PosCartSection: React.FC<PosCartSectionProps> = ({
           <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <ShoppingBag className="w-4 h-4 text-indigo-500 dark:text-indigo-400" /> {t.cart.cashierCart}
           </h3>
-          <div className="flex items-center gap-2">
-            {onSwitchToCatalog && (
-              <button
-                type="button"
-                onClick={onSwitchToCatalog}
-                className="text-[11px] font-bold text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 bg-amber-100 dark:bg-amber-500/10 hover:bg-amber-200 dark:hover:bg-amber-500/20 border border-amber-300 dark:border-amber-500/30 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
-                title="Tambah Menu ke Keranjang"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>{t.cart.addMoreMenu}</span>
-              </button>
-            )}
-            {selectedPOSTable && fulfillmentMode === 'dine_in' && (
-              <span className="text-xs font-mono font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-300 dark:border-amber-500/30">
-                {selectedPOSTable.name}
-              </span>
-            )}
-          </div>
+          {selectedPOSTable && fulfillmentMode === 'dine_in' && (
+            <span className="text-xs font-mono font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-xl border border-amber-300 dark:border-amber-500/30">
+              {selectedPOSTable.name}
+            </span>
+          )}
         </div>
       )}
 

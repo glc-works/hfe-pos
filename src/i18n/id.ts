@@ -65,7 +65,7 @@ export const idTranslations: TranslationDictionary = {
     minSpendLabel: 'Min Belanja'
   },
   cart: {
-    cashierCart: 'Keranjang Kasir',
+    cashierCart: 'Keranjang',
     emptyCartTitle: 'Belum ada item dipilih.',
     subtotal: 'Subtotal',
     pb1Tax: 'PB1 Tax (10%)',
