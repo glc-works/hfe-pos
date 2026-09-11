@@ -471,7 +471,7 @@ export const UnifiedPosView: React.FC<UnifiedPosViewProps> = ({
         setShowPaymentSettlementModal={setShowPaymentSettlementModal} cartItems={activeTableCartItems}
         fulfillmentMode={fulfillmentMode} posPayMethod={posPayMethod} setPosPayMethod={setPosPayMethod}
         posCashGiven={posCashGiven} setPosCashGiven={setPosCashGiven} packagingFee={packagingFee}
-        qrisMetadata={qrisMetadata} setQrisMetadata={setQrisMetadata}
+        qrisMetadata={qrisMetadata} setQrisMetadata={setQrisMetadata} selectedCustomer={selectedCustomer}
         authoritativeQuote={authoritativeQuote} checkoutPhase={checkoutPhase} onConfirmSettlement={handleCheckoutAction}
       />
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import {
   X, Banknote, QrCode, CreditCard, Building2, CheckCircle2,
-  Calculator, Sparkles, ArrowRight, RotateCcw, AlertTriangle, ShieldCheck
+  Calculator, Sparkles, ArrowRight, RotateCcw, AlertTriangle, ShieldCheck, Crown
 } from 'lucide-react'
 import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, CardTenderMetadata, QrisTenderMetadata } from '../../types/pos'
+import type { CustomerContact } from '../../hooks/useCustomerContacts'
 import { useTranslation } from '../../context/LanguageContext'
 import { Button, PriceTag } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
@@ -34,6 +35,7 @@ export interface PosPaymentSettlementModalProps {
   onOpenSplitPaymentModal?: () => void
   qrisMetadata?: QrisTenderMetadata
   setQrisMetadata?: (meta: QrisTenderMetadata) => void
+  selectedCustomer?: CustomerContact | null
 }
 
 export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps> = ({
@@ -56,7 +58,8 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   onOpenRoomChargeModal,
   onOpenSplitPaymentModal,
   qrisMetadata,
-  setQrisMetadata
+  setQrisMetadata,
+  selectedCustomer
 }) => {
   const { t, formatPrice, language } = useTranslation()
 
@@ -119,11 +122,18 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
               💳
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                Konfirmasi Pembayaran Kasir
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                <span>Konfirmasi Pembayaran Kasir</span>
                 {selectedTable && (
                   <span className="text-xs px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono font-bold">
                     Meja {selectedTable.name}
+                  </span>
+                )}
+                {selectedCustomer && (
+                  <span className="text-xs px-2 py-0.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-bold flex items-center gap-1">
+                    <Crown className="w-3 h-3 text-amber-500 shrink-0" />
+                    <span>{selectedCustomer.name}</span>
+                    <span className="font-mono text-[10px] uppercase opacity-80">({selectedCustomer.tier})</span>
                   </span>
                 )}
               </h3>

@@ -16,8 +16,10 @@ import { SupportFeedbackModal } from '../support/SupportFeedbackModal'
 import { PosPaymentSettlementModal } from './PosPaymentSettlementModal'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
+import type { CustomerContact } from '../../hooks/useCustomerContacts'
 
 export interface UnifiedPosModalsClusterProps {
+  selectedCustomer?: CustomerContact | null
   showCameraScanner: boolean
   setShowCameraScanner: (show: boolean) => void
   handleScanSuccess: (barcode: string) => void
@@ -92,6 +94,7 @@ export interface UnifiedPosModalsClusterProps {
 }
 
 export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = ({
+  selectedCustomer,
   showCameraScanner,
   setShowCameraScanner,
   handleScanSuccess,
@@ -310,6 +313,7 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
       <PosPaymentSettlementModal
         show={showPaymentSettlementModal}
         onClose={() => setShowPaymentSettlementModal?.(false)}
+        selectedCustomer={selectedCustomer}
         items={cartItems}
         selectedTable={selectedPOSTable}
         subtotal={subtotal}

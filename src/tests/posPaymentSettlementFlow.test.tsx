@@ -113,4 +113,44 @@ describe('POS Payment Settlement Modal Flow (Toast / Square Benchmark)', () => {
     expect(html).toContain('123456789012')
     expect(html).toContain('Budi')
   })
+
+  it('renders selected customer member badge in modal header when member is attached', () => {
+    const mockMember = {
+      id: 'cust-aldi',
+      name: 'Aldi Pratama',
+      phone: '081234567890',
+      tier: 'gold' as const,
+      points: 1500,
+      totalVisits: 12,
+      lastVisitDate: '2026-09-10'
+    }
+
+    const html = renderToStaticMarkup(
+      <LanguageProvider>
+        <MerchantConfigProvider>
+          <PosPaymentSettlementModal
+            show={true}
+            onClose={vi.fn()}
+            items={sampleItems as any}
+            selectedTable={{ id: 'out-04', name: 'OUT-04', status: 'occupied', seats: 4 } as any}
+            selectedCustomer={mockMember as any}
+            subtotal={84000}
+            pb1Tax={8400}
+            grandTotal={92400}
+            fulfillmentMode="dine_in"
+            posPayMethod="cash"
+            setPosPayMethod={vi.fn()}
+            posCashGiven="100000"
+            setPosCashGiven={vi.fn()}
+            onConfirmSettlement={vi.fn()}
+          />
+        </MerchantConfigProvider>
+      </LanguageProvider>
+    )
+
+    expect(html).toContain('Aldi Pratama')
+    expect(html).toContain('gold')
+    expect(html).toContain('Meja OUT-04')
+  })
 })
+
