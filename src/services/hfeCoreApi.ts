@@ -1,6 +1,6 @@
 // --- HFE REST API TRANSPORT LAYER & OFFLINE BUFFER SERVICE (CORE) ---
+import type { QrisGenerateResponse } from '@hfe/sdk'
 import { MenuItem, TeamMember, InviteStaffPayload } from '../types/pos'
-import { PRODUCT_CATALOG } from '../data/mockData'
 
 const DEFAULT_BASE_URL = 'http://localhost:8080'
 const DB_NAME = 'HfePosOfflineBufferDB'
@@ -57,12 +57,13 @@ export interface SubmitTransactionResponse {
   idempotency_key: string
 }
 
-export interface QrisResponse {
-  payment_id: string
-  qris_string: string
-  qr_image_url: string
-  expires_at: string
-}
+/**
+ * QRIS generate response, consumed from the generated HCB OpenAPI SDK
+ * (`@hfe/sdk` QrisGenerateResponse — exact field-for-field match with the
+ * former hand-declared interface: payment_id, qris_string, qr_image_url,
+ * expires_at).
+ */
+export type QrisResponse = QrisGenerateResponse
 
 export interface BumpKdsOrderResponse {
   order_id: string
@@ -163,14 +164,22 @@ export async function saveToOfflineBuffer(payload: SubmitTransactionPayload): Pr
 
 // --- REST CLIENT IMPLEMENTATIONS ---
 
-/** GET /v1/company-books/{book}/products */
-export async function fetchProductCatalog(bookId = 'BOOK-CAFE-HQ-88', baseUrl = DEFAULT_BASE_URL): Promise<MenuItem[]> {
+/**
+ * GET /v1/company-books/{book}/products
+ * The transport layer owns no demo data: in offline/demo contexts the caller
+ * supplies its own fallback catalog (e.g. PRODUCT_CATALOG from the UI layer).
+ */
+export async function fetchProductCatalog(
+  bookId = 'BOOK-CAFE-HQ-88',
+  baseUrl = DEFAULT_BASE_URL,
+  offlineFallbackCatalog?: MenuItem[]
+): Promise<MenuItem[]> {
   try {
     const response = await fetch(`${baseUrl}/v1/company-books/${bookId}/products`)
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
-    return PRODUCT_CATALOG
+    return offlineFallbackCatalog ?? []
   }
 }
 
