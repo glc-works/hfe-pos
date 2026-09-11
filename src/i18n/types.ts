@@ -72,6 +72,10 @@ export interface TranslationDictionary {
     totalBill: string
     payCash: string
     payQris: string
+    qrisIssuerLabel: string
+    qrisRrnLabel: string
+    qrisRrnPlaceholder: string
+    qrisRrnHelper: string
     payCard: string
     payCc: string
     payDebit: string

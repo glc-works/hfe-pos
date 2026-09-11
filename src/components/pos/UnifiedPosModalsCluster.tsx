@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { TableStatus, MenuItem, StaffSurfaceMode, CartItem, OrderFulfillmentMode, PosPayMethod } from '../../types/pos'
+import { TableStatus, MenuItem, StaffSurfaceMode, CartItem, OrderFulfillmentMode, PosPayMethod, QrisTenderMetadata } from '../../types/pos'
 import { CashierCameraScannerModal } from './CashierCameraScannerModal'
 import { DirectQtyInputModal } from './DirectQtyInputModal'
 import { TableOpsModal } from '../tables/TableOpsModal'
@@ -84,6 +84,8 @@ export interface UnifiedPosModalsClusterProps {
   posCashGiven?: string
   setPosCashGiven?: (val: string) => void
   packagingFee?: number
+  qrisMetadata?: QrisTenderMetadata
+  setQrisMetadata?: (meta: QrisTenderMetadata) => void
   authoritativeQuote?: ReviewedPosQuote | null
   checkoutPhase?: GovernedCheckoutPhase
   onConfirmSettlement?: () => Promise<void> | void
@@ -147,6 +149,8 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
   posCashGiven = '',
   setPosCashGiven = () => {},
   packagingFee = 0,
+  qrisMetadata,
+  setQrisMetadata,
   authoritativeQuote,
   checkoutPhase,
   onConfirmSettlement = () => {}
@@ -322,6 +326,8 @@ export const UnifiedPosModalsCluster: React.FC<UnifiedPosModalsClusterProps> = (
         onConfirmSettlement={onConfirmSettlement}
         onOpenRoomChargeModal={() => setShowRoomChargeModal(true)}
         onOpenSplitPaymentModal={() => setShowTableOpsModal(true)}
+        qrisMetadata={qrisMetadata}
+        setQrisMetadata={setQrisMetadata}
       />
     </>
   )

@@ -3,12 +3,13 @@ import {
   X, Banknote, QrCode, CreditCard, Building2, CheckCircle2,
   Calculator, Sparkles, ArrowRight, RotateCcw, AlertTriangle, ShieldCheck
 } from 'lucide-react'
-import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, CardTenderMetadata } from '../../types/pos'
+import { CartItem, TableStatus, PosPayMethod, OrderFulfillmentMode, CardTenderMetadata, QrisTenderMetadata } from '../../types/pos'
 import { useTranslation } from '../../context/LanguageContext'
 import { Button, PriceTag } from '@/ui'
 import type { ReviewedPosQuote } from '../../services/financial'
 import type { GovernedCheckoutPhase } from '../../hooks/useCafeSettlement'
 import { formatExactMinorCurrency } from '../../utils/localeNumberFormat'
+import { PosQrisTenderForm } from './PosQrisTenderForm'
 
 export interface PosPaymentSettlementModalProps {
   show: boolean
@@ -29,6 +30,8 @@ export interface PosPaymentSettlementModalProps {
   onConfirmSettlement: () => Promise<void> | void
   onOpenRoomChargeModal?: () => void
   onOpenSplitPaymentModal?: () => void
+  qrisMetadata?: QrisTenderMetadata
+  setQrisMetadata?: (meta: QrisTenderMetadata) => void
 }
 
 export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps> = ({
@@ -49,7 +52,9 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   checkoutPhase,
   onConfirmSettlement,
   onOpenRoomChargeModal,
-  onOpenSplitPaymentModal
+  onOpenSplitPaymentModal,
+  qrisMetadata,
+  setQrisMetadata
 }) => {
   const { t, formatPrice, language } = useTranslation()
 
@@ -61,6 +66,23 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
   const [cardPrefix, setCardPrefix] = useState<string>('45563321')
   const [cardLast4, setCardLast4] = useState<string>('9876')
   const [approvalCode, setApprovalCode] = useState<string>('APPR-8899')
+
+  const [qrisProvider, setQrisProvider] = useState<string>(qrisMetadata?.provider || 'BCA')
+  const [rrnRefNumber, setRrnRefNumber] = useState<string>(qrisMetadata?.rrnRefNumber || '')
+  const [senderName, setSenderName] = useState<string>(qrisMetadata?.senderName || '')
+
+  const handleQrisProviderChange = (prov: string) => {
+    setQrisProvider(prov)
+    setQrisMetadata?.({ provider: prov, rrnRefNumber, senderName })
+  }
+  const handleRrnChange = (rrn: string) => {
+    setRrnRefNumber(rrn)
+    setQrisMetadata?.({ provider: qrisProvider, rrnRefNumber: rrn, senderName })
+  }
+  const handleSenderNameChange = (name: string) => {
+    setSenderName(name)
+    setQrisMetadata?.({ provider: qrisProvider, rrnRefNumber, senderName: name })
+  }
 
   // Auto-default cash given to exact amount on open if empty
   useEffect(() => {
@@ -274,17 +296,14 @@ export const PosPaymentSettlementModal: React.FC<PosPaymentSettlementModalProps>
           )}
 
           {posPayMethod === 'qris' && (
-            <div className="bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/50 rounded-2xl p-4 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 mx-auto flex items-center justify-center text-xl font-bold">
-                📱
-              </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                QRIS Dinamis Otomatis
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
-                Setelah tombol ditekan, kode QRIS resmi akan tampil untuk discan oleh pelanggan (BCA/GoPay/OVO/ShopeePay).
-              </p>
-            </div>
+            <PosQrisTenderForm
+              selectedProvider={qrisMetadata?.provider || qrisProvider}
+              setSelectedProvider={handleQrisProviderChange}
+              rrnRefNumber={qrisMetadata?.rrnRefNumber ?? rrnRefNumber}
+              setRrnRefNumber={handleRrnChange}
+              senderName={qrisMetadata?.senderName ?? senderName}
+              setSenderName={handleSenderNameChange}
+            />
           )}
 
           {(posPayMethod === 'card' || posPayMethod === 'cc' || posPayMethod === 'debit') && (

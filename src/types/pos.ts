@@ -27,6 +27,12 @@ export interface CardTenderMetadata {
   approvalCode?: string
 }
 
+export interface QrisTenderMetadata {
+  provider?: 'bca' | 'mandiri' | 'gopay' | 'ovo' | 'shopeepay' | 'dana' | 'other' | string
+  rrnRefNumber?: string
+  senderName?: string
+}
+
 export interface TableReservation {
   id: string; customerName: string; phone: string; tableArea: string; paxCount: number
   reservationDate: string; timeSlot: string; dpAmount: number; dpStatus: 'unpaid' | 'paid_qris'
@@ -402,39 +408,19 @@ export interface OperationScalePolicy {
 }
 
 export interface OnboardingData {
-  businessType: BusinessType
-  operationScale: OperationScale
-  cluster?: BusinessCluster
-  migrationSource?: MigrationSource
-  migrationFileName?: string
-  country?: SupportedCountry
-  currency?: SupportedCurrency
-  capacityScale?: string
-  brandName: string
-  logoUrl: string
-  address: string
-  instagram: string
-  whatsappOrder: string
-  wifiSsid: string
-  wifiPassword: string
-  wifiAccessPolicy?: WifiAccessPolicy
-  pb1TaxMode: PB1TaxMode
-  initialKasFloat: number
-  tenancyUuid?: string
+  businessType: BusinessType; operationScale: OperationScale; cluster?: BusinessCluster
+  migrationSource?: MigrationSource; migrationFileName?: string; country?: SupportedCountry
+  currency?: SupportedCurrency; capacityScale?: string; brandName: string; logoUrl: string
+  address: string; instagram: string; whatsappOrder: string; wifiSsid: string; wifiPassword: string
+  wifiAccessPolicy?: WifiAccessPolicy; pb1TaxMode: PB1TaxMode; initialKasFloat: number; tenancyUuid?: string
 }
 
 // --- TEAM MEMBERSHIP & RBAC TYPES ---
 export type StaffRole = 'owner' | 'store_manager' | 'cashier' | 'barista' | 'chef' | 'waiter' | 'checker_qc' | 'sommelier' | 'courier' | 'warehouse_keeper'
 
 export interface TeamMember {
-  id: string
-  name: string
-  contact: string
-  role: StaffRole
-  status: 'active' | 'pending_invite'
-  pinCode: string
-  invitedAt: string
-  activatedAt?: string
+  id: string; name: string; contact: string; role: StaffRole
+  status: 'active' | 'pending_invite'; pinCode: string; invitedAt: string; activatedAt?: string
 }
 
 // --- EVENT TICKETING & WORKSHOP CLASS BOOKING TYPES ---
