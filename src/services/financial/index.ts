@@ -1,5 +1,6 @@
 // --- HFE POS FINANCIAL PORT EXPORTS & FACTORY RESOLVER (POS-ENG-STD-001) ---
 
+import { isConnectedFirstPartyRuntime } from '../../config/firstPartyRuntime'
 import { HfePosFinancialPort } from './HfePosFinancialPort'
 import { HfeSdkAdapter, HfeSdkAdapterOptions } from './HfeSdkAdapter'
 import { MockHfeAdapter } from './MockHfeAdapter'
@@ -20,6 +21,9 @@ export interface FinancialPortFactoryOptions extends HfeSdkAdapterOptions {
 let sharedFinancialPortInstance: HfePosFinancialPort | null = null
 
 export function isMockModeForced(): boolean {
+  if (isConnectedFirstPartyRuntime()) {
+    return false
+  }
   // In production builds, forcing mock mode via browser globals or localStorage is strictly forbidden
   if (!import.meta.env.DEV) {
     return false
@@ -35,6 +39,10 @@ export function isMockModeForced(): boolean {
 
 export function createFinancialPort(options?: FinancialPortFactoryOptions): HfePosFinancialPort {
   const mode = options?.mode || 'auto'
+
+  if (isConnectedFirstPartyRuntime() && mode === 'mock') {
+    throw new Error('Connected first-party runtime refuses the mock financial port.')
+  }
 
   if (mode === 'mock') {
     return new MockHfeAdapter()

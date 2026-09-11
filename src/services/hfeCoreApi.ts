@@ -1,6 +1,13 @@
 // --- HFE REST API TRANSPORT LAYER & OFFLINE BUFFER SERVICE (CORE) ---
+import { isConnectedFirstPartyRuntime } from '../config/firstPartyRuntime'
 import { MenuItem, TeamMember, InviteStaffPayload } from '../types/pos'
 import { PRODUCT_CATALOG } from '../data/mockData'
+
+function refuseSilentMock(operation: string): void {
+  if (isConnectedFirstPartyRuntime()) {
+    throw new Error(`Hfe Core ${operation} failed. Connected runtime refuses silent mocks.`)
+  }
+}
 
 const DEFAULT_BASE_URL = 'http://localhost:8080'
 const DB_NAME = 'HfePosOfflineBufferDB'
@@ -170,6 +177,7 @@ export async function fetchProductCatalog(bookId = 'BOOK-CAFE-HQ-88', baseUrl = 
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('fetchProductCatalog')
     return PRODUCT_CATALOG
   }
 }
@@ -192,6 +200,7 @@ export async function resolveContact(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('resolveContact')
     return {
       contact_id: phone ? `CUST-${phone}` : `CUST-GUEST-${name || '01'}`,
       loyalty_tier: 'Gold',
@@ -220,6 +229,7 @@ export async function submitTransaction(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('submitTransaction')
     await saveToOfflineBuffer({ ...payload, idempotency_key: idempotencyKey })
     return {
       tx_id: `TX-OFFLINE-${Date.now()}`,
@@ -274,6 +284,7 @@ export async function generateQris(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('generateQris')
     return {
       payment_id: `PAY-QRIS-${txId}`,
       qris_string: '00020101021226670016ID.CO.QRIS.WWW.HFE.TOGROW.ID.MNO0102030405065204581253033605802ID5915Artisan Cafe HQ6007Jakarta61051211062070703A0163041234',
@@ -300,6 +311,7 @@ export async function bumpKdsOrder(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('bumpKdsOrder')
     return { order_id: orderId, status, bumped_at: new Date().toISOString() }
   }
 }
@@ -333,6 +345,7 @@ export async function lookupBarcode(
       uom: data.uom || 'Pcs',
     }
   } catch {
+    refuseSilentMock('lookupBarcode')
     const MOCK_BARCODES: Record<string, BarcodeLookupResponse> = {
       '8999901': { barcode: '8999901', productId: 'RET-001', product_id: 'RET-001', name: 'Minyak Goreng Rose Brand 1L', category: 'Sembako', retailPrice: 22000, retail_price: 22000, wholesalePrice: 19500, wholesale_price: 19500, wholesaleMinQty: 40, wholesale_min_qty: 40, uom: 'Karton', stockLevel: 120, stock_level: 120 },
       '8999902': { barcode: '8999902', productId: 'RET-002', product_id: 'RET-002', name: 'Beras Pandan Wangi 5kg', category: 'Sembako', retailPrice: 78000, retail_price: 78000, wholesalePrice: 72000, wholesale_price: 72000, wholesaleMinQty: 10, wholesale_min_qty: 10, uom: 'Pack', stockLevel: 45, stock_level: 45 },
@@ -358,6 +371,7 @@ export async function saveStoreSettings(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('saveStoreSettings')
     return { success: true, updated_at: new Date().toISOString() }
   }
 }
@@ -369,6 +383,7 @@ export async function fetchTeamRoster(bookId = 'BOOK-CAFE-HQ-88', baseUrl = DEFA
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('fetchTeamRoster')
     return [
       { id: 'MEM-001', name: 'Budi Santoso', contact: 'owner@artisancafe.id', role: 'owner', status: 'active', pinCode: '123456', invitedAt: '2026-08-01T08:00:00Z', activatedAt: '2026-08-01T08:05:00Z' },
       { id: 'MEM-002', name: 'Siti Rahma', contact: '6281234567890', role: 'cashier', status: 'active', pinCode: '654321', invitedAt: '2026-08-05T09:00:00Z', activatedAt: '2026-08-05T09:10:00Z' },
@@ -392,6 +407,7 @@ export async function sendStaffInvitation(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('sendStaffInvitation')
     return {
       id: `MEM-${Date.now().toString().slice(-4)}`,
       name: payload.name,
@@ -419,6 +435,7 @@ export async function acceptStaffPin(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('acceptStaffPin')
     return { success: true, membership_id: 'MEM-002', role: 'cashier' }
   }
 }
@@ -436,6 +453,7 @@ export async function revokeStaffAccess(
     if (!response.ok) throw new Error(`HTTP error ${response.status}`)
     return await response.json()
   } catch {
+    refuseSilentMock('revokeStaffAccess')
     return { success: true }
   }
 }
