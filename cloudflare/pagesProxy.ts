@@ -15,9 +15,6 @@ export async function proxyFirstPartyRequest(
 
   let origin: URL
   switch (configuredOrigin) {
-    case 'https://account.togrow.id':
-      origin = new URL('https://account.togrow.id')
-      break
     case 'https://prv-api.hfecore.com':
       origin = new URL('https://prv-api.hfecore.com')
       break
