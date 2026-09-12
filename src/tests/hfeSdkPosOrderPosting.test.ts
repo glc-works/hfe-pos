@@ -56,6 +56,7 @@ function response(status: number, body: unknown): Response {
 describe('HfeSdkAdapter canonical POS posting path', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllEnvs()
     durableEvidence = { phase: 'prepared' }
   })
 
@@ -205,6 +206,19 @@ describe('HfeSdkAdapter canonical POS posting path', () => {
     const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
     await expect(adapter.prepareGovernedRetailQuote(governedPayload, context)).rejects.toThrow(/cash.*not eligible/i)
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('refuses processPosRetailOrder in the connected first-party runtime', async () => {
+    vi.stubEnv('VITE_HFE_RUNTIME_MODE', 'connected')
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    const adapter = new HfeSdkAdapter({ baseUrl: 'http://localhost:8080' })
+
+    await expect(adapter.postRetailOrder(payload, context))
+      .rejects.toThrow(/refuses postRetailOrder \(processPosRetailOrder\)/i)
+    await expect(adapter.reconcileRetailOrder(payload, context))
+      .rejects.toThrow(/refuses reconcileRetailOrder \(processPosRetailOrder\)/i)
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('rejects non-cash tenders before creating a CORE POS order', async () => {
